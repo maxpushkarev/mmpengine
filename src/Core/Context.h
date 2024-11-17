@@ -3,16 +3,24 @@
 
 namespace MMPEngine::Core
 {
+	struct AppContextSettings final
+	{
+		bool isDebug;
+		BackendType backend;
+	};
+
 	class AppContext
 	{
 	public:
-		AppContext();
+		AppContext(const AppContextSettings&);
 		AppContext(const AppContext&) = delete;
 		AppContext(AppContext&&) noexcept = delete;
 		AppContext& operator=(const AppContext&) = delete;
 		AppContext& operator=(AppContext&&) noexcept = delete;
 		virtual ~AppContext();
 
-		Vector2Uint WindowSize;
+		const AppContextSettings baseSettings;
+		Vector2Uint windowSize;
+		const PlatformType platform;
 	};
 }
