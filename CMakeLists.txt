@@ -1,37 +1,19 @@
 cmake_minimum_required(VERSION 3.5)
 project(mmpengine VERSION 1.0.0 LANGUAGES C CXX)
 
+set_property(GLOBAL PROPERTY MMPENGINE_CORE_NAME "mmpengine.core")
+set_property(GLOBAL PROPERTY MMPENGINE_FRONTEND_NAME "mmpengine.frontend")
 
-SET(MMPENGINE_CORE_NAME "mmpengine.core")
-SET(MMPENGINE_CORE_NAME "mmpengine.core" PARENT_SCOPE)
+set_property(GLOBAL PROPERTY MMPENGINE_BACKEND_DX12_NAME "mmpengine.backend.dx12")
+set_property(GLOBAL PROPERTY MMPENGINE_BACKEND_VULKAN_NAME "mmpengine.backend.vulkan")
+set_property(GLOBAL PROPERTY MMPENGINE_BACKEND_METAL_NAME "mmpengine.backend.metal")
 
-SET(MMPENGINE_FRONTEND_NAME "mmpengine.frontend")
-SET(MMPENGINE_FRONTEND_NAME "mmpengine.frontend" PARENT_SCOPE)
+set_property(GLOBAL PROPERTY MMPENGINE_DX12_MACRO "MMPENGINE_BACKEND_DX12")
+set_property(GLOBAL PROPERTY MMPENGINE_VULKAN_MACRO "MMPENGINE_BACKEND_VULKAN")
+set_property(GLOBAL PROPERTY MMPENGINE_METAL_MACRO "MMPENGINE_BACKEND_METAL")
 
-SET(MMPENGINE_BACKEND_DX12_NAME "mmpengine.backend.dx12")
-SET(MMPENGINE_BACKEND_DX12_NAME "mmpengine.backend.dx12" PARENT_SCOPE)
-
-SET(MMPENGINE_BACKEND_VULKAN_NAME "mmpengine.backend.vulkan")
-SET(MMPENGINE_BACKEND_VULKAN_NAME "mmpengine.backend.vulkan" PARENT_SCOPE)
-
-SET(MMPENGINE_BACKEND_METAL_NAME "mmpengine.backend.metal")
-SET(MMPENGINE_BACKEND_METAL_NAME "mmpengine.backend.metal" PARENT_SCOPE)
-
-
-SET(MMPENGINE_DX12_MACRO "MMPENGINE_BACKEND_DX12")
-SET(MMPENGINE_DX12_MACRO "MMPENGINE_BACKEND_DX12" PARENT_SCOPE)
-
-SET(MMPENGINE_VULKAN_MACRO "MMPENGINE_BACKEND_VULKAN")
-SET(MMPENGINE_VULKAN_MACRO "MMPENGINE_BACKEND_VULKAN" PARENT_SCOPE)
-
-SET(MMPENGINE_METAL_MACRO "MMPENGINE_BACKEND_METAL")
-SET(MMPENGINE_METAL_MACRO "MMPENGINE_BACKEND_METAL" PARENT_SCOPE)
-
-SET(MMPENGINE_WIN_MACRO "MMPENGINE_WIN")
-SET(MMPENGINE_WIN_MACRO "MMPENGINE_WIN" PARENT_SCOPE)
-
-SET(MMPENGINE_MACOSX_MACRO "MMPENGINE_MAC" PARENT_SCOPE)
-SET(MMPENGINE_MACOSX_MACRO "MMPENGINE_MAC" PARENT_SCOPE)
+set_property(GLOBAL PROPERTY MMPENGINE_WIN_MACRO "MMPENGINE_WIN")
+set_property(GLOBAL PROPERTY MMPENGINE_MACOSX_MACRO "MMPENGINE_MAC")
 
 function(mmpengine_add_source_files_to_proj projName folder)
 
@@ -57,29 +39,37 @@ function(mmpengine_create_proj projName folder)
 
 endfunction()
 
-mmpengine_create_proj(${MMPENGINE_CORE_NAME} src/Core)
-mmpengine_create_proj(${MMPENGINE_FRONTEND_NAME} src/Frontend)
+get_property(core_name_tmp GLOBAL PROPERTY MMPENGINE_CORE_NAME)
+get_property(frontend_name_tmp GLOBAL PROPERTY MMPENGINE_FRONTEND_NAME)
 
-target_link_libraries(${MMPENGINE_FRONTEND_NAME} PRIVATE ${MMPENGINE_CORE_NAME})
+mmpengine_create_proj(${core_name_tmp} src/Core)
+mmpengine_create_proj(${frontend_name_tmp} src/Frontend)
+
+target_link_libraries(${frontend_name_tmp} PRIVATE ${core_name_tmp})
 
 IF (WIN32)
 
-	target_compile_definitions(${MMPENGINE_CORE_NAME} PRIVATE ${MMPENGINE_WIN_MACRO}=1)
-	target_compile_definitions(${MMPENGINE_FRONTEND_NAME} PRIVATE ${MMPENGINE_WIN_MACRO}=1)
+	get_property(win_macro_tmp GLOBAL PROPERTY MMPENGINE_WIN_MACRO)
+	target_compile_definitions(${core_name_tmp} PRIVATE ${win_macro_tmp}=1)
+	target_compile_definitions(${frontend_name_tmp} PRIVATE ${win_macro_tmp}=1)
 
 	#Dx12
-	mmpengine_create_proj(${MMPENGINE_BACKEND_DX12_NAME} src/Backend/Dx12)
-	target_compile_definitions(${MMPENGINE_BACKEND_DX12_NAME} PRIVATE ${MMPENGINE_WIN_MACRO}=1)
-	target_link_libraries(${MMPENGINE_BACKEND_DX12_NAME} PRIVATE D3D12.lib dxgi.lib dxguid.lib ${MMPENGINE_CORE_NAME})
-	target_link_libraries(${MMPENGINE_FRONTEND_NAME} PRIVATE ${MMPENGINE_BACKEND_DX12_NAME})
-	target_compile_definitions(${MMPENGINE_FRONTEND_NAME} PRIVATE ${MMPENGINE_DX12_MACRO}=1)
+	get_property(dx12_name_tmp GLOBAL PROPERTY MMPENGINE_BACKEND_DX12_NAME)
+	get_property(dx12_macro_tmp GLOBAL PROPERTY MMPENGINE_DX12_MACRO)
+
+	mmpengine_create_proj(${dx12_name_tmp} src/Backend/Dx12)
+	target_compile_definitions(${dx12_name_tmp} PRIVATE ${win_macro_tmp}=1)
+	target_link_libraries(${dx12_name_tmp} PRIVATE D3D12.lib dxgi.lib dxguid.lib ${core_name_tmp})
+	target_link_libraries(${frontend_name_tmp} PRIVATE ${dx12_name_tmp})
+	target_compile_definitions(${frontend_name_tmp} PRIVATE ${dx12_macro_tmp}=1)
 
 	#vulkan (TODO)
 
 elseif(APPLE)
 
-	target_compile_definitions(${MMPENGINE_CORE_NAME} PRIVATE ${MMPENGINE_MACOSX_MACRO}=1)
-	target_compile_definitions(${MMPENGINE_FRONTEND_NAME} PRIVATE ${MMPENGINE_MACOSX_MACRO}=1)
+	get_property(macosx_macro_tmp GLOBAL PROPERTY MMPENGINE_MACOSX_MACRO)
+	target_compile_definitions(${core_name_tmp} PRIVATE ${macosx_macro_tmp}=1)
+	target_compile_definitions(${frontend_name_tmp} PRIVATE ${macosx_macro_tmp}=1)
 
 	#metal (TODO)
 
