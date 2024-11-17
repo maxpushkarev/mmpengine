@@ -36,8 +36,8 @@ function(mmpengine_create_proj projName folder)
 
 endfunction()
 
-mmpengine_create_proj(${MMPENGINE_CORE_NAME} src/Core1)
-mmpengine_create_proj(${MMPENGINE_FRONTEND_NAME} src/Frontend1)
+mmpengine_create_proj(${MMPENGINE_CORE_NAME} src/Core)
+mmpengine_create_proj(${MMPENGINE_FRONTEND_NAME} src/Frontend)
 
 target_link_libraries(${MMPENGINE_FRONTEND_NAME} ${MMPENGINE_CORE_NAME})
 
