@@ -13,5 +13,10 @@ namespace MMPEngine::Core
 #endif
 	{
 	}
+
 	AppContext::~AppContext() = default;
+
+	AppContext::CustomProperties::CustomProperties() = default;
+	AppContext::CustomProperties::~CustomProperties() = default;
+
 }
