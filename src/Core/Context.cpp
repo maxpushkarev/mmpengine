@@ -2,8 +2,8 @@
 
 namespace MMPEngine::Core
 {
-	AppContext::AppContext(const AppContextSettings& baseSettings) :
-		settings(baseSettings),
+	AppContext::AppContext(const AppContextSettings& s) :
+		settings(s),
 		windowSize({0,0}),
 #ifdef MMPENGINE_WIN
 		platform(PlatformType::Win)
