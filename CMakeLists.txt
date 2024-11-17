@@ -24,7 +24,7 @@ endfunction()
 
 function(mmpengine_create_proj projName folder)
 
-	add_library(${projName} ${PROJECT_SOURCE_DIR}/${folder}/Lib.h)
+	add_library(${projName} ${PROJECT_SOURCE_DIR}/${folder}/Base.h)
 	mmpengine_add_source_files_to_proj(${projName} ${folder})
 
 	set_target_properties(${projName} PROPERTIES LINKER_LANGUAGE CXX)
