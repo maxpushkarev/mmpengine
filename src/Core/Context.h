@@ -19,7 +19,7 @@ namespace MMPEngine::Core
 		AppContext& operator=(AppContext&&) noexcept = delete;
 		virtual ~AppContext();
 
-		const AppContextSettings baseSettings;
+		const AppContextSettings settings;
 		Vector2Uint windowSize;
 		const PlatformType platform;
 	};
