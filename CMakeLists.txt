@@ -5,9 +5,12 @@ SET(MMPENGINE_CORE_NAME "mmpengine.core")
 SET(MMPENGINE_FRONTEND_NAME "mmpengine.frontend")
 SET(MMPENGINE_BACKEND_NAME "mmpengine.backend")
 
-SET(MMPENGINE_DX12_NAME "MMPENGINE_BACKEND_DX12")
-SET(MMPENGINE_VULKAN_NAME "MMPENGINE_BACKEND_VULKAN")
-SET(MMPENGINE_METAL_NAME "MMPENGINE_BACKEND_METAL")
+SET(MMPENGINE_DX12_MACRO "MMPENGINE_BACKEND_DX12")
+SET(MMPENGINE_VULKAN_MACRO "MMPENGINE_BACKEND_VULKAN")
+SET(MMPENGINE_METAL_MACRO "MMPENGINE_BACKEND_METAL")
+
+SET(MMPENGINE_WIN_MACRO "MMPENGINE_WIN")
+SET(MMPENGINE_MACOSX_MACRO "MMPENGINE_MAC")
 
 function(mmpengine_add_source_files_to_proj projName folder)
 
@@ -29,14 +32,23 @@ function(mmpengine_create_proj projName folder)
 
 	set_target_properties(${projName} PROPERTIES LINKER_LANGUAGE CXX)
 	target_compile_features(${projName}  PUBLIC cxx_std_17)
+	target_include_directories(${projName} PRIVATE ${PROJECT_SOURCE_DIR}/src)
 
 endfunction()
 
-mmpengine_create_proj(${MMPENGINE_CORE_NAME} core)
-mmpengine_create_proj(${MMPENGINE_FRONTEND_NAME} frontend)
+mmpengine_create_proj(${MMPENGINE_CORE_NAME} src/Core1)
+mmpengine_create_proj(${MMPENGINE_FRONTEND_NAME} src/Frontend1)
 
 target_link_libraries(${MMPENGINE_FRONTEND_NAME} ${MMPENGINE_CORE_NAME})
 
 IF (WIN32)
+
+	target_compile_definitions(${MMPENGINE_CORE_NAME} PUBLIC ${MMPENGINE_WIN_MACRO}=1)
+	target_compile_definitions(${MMPENGINE_FRONTEND_NAME} PUBLIC ${MMPENGINE_WIN_MACRO}=1)
+
+elseif(APPLE)
+
+	target_compile_definitions(${MMPENGINE_CORE_NAME} PUBLIC ${MMPENGINE_MACOSX_MACRO}=1)
+	target_compile_definitions(${MMPENGINE_FRONTEND_NAME} PUBLIC ${MMPENGINE_MACOSX_MACRO}=1)
 
 ENDIF()
