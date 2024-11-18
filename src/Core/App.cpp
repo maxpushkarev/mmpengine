@@ -27,35 +27,4 @@ namespace MMPEngine::Core
 	UserApp::UserApp(const std::shared_ptr<AppContext>& context) : App(context)
 	{
 	}
-
-	RootApp::RootApp(const std::shared_ptr<AppContext>& context, const std::shared_ptr<UserApp>& userApp) : App(context), _userApp(userApp)
-	{
-	}
-
-	void RootApp::Initialize()
-	{
-		App::Initialize();
-		if(_userApp)
-		{
-			_userApp->Initialize();
-		}
-	}
-
-	void RootApp::OnPause()
-	{
-		App::OnPause();
-		if(_userApp)
-		{
-			_userApp->OnPause();
-		}
-	}
-
-	void RootApp::OnResume()
-	{
-		App::OnResume();
-		if(_userApp)
-		{
-			_userApp->OnResume();
-		}
-	}
 }

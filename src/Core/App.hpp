@@ -19,7 +19,7 @@ namespace MMPEngine::Core
 		virtual void OnPause();
 		virtual void OnResume();
 		std::shared_ptr<AppContext> GetContext() const;
-	private:
+	protected:
 		std::shared_ptr<AppContext> _context;
 	};
 
@@ -29,15 +29,53 @@ namespace MMPEngine::Core
 		UserApp(const std::shared_ptr<AppContext>& context);
 	};
 
+	template<typename TRootContext>
 	class RootApp : public App
 	{
+		static_assert(std::is_base_of_v<AppContext, TRootContext>, "TRootContext must be inherited from Core::AppContext");
 	protected:
-		RootApp(const std::shared_ptr<AppContext>& context, const std::shared_ptr<UserApp>& userApp);
+		RootApp(const std::shared_ptr<TRootContext>& context, const std::shared_ptr<UserApp>& userApp);
 	public:
 		void Initialize() override;
 		void OnPause() override;
 		void OnResume() override;
 	protected:
+		std::shared_ptr<TRootContext> _rootContext;
 		std::shared_ptr<UserApp> _userApp;
 	};
+
+	template<typename TRootContext>
+	RootApp<TRootContext>::RootApp(const std::shared_ptr<TRootContext>& context, const std::shared_ptr<UserApp>& userApp) : App(context), _userApp(userApp)
+	{
+	}
+
+	template<typename TRootContext>
+	void RootApp<TRootContext>::Initialize()
+	{
+		App::Initialize();
+		if (_userApp)
+		{
+			_userApp->Initialize();
+		}
+	}
+
+	template<typename TRootContext>
+	void RootApp<TRootContext>::OnPause()
+	{
+		App::OnPause();
+		if (_userApp)
+		{
+			_userApp->OnPause();
+		}
+	}
+
+	template<typename TRootContext>
+	void RootApp<TRootContext>::OnResume()
+	{
+		App::OnResume();
+		if (_userApp)
+		{
+			_userApp->OnResume();
+		}
+	}
 }
