@@ -7,7 +7,7 @@ namespace MMPEngine::Core
 	class App
 	{
 	protected:
-		App(const std::shared_ptr<AppContext>& context);
+		App();
 	public:
 		App(const App&) = delete;
 		App(App&&) noexcept = delete;
@@ -18,64 +18,47 @@ namespace MMPEngine::Core
 		virtual void Initialize();
 		virtual void OnPause();
 		virtual void OnResume();
-		std::shared_ptr<AppContext> GetContext() const;
+		virtual std::shared_ptr<AppContext> GetContext() const = 0;
+	};
+
+	class UserApp;
+
+	class BaseRootApp : public App
+	{
 	protected:
-		std::shared_ptr<AppContext> _context;
+		BaseRootApp(const std::shared_ptr<UserApp>& userApp);
+		void Initialize() override;
+		void OnPause() override;
+		void OnResume() override;
+		std::shared_ptr<UserApp> _userApp;
 	};
 
 	class UserApp : public App
 	{
 	public:
-		UserApp(const std::shared_ptr<AppContext>& context);
+		UserApp();
+		std::shared_ptr<AppContext> GetContext() const override;
 	};
 
 	template<typename TRootContext>
-	class RootApp : public App
+	class RootApp : public BaseRootApp
 	{
 		static_assert(std::is_base_of_v<AppContext, TRootContext>, "TRootContext must be inherited from Core::AppContext");
 	protected:
 		RootApp(const std::shared_ptr<TRootContext>& context, const std::shared_ptr<UserApp>& userApp);
-	public:
-		void Initialize() override;
-		void OnPause() override;
-		void OnResume() override;
+		std::shared_ptr<AppContext> GetContext() const override;
 	protected:
 		std::shared_ptr<TRootContext> _rootContext;
-		std::shared_ptr<UserApp> _userApp;
 	};
 
 	template<typename TRootContext>
-	RootApp<TRootContext>::RootApp(const std::shared_ptr<TRootContext>& context, const std::shared_ptr<UserApp>& userApp) : App(context), _userApp(userApp)
+	inline RootApp<TRootContext>::RootApp(const std::shared_ptr<TRootContext>& context, const std::shared_ptr<UserApp>& userApp) : BaseRootApp(userApp), _rootContext(context)
 	{
 	}
-
+	
 	template<typename TRootContext>
-	void RootApp<TRootContext>::Initialize()
+	inline std::shared_ptr<AppContext> RootApp<TRootContext>::GetContext() const
 	{
-		App::Initialize();
-		if (_userApp)
-		{
-			_userApp->Initialize();
-		}
-	}
-
-	template<typename TRootContext>
-	void RootApp<TRootContext>::OnPause()
-	{
-		App::OnPause();
-		if (_userApp)
-		{
-			_userApp->OnPause();
-		}
-	}
-
-	template<typename TRootContext>
-	void RootApp<TRootContext>::OnResume()
-	{
-		App::OnResume();
-		if (_userApp)
-		{
-			_userApp->OnResume();
-		}
+		return _rootContext;
 	}
 }
