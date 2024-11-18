@@ -1,6 +1,7 @@
 #pragma once
 #include <cstdint>
 #include <cmath>
+#include <stdexcept>
 
 namespace MMPEngine::Core
 {
@@ -47,5 +48,11 @@ namespace MMPEngine::Core
 	struct Vector4Float : Vector3Float
 	{
 		std::float_t w;
+	};
+
+	class UnsupportedException final : public std::runtime_error
+	{
+	public:
+		UnsupportedException(const std::string& err);
 	};
 }
