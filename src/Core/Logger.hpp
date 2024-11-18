@@ -17,12 +17,12 @@ namespace MMPEngine::Core
 	{
 	protected:
 		BaseLogger(std::string&&);
-		virtual ~BaseLogger();
 	public:
 		BaseLogger(const BaseLogger&) = delete;
 		BaseLogger(BaseLogger&&) noexcept = delete;
 		BaseLogger& operator=(const BaseLogger&) = delete;
 		BaseLogger& operator=(BaseLogger&&) noexcept = delete;
+		virtual ~BaseLogger();
 	protected:
 		virtual void LogInternal(const char*) const = 0;
 	public:

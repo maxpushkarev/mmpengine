@@ -1,6 +1,7 @@
 #pragma once
 #include <memory>
 #include <Core/Base.hpp>
+#include <Core/Logger.hpp>
 
 namespace MMPEngine::Core
 {
@@ -35,5 +36,6 @@ namespace MMPEngine::Core
 		Vector2Uint windowSize;
 		const PlatformType platform;
 		std::shared_ptr<CustomProperties> customProps;
+		std::unique_ptr<BaseLogger> logger;
 	};
 }
