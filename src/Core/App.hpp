@@ -18,7 +18,7 @@ namespace MMPEngine::Core
 		virtual void Initialize();
 		virtual void OnPause();
 		virtual void OnResume();
-		const AppContext* GetContext() const;
+		std::shared_ptr<AppContext> GetContext() const;
 	private:
 		std::shared_ptr<AppContext> _context;
 	};
@@ -33,6 +33,11 @@ namespace MMPEngine::Core
 	{
 	protected:
 		RootApp(const std::shared_ptr<AppContext>& context, const std::shared_ptr<UserApp>& userApp);
+	public:
+		void Initialize() override;
+		void OnPause() override;
+		void OnResume() override;
+	protected:
 		std::shared_ptr<UserApp> _userApp;
 	};
 }

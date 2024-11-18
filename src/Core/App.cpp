@@ -19,9 +19,9 @@ namespace MMPEngine::Core
 	{
 	}
 
-    const AppContext* App::GetContext() const
+    std::shared_ptr<AppContext> App::GetContext() const
     {
-        return _context.get();
+        return _context;
     }
 
 	UserApp::UserApp(const std::shared_ptr<AppContext>& context) : App(context)
@@ -32,4 +32,30 @@ namespace MMPEngine::Core
 	{
 	}
 
+	void RootApp::Initialize()
+	{
+		App::Initialize();
+		if(_userApp)
+		{
+			_userApp->Initialize();
+		}
+	}
+
+	void RootApp::OnPause()
+	{
+		App::OnPause();
+		if(_userApp)
+		{
+			_userApp->OnPause();
+		}
+	}
+
+	void RootApp::OnResume()
+	{
+		App::OnResume();
+		if(_userApp)
+		{
+			_userApp->OnResume();
+		}
+	}
 }
