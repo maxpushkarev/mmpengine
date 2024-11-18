@@ -1,0 +1,5 @@
+
+namespace MMPEngine::Core
+{
+
+}
