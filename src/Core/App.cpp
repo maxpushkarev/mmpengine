@@ -19,4 +19,17 @@ namespace MMPEngine::Core
 	{
 	}
 
+    const AppContext* App::GetContext() const
+    {
+        return _context.get();
+    }
+
+	UserApp::UserApp(const std::shared_ptr<AppContext>& context) : App(context)
+	{
+	}
+
+	RootApp::RootApp(const std::shared_ptr<AppContext>& context, const std::shared_ptr<UserApp>& userApp) : App(context), _userApp(userApp)
+	{
+	}
+
 }

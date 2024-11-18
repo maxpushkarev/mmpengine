@@ -6,8 +6,9 @@ namespace MMPEngine::Core
 {
 	class App
 	{
-	public:
+	protected:
 		App(const std::shared_ptr<AppContext>& context);
+	public:
 		App(const App&) = delete;
 		App(App&&) noexcept = delete;
 		App& operator=(const App&) = delete;
@@ -17,7 +18,21 @@ namespace MMPEngine::Core
 		virtual void Initialize();
 		virtual void OnPause();
 		virtual void OnResume();
+		const AppContext* GetContext() const;
 	private:
 		std::shared_ptr<AppContext> _context;
+	};
+
+	class UserApp : public App
+	{
+	public:
+		UserApp(const std::shared_ptr<AppContext>& context);
+	};
+
+	class RootApp : public App
+	{
+	protected:
+		RootApp(const std::shared_ptr<AppContext>& context, const std::shared_ptr<UserApp>& userApp);
+		std::shared_ptr<UserApp> _userApp;
 	};
 }

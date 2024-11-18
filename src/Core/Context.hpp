@@ -12,6 +12,8 @@ namespace MMPEngine::Core
 
 	class AppContext
 	{
+	protected:
+		AppContext(const AppContextSettings&);
 	public:
 		class CustomProperties
 		{
@@ -23,7 +25,6 @@ namespace MMPEngine::Core
 			CustomProperties& operator=(CustomProperties&&) noexcept = delete;
 			virtual ~CustomProperties();
 		};
-		AppContext(const AppContextSettings&);
 		AppContext(const AppContext&) = delete;
 		AppContext(AppContext&&) noexcept = delete;
 		AppContext& operator=(const AppContext&) = delete;
