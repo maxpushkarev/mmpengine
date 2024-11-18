@@ -7,7 +7,7 @@ namespace MMPEngine::Backend::Dx12
 	class RootApp final : public Core::RootApp<AppContext>
 	{
 	public:
-		RootApp(const std::shared_ptr<AppContext>& context, const std::shared_ptr<Core::UserApp>& userApp);
+		RootApp(const std::shared_ptr<AppContext>& context);
 		void Initialize() override;
 	};
 }

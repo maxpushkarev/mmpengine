@@ -4,7 +4,7 @@
 
 namespace MMPEngine::Core
 {
-	class App
+	class App : public std::enable_shared_from_this<App>
 	{
 	protected:
 		App();
@@ -26,18 +26,24 @@ namespace MMPEngine::Core
 	class BaseRootApp : public App
 	{
 	protected:
-		BaseRootApp(const std::shared_ptr<UserApp>& userApp);
+		BaseRootApp();
 		void Initialize() override;
 		void OnPause() override;
 		void OnResume() override;
 		std::shared_ptr<UserApp> _userApp;
+	public:
+		void Attach(const std::shared_ptr<UserApp>& userApp);
 	};
 
 	class UserApp : public App
 	{
+		friend class BaseRootApp;
 	public:
 		UserApp();
 		std::shared_ptr<AppContext> GetContext() const override;
+	private:
+		void JoinToRootApp(const std::shared_ptr<BaseRootApp>& root);
+		std::weak_ptr<BaseRootApp> _rootApp;
 	};
 
 	template<typename TRootContext>
@@ -45,14 +51,14 @@ namespace MMPEngine::Core
 	{
 		static_assert(std::is_base_of_v<AppContext, TRootContext>, "TRootContext must be inherited from Core::AppContext");
 	protected:
-		RootApp(const std::shared_ptr<TRootContext>& context, const std::shared_ptr<UserApp>& userApp);
+		RootApp(const std::shared_ptr<TRootContext>& context);
 		std::shared_ptr<AppContext> GetContext() const override;
 	protected:
 		std::shared_ptr<TRootContext> _rootContext;
 	};
 
 	template<typename TRootContext>
-	inline RootApp<TRootContext>::RootApp(const std::shared_ptr<TRootContext>& context, const std::shared_ptr<UserApp>& userApp) : BaseRootApp(userApp), _rootContext(context)
+	inline RootApp<TRootContext>::RootApp(const std::shared_ptr<TRootContext>& context) : _rootContext(context)
 	{
 	}
 	
