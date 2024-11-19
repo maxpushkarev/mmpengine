@@ -18,5 +18,6 @@ namespace MMPEngine::Core
 		platform(PlatformType::Mac)
 #endif
 	{
+		input = std::make_unique<Input>();
 	}
 }

@@ -44,7 +44,7 @@ namespace MMPEngine::Core
 		const PlatformType platform;
 		std::shared_ptr<CustomProperties> customProps;
 		std::unique_ptr<BaseLogger> logger;
-		std::unique_ptr<Input> input = std::make_unique<Input>();
+		std::unique_ptr<Input> input;
 	};
 
 	class StreamContext : public Context
