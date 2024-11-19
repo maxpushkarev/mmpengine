@@ -68,4 +68,32 @@ namespace MMPEngine::Core
 		_rootApp = root;
 	}
 
+    AppInputController::AppInputController(const std::shared_ptr<BaseRootApp>& baseRootApp) : _appContext(baseRootApp->GetContext())
+    {
+    }
+
+	void AppInputController::ClearAll()
+	{
+		_appContext->input->ClearAll();
+	}
+
+	void AppInputController::ClearEvents()
+	{
+		_appContext->input->ClearEvents();
+	}
+
+	void AppInputController::UpdateMouseNormalizedPosition(const Vector2Float& pos)
+	{
+		_appContext->input->UpdateMouseNormalizedPosition(pos);
+	}
+
+	void AppInputController::SetButtonPressedStatus(KeyButton btn, bool status)
+	{
+		_appContext->input->SetButtonPressedStatus(btn, status);
+	}
+
+	void AppInputController::SetButtonPressedStatus(MouseButton btn, bool status)
+	{
+		_appContext->input->SetButtonPressedStatus(btn, status);
+	}
 }

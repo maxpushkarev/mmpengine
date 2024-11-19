@@ -2,19 +2,14 @@
 #include <memory>
 #include <Core/Base.hpp>
 #include <Core/Logger.hpp>
+#include <Core/Input.hpp>
 
 namespace MMPEngine::Core
 {
-	struct AppContextSettings final
-	{
-		bool isDebug;
-		BackendType backend;
-	};
-
-	class AppContext
+	class Context
 	{
 	protected:
-		AppContext(const AppContextSettings&);
+		Context();
 	public:
 		class CustomProperties
 		{
@@ -26,16 +21,39 @@ namespace MMPEngine::Core
 			CustomProperties& operator=(CustomProperties&&) noexcept = delete;
 			virtual ~CustomProperties();
 		};
-		AppContext(const AppContext&) = delete;
-		AppContext(AppContext&&) noexcept = delete;
-		AppContext& operator=(const AppContext&) = delete;
-		AppContext& operator=(AppContext&&) noexcept = delete;
-		virtual ~AppContext();
+		Context(const Context&) = delete;
+		Context(Context&&) noexcept = delete;
+		Context& operator=(const Context&) = delete;
+		Context& operator=(Context&&) noexcept = delete;
+		virtual ~Context();
+	};
 
+	struct AppContextSettings final
+	{
+		bool isDebug;
+		BackendType backend;
+	};
+
+	class AppContext : public Context
+	{
+	protected:
+		AppContext(const AppContextSettings&);
+	public:
 		const AppContextSettings settings;
 		Vector2Uint windowSize;
 		const PlatformType platform;
 		std::shared_ptr<CustomProperties> customProps;
 		std::unique_ptr<BaseLogger> logger;
+		std::unique_ptr<Input> input = std::make_unique<Input>();
+	};
+
+	class StreamContext : public Context
+	{
+		
+	};
+
+	class TaskContext : public Context
+	{
+
 	};
 }

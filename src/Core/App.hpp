@@ -4,6 +4,21 @@
 
 namespace MMPEngine::Core
 {
+	class BaseRootApp;
+
+	class AppInputController final : public IInputController
+	{
+	public:
+		AppInputController(const std::shared_ptr<BaseRootApp>&);
+		void ClearAll() override;
+		void ClearEvents() override;
+		void SetButtonPressedStatus(KeyButton, bool) override;
+		void SetButtonPressedStatus(MouseButton, bool) override;
+		void UpdateMouseNormalizedPosition(const Vector2Float&) override;
+	private:
+		std::shared_ptr<AppContext> _appContext;
+	};
+
 	class App : public std::enable_shared_from_this<App>
 	{
 	protected:

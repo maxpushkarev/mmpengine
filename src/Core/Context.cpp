@@ -2,6 +2,12 @@
 
 namespace MMPEngine::Core
 {
+	Context::Context() = default;
+	Context::~Context() = default;
+
+	Context::CustomProperties::CustomProperties() = default;
+	Context::CustomProperties::~CustomProperties() = default;
+
 	AppContext::AppContext(const AppContextSettings& s) :
 		settings(s),
 		windowSize({0,0}),
@@ -13,10 +19,4 @@ namespace MMPEngine::Core
 #endif
 	{
 	}
-
-	AppContext::~AppContext() = default;
-
-	AppContext::CustomProperties::CustomProperties() = default;
-	AppContext::CustomProperties::~CustomProperties() = default;
-
 }
