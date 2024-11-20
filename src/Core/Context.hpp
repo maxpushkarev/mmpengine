@@ -28,18 +28,18 @@ namespace MMPEngine::Core
 		virtual ~Context();
 	};
 
-	struct AppContextSettings final
-	{
-		bool isDebug;
-		BackendType backend;
-	};
-
 	class AppContext : public Context
 	{
-	protected:
-		AppContext(const AppContextSettings&);
 	public:
-		const AppContextSettings settings;
+		struct Settings final
+		{
+			bool isDebug;
+			BackendType backend;
+		};
+	protected:
+		AppContext(const Settings&);
+	public:
+		const Settings settings;
 		Vector2Uint windowSize;
 		const PlatformType platform;
 		std::shared_ptr<CustomProperties> customProps;

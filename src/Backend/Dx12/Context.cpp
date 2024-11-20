@@ -2,7 +2,7 @@
 
 namespace MMPEngine::Backend::Dx12
 {
-	AppContext::AppContext(const Core::AppContextSettings& s) : Core::AppContext(s)
+	AppContext::AppContext(const Core::AppContext::Settings& s) : Core::AppContext(s)
 	{
 	}
 }

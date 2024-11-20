@@ -5,7 +5,7 @@
 
 namespace MMPEngine::Frontend
 {
-	std::shared_ptr<Core::App> App::BuildRootApp(const Core::AppContextSettings& appContextSettings, const std::shared_ptr<Core::UserApp>& userApp)
+	std::shared_ptr<Core::BaseRootApp> App::BuildRootApp(const Core::AppContext::Settings& appContextSettings, const std::shared_ptr<Core::UserApp>& userApp)
 	{
 		if(appContextSettings.backend == Core::BackendType::Dx12)
 		{

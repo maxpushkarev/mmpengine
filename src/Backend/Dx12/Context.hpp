@@ -6,6 +6,6 @@ namespace MMPEngine::Backend::Dx12
 	class AppContext : public Core::AppContext
 	{
 	public:
-		AppContext(const Core::AppContextSettings& s);
+		AppContext(const Core::AppContext::Settings& s);
 	};
 }

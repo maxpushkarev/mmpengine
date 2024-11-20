@@ -8,7 +8,7 @@ namespace MMPEngine::Core
 	Context::CustomProperties::CustomProperties() = default;
 	Context::CustomProperties::~CustomProperties() = default;
 
-	AppContext::AppContext(const AppContextSettings& s) :
+	AppContext::AppContext(const Settings& s) :
 		settings(s),
 		windowSize({0,0}),
 #ifdef MMPENGINE_WIN
