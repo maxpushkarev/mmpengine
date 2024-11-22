@@ -10,6 +10,11 @@ namespace MMPEngine::Frontend
 
 	void AppContainer::OnWindowChanged()
 	{
+		if(!_state.appInitialized)
+		{
+			return;
+		}
+
 		_app->OnPause();
 		_app->OnResume();
 	}
@@ -21,6 +26,14 @@ namespace MMPEngine::Frontend
 
 	AppContainer::~AppContainer() = default;
 
+	std::int32_t AppContainer::Run()
+	{
+		CreateNativeContainer();
+		_app->Initialize();
+		_state.appInitialized = true;
+		return RunInternal();
+	}
+
 #ifdef MMPENGINE_WIN
 	namespace Win
 	{
@@ -30,10 +43,8 @@ namespace MMPEngine::Frontend
 			
 		}
 
-		std::int32_t AppContainer::Run()
+		std::int32_t AppContainer::RunInternal()
 		{
-			CreateNativeWindow();
-
 			MSG msg = {};
 			const auto appContext = _app->GetContext();
 			_state.previousFrameMs.reset();
@@ -106,7 +117,7 @@ namespace MMPEngine::Frontend
 		}
 
 
-		void AppContainer::CreateNativeWindow()
+		void AppContainer::CreateNativeContainer()
 		{
 			const auto appContext = _app->GetContext();
 			const auto className = TEXT(_platformSettings.windowClassName.c_str());

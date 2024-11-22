@@ -26,6 +26,7 @@ namespace MMPEngine::Frontend
 	protected:
 		struct State final
 		{
+			bool appInitialized = false;
 			bool paused = false;
 			bool maximized = false;
 			bool minimized = false;
@@ -35,6 +36,8 @@ namespace MMPEngine::Frontend
 
 		AppContainer(Settings&& settings, const std::shared_ptr<Core::BaseRootApp>& app);
 		void OnWindowChanged();
+		virtual void CreateNativeContainer() = 0;
+		virtual std::int32_t RunInternal() = 0;
 		static std::chrono::milliseconds NowMs();
 	public:
 		AppContainer(const AppContainer&) = delete;
@@ -43,7 +46,7 @@ namespace MMPEngine::Frontend
 		AppContainer& operator=(AppContainer&&) noexcept = delete;
 		virtual ~AppContainer();
 
-		virtual std::int32_t Run() = 0;
+		std::int32_t Run();
 	protected:
 		Settings _settings;
 		State _state;
@@ -85,9 +88,10 @@ namespace MMPEngine::Frontend
 		{
 		public:
 			AppContainer(PlatformAppContainer::Settings&& settings, const std::shared_ptr<Core::BaseRootApp>& app);
-			std::int32_t Run() override;
+		protected:
+			std::int32_t RunInternal() override;
+			void CreateNativeContainer() override;
 		private:
-			void CreateNativeWindow();
 			static LRESULT CALLBACK MainWndProc(HWND, UINT, WPARAM, LPARAM);
 		};
 	}
