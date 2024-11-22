@@ -53,7 +53,6 @@ namespace MMPEngine::Frontend
 				static_cast<std::uint64_t>(floor((1000.0 / static_cast<double_t>(_settings.targetFps))))
 			);
 
-
 			while (msg.message != WM_QUIT)
 			{
 				if (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
@@ -78,10 +77,10 @@ namespace MMPEngine::Frontend
 						const auto frameDiff = beforeFrameMs - prevMs;
 						const auto dt = static_cast<float_t>(frameDiff.count()) * 0.001f;
 
-						/*if (_settings.logFps)
+						if (_settings.showFps)
 						{
-							_logger->Log(ELogType::Info, "fps (1.0f / dt) = ", 1.0f / dt);
-						}*/
+							SetWindowTextA(appContext->nativeWindow, Core::Text::CombineToString(_settings.windowCaption, " | FPS: ", static_cast<std::uint32_t>(std::round(1.0f / dt))).c_str());
+						}
 
 						_app->OnUpdate(dt);
 						_inputController->ClearEvents();
