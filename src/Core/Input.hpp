@@ -28,8 +28,6 @@ namespace MMPEngine::Core
 		F,
 		PageUp,
 		PageDown,
-		LeftShift,
-		RightShift,
 		Enter,
 		Space
 	};

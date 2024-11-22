@@ -162,6 +162,30 @@ namespace MMPEngine::Frontend
 
 		}
 
+		std::unordered_map<WPARAM, Core::KeyButton> AppContainer::_keyMap {
+
+			{ 0x57, Core::KeyButton::W },
+			{ 0x41, Core::KeyButton::A },
+			{ 0x53, Core::KeyButton::S },
+			{ 0x44, Core::KeyButton::D },
+
+			{ 0x25, Core::KeyButton::LeftArrow },
+			{ 0x27, Core::KeyButton::RightArrow },
+			{ 0x26, Core::KeyButton::UpArrow },
+			{ 0x28, Core::KeyButton::DownArrow },
+
+			{ 0x51, Core::KeyButton::Q },
+			{ 0x45, Core::KeyButton::E },
+			{ 0x52, Core::KeyButton::R },
+			{ 0x46, Core::KeyButton::F },
+
+			{ 0x21, Core::KeyButton::PageUp },
+			{ 0x22, Core::KeyButton::PageDown },
+
+			{ 0x0D, Core::KeyButton::Enter },
+			{ 0x20, Core::KeyButton::Space }
+		};
+
 		LRESULT AppContainer::MainWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		{
 			const auto container = reinterpret_cast<AppContainer*>(GetWindowLongPtr(hWnd, GWLP_USERDATA));
@@ -252,6 +276,47 @@ namespace MMPEngine::Frontend
 				return 0;
 			case WM_MENUCHAR:
 				return MAKELRESULT(0, MNC_CLOSE);
+			case WM_KEYDOWN:
+				if(_keyMap.find(wParam) != _keyMap.cend())
+				{
+					container->_inputController->SetButtonPressedStatus(_keyMap.at(wParam), true);	
+				}
+				return 0;
+			case WM_KEYUP:
+				if (_keyMap.find(wParam) != _keyMap.cend())
+				{
+					container->_inputController->SetButtonPressedStatus(_keyMap.at(wParam), false);
+				}
+				return 0;
+			case WM_LBUTTONDOWN:
+				container->_inputController->SetButtonPressedStatus(Core::MouseButton::Left, true);
+				return 0;
+			case WM_LBUTTONUP:
+				container->_inputController->SetButtonPressedStatus(Core::MouseButton::Left, false);
+				return 0;
+			case WM_MBUTTONDOWN:
+				container->_inputController->SetButtonPressedStatus(Core::MouseButton::Middle, true);
+				return 0;
+			case WM_MBUTTONUP:
+				container->_inputController->SetButtonPressedStatus(Core::MouseButton::Middle, false);
+				return 0;
+			case WM_RBUTTONDOWN:
+				container->_inputController->SetButtonPressedStatus(Core::MouseButton::Right, true);
+				return 0;
+			case WM_RBUTTONUP:
+				container->_inputController->SetButtonPressedStatus(Core::MouseButton::Right, false);
+				return 0;
+			case WM_MOUSEMOVE:
+				{
+					const auto appContext = container->_app->GetContext();
+					const auto x = GET_X_LPARAM(lParam);
+					const auto y = GET_Y_LPARAM(lParam);
+					container->_inputController->UpdateMouseNormalizedPosition({
+						max(0.0f, min(static_cast<std::float_t>(x) / static_cast<std::float_t>(appContext->windowSize.x), 1.0f)),
+						max(0.0f, min(static_cast<std::float_t>(y) / static_cast<std::float_t>(appContext->windowSize.y), 1.0f))
+					});
+				}
+				return 0;
 			case WM_MOUSELEAVE:
 				container->_inputController->ClearAll();
 				return 0;

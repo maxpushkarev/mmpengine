@@ -2,6 +2,7 @@
 #include <chrono>
 #include <memory>
 #include <optional>
+#include <unordered_map>
 #include <Core/App.hpp>
 
 #ifdef MMPENGINE_WIN
@@ -93,6 +94,7 @@ namespace MMPEngine::Frontend
 			std::int32_t RunInternal() override;
 			void CreateNativeContainer() override;
 		private:
+			static std::unordered_map<WPARAM, Core::KeyButton> _keyMap;
 			static LRESULT CALLBACK MainWndProc(HWND, UINT, WPARAM, LPARAM);
 		};
 	}
