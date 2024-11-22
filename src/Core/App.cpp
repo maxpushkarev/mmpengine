@@ -85,9 +85,9 @@ namespace MMPEngine::Core
 		_appContext->input->ClearAll();
 	}
 
-	void AppInputController::ClearEvents()
+	void AppInputController::ClearInstantEvents()
 	{
-		_appContext->input->ClearEvents();
+		_appContext->input->ClearInstantEvents();
 	}
 
 	void AppInputController::UpdateMouseNormalizedPosition(const Vector2Float& pos)

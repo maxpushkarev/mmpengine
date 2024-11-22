@@ -48,7 +48,7 @@ namespace MMPEngine::Core
 		IInputController& operator=(IInputController&&) noexcept = delete;
 		virtual ~IInputController();
 	protected:
-		virtual void ClearEvents() = 0;
+		virtual void ClearInstantEvents() = 0;
 		virtual void ClearAll() = 0;
 		virtual void UpdateMouseNormalizedPosition(const Vector2Float&) = 0;
 
@@ -70,7 +70,7 @@ namespace MMPEngine::Core
 		Vector2Float GetMouseNormalizedPosition() const;
 
 	protected:
-		void ClearEvents() override;
+		void ClearInstantEvents() override;
 		void ClearAll() override;
 		void UpdateMouseNormalizedPosition(const Vector2Float&) override;
 

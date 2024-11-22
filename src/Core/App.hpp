@@ -11,7 +11,7 @@ namespace MMPEngine::Core
 	public:
 		AppInputController(const std::shared_ptr<BaseRootApp>&);
 		void ClearAll() override;
-		void ClearEvents() override;
+		void ClearInstantEvents() override;
 		void SetButtonPressedStatus(KeyButton, bool) override;
 		void SetButtonPressedStatus(MouseButton, bool) override;
 		void UpdateMouseNormalizedPosition(const Vector2Float&) override;

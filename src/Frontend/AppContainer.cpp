@@ -83,7 +83,7 @@ namespace MMPEngine::Frontend
 						}
 
 						_app->OnUpdate(dt);
-						_inputController->ClearEvents();
+						_inputController->ClearInstantEvents();
 						_app->OnRender();
 
 						const auto afterFrame = NowMs();

@@ -5,7 +5,7 @@ namespace MMPEngine::Core
 	IInputController::IInputController() = default;
 	IInputController::~IInputController() = default;
 
-	void Input::ClearEvents()
+	void Input::ClearInstantEvents()
 	{
 		_keyUpEvents.clear();
 		_keyDownEvents.clear();
@@ -19,7 +19,7 @@ namespace MMPEngine::Core
 		_pressedKeyButtons.clear();
 		_pressedMouseButtons.clear();
 
-		ClearEvents();
+		ClearInstantEvents();
 	}
 
 	void Input::UpdateMouseNormalizedPosition(const Vector2Float& newPosition)
