@@ -1,9 +1,12 @@
 #pragma once
+#include <chrono>
 #include <memory>
+#include <optional>
 #include <Core/App.hpp>
 
 #ifdef MMPENGINE_WIN
 #include <Windows.h>
+#include <windowsx.h>
 #endif
 
 namespace MMPEngine::Frontend
@@ -18,17 +21,32 @@ namespace MMPEngine::Frontend
 			std::int32_t initialWindowHeight = 720;
 			std::int32_t targetFps = 60;
 			std::int32_t pausedSleepTimeoutMs = 42;
+			bool showFps = true;
 		};
 	protected:
+		struct State final
+		{
+			bool paused = false;
+			bool maximized = false;
+			bool minimized = false;
+			bool resizeInProgress = false;
+			std::optional<std::chrono::milliseconds> previousFrameMs = {};
+		};
+
 		AppContainer(Settings&& settings, const std::shared_ptr<Core::BaseRootApp>& app);
+		void OnWindowChanged();
+		static std::chrono::milliseconds NowMs();
 	public:
 		AppContainer(const AppContainer&) = delete;
 		AppContainer(AppContainer&&) noexcept = delete;
 		AppContainer& operator=(const AppContainer&) = delete;
 		AppContainer& operator=(AppContainer&&) noexcept = delete;
 		virtual ~AppContainer();
+
+		virtual std::int32_t Run() = 0;
 	protected:
 		Settings _settings;
+		State _state;
 		std::shared_ptr<Core::App> _app;
 		std::shared_ptr<Core::AppInputController> _inputController;
 	};
@@ -67,6 +85,10 @@ namespace MMPEngine::Frontend
 		{
 		public:
 			AppContainer(PlatformAppContainer::Settings&& settings, const std::shared_ptr<Core::BaseRootApp>& app);
+			std::int32_t Run() override;
+		private:
+			void CreateNativeWindow();
+			static LRESULT CALLBACK MainWndProc(HWND, UINT, WPARAM, LPARAM);
 		};
 	}
 #endif

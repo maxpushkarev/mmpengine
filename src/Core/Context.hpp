@@ -4,6 +4,10 @@
 #include <Core/Logger.hpp>
 #include <Core/Input.hpp>
 
+#ifdef MMPENGINE_WIN
+#include <Windows.h>
+#endif
+
 namespace MMPEngine::Core
 {
 	class Context
@@ -28,6 +32,10 @@ namespace MMPEngine::Core
 		virtual ~Context();
 	};
 
+#ifdef MMPENGINE_WIN
+typedef HWND NativeWindow;
+#endif
+
 	class AppContext : public Context
 	{
 	public:
@@ -45,6 +53,9 @@ namespace MMPEngine::Core
 		std::shared_ptr<CustomProperties> customProps;
 		std::unique_ptr<BaseLogger> logger;
 		std::unique_ptr<Input> input;
+#ifdef MMPENGINE_WIN
+		NativeWindow nativeWindow;
+#endif
 	};
 
 	class StreamContext : public Context

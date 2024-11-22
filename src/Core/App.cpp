@@ -17,6 +17,14 @@ namespace MMPEngine::Core
 	{
 	}
 
+    void App::OnUpdate(std::float_t dt)
+    {
+    }
+
+	void App::OnRender()
+	{
+	}
+
 	BaseRootApp::BaseRootApp() = default;
 
 	void BaseRootApp::Initialize()

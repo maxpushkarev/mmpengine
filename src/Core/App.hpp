@@ -33,6 +33,8 @@ namespace MMPEngine::Core
 		virtual void Initialize();
 		virtual void OnPause();
 		virtual void OnResume();
+		virtual void OnUpdate(std::float_t dt);
+		virtual void OnRender();
 		virtual std::shared_ptr<AppContext> GetContext() const = 0;
 	};
 
