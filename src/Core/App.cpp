@@ -9,6 +9,10 @@ namespace MMPEngine::Core
 	{
 	}
 
+	void App::OnNativeWindowUpdated()
+	{
+	}
+
 	void App::OnPause()
 	{
 	}

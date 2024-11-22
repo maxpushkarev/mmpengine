@@ -15,8 +15,7 @@ namespace MMPEngine::Frontend
 			return;
 		}
 
-		_app->OnPause();
-		_app->OnResume();
+		_app->OnNativeWindowUpdated();
 	}
 
 	std::chrono::milliseconds AppContainer::NowMs()
@@ -31,6 +30,7 @@ namespace MMPEngine::Frontend
 		CreateNativeContainer();
 		_app->Initialize();
 		_state.appInitialized = true;
+		_app->OnNativeWindowUpdated();
 		return RunInternal();
 	}
 
@@ -67,6 +67,20 @@ namespace MMPEngine::Frontend
 					tme.dwFlags = TME_LEAVE;
 					tme.hwndTrack = appContext->nativeWindow;
 					TrackMouseEvent(&tme);
+
+					if(_state.prevPaused.value_or(_state.paused) != _state.paused)
+					{
+						if(_state.paused)
+						{
+							_app->OnPause();
+						}
+						else
+						{
+							_app->OnResume();
+						}
+					}
+
+					_state.prevPaused = _state.paused;
 
 					if (!_state.paused)
 					{

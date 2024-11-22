@@ -27,11 +27,12 @@ namespace MMPEngine::Frontend
 		struct State final
 		{
 			bool appInitialized = false;
+			std::optional<bool> prevPaused = std::nullopt;
 			bool paused = false;
 			bool maximized = false;
 			bool minimized = false;
 			bool resizeInProgress = false;
-			std::optional<std::chrono::milliseconds> previousFrameMs = {};
+			std::optional<std::chrono::milliseconds> previousFrameMs = std::nullopt;
 		};
 
 		AppContainer(Settings&& settings, const std::shared_ptr<Core::BaseRootApp>& app);

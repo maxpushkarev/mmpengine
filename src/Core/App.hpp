@@ -31,6 +31,7 @@ namespace MMPEngine::Core
 		virtual ~App();
 
 		virtual void Initialize();
+		virtual void OnNativeWindowUpdated();
 		virtual void OnPause();
 		virtual void OnResume();
 		virtual void OnUpdate(std::float_t dt);
