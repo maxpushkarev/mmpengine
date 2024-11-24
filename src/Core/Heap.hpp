@@ -1,16 +1,31 @@
 #pragma once
 #include <memory>
 #include <optional>
+#include <vector>
 
 namespace MMPEngine::Core
 {
-	class BaseHeap : public std::enable_shared_from_this<BaseHeap>
+	class BaseItemHeap : public std::enable_shared_from_this<BaseItemHeap>
 	{
 	protected:
 		struct Entry final
 		{
-			std::uint32_t heapIndex;
-			std::uint32_t slotIndexInHeap;
+			std::uint32_t blockIndex;
+			std::uint32_t slotIndexInBlock;
+		};
+		class Block
+		{
+		public:
+			Block(std::uint32_t size);
+			Block(const Block&) = delete;
+			Block(Block&&) noexcept = delete;
+			Block& operator=(const Block&) = delete;
+			Block& operator=(Block&&) noexcept = delete;
+			virtual ~Block();
+			std::optional<std::uint32_t> TryAllocate();
+			virtual void Release(std::uint32_t slotIndex);
+		protected:
+			std::vector<bool> _freeSlots;
 		};
 	public:
 		struct Settings
@@ -21,7 +36,7 @@ namespace MMPEngine::Core
 		class Handle
 		{
 		protected:
-			Handle(const std::shared_ptr<BaseHeap>& heap, const Entry& entry);
+			Handle(const std::shared_ptr<BaseItemHeap>& heap, const Entry& entry);
 		public:
 			Handle(const Handle&) = delete;
 			Handle(Handle&& movableHandle) noexcept;
@@ -30,19 +45,22 @@ namespace MMPEngine::Core
 			virtual ~Handle();
 		protected:
 			std::optional<Entry> _entry;
-			std::weak_ptr<BaseHeap> _heap;
+			std::weak_ptr<BaseItemHeap> _heap;
 		};
 	protected:
-		BaseHeap(const Settings& settings);
-		virtual ~BaseHeap();
-		virtual void Release(const Entry& entry) = 0;
+		BaseItemHeap(const Settings& settings);
+		virtual ~BaseItemHeap();
+		virtual Entry Allocate();
+		virtual std::unique_ptr<Block> InstantiateBlock(std::uint32_t size) = 0;
+		virtual void Release(const Entry& entry);
 
 	public:
-		BaseHeap(const BaseHeap&) = delete;
-		BaseHeap(BaseHeap&&) noexcept = delete;
-		BaseHeap& operator=(const BaseHeap&) = delete;
-		BaseHeap& operator=(BaseHeap&&) noexcept = delete;
+		BaseItemHeap(const BaseItemHeap&) = delete;
+		BaseItemHeap(BaseItemHeap&&) noexcept = delete;
+		BaseItemHeap& operator=(const BaseItemHeap&) = delete;
+		BaseItemHeap& operator=(BaseItemHeap&&) noexcept = delete;
 	protected:
 		Settings _settings;
+		std::vector<std::unique_ptr<Block>> _blocks;
 	};
 }
