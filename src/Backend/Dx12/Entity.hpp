@@ -13,6 +13,8 @@ namespace MMPEngine::Backend::Dx12
 	private:
 		void SetUpNativeResourceName();
 	protected:
+		static constexpr auto _defaultState = D3D12_RESOURCE_STATE_COMMON;
 		Microsoft::WRL::ComPtr<ID3D12Resource> _nativeResource;
+		D3D12_RESOURCE_STATES _currentNativeResourceState = _defaultState;
 	};
 }
