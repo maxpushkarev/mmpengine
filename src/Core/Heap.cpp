@@ -8,7 +8,7 @@ namespace MMPEngine::Core
 	}
 	BaseItemHeap::~BaseItemHeap() = default;
 
-	BaseItemHeap::Entry BaseItemHeap::Allocate()
+	BaseItemHeap::Entry BaseItemHeap::AllocateEntry()
 	{
 		auto newBlockCapacity = _settings.initialCapacity;
 
@@ -27,7 +27,7 @@ namespace MMPEngine::Core
 		return {static_cast<std::uint32_t>(_blocks.size() - 1), _blocks.back()->TryAllocate().value()};
 	}
 
-	void BaseItemHeap::Release(const Entry& entry)
+	void BaseItemHeap::ReleaseEntry(const Entry& entry)
 	{
 		_blocks.at(entry.blockIndex)->Release(entry.slotIndexInBlock);
 	}
@@ -62,7 +62,7 @@ namespace MMPEngine::Core
 		{
 			if (const auto heapStrongRef = _heap.lock())
 			{
-				heapStrongRef->Release(_entry.value());
+				heapStrongRef->ReleaseEntry(_entry.value());
 			}
 		}
 	}

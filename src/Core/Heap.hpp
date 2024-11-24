@@ -50,9 +50,9 @@ namespace MMPEngine::Core
 	protected:
 		BaseItemHeap(const Settings& settings);
 		virtual ~BaseItemHeap();
-		virtual Entry Allocate();
+		virtual Entry AllocateEntry();
 		virtual std::unique_ptr<Block> InstantiateBlock(std::uint32_t size) = 0;
-		virtual void Release(const Entry& entry);
+		virtual void ReleaseEntry(const Entry& entry);
 
 	public:
 		BaseItemHeap(const BaseItemHeap&) = delete;
