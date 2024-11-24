@@ -2,5 +2,6 @@
 
 namespace MMPEngine::Core
 {
-
+	BaseStream::BaseStream() = default;
+	BaseStream::~BaseStream() = default;
 }
