@@ -21,13 +21,14 @@ namespace MMPEngine::Backend::Dx12
 
 		BaseDescriptorHeap(const Microsoft::WRL::ComPtr<ID3D12Device>& device, const Settings& settings);
 		std::unique_ptr<Core::BaseItemHeap::Block> InstantiateBlock(std::uint32_t size) override;
+		D3D12_CPU_DESCRIPTOR_HANDLE GetNativeCPUDescriptorHandle(const Entry& entry) const;
+		D3D12_GPU_DESCRIPTOR_HANDLE GetNativeGPUDescriptorHandle(const Entry& entry) const;
 
 		class Block final : public Core::BaseItemHeap::Block
 		{
 		public:
 			Block(std::uint32_t size, const Microsoft::WRL::ComPtr<ID3D12Device>& device, const NativeSettings& nativeSettings);
-		private:
-			Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> _native;
+			Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> native;
 		};
 		NativeSettings _nativeSettings;
 		Microsoft::WRL::ComPtr<ID3D12Device> _device;
@@ -36,12 +37,19 @@ namespace MMPEngine::Backend::Dx12
 		class Handle final : public Core::BaseItemHeap::Handle
 		{
 			friend class BaseDescriptorHeap;
+		public:
+			D3D12_CPU_DESCRIPTOR_HANDLE GetCPUDescriptorHandle() const;
+			D3D12_GPU_DESCRIPTOR_HANDLE GetGPUDescriptorHandle() const;
 		protected:
 			Handle(const std::shared_ptr<BaseDescriptorHeap>& descHeap, const Entry& entry);
 		private:
 			std::weak_ptr<BaseDescriptorHeap> _descHeap;
 		};
 		Handle Allocate();
+	private:
+		mutable std::optional<std::vector<Microsoft::WRL::ComPtr<ID3D12DescriptorHeap>>> _nativeBlocksCache;
+		void ResetCache();
+		void RebuildCacheIfNeed() const;
 	};
 
 	template<D3D12_DESCRIPTOR_HEAP_TYPE TDescriptorHeapType>

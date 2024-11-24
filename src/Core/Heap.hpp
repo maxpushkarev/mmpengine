@@ -22,7 +22,7 @@ namespace MMPEngine::Core
 			Block& operator=(const Block&) = delete;
 			Block& operator=(Block&&) noexcept = delete;
 			virtual ~Block();
-			std::optional<std::uint32_t> TryAllocate();
+			virtual std::optional<std::uint32_t> TryAllocate();
 			virtual void Release(std::uint32_t slotIndex);
 		protected:
 			std::vector<bool> _freeSlots;
