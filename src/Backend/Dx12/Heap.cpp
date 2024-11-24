@@ -36,13 +36,13 @@ namespace MMPEngine::Backend::Dx12
 		device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&_native));
 	}
 
-	RTVDescriptorHeap::RTVDescriptorHeap(const Microsoft::WRL::ComPtr<ID3D12Device>& device, const Core::BaseItemHeap::Settings& baseSettings, D3D12_DESCRIPTOR_HEAP_FLAGS flags)
-		: DescriptorHeap(device, baseSettings, flags)
+	RTVDescriptorHeap::RTVDescriptorHeap(const Microsoft::WRL::ComPtr<ID3D12Device>& device, const Core::BaseItemHeap::Settings& baseSettings)
+		: DescriptorHeap(device, baseSettings, D3D12_DESCRIPTOR_HEAP_FLAG_NONE)
 	{
 	}
 
-	DSVDescriptorHeap::DSVDescriptorHeap(const Microsoft::WRL::ComPtr<ID3D12Device>& device, const Core::BaseItemHeap::Settings& baseSettings, D3D12_DESCRIPTOR_HEAP_FLAGS flags)
-		: DescriptorHeap(device, baseSettings, flags)
+	DSVDescriptorHeap::DSVDescriptorHeap(const Microsoft::WRL::ComPtr<ID3D12Device>& device, const Core::BaseItemHeap::Settings& baseSettings)
+		: DescriptorHeap(device, baseSettings, D3D12_DESCRIPTOR_HEAP_FLAG_NONE)
 	{
 	}
 

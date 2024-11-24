@@ -62,8 +62,7 @@ namespace MMPEngine::Backend::Dx12
 	public:
 		RTVDescriptorHeap(
 			const Microsoft::WRL::ComPtr<ID3D12Device>& device, 
-			const Core::BaseItemHeap::Settings& baseSettings,
-			D3D12_DESCRIPTOR_HEAP_FLAGS flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE);
+			const Core::BaseItemHeap::Settings& baseSettings);
 	};
 
 	class DSVDescriptorHeap final : public DescriptorHeap<D3D12_DESCRIPTOR_HEAP_TYPE_DSV>
@@ -71,8 +70,7 @@ namespace MMPEngine::Backend::Dx12
 	public:
 		DSVDescriptorHeap(
 			const Microsoft::WRL::ComPtr<ID3D12Device>& device,
-			const Core::BaseItemHeap::Settings& baseSettings,
-			D3D12_DESCRIPTOR_HEAP_FLAGS flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE);
+			const Core::BaseItemHeap::Settings& baseSettings);
 	};
 
 	class CBVSRVUAVDescriptorHeap final : public DescriptorHeap<D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV>
