@@ -57,6 +57,12 @@ namespace MMPEngine::Backend::Dx12
 
 		assert(_rootContext->device != nullptr);
 
+
+		_rootContext->rtvHeap = std::make_shared<RTVDescriptorHeap>(_rootContext->device, Core::BaseItemHeap::Settings{}, D3D12_DESCRIPTOR_HEAP_FLAG_NONE);
+		_rootContext->dsvHeap = std::make_shared<DSVDescriptorHeap>(_rootContext->device, Core::BaseItemHeap::Settings{}, D3D12_DESCRIPTOR_HEAP_FLAG_NONE);
+		_rootContext->cbvSrvUavShaderInVisibleHeap = std::make_shared<CBVSRVUAVDescriptorHeap>(_rootContext->device, Core::BaseItemHeap::Settings{}, D3D12_DESCRIPTOR_HEAP_FLAG_NONE);
+		_rootContext->cbvSrvUavShaderVisibleHeap = std::make_shared<CBVSRVUAVDescriptorHeap>(_rootContext->device, Core::BaseItemHeap::Settings{}, D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE);
+
 		Core::RootApp<AppContext>::Initialize();
 	}
 }
