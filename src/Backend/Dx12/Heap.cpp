@@ -17,6 +17,7 @@ namespace MMPEngine::Backend::Dx12
 
 	std::unique_ptr<Core::BaseItemHeap::Block> BaseDescriptorHeap::InstantiateBlock(std::uint32_t size)
 	{
+		ResetCache();
 		return std::make_unique<Block>(size, _device, _nativeSettings);
 	}
 
@@ -43,7 +44,6 @@ namespace MMPEngine::Backend::Dx12
 
 	BaseDescriptorHeap::Handle BaseDescriptorHeap::Allocate()
 	{
-		ResetCache();
 		return {std::dynamic_pointer_cast<BaseDescriptorHeap>(shared_from_this()), AllocateEntry() };
 	}
 
