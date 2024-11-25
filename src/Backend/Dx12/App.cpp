@@ -2,6 +2,7 @@
 #include <Backend/Dx12/App.hpp>
 #include <array>
 #include <cassert>
+#include <Backend/Dx12/Stream.hpp>
 
 namespace MMPEngine::Backend::Dx12
 {
@@ -62,6 +63,31 @@ namespace MMPEngine::Backend::Dx12
 		_rootContext->dsvHeap = std::make_shared<DSVDescriptorHeap>(_rootContext->device, Core::BaseItemHeap::Settings{});
 		_rootContext->cbvSrvUavShaderInVisibleHeap = std::make_shared<CBVSRVUAVDescriptorHeap>(_rootContext->device, Core::BaseItemHeap::Settings{}, D3D12_DESCRIPTOR_HEAP_FLAG_NONE);
 		_rootContext->cbvSrvUavShaderVisibleHeap = std::make_shared<CBVSRVUAVDescriptorHeap>(_rootContext->device, Core::BaseItemHeap::Settings{}, D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE);
+
+		const auto streamContext = std::make_shared<StreamContext>();
+
+		D3D12_COMMAND_QUEUE_DESC queueDesc = {};
+		queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
+		queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
+		_rootContext->device->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(streamContext->cmdQueue.GetAddressOf()));
+
+		_rootContext->device->CreateFence(0, D3D12_FENCE_FLAG_NONE,
+			IID_PPV_ARGS(&streamContext->fence));
+
+		_rootContext->device->CreateCommandAllocator(
+			D3D12_COMMAND_LIST_TYPE_DIRECT,
+			IID_PPV_ARGS(streamContext->cmdAllocator.GetAddressOf()));
+
+		_rootContext->device->CreateCommandList(
+			0,
+			D3D12_COMMAND_LIST_TYPE_DIRECT,
+			streamContext->cmdAllocator.Get(),
+			nullptr,
+			IID_PPV_ARGS(streamContext->cmdList.GetAddressOf()));
+
+		streamContext->cmdList->Close();
+
+		_defaultStream = std::make_shared<Stream>(_rootContext, streamContext);
 
 		Core::RootApp<AppContext>::Initialize();
 	}

@@ -20,4 +20,13 @@ namespace MMPEngine::Backend::Dx12
 		std::shared_ptr<CBVSRVUAVDescriptorHeap> cbvSrvUavShaderVisibleHeap;
 		std::shared_ptr<CBVSRVUAVDescriptorHeap> cbvSrvUavShaderInVisibleHeap;
 	};
+
+	class StreamContext : public Core::StreamContext
+	{
+	public:
+		Microsoft::WRL::ComPtr<ID3D12CommandQueue> cmdQueue;
+		Microsoft::WRL::ComPtr<ID3D12CommandAllocator> cmdAllocator;
+		Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> cmdList;
+		Microsoft::WRL::ComPtr<ID3D12Fence> fence;
+	};
 }

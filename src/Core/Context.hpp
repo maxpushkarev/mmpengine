@@ -60,11 +60,9 @@ typedef HWND NativeWindow;
 
 	class StreamContext : public Context
 	{
-		
 	};
 
 	class TaskContext : public Context
 	{
-
 	};
 }

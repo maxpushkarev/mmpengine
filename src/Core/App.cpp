@@ -75,6 +75,17 @@ namespace MMPEngine::Core
 		return nullptr;
 	}
 
+	std::shared_ptr<BaseStream> UserApp::GetDefaultStream() const
+	{
+		if (const auto root = _rootApp.lock())
+		{
+			return root->GetDefaultStream();
+		}
+
+		return nullptr;
+	}
+
+
 	void UserApp::JoinToRootApp(const std::shared_ptr<BaseRootApp>& root)
 	{
 		_rootApp = root;

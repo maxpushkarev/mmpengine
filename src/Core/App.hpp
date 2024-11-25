@@ -1,6 +1,7 @@
 #pragma once
 #include <memory>
 #include <Core/Context.hpp>
+#include <Core/Stream.hpp>
 
 namespace MMPEngine::Core
 {
@@ -37,6 +38,7 @@ namespace MMPEngine::Core
 		virtual void OnUpdate(std::float_t dt);
 		virtual void OnRender();
 		virtual std::shared_ptr<AppContext> GetContext() const = 0;
+		virtual std::shared_ptr<BaseStream> GetDefaultStream() const = 0;
 	};
 
 	class UserApp;
@@ -59,6 +61,7 @@ namespace MMPEngine::Core
 	public:
 		UserApp();
 		std::shared_ptr<AppContext> GetContext() const override;
+		std::shared_ptr<BaseStream> GetDefaultStream() const override;
 	private:
 		void JoinToRootApp(const std::shared_ptr<BaseRootApp>& root);
 		std::weak_ptr<BaseRootApp> _rootApp;
@@ -70,9 +73,19 @@ namespace MMPEngine::Core
 		static_assert(std::is_base_of_v<AppContext, TRootContext>, "TRootContext must be inherited from Core::AppContext");
 	protected:
 		RootApp(const std::shared_ptr<TRootContext>& context);
+	public:
+		RootApp(const RootApp&) = delete;
+		RootApp(RootApp&&) noexcept = delete;
+		RootApp& operator=(const RootApp&) = delete;
+		RootApp& operator=(RootApp&&) noexcept = delete;
+	protected:
+		~RootApp() override;
+	public:
 		std::shared_ptr<AppContext> GetContext() const override;
+		std::shared_ptr<BaseStream> GetDefaultStream() const override;
 	protected:
 		std::shared_ptr<TRootContext> _rootContext;
+		std::shared_ptr<BaseStream> _defaultStream;
 	};
 
 	template<typename TRootContext>
@@ -81,8 +94,19 @@ namespace MMPEngine::Core
 	}
 	
 	template<typename TRootContext>
+	inline RootApp<TRootContext>::~RootApp()
+	{
+		_defaultStream->SubmitAndWait();
+	}
+
+	template<typename TRootContext>
 	inline std::shared_ptr<AppContext> RootApp<TRootContext>::GetContext() const
 	{
 		return _rootContext;
+	}
+	template<typename TRootContext>
+	inline std::shared_ptr<BaseStream> RootApp<TRootContext>::GetDefaultStream() const
+	{
+		return _defaultStream;
 	}
 }
