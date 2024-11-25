@@ -5,6 +5,8 @@ namespace MMPEngine::Core
 	BaseTask::BaseTask() = default;
 	BaseTask::~BaseTask() = default;
 
+	std::shared_ptr<BaseTask> BaseTask::Empty = std::make_shared<BaseTask>();
+
     void BaseTask::Run(const std::shared_ptr<BaseStream>& stream)
     {
     }

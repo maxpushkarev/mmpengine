@@ -8,10 +8,10 @@ namespace MMPEngine::Core
 	class BaseTask
 	{
 		friend class BaseStream;
-	protected:
+	public:
 		BaseTask();
 		virtual ~BaseTask();
-
+	protected:
 		virtual void Run(const std::shared_ptr<BaseStream>& stream);
 		virtual void Finalize(const std::shared_ptr<BaseStream>& stream);
 
@@ -20,5 +20,7 @@ namespace MMPEngine::Core
 		BaseTask(BaseTask&&) noexcept = default;
 		BaseTask& operator=(const BaseTask&) = delete;
 		BaseTask& operator=(BaseTask&&) noexcept = default;
+
+		static std::shared_ptr<BaseTask> Empty;
 	};
 }
