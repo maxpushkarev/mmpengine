@@ -92,6 +92,11 @@ namespace MMPEngine::Core
 		return _streamContext;
 	}
 
+	BaseStream::Executor BaseStream::CreateExecutor(bool waitAfterSubmit)
+	{
+		return Executor{shared_from_this(), waitAfterSubmit};
+	}
+
 	void BaseStream::SwitchState(State targetState)
 	{
 		const auto& nextStates = _validTransitionsMap.at(_sourceState);
@@ -125,7 +130,7 @@ namespace MMPEngine::Core
 		return stream;
 	}
 
-	BaseStream::Executor::Executor(const std::shared_ptr<BaseStream>& stream, bool wait) : _waitAfterSubmit(wait)
+	BaseStream::Executor::Executor(const std::shared_ptr<BaseStream>& stream, bool waitAfterSubmit) : _waitAfterSubmit(waitAfterSubmit)
 	{
 		if(const auto s = _stream.lock())
 		{

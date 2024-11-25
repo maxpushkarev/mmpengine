@@ -37,7 +37,7 @@ namespace MMPEngine::Core
 		class Executor final
 		{
 		public:
-			Executor(const std::shared_ptr<BaseStream>& stream, bool wait = true);
+			Executor(const std::shared_ptr<BaseStream>& stream, bool waitAfterSubmit = true);
 			Executor(const Executor&) = delete;
 			Executor(Executor&&) noexcept = delete;
 			Executor& operator=(const Executor&) = delete;
@@ -61,6 +61,7 @@ namespace MMPEngine::Core
 
 		std::shared_ptr<AppContext> GetAppContext() const;
 		std::shared_ptr<StreamContext> GetStreamContext() const;
+		Executor CreateExecutor(bool waitAfterSubmit = true);
 	private:
 		void SwitchState(State targetState);
 	private:
