@@ -38,6 +38,7 @@ namespace MMPEngine::Core
 		virtual void OnUpdate(std::float_t dt);
 		virtual void OnRender();
 		virtual std::shared_ptr<AppContext> GetContext() const = 0;
+	protected:
 		virtual std::shared_ptr<BaseStream> GetDefaultStream() const = 0;
 	};
 
