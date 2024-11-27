@@ -6,7 +6,7 @@
 
 namespace MMPEngine::Backend::Dx12
 {
-	class BaseEntity : public Core::BaseEntity, public std::enable_shared_from_this<BaseEntity>
+	class BaseEntity : public virtual Core::BaseEntity, public std::enable_shared_from_this<BaseEntity>
 	{
 	protected:
 		BaseEntity(std::string_view name);
