@@ -28,10 +28,10 @@ namespace MMPEngine::Core
 	};
 
 	template<typename TAppContext, typename TStreamContext>
-	class ContextSpecificTask : public virtual BaseTask
+	class OuterContextSpecificTask : public virtual BaseTask
 	{
-		static_assert(std::is_base_of_v<TAppContext, AppContext>, "TAppContext must be derived from AppContext");
-		static_assert(std::is_base_of_v<TStreamContext, StreamContext>, "TStreamContext must be derived from StreamContext");
+		static_assert(std::is_base_of_v<AppContext, TAppContext>, "TAppContext must be derived from AppContext");
+		static_assert(std::is_base_of_v<StreamContext, TStreamContext>, "TStreamContext must be derived from StreamContext");
 	public:
 		void Run(const std::shared_ptr<BaseStream>& stream) override;
 		void Finalize(const std::shared_ptr<BaseStream>& stream) override;
@@ -43,32 +43,52 @@ namespace MMPEngine::Core
 		std::weak_ptr<TStreamContext> _specificStreamContext;
 	};
 
+
+	template<typename TInnerContext>
+	class TaskWithInnerContext : public virtual BaseTask
+	{
+		static_assert(std::is_base_of_v<TaskContext, TInnerContext>, "TInnerContext must be derived from TaskContext");
+	protected:
+		TaskWithInnerContext(const std::shared_ptr<TInnerContext>& innerContext);
+		std::shared_ptr<TInnerContext> _innerContext;
+	};
+
+
 	template<typename TAppContext, typename TStreamContext>
-	inline void ContextSpecificTask<TAppContext, TStreamContext>::Run(const std::shared_ptr<BaseStream>& stream)
+	inline void OuterContextSpecificTask<TAppContext, TStreamContext>::Run(const std::shared_ptr<BaseStream>& stream)
 	{
 		BaseTask::Run(stream);
 		UpdateCache(stream);
 	}
 
 	template<typename TAppContext, typename TStreamContext>
-	inline void ContextSpecificTask<TAppContext, TStreamContext>::Finalize(const std::shared_ptr<BaseStream>& stream)
+	inline void OuterContextSpecificTask<TAppContext, TStreamContext>::Finalize(const std::shared_ptr<BaseStream>& stream)
 	{
 		BaseTask::Finalize(stream);
 		UpdateCache(stream);
 	}
 
 	template<typename TAppContext, typename TStreamContext>
-	inline void ContextSpecificTask<TAppContext, TStreamContext>::UpdateCache(const std::shared_ptr<BaseStream>& stream)
+	inline void OuterContextSpecificTask<TAppContext, TStreamContext>::UpdateCache(const std::shared_ptr<BaseStream>& stream)
 	{
 		const auto cachedStream = _cachedStream.lock();
 		if(!cachedStream || cachedStream != stream)
 		{
+			_specificStreamContext.reset();
+			_specificAppContext.reset();
+
 			_cachedStream = stream;
 			_specificAppContext = std::dynamic_pointer_cast<TAppContext>(stream->GetAppContext());
 			_specificStreamContext = std::dynamic_pointer_cast<TStreamContext>(stream->GetStreamContext());
 
-			assert(_specificStreamContext != nullptr);
-			assert(_specificAppContext != nullptr);
+			assert(!_specificStreamContext.expired());
+			assert(!_specificAppContext.expired());
 		}
+	}
+
+	template<typename TInnerContext>
+	inline TaskWithInnerContext<TInnerContext>::TaskWithInnerContext(const std::shared_ptr<TInnerContext>& innerContext) :
+		_innerContext(innerContext)
+	{
 	}
 }

@@ -2,5 +2,6 @@
 
 namespace MMPEngine::Backend::Dx12
 {
+	Task::Task() = default;
 
 }

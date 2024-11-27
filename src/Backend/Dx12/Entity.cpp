@@ -1,4 +1,5 @@
 #include <Backend/Dx12/Entity.hpp>
+#include <Backend/Dx12/d3dx12.h>
 
 namespace MMPEngine::Backend::Dx12
 {
@@ -19,4 +20,38 @@ namespace MMPEngine::Backend::Dx12
 		_nativeResource->SetName(wName.c_str());
 	}
 
+	BaseEntity::SwitchStateTaskContext::SwitchStateTaskContext(const std::shared_ptr<BaseEntity>& entity, D3D12_RESOURCE_STATES nextState)
+		: nextState(nextState), entity(entity)
+	{
+	}
+
+	BaseEntity::SwitchStateTask::SwitchStateTask(const std::shared_ptr<SwitchStateTaskContext>& context) : TaskWithInnerContext(context)
+	{
+	}
+
+	void BaseEntity::SwitchStateTask::Run(const std::shared_ptr<Core::BaseStream>& stream)
+	{
+		Task::Run(stream);
+		if(const auto entity = _innerContext->entity.lock())
+		{
+			if(entity->_currentNativeResourceState != _innerContext->nextState)
+			{
+				const D3D12_RESOURCE_BARRIER transitions[] = {
+					CD3DX12_RESOURCE_BARRIER::Transition(entity->_nativeResource.Get(),  entity->_currentNativeResourceState, _innerContext->nextState)
+				};
+
+				if(const auto sc = _specificStreamContext.lock())
+				{
+					sc->cmdList->ResourceBarrier(static_cast<std::uint32_t>(std::size(transitions)), transitions);
+				}
+
+				entity->_currentNativeResourceState = _innerContext->nextState;
+			}
+		}
+	}
+
+	void BaseEntity::SwitchStateTask::Finalize(const std::shared_ptr<Core::BaseStream>& stream)
+	{
+		Task::Finalize(stream);
+	}
 }
