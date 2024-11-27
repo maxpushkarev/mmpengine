@@ -9,4 +9,6 @@ namespace MMPEngine::Core
     IInitializationTaskSource::IInitializationTaskSource() = default;
 	IInitializationTaskSource::~IInitializationTaskSource() = default;
 
+    INamed::INamed() = default;
+	INamed::~INamed() = default;
 }

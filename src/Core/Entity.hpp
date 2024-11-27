@@ -5,7 +5,7 @@
 
 namespace MMPEngine::Core
 {
-	class BaseEntity : public IInitializationTaskSource
+	class BaseEntity : public IInitializationTaskSource, public INamed
 	{
 	protected:
 		BaseEntity(std::string_view name);
@@ -17,7 +17,7 @@ namespace MMPEngine::Core
 		BaseEntity& operator=(const BaseEntity&) = delete;
 		BaseEntity& operator=(BaseEntity&&) noexcept = delete;
 		std::shared_ptr<BaseTask> CreateInitializationTask() override;
-		std::string_view GetName() const;
+		std::string_view GetName() const override;
 		std::uint64_t GetId() const;
 	private:
 		std::uint64_t _id;

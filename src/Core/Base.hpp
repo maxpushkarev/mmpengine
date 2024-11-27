@@ -22,6 +22,20 @@ namespace MMPEngine::Core
 		virtual std::shared_ptr<BaseTask> CreateInitializationTask() = 0;
 	};
 
+	class INamed
+	{
+	public:
+		INamed();
+		virtual ~INamed();
+
+		INamed(const INamed&) = delete;
+		INamed(INamed&&) noexcept = delete;
+		INamed& operator=(const INamed&) = delete;
+		INamed& operator=(INamed&&) noexcept = delete;
+
+		virtual std::string_view GetName() const = 0;
+	};
+
 	enum class PlatformType : std::uint8_t
 	{
 		Win,

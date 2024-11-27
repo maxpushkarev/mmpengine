@@ -4,7 +4,7 @@
 
 namespace MMPEngine::Backend::Dx12
 {
-	class Task : public Core::OuterContextSpecificTask<AppContext, StreamContext>
+	class Task : public Core::ExternalContextSpecificTask<AppContext, StreamContext>
 	{
 	protected:
 		Task();

@@ -9,10 +9,8 @@ namespace MMPEngine::Backend::Dx12
 	class BaseEntity : public Core::BaseEntity, public std::enable_shared_from_this<BaseEntity>
 	{
 	protected:
-		BaseEntity(const Microsoft::WRL::ComPtr<ID3D12Resource>& nativeResource, std::string_view name);
-		BaseEntity(const Microsoft::WRL::ComPtr<ID3D12Resource>& nativeResource);
-	private:
-		void SetUpNativeResourceName();
+		BaseEntity(std::string_view name);
+		BaseEntity();
 	protected:
 		class SwitchStateTaskContext final : public Core::TaskContext
 		{
@@ -21,7 +19,7 @@ namespace MMPEngine::Backend::Dx12
 			D3D12_RESOURCE_STATES nextStateMask;
 			std::weak_ptr<BaseEntity> entity;
 		};
-		class SwitchStateTask final : public Task, public Core::TaskWithInnerContext<SwitchStateTaskContext>
+		class SwitchStateTask final : public Task, public Core::TaskWithInternalContext<SwitchStateTaskContext>
 		{
 		public:
 			SwitchStateTask(const std::shared_ptr<SwitchStateTaskContext>& context);
@@ -31,6 +29,11 @@ namespace MMPEngine::Backend::Dx12
 	public:
 		std::shared_ptr<Core::BaseTask> CreateSwitchStateTask(D3D12_RESOURCE_STATES nextStateMask);
 	protected:
+		Microsoft::WRL::ComPtr<ID3D12Resource> GetNativeResource();
+		void SetNativeResource(const Microsoft::WRL::ComPtr<ID3D12Resource>& nativeResource);
+	private:
+		void SetUpNativeResourceName();
+	private:
 		static constexpr auto _defaultState = D3D12_RESOURCE_STATE_COMMON;
 		Microsoft::WRL::ComPtr<ID3D12Resource> _nativeResource;
 		D3D12_RESOURCE_STATES _currentStateMask = _defaultState;
