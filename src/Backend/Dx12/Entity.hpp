@@ -6,7 +6,7 @@
 
 namespace MMPEngine::Backend::Dx12
 {
-	class BaseEntity : Core::BaseEntity
+	class BaseEntity : public Core::BaseEntity, public std::enable_shared_from_this<BaseEntity>
 	{
 	protected:
 		BaseEntity(const Microsoft::WRL::ComPtr<ID3D12Resource>& nativeResource, std::string_view name);
@@ -28,6 +28,8 @@ namespace MMPEngine::Backend::Dx12
 			void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
 			void Finalize(const std::shared_ptr<Core::BaseStream>& stream) override;
 		};
+	public:
+		std::shared_ptr<Core::BaseTask> CreateSwitchStateTask(D3D12_RESOURCE_STATES nextStateMask);
 	protected:
 		static constexpr auto _defaultState = D3D12_RESOURCE_STATE_COMMON;
 		Microsoft::WRL::ComPtr<ID3D12Resource> _nativeResource;

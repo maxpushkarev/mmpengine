@@ -20,6 +20,12 @@ namespace MMPEngine::Backend::Dx12
 		_nativeResource->SetName(wName.c_str());
 	}
 
+	std::shared_ptr<Core::BaseTask> BaseEntity::CreateSwitchStateTask(D3D12_RESOURCE_STATES nextStateMask)
+	{
+		return std::make_shared<SwitchStateTask>(std::make_shared<SwitchStateTaskContext>(shared_from_this(), nextStateMask));
+	}
+
+
 	BaseEntity::SwitchStateTaskContext::SwitchStateTaskContext(const std::shared_ptr<BaseEntity>& entity, D3D12_RESOURCE_STATES nextState)
 		: nextStateMask(nextState), entity(entity)
 	{
