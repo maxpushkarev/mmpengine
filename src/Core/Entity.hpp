@@ -1,6 +1,7 @@
 #pragma once
 #include <mutex>
 #include <string>
+#include <Core/Task.hpp>
 
 namespace MMPEngine::Core
 {
