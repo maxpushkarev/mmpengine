@@ -18,7 +18,7 @@ namespace MMPEngine::Backend::Dx12
 		{
 		public:
 			SwitchStateTaskContext(const std::shared_ptr<BaseEntity>& entity, D3D12_RESOURCE_STATES nextState);
-			D3D12_RESOURCE_STATES nextState;
+			D3D12_RESOURCE_STATES nextStateMask;
 			std::weak_ptr<BaseEntity> entity;
 		};
 		class SwitchStateTask final : public Task, public Core::TaskWithInnerContext<SwitchStateTaskContext>
@@ -31,6 +31,6 @@ namespace MMPEngine::Backend::Dx12
 	protected:
 		static constexpr auto _defaultState = D3D12_RESOURCE_STATE_COMMON;
 		Microsoft::WRL::ComPtr<ID3D12Resource> _nativeResource;
-		D3D12_RESOURCE_STATES _currentNativeResourceState = _defaultState;
+		D3D12_RESOURCE_STATES _currentStateMask = _defaultState;
 	};
 }

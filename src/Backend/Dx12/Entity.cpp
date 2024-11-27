@@ -21,7 +21,7 @@ namespace MMPEngine::Backend::Dx12
 	}
 
 	BaseEntity::SwitchStateTaskContext::SwitchStateTaskContext(const std::shared_ptr<BaseEntity>& entity, D3D12_RESOURCE_STATES nextState)
-		: nextState(nextState), entity(entity)
+		: nextStateMask(nextState), entity(entity)
 	{
 	}
 
@@ -34,10 +34,10 @@ namespace MMPEngine::Backend::Dx12
 		Task::Run(stream);
 		if(const auto entity = _innerContext->entity.lock())
 		{
-			if(entity->_currentNativeResourceState != _innerContext->nextState)
+			if((entity->_currentStateMask & _innerContext->nextStateMask) != _innerContext->nextStateMask)
 			{
 				const D3D12_RESOURCE_BARRIER transitions[] = {
-					CD3DX12_RESOURCE_BARRIER::Transition(entity->_nativeResource.Get(),  entity->_currentNativeResourceState, _innerContext->nextState)
+					CD3DX12_RESOURCE_BARRIER::Transition(entity->_nativeResource.Get(),  entity->_currentStateMask, _innerContext->nextStateMask)
 				};
 
 				if(const auto sc = _specificStreamContext.lock())
@@ -45,7 +45,7 @@ namespace MMPEngine::Backend::Dx12
 					sc->cmdList->ResourceBarrier(static_cast<std::uint32_t>(std::size(transitions)), transitions);
 				}
 
-				entity->_currentNativeResourceState = _innerContext->nextState;
+				entity->_currentStateMask = _innerContext->nextStateMask;
 			}
 		}
 	}
