@@ -30,6 +30,8 @@ namespace MMPEngine::Core
 		Context& operator=(const Context&) = delete;
 		Context& operator=(Context&&) noexcept = delete;
 		virtual ~Context();
+
+		std::shared_ptr<CustomProperties> customProps;
 	};
 
 #ifdef MMPENGINE_WIN
@@ -50,7 +52,6 @@ typedef HWND NativeWindow;
 		const Settings settings;
 		Vector2Uint windowSize;
 		const PlatformType platform;
-		std::shared_ptr<CustomProperties> customProps;
 		std::unique_ptr<BaseLogger> logger;
 		std::unique_ptr<Input> input;
 #ifdef MMPENGINE_WIN
