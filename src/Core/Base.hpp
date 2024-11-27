@@ -1,10 +1,27 @@
 #pragma once
 #include <cstdint>
 #include <cmath>
+#include <memory>
 #include <stdexcept>
 
 namespace MMPEngine::Core
 {
+	class BaseTask;
+
+	class IInitializationTaskSource
+	{
+	public:
+		IInitializationTaskSource();
+		virtual ~IInitializationTaskSource();
+
+		IInitializationTaskSource(const IInitializationTaskSource&) = delete;
+		IInitializationTaskSource(IInitializationTaskSource&&) noexcept = delete;
+		IInitializationTaskSource& operator=(const IInitializationTaskSource&) = delete;
+		IInitializationTaskSource& operator=(IInitializationTaskSource&&) noexcept = delete;
+
+		virtual std::shared_ptr<BaseTask> CreateInitializationTask() = 0;
+	};
+
 	enum class PlatformType : std::uint8_t
 	{
 		Win,
