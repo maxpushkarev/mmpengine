@@ -49,7 +49,7 @@ namespace MMPEngine::Backend::Dx12
 			if((entity->_currentStateMask & _internalTaskContext->nextStateMask) != _internalTaskContext->nextStateMask)
 			{
 				const D3D12_RESOURCE_BARRIER transitions[] = {
-					CD3DX12_RESOURCE_BARRIER::Transition(entity->_nativeResource.Get(),  entity->_currentStateMask, _internalTaskContext->nextStateMask)
+					CD3DX12_RESOURCE_BARRIER::Transition(entity->GetNativeResource().Get(),  entity->_currentStateMask, _internalTaskContext->nextStateMask)
 				};
 
 				if(const auto sc = _specificStreamContext.lock())

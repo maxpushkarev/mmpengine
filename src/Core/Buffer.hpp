@@ -49,7 +49,7 @@ namespace MMPEngine::Core
 		class InitializationContext final : public TaskContext
 		{
 		public:
-			std::shared_ptr<ConstantBuffer> constantBuffer;
+			std::weak_ptr<ConstantBuffer> constantBuffer;
 		};
 
 		class InitializationTask : public TaskWithInternalContext<InitializationContext>
@@ -119,6 +119,9 @@ namespace MMPEngine::Core
 	template<class TConstantBufferData>
 	inline void ConstantBuffer<TConstantBufferData>::InitializationTask::Run(const std::shared_ptr<BaseStream>& stream)
 	{
-		this->_internalTaskContext->constantBuffer->_uploadBuffer = CreateUploadBuffer(stream);
+		if(const auto cb = this->_internalTaskContext->constantBuffer.lock())
+		{
+			cb->_uploadBuffer = CreateUploadBuffer(stream);
+		}
 	}
 }
