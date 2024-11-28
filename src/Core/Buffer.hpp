@@ -114,7 +114,7 @@ namespace MMPEngine::Core
 	template<class TConstantBufferData>
 	inline void ConstantBuffer<TConstantBufferData>::InitializationTask::Run(const std::shared_ptr<BaseStream>& stream)
 	{
-		if(const auto cb = this->_internalTaskContext->constantBuffer.lock())
+		if(const auto cb = this->_internalTaskContext->entity.lock())
 		{
 			cb->_uploadBuffer = CreateUploadBuffer(stream);
 		}
