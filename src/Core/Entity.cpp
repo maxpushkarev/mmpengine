@@ -10,7 +10,7 @@ namespace MMPEngine::Core
 	{
 		const std::lock_guard lock(_mutex);
 		_id = ++_idCounter;
-		_name = std::string {name};
+		_name = name.empty() ? _name = Text::CombineToString("Entity", _id) : std::string{ name };
 	}
 
 	BaseEntity::BaseEntity()
