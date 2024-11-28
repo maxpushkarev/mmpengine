@@ -62,16 +62,11 @@ namespace MMPEngine::Core
 		static_assert(std::is_pod_v<TData>, "TData should be POD type");
 		static_assert(std::is_final_v<TData>, "TData should be final");
 
-		class InitializationContext final : public TaskContext
-		{
-		public:
-			std::weak_ptr<ConstantBuffer> constantBuffer;
-		};
 
-		class InitializationTask : public TaskWithInternalContext<InitializationContext>
+		class InitializationTask : public TaskWithInternalContext<InitContext<ConstantBuffer>>
 		{
 		protected:
-			InitializationTask(const std::shared_ptr<InitializationContext> taskContext);
+			InitializationTask(const std::shared_ptr<InitContext<ConstantBuffer>> taskContext);
 			void Run(const std::shared_ptr<BaseStream>& stream) final;
 			virtual std::unique_ptr<UploadBuffer> CreateUploadBuffer(const std::shared_ptr<BaseStream>& stream) = 0;
 		};
@@ -111,8 +106,8 @@ namespace MMPEngine::Core
 	}
 
 	template<class TConstantBufferData>
-	inline ConstantBuffer<TConstantBufferData>::InitializationTask::InitializationTask(const std::shared_ptr<InitializationContext> taskContext)
-		: TaskWithInternalContext<ConstantBuffer<TConstantBufferData>::InitializationTask>(taskContext)
+	inline ConstantBuffer<TConstantBufferData>::InitializationTask::InitializationTask(const std::shared_ptr<InitContext<ConstantBuffer>> taskContext)
+		: TaskWithInternalContext<InitContext<ConstantBuffer>>(taskContext)
 	{
 	}
 

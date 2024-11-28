@@ -12,12 +12,10 @@ namespace MMPEngine::Backend::Dx12
 		BaseEntity(std::string_view name);
 		BaseEntity();
 	protected:
-		class SwitchStateTaskContext final : public Core::TaskContext
+		class SwitchStateTaskContext final : public InitContext<BaseEntity>
 		{
 		public:
-			SwitchStateTaskContext(const std::shared_ptr<BaseEntity>& entity, D3D12_RESOURCE_STATES nextState);
 			D3D12_RESOURCE_STATES nextStateMask;
-			std::weak_ptr<BaseEntity> entity;
 		};
 		class SwitchStateTask final : public Task, public Core::TaskWithInternalContext<SwitchStateTaskContext>
 		{

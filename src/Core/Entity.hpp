@@ -11,6 +11,14 @@ namespace MMPEngine::Core
 		BaseEntity(std::string_view name);
 		BaseEntity();
 		~BaseEntity() override;
+
+		template<typename TEntity>
+		class InitContext : public TaskContext
+		{
+		public:
+			std::weak_ptr<TEntity> entity;
+		};
+
 	public:
 		BaseEntity(const BaseEntity&) = delete;
 		BaseEntity(BaseEntity&&) noexcept = delete;
