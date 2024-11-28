@@ -27,7 +27,7 @@ namespace MMPEngine::Backend::Dx12
 			void Finalize(const std::shared_ptr<Core::BaseStream>& stream) override;
 		};
 	public:
-		std::shared_ptr<Core::BaseTask> CreateSwitchStateTask(D3D12_RESOURCE_STATES nextStateMask);
+		virtual std::shared_ptr<Core::BaseTask> CreateSwitchStateTask(D3D12_RESOURCE_STATES nextStateMask);
 	protected:
 		Microsoft::WRL::ComPtr<ID3D12Resource> GetNativeResource();
 		void SetNativeResource(const Microsoft::WRL::ComPtr<ID3D12Resource>& nativeResource);

@@ -16,7 +16,7 @@ namespace MMPEngine::Core
 		Settings _settings;
 	};
 
-	class UploadBuffer : public Buffer
+	class UploadBuffer : public virtual Buffer
 	{
 	protected:
 		UploadBuffer(const Settings& settings);
@@ -24,7 +24,7 @@ namespace MMPEngine::Core
 		virtual void Write(const void* src, std::size_t byteLength, std::size_t byteOffset = 0) = 0;
 	};
 
-	class ReadBackBuffer : public Buffer
+	class ReadBackBuffer : public virtual Buffer
 	{
 	protected:
 		ReadBackBuffer(const Settings& settings);
@@ -32,14 +32,30 @@ namespace MMPEngine::Core
 		virtual void Read(void* dst, std::size_t byteLength, std::size_t byteOffset = 0) = 0;
 	};
 
-	class ResidentBuffer : public Buffer
+	class ResidentBuffer : public virtual Buffer
 	{
 	protected:
 		ResidentBuffer(const Settings& settings);
 	};
 
+	class InputAssemblerBuffer : public virtual Buffer
+	{
+	protected:
+		struct IASettings final
+		{
+			const void* rawData;
+		};
+		struct Settings final
+		{
+			IASettings ia;
+			Buffer::Settings base;
+		};
+		InputAssemblerBuffer(const Settings& settings);
+		IASettings _ia;
+	};
+
 	template<class TConstantBufferData>
-	class ConstantBuffer : public Buffer, public std::enable_shared_from_this<ConstantBuffer<TConstantBufferData>>
+	class ConstantBuffer : public virtual Buffer, public std::enable_shared_from_this<ConstantBuffer<TConstantBufferData>>
 	{
 	protected:
 		using TData = std::decay_t<TConstantBufferData>;
@@ -70,22 +86,6 @@ namespace MMPEngine::Core
 		std::shared_ptr<BaseTask> CreateInitializationTask() final;
 	private:
 		std::unique_ptr<UploadBuffer> _uploadBuffer;
-	};
-
-	class InputAssemblerBuffer : public Buffer
-	{
-	protected:
-		struct IASettings final
-		{
-			const void* rawData;
-		};
-		struct Settings final
-		{
-			IASettings ia;
-			Buffer::Settings base;
-		};
-		InputAssemblerBuffer(const Settings& settings);
-		IASettings _ia;
 	};
 
 	template<class TConstantBufferData>
