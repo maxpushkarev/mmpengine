@@ -66,7 +66,7 @@ namespace MMPEngine::Core
 		void SwitchState(State targetState);
 	private:
 		std::queue<std::shared_ptr<BaseTask>> _scheduledTasks;
-		State _sourceState = State::Idle;
+		State _currentState = State::Idle;
 		std::shared_ptr<AppContext> _appContext;
 		std::shared_ptr<StreamContext> _streamContext;
 

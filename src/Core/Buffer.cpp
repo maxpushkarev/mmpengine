@@ -2,10 +2,18 @@
 
 namespace MMPEngine::Core
 {
-	Buffer::Buffer(const Settings& settings) : BaseEntity(settings.name), _settings(settings)
+	Buffer::Buffer(const Settings& settings) : _settings(settings)
 	{
-		std::string empty {};
-		_settings.name.swap(empty);
+	}
+
+	std::shared_ptr<Buffer> Buffer::GetUnderlyingBuffer()
+	{
+		return std::dynamic_pointer_cast<Buffer>(shared_from_this());
+	}
+
+	std::shared_ptr<BaseTask> Buffer::CopyToBuffer(const std::shared_ptr<Buffer>& dst)
+	{
+		return CreateCopyToBufferTask(dst, _settings.byteLength, 0, 0);
 	}
 
 	UploadBuffer::UploadBuffer(const Settings& settings) : Buffer(settings)

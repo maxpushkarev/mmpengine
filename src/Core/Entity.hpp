@@ -5,7 +5,7 @@
 
 namespace MMPEngine::Core
 {
-	class BaseEntity : public IInitializationTaskSource, public INamed
+	class BaseEntity : public IInitializationTaskSource, public INamed, public std::enable_shared_from_this<BaseEntity>
 	{
 	protected:
 		BaseEntity(std::string_view name);

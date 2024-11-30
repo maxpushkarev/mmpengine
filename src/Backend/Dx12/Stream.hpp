@@ -16,6 +16,8 @@ namespace MMPEngine::Backend::Dx12
 		Stream& operator=(Stream&&) noexcept = delete;
 		~Stream() override;
 	protected:
+		void RestartInternal() override;
+		void SubmitInternal() override;
 		void WaitInternal() override;
 	private:
 		std::uint64_t _lastFenceValue;

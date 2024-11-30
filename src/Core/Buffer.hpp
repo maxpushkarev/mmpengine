@@ -8,15 +8,23 @@ namespace MMPEngine::Core
 	public:
 		struct Settings final
 		{
-			std::size_t byteSize;
+			std::size_t byteLength;
 			std::string name = {};
 		};
+		virtual std::shared_ptr<BaseTask> CreateCopyToBufferTask(
+			const std::shared_ptr<Buffer>& dst, 
+			std::size_t byteLength, 
+			std::size_t srcByteOffset, 
+			std::size_t dstByteOffset
+		) = 0;
+		std::shared_ptr<BaseTask> CopyToBuffer(const std::shared_ptr<Buffer>& dst);
+		virtual std::shared_ptr<Buffer> GetUnderlyingBuffer();
 	protected:
 		Buffer(const Settings& settings);
 		Settings _settings;
 	};
 
-	class UploadBuffer : public virtual Buffer
+	class UploadBuffer : public Buffer
 	{
 	protected:
 		UploadBuffer(const Settings& settings);
@@ -24,7 +32,7 @@ namespace MMPEngine::Core
 		virtual void Write(const void* src, std::size_t byteLength, std::size_t byteOffset = 0) = 0;
 	};
 
-	class ReadBackBuffer : public virtual Buffer
+	class ReadBackBuffer : public Buffer
 	{
 	protected:
 		ReadBackBuffer(const Settings& settings);
@@ -32,13 +40,13 @@ namespace MMPEngine::Core
 		virtual void Read(void* dst, std::size_t byteLength, std::size_t byteOffset = 0) = 0;
 	};
 
-	class ResidentBuffer : public virtual Buffer
+	class ResidentBuffer : public Buffer
 	{
 	protected:
 		ResidentBuffer(const Settings& settings);
 	};
 
-	class InputAssemblerBuffer : public virtual Buffer
+	class InputAssemblerBuffer : public Buffer
 	{
 	protected:
 		struct IASettings final
@@ -55,7 +63,7 @@ namespace MMPEngine::Core
 	};
 
 	template<class TConstantBufferData>
-	class ConstantBuffer : public virtual Buffer, public std::enable_shared_from_this<ConstantBuffer<TConstantBufferData>>
+	class ConstantBuffer: public Buffer
 	{
 	protected:
 		using TData = std::decay_t<TConstantBufferData>;
@@ -75,10 +83,12 @@ namespace MMPEngine::Core
 		ConstantBuffer();
 
 		virtual std::shared_ptr<InitializationTask> CreateInitializationTaskInternal() = 0;
+		
 
 	public:
 		void Write(const TData& data);
 		std::shared_ptr<BaseTask> CreateInitializationTask() final;
+		std::shared_ptr<BaseTask> CreateCopyToBufferTask(const std::shared_ptr<Buffer>& dst, std::size_t byteLength, std::size_t srcByteOffset, std::size_t dstByteOffset) final;
 	private:
 		std::unique_ptr<UploadBuffer> _uploadBuffer;
 	};
@@ -103,6 +113,12 @@ namespace MMPEngine::Core
 	inline std::shared_ptr<BaseTask> ConstantBuffer<TConstantBufferData>::CreateInitializationTask()
 	{
 		return CreateInitializationTaskInternal();
+	}
+
+	template<class TConstantBufferData>
+	inline std::shared_ptr<BaseTask> ConstantBuffer<TConstantBufferData>::CreateCopyToBufferTask(const std::shared_ptr<Buffer>& dst, std::size_t byteLength, std::size_t srcByteOffset, std::size_t dstByteOffset)
+	{
+		return _uploadBuffer->CreateCopyToBufferTask(dst, byteLength, srcByteOffset, dstByteOffset);
 	}
 
 	template<class TConstantBufferData>

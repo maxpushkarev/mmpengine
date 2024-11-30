@@ -3,46 +3,48 @@
 
 namespace MMPEngine::Backend::Dx12
 {
-	BaseEntity::BaseEntity() = default;
 
-	BaseEntity::BaseEntity(std::string_view name) : Core::BaseEntity(name)
+	ResourceEntity::ResourceEntity() = default;
+
+	ResourceEntity::ResourceEntity(std::string_view name) : Core::BaseEntity(name)
 	{
 	}
 
-	void BaseEntity::SetUpNativeResourceName()
+	void ResourceEntity::SetUpNativeResourceName()
 	{
 		const auto str = GetName();
 		std::wstring wName(std::begin(str), std::end(str));
 		_nativeResource->SetName(wName.c_str());
 	}
 
-	std::shared_ptr<Core::BaseTask> BaseEntity::CreateSwitchStateTask(D3D12_RESOURCE_STATES nextStateMask)
+	std::shared_ptr<Core::BaseTask> ResourceEntity::CreateSwitchStateTask(D3D12_RESOURCE_STATES nextStateMask)
 	{
 		const auto switchTaskContext = std::make_shared<SwitchStateTaskContext>();
-		switchTaskContext->entity = shared_from_this();
+		switchTaskContext->entity = std::dynamic_pointer_cast<ResourceEntity>(shared_from_this());
 		switchTaskContext->nextStateMask = nextStateMask;
 		return std::make_shared<SwitchStateTask>(switchTaskContext);
 	}
 
-	Microsoft::WRL::ComPtr<ID3D12Resource> BaseEntity::GetNativeResource()
+	Microsoft::WRL::ComPtr<ID3D12Resource> ResourceEntity::GetNativeResource() const
 	{
 		return _nativeResource;
 	}
 
-	void BaseEntity::SetNativeResource(const Microsoft::WRL::ComPtr<ID3D12Resource>& nativeResource)
+	void ResourceEntity::SetNativeResource(const Microsoft::WRL::ComPtr<ID3D12Resource>& nativeResource)
 	{
 		_nativeResource = nativeResource;
 		SetUpNativeResourceName();
 	}
 
 
-	BaseEntity::SwitchStateTask::SwitchStateTask(const std::shared_ptr<SwitchStateTaskContext>& context) : TaskWithInternalContext(context)
+	ResourceEntity::SwitchStateTask::SwitchStateTask(const std::shared_ptr<SwitchStateTaskContext>& context) : TaskWithInternalContext(context)
 	{
 	}
 
-	void BaseEntity::SwitchStateTask::Run(const std::shared_ptr<Core::BaseStream>& stream)
+	void ResourceEntity::SwitchStateTask::Run(const std::shared_ptr<Core::BaseStream>& stream)
 	{
 		Task::Run(stream);
+
 		if(const auto entity = _internalTaskContext->entity.lock())
 		{
 			if((entity->_currentStateMask & _internalTaskContext->nextStateMask) != _internalTaskContext->nextStateMask)
@@ -61,7 +63,7 @@ namespace MMPEngine::Backend::Dx12
 		}
 	}
 
-	void BaseEntity::SwitchStateTask::Finalize(const std::shared_ptr<Core::BaseStream>& stream)
+	void ResourceEntity::SwitchStateTask::Finalize(const std::shared_ptr<Core::BaseStream>& stream)
 	{
 		Task::Finalize(stream);
 	}

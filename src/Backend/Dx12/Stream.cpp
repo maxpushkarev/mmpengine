@@ -14,8 +14,29 @@ namespace MMPEngine::Backend::Dx12
 		CloseHandle(_waitHandle);
 	}
 
+	void Stream::RestartInternal()
+	{
+		Core::Stream<AppContext, StreamContext>::RestartInternal();
+
+		_specificStreamContext->cmdAllocator->Reset();
+		_specificStreamContext->cmdList->Reset(_specificStreamContext->cmdAllocator.Get(), nullptr);
+	}
+
+
+	void Stream::SubmitInternal()
+	{
+		Core::Stream<AppContext, StreamContext>::SubmitInternal();
+
+		_specificStreamContext->cmdList->Close();
+		ID3D12CommandList* cmdLists[] { _specificStreamContext->cmdList.Get() };
+		_specificStreamContext->cmdQueue->ExecuteCommandLists(std::size(cmdLists), cmdLists);
+	}
+
+
 	void Stream::WaitInternal()
 	{
+		Core::Stream<AppContext, StreamContext>::WaitInternal();
+
 		const auto fence = _specificStreamContext->fence;
 
 		++_lastFenceValue;

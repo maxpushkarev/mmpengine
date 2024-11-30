@@ -65,12 +65,22 @@ namespace MMPEngine::Core
 
 	void BaseStream::Submit()
 	{
+		if (_currentState == State::Idle || _currentState == State::Complete)
+		{
+			return;
+		}
+
 		SwitchState(State::Execution);
 		SubmitInternal();
 	}
 
 	void BaseStream::Wait()
 	{
+		if(_currentState == State::Await || _currentState == State::Complete || _currentState == State::Idle)
+		{
+			return;
+		}
+
 		SwitchState(State::Await);
 		WaitInternal();
 		SwitchState(State::Complete);
@@ -99,12 +109,12 @@ namespace MMPEngine::Core
 
 	void BaseStream::SwitchState(State targetState)
 	{
-		const auto& nextStates = _validTransitionsMap.at(_sourceState);
+		const auto& nextStates = _validTransitionsMap.at(_currentState);
 		if(nextStates.find(targetState) == nextStates.cend())
 		{
-			throw InvalidStateException(_sourceState, targetState);
+			throw InvalidStateException(_currentState, targetState);
 		}
-		_sourceState = targetState;
+		_currentState = targetState;
 	}
 
 	std::ostream& operator<< (std::ostream& stream, BaseStream::State state)
@@ -130,7 +140,7 @@ namespace MMPEngine::Core
 		return stream;
 	}
 
-	BaseStream::Executor::Executor(const std::shared_ptr<BaseStream>& stream, bool waitAfterSubmit) : _waitAfterSubmit(waitAfterSubmit)
+	BaseStream::Executor::Executor(const std::shared_ptr<BaseStream>& stream, bool waitAfterSubmit) : _stream(stream), _waitAfterSubmit(waitAfterSubmit)
 	{
 		if(const auto s = _stream.lock())
 		{
