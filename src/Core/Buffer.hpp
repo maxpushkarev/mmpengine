@@ -16,10 +16,13 @@ namespace MMPEngine::Core
 			std::size_t byteLength, 
 			std::size_t srcByteOffset, 
 			std::size_t dstByteOffset
-		) = 0;
-		std::shared_ptr<BaseTask> CopyToBuffer(const std::shared_ptr<Buffer>& dst);
+		) const = 0;
+		std::shared_ptr<BaseTask> CopyToBuffer(const std::shared_ptr<Buffer>& dst) const;
+		std::shared_ptr<Buffer> GetUnderlyingBuffer() const;
 		virtual std::shared_ptr<Buffer> GetUnderlyingBuffer();
+		const Settings& GetSettings() const;
 	protected:
+		const Settings& GetSettingsInternal();
 		Buffer(const Settings& settings);
 		Settings _settings;
 	};
@@ -67,72 +70,17 @@ namespace MMPEngine::Core
 	{
 	protected:
 		using TData = std::decay_t<TConstantBufferData>;
-		static_assert(std::is_pod_v<TData>, "TData should be POD type");
 		static_assert(std::is_final_v<TData>, "TData should be final");
+		static_assert(std::is_pod_v<TData>, "TData should be POD");
 
-
-		class InitializationTask : public TaskWithInternalContext<InitContext<ConstantBuffer>>
-		{
-		protected:
-			InitializationTask(const std::shared_ptr<InitContext<ConstantBuffer>> taskContext);
-			void Run(const std::shared_ptr<BaseStream>& stream) final;
-			virtual std::unique_ptr<UploadBuffer> CreateUploadBuffer(const std::shared_ptr<BaseStream>& stream) = 0;
-		};
-
-		ConstantBuffer(std::string_view name);
-		ConstantBuffer();
-
-		virtual std::shared_ptr<InitializationTask> CreateInitializationTaskInternal() = 0;
-		
+		ConstantBuffer(const Settings& settings);
 
 	public:
-		void Write(const TData& data);
-		std::shared_ptr<BaseTask> CreateInitializationTask() final;
-		std::shared_ptr<BaseTask> CreateCopyToBufferTask(const std::shared_ptr<Buffer>& dst, std::size_t byteLength, std::size_t srcByteOffset, std::size_t dstByteOffset) final;
-	private:
-		std::unique_ptr<UploadBuffer> _uploadBuffer;
+		void virtual Write(const TData& data) = 0;
 	};
 
 	template<class TConstantBufferData>
-	inline ConstantBuffer<TConstantBufferData>::ConstantBuffer(std::string_view name) : Buffer({ sizeof(TData), std::string{name}})
+	inline ConstantBuffer<TConstantBufferData>::ConstantBuffer(const Settings& settings) : Buffer(settings)
 	{
-	}
-
-	template<class TConstantBufferData>
-	inline ConstantBuffer<TConstantBufferData>::ConstantBuffer() : Buffer({ sizeof(TData), std::string{}})
-	{
-	}
-
-	template<class TConstantBufferData>
-	inline void ConstantBuffer<TConstantBufferData>::Write(const TData& data)
-	{
-		_uploadBuffer->Write(std::addressof(data), sizeof(TData), 0);
-	}
-
-	template<class TConstantBufferData>
-	inline std::shared_ptr<BaseTask> ConstantBuffer<TConstantBufferData>::CreateInitializationTask()
-	{
-		return CreateInitializationTaskInternal();
-	}
-
-	template<class TConstantBufferData>
-	inline std::shared_ptr<BaseTask> ConstantBuffer<TConstantBufferData>::CreateCopyToBufferTask(const std::shared_ptr<Buffer>& dst, std::size_t byteLength, std::size_t srcByteOffset, std::size_t dstByteOffset)
-	{
-		return _uploadBuffer->CreateCopyToBufferTask(dst, byteLength, srcByteOffset, dstByteOffset);
-	}
-
-	template<class TConstantBufferData>
-	inline ConstantBuffer<TConstantBufferData>::InitializationTask::InitializationTask(const std::shared_ptr<InitContext<ConstantBuffer>> taskContext)
-		: TaskWithInternalContext<InitContext<ConstantBuffer>>(taskContext)
-	{
-	}
-
-	template<class TConstantBufferData>
-	inline void ConstantBuffer<TConstantBufferData>::InitializationTask::Run(const std::shared_ptr<BaseStream>& stream)
-	{
-		if(const auto cb = this->_internalTaskContext->entity.lock())
-		{
-			cb->_uploadBuffer = CreateUploadBuffer(stream);
-		}
 	}
 }

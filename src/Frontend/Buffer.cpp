@@ -1,4 +1,4 @@
-#include <Frontend/Buffers.hpp>
+#include <Frontend/Buffer.hpp>
 
 #ifdef MMPENGINE_BACKEND_DX12
 #include <Backend/Dx12/Buffer.hpp>
@@ -18,7 +18,7 @@ namespace MMPEngine::Frontend
 		}
 	}
 
-	std::shared_ptr<Core::BaseTask> UploadBuffer::CreateCopyToBufferTask(const std::shared_ptr<Buffer>& dst, std::size_t byteLength, std::size_t srcByteOffset, std::size_t dstByteOffset)
+	std::shared_ptr<Core::BaseTask> UploadBuffer::CreateCopyToBufferTask(const std::shared_ptr<Buffer>& dst, std::size_t byteLength, std::size_t srcByteOffset, std::size_t dstByteOffset) const
 	{
 		return _impl->CreateCopyToBufferTask(dst->GetUnderlyingBuffer(), byteLength, srcByteOffset, dstByteOffset);
 	}
@@ -50,7 +50,7 @@ namespace MMPEngine::Frontend
 		}
 	}
 
-	std::shared_ptr<Core::BaseTask> ReadBackBuffer::CreateCopyToBufferTask(const std::shared_ptr<Buffer>& dst, std::size_t byteLength, std::size_t srcByteOffset, std::size_t dstByteOffset)
+	std::shared_ptr<Core::BaseTask> ReadBackBuffer::CreateCopyToBufferTask(const std::shared_ptr<Buffer>& dst, std::size_t byteLength, std::size_t srcByteOffset, std::size_t dstByteOffset) const
 	{
 		return _impl->CreateCopyToBufferTask(dst->GetUnderlyingBuffer(), byteLength, srcByteOffset, dstByteOffset);
 	}

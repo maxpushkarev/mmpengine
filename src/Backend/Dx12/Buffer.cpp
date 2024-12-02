@@ -59,10 +59,10 @@ namespace MMPEngine::Backend::Dx12
 		const std::shared_ptr<Buffer>& dst, 
 		std::size_t byteLength, 
 		std::size_t srcByteOffset,
-		std::size_t dstByteOffset)
+		std::size_t dstByteOffset) const
 	{
 		const auto context = std::make_shared<CopyBufferTaskContext>();
-		context->src = std::dynamic_pointer_cast<BaseEntity>(shared_from_this());
+		context->src = std::dynamic_pointer_cast<BaseEntity>(std::const_pointer_cast<Core::BaseEntity>(shared_from_this()));
 		context->dst = std::dynamic_pointer_cast<BaseEntity>(dst);
 		context->srcByteOffset = srcByteOffset;
 		context->dstByteOffset = dstByteOffset;
@@ -105,10 +105,10 @@ namespace MMPEngine::Backend::Dx12
 		const std::shared_ptr<Buffer>& dst,
 		std::size_t byteLength,
 		std::size_t srcByteOffset,
-		std::size_t dstByteOffset)
+		std::size_t dstByteOffset) const
 	{
 		const auto context = std::make_shared<CopyBufferTaskContext>();
-		context->src = std::dynamic_pointer_cast<BaseEntity>(shared_from_this());
+		context->src = std::dynamic_pointer_cast<BaseEntity>(std::const_pointer_cast<Core::BaseEntity>(shared_from_this()));
 		context->dst = std::dynamic_pointer_cast<BaseEntity>(dst);
 		context->srcByteOffset = srcByteOffset;
 		context->dstByteOffset = dstByteOffset;

@@ -49,36 +49,46 @@ namespace MMPEngine::Core
 		Metal
 	};
 
-	struct Vector2Uint
+	struct Vector2Uint final
 	{
-		std::uint32_t x = 0;
-		std::uint32_t y = 0;
+		std::uint32_t x;
+		std::uint32_t y;
 	};
 
-	struct Vector3Uint : Vector2Uint
+	struct Vector3Uint final
 	{
-		std::uint32_t z = 0;
+		std::uint32_t x;
+		std::uint32_t y;
+		std::uint32_t z;
 	};
 
-	struct Vector4Uint : Vector3Uint
+	struct Vector4Uint final
 	{
-		std::uint32_t w = 0;
+		std::uint32_t x;
+		std::uint32_t y;
+		std::uint32_t z;
+		std::uint32_t w;
 	};
 
-	struct Vector2Float
+	struct Vector2Float final
 	{
-		std::float_t x = 0.0f;
-		std::float_t y = 0.0f;
+		std::float_t x;
+		std::float_t y;
 	};
 
-	struct Vector3Float : Vector2Float
+	struct Vector3Float final
 	{
-		std::float_t z = 0.0f;
+		std::float_t x;
+		std::float_t y;
+		std::float_t z;
 	};
 
-	struct Vector4Float : Vector3Float
+	struct Vector4Float final
 	{
-		std::float_t w = 0.0f;
+		std::float_t x;
+		std::float_t y;
+		std::float_t z;
+		std::float_t w;
 	};
 
 	class UnsupportedException final : public std::runtime_error
