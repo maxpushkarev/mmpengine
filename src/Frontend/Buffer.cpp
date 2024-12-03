@@ -6,26 +6,53 @@
 
 namespace MMPEngine::Frontend
 {
-	UploadBuffer::UploadBuffer(const std::shared_ptr<Core::AppContext>& appContext, const Settings& settings) : Core::BaseEntity(settings.name), Core::UploadBuffer(settings)
+	template<>
+	std::shared_ptr<Core::UploadBuffer> Buffer<Core::UploadBuffer>::CreateImpl(const std::shared_ptr<Core::AppContext>& appContext)
 	{
 		if (appContext->settings.backend == Core::BackendType::Dx12)
 		{
 #ifdef MMPENGINE_BACKEND_DX12
-			_impl = std::make_shared<Backend::Dx12::UploadBuffer>(settings);
+			return std::make_shared<Backend::Dx12::UploadBuffer>(this->_settings);
 #else
 			throw Core::UnsupportedException("unable to create upload buffer for DX12 backend");
 #endif
 		}
+
+		return nullptr;
 	}
 
-	std::shared_ptr<Core::BaseTask> UploadBuffer::CreateCopyToBufferTask(const std::shared_ptr<Buffer>& dst, std::size_t byteLength, std::size_t srcByteOffset, std::size_t dstByteOffset) const
+	template<>
+	std::shared_ptr<Core::ResidentBuffer> Buffer<Core::ResidentBuffer>::CreateImpl(const std::shared_ptr<Core::AppContext>& appContext)
 	{
-		return _impl->CreateCopyToBufferTask(dst->GetUnderlyingBuffer(), byteLength, srcByteOffset, dstByteOffset);
+		if (appContext->settings.backend == Core::BackendType::Dx12)
+		{
+#ifdef MMPENGINE_BACKEND_DX12
+			return std::make_shared<Backend::Dx12::ResidentBuffer>(this->_settings);
+#else
+			throw Core::UnsupportedException("unable to create resident buffer for DX12 backend");
+#endif
+		}
+
+		return nullptr;
 	}
 
-	std::shared_ptr<Core::BaseTask> UploadBuffer::CreateInitializationTask()
+	template<>
+	std::shared_ptr<Core::ReadBackBuffer> Buffer<Core::ReadBackBuffer>::CreateImpl(const std::shared_ptr<Core::AppContext>& appContext)
 	{
-		return _impl->CreateInitializationTask();
+		if (appContext->settings.backend == Core::BackendType::Dx12)
+		{
+#ifdef MMPENGINE_BACKEND_DX12
+			return std::make_shared<Backend::Dx12::ReadBackBuffer>(this->_settings);
+#else
+			throw Core::UnsupportedException("unable to create readback buffer for DX12 backend");
+#endif
+		}
+
+		return nullptr;
+	}
+
+	UploadBuffer::UploadBuffer(const std::shared_ptr<Core::AppContext>& appContext, const Settings& settings) : Core::BaseEntity(settings.name), Buffer(appContext, settings)
+	{
 	}
 
 	void UploadBuffer::Write(const void* src, std::size_t byteLength, std::size_t byteOffset)
@@ -33,31 +60,8 @@ namespace MMPEngine::Frontend
 		_impl->Write(src, byteLength, byteOffset);
 	}
 
-	std::shared_ptr<Core::Buffer> UploadBuffer::GetUnderlyingBuffer()
+	ReadBackBuffer::ReadBackBuffer(const std::shared_ptr<Core::AppContext>& appContext, const Settings& settings) : Core::BaseEntity(settings.name), Buffer(appContext, settings)
 	{
-		return _impl->GetUnderlyingBuffer();
-	}
-
-	ReadBackBuffer::ReadBackBuffer(const std::shared_ptr<Core::AppContext>& appContext, const Settings& settings) : Core::BaseEntity(settings.name), Core::ReadBackBuffer(settings)
-	{
-		if (appContext->settings.backend == Core::BackendType::Dx12)
-		{
-#ifdef MMPENGINE_BACKEND_DX12
-			_impl = std::make_shared<Backend::Dx12::ReadBackBuffer>(settings);
-#else
-			throw Core::UnsupportedException("unable to create readback buffer for DX12 backend");
-#endif
-		}
-	}
-
-	std::shared_ptr<Core::BaseTask> ReadBackBuffer::CreateCopyToBufferTask(const std::shared_ptr<Buffer>& dst, std::size_t byteLength, std::size_t srcByteOffset, std::size_t dstByteOffset) const
-	{
-		return _impl->CreateCopyToBufferTask(dst->GetUnderlyingBuffer(), byteLength, srcByteOffset, dstByteOffset);
-	}
-
-	std::shared_ptr<Core::BaseTask> ReadBackBuffer::CreateInitializationTask()
-	{
-		return _impl->CreateInitializationTask();
 	}
 
 	void ReadBackBuffer::Read(void* dst, std::size_t byteLength, std::size_t byteOffset)
@@ -65,8 +69,7 @@ namespace MMPEngine::Frontend
 		_impl->Read(dst, byteLength, byteOffset);
 	}
 
-	std::shared_ptr<Core::Buffer> ReadBackBuffer::GetUnderlyingBuffer()
+	ResidentBuffer::ResidentBuffer(const std::shared_ptr<Core::AppContext>& appContext, const Settings& settings) : Core::BaseEntity(settings.name), Buffer(appContext, settings)
 	{
-		return _impl->GetUnderlyingBuffer();
 	}
 }

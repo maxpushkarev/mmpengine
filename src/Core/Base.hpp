@@ -8,6 +8,12 @@ namespace MMPEngine::Core
 {
 	class BaseTask;
 
+	class Constants final
+	{
+	public:
+		static constexpr auto kFloatEps = 0.00001f;	
+	};
+
 	class IInitializationTaskSource
 	{
 	public:
@@ -53,6 +59,9 @@ namespace MMPEngine::Core
 	{
 		std::uint32_t x;
 		std::uint32_t y;
+
+		bool operator==(const Vector2Uint& rhs) const;
+		bool operator!=(const Vector2Uint& rhs) const;
 	};
 
 	struct Vector3Uint final
@@ -60,6 +69,9 @@ namespace MMPEngine::Core
 		std::uint32_t x;
 		std::uint32_t y;
 		std::uint32_t z;
+
+		bool operator==(const Vector3Uint& rhs) const;
+		bool operator!=(const Vector3Uint& rhs) const;
 	};
 
 	struct Vector4Uint final
@@ -68,12 +80,50 @@ namespace MMPEngine::Core
 		std::uint32_t y;
 		std::uint32_t z;
 		std::uint32_t w;
+
+		bool operator==(const Vector4Uint& rhs) const;
+		bool operator!=(const Vector4Uint& rhs) const;
 	};
+
+
+	struct Vector2Int final
+	{
+		std::int32_t x;
+		std::int32_t y;
+
+		bool operator==(const Vector2Int& rhs) const;
+		bool operator!=(const Vector2Int& rhs) const;
+	};
+
+	struct Vector3Int final
+	{
+		std::int32_t x;
+		std::int32_t y;
+		std::int32_t z;
+
+		bool operator==(const Vector3Int& rhs) const;
+		bool operator!=(const Vector3Int& rhs) const;
+	};
+
+	struct Vector4Int final
+	{
+		std::int32_t x;
+		std::int32_t y;
+		std::int32_t z;
+		std::int32_t w;
+
+		bool operator==(const Vector4Int& rhs) const;
+		bool operator!=(const Vector4Int& rhs) const;
+	};
+
 
 	struct Vector2Float final
 	{
 		std::float_t x;
 		std::float_t y;
+
+		bool operator==(const Vector2Float& rhs) const;
+		bool operator!=(const Vector2Float& rhs) const;
 	};
 
 	struct Vector3Float final
@@ -81,6 +131,9 @@ namespace MMPEngine::Core
 		std::float_t x;
 		std::float_t y;
 		std::float_t z;
+
+		bool operator==(const Vector3Float& rhs) const;
+		bool operator!=(const Vector3Float& rhs) const;
 	};
 
 	struct Vector4Float final
@@ -89,6 +142,9 @@ namespace MMPEngine::Core
 		std::float_t y;
 		std::float_t z;
 		std::float_t w;
+
+		bool operator==(const Vector4Float& rhs) const;
+		bool operator!=(const Vector4Float& rhs) const;
 	};
 
 	class UnsupportedException final : public std::runtime_error

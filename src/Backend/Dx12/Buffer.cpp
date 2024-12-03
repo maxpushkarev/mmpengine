@@ -56,7 +56,7 @@ namespace MMPEngine::Backend::Dx12
 	}
 
 	std::shared_ptr<Core::BaseTask> UploadBuffer::CreateCopyToBufferTask(
-		const std::shared_ptr<Buffer>& dst, 
+		const std::shared_ptr<Core::Buffer>& dst, 
 		std::size_t byteLength, 
 		std::size_t srcByteOffset,
 		std::size_t dstByteOffset) const
@@ -76,6 +76,7 @@ namespace MMPEngine::Backend::Dx12
 		const auto tc = std::make_shared<InitTaskContext>();
 		tc->entity = std::dynamic_pointer_cast<MappedBuffer>(shared_from_this());
 		tc->byteSize = _settings.byteLength;
+		tc->unorderedAccess = false;
 		tc->heapType = D3D12_HEAP_TYPE_UPLOAD;
 
 		return std::make_shared<InitTask>(tc);
@@ -96,13 +97,14 @@ namespace MMPEngine::Backend::Dx12
 		const auto tc = std::make_shared<InitTaskContext>();
 		tc->entity = std::dynamic_pointer_cast<MappedBuffer>(shared_from_this());
 		tc->byteSize = _settings.byteLength;
+		tc->unorderedAccess = false;
 		tc->heapType = D3D12_HEAP_TYPE_READBACK;
 
 		return std::make_shared<InitTask>(tc);
 	}
 
 	std::shared_ptr<Core::BaseTask> ReadBackBuffer::CreateCopyToBufferTask(
-		const std::shared_ptr<Buffer>& dst,
+		const std::shared_ptr<Core::Buffer>& dst,
 		std::size_t byteLength,
 		std::size_t srcByteOffset,
 		std::size_t dstByteOffset) const
@@ -112,11 +114,18 @@ namespace MMPEngine::Backend::Dx12
 		context->dst = std::dynamic_pointer_cast<BaseEntity>(dst);
 		context->srcByteOffset = srcByteOffset;
 		context->dstByteOffset = dstByteOffset;
+		context->byteLength = byteLength;
 
 		return std::make_shared<CopyBufferTask>(context);
 	}
 
-	MappedBuffer::MappedBuffer(std::string_view name) : ResourceEntity(name)
+	Buffer::Buffer() = default;
+	Buffer::Buffer(std::string_view name) : ResourceEntity(name)
+	{
+	}
+
+
+	MappedBuffer::MappedBuffer(std::string_view name) : Buffer(name)
 	{
 	}
 
@@ -142,11 +151,11 @@ namespace MMPEngine::Backend::Dx12
 		}
 	}
 
-	MappedBuffer::InitTask::InitTask(const std::shared_ptr<InitTaskContext>& context) : TaskWithInternalContext(context)
+	Buffer::InitTask::InitTask(const std::shared_ptr<InitTaskContext>& context) : TaskWithInternalContext(context)
 	{
 	}
 
-	void MappedBuffer::InitTask::Run(const std::shared_ptr<Core::BaseStream>& stream)
+	void Buffer::InitTask::Run(const std::shared_ptr<Core::BaseStream>& stream)
 	{
 		Task::Run(stream);
 
@@ -159,6 +168,11 @@ namespace MMPEngine::Backend::Dx12
 			const auto heapProperties = CD3DX12_HEAP_PROPERTIES(_internalTaskContext->heapType);
 			auto resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(_internalTaskContext->byteSize);
 			resourceDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
+
+			if (_internalTaskContext->unorderedAccess)
+			{
+				resourceDesc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
+			}
 
 			Microsoft::WRL::ComPtr<ID3D12Resource> bufferResource = nullptr;
 
@@ -173,7 +187,11 @@ namespace MMPEngine::Backend::Dx12
 			assert(bufferResource);
 
 			entity->SetNativeResource(bufferResource);
-			entity->Map();
+
+			if(const auto mappedEntity = std::dynamic_pointer_cast<MappedBuffer>(entity))
+			{
+				mappedEntity->Map();
+			}
 
 			if(_internalTaskContext->heapType == D3D12_HEAP_TYPE_UPLOAD)
 			{
@@ -187,9 +205,41 @@ namespace MMPEngine::Backend::Dx12
 		}
 	}
 
-	void MappedBuffer::InitTask::Finalize(const std::shared_ptr<Core::BaseStream>& stream)
+	void Buffer::InitTask::Finalize(const std::shared_ptr<Core::BaseStream>& stream)
 	{
 		Task::Finalize(stream);
+	}
+
+
+	ResidentBuffer::ResidentBuffer(const Settings& settings) : Core::BaseEntity(settings.name), Core::ResidentBuffer(settings)
+	{
+	}
+
+	std::shared_ptr<Core::BaseTask> ResidentBuffer::CreateInitializationTask()
+	{
+		const auto tc = std::make_shared<InitTaskContext>();
+		tc->entity = std::dynamic_pointer_cast<Dx12::Buffer>(shared_from_this());
+		tc->byteSize = _settings.byteLength;
+		tc->unorderedAccess = false;
+		tc->heapType = D3D12_HEAP_TYPE_DEFAULT;
+
+		return std::make_shared<InitTask>(tc);
+	}
+
+	std::shared_ptr<Core::BaseTask> ResidentBuffer::CreateCopyToBufferTask(
+		const std::shared_ptr<Core::Buffer>& dst,
+		std::size_t byteLength,
+		std::size_t srcByteOffset,
+		std::size_t dstByteOffset) const
+	{
+		const auto context = std::make_shared<CopyBufferTaskContext>();
+		context->src = std::dynamic_pointer_cast<BaseEntity>(std::const_pointer_cast<Core::BaseEntity>(shared_from_this()));
+		context->dst = std::dynamic_pointer_cast<BaseEntity>(dst);
+		context->srcByteOffset = srcByteOffset;
+		context->dstByteOffset = dstByteOffset;
+		context->byteLength = byteLength;
+
+		return std::make_shared<CopyBufferTask>(context);
 	}
 
 }

@@ -1,7 +1,6 @@
 #pragma once
 #include <Core/Buffer.hpp>
 #include <Backend/Dx12/Entity.hpp>
-#include "Buffer.hpp"
 
 namespace MMPEngine::Backend::Dx12
 {
@@ -26,8 +25,34 @@ namespace MMPEngine::Backend::Dx12
 		std::shared_ptr<BaseTask> _switchDstStateTask;
 	};
 
-	class MappedBuffer : public ResourceEntity
+	class Buffer : public ResourceEntity
 	{
+	public:
+		Buffer(std::string_view name);
+		Buffer();
+
+		class InitTaskContext final : public InitContext<Buffer>
+		{
+		public:
+			D3D12_HEAP_TYPE heapType;
+			bool unorderedAccess = false;
+			std::size_t byteSize = 0;
+		};
+
+		class InitTask final : public Task, public Core::TaskWithInternalContext<InitTaskContext>
+		{
+		public:
+			InitTask(const std::shared_ptr<InitTaskContext>& context);
+			void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
+			void Finalize(const std::shared_ptr<Core::BaseStream>& stream) override;
+		};
+	};
+
+
+	class MappedBuffer : public Buffer
+	{
+		friend class MMPEngine::Backend::Dx12::Buffer::InitTask;
+
 	public:
 		MappedBuffer(std::string_view name);
 		MappedBuffer();
@@ -38,24 +63,18 @@ namespace MMPEngine::Backend::Dx12
 		~MappedBuffer() override;
 	protected:
 
-		class InitTaskContext final : public InitContext<MappedBuffer>
-		{
-		public:
-			D3D12_HEAP_TYPE heapType;
-			std::size_t byteSize;
-		};
-
-		class InitTask final : public Task, public Core::TaskWithInternalContext<InitTaskContext>
-		{
-		public:
-			InitTask(const std::shared_ptr<InitTaskContext>& context);
-			void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
-			void Finalize(const std::shared_ptr<Core::BaseStream>& stream) override;
-		};
-
 		void Map();
 		void Unmap();
 		void* _mappedBufferPtr = nullptr;
+	};
+
+
+	class ResidentBuffer : public Core::ResidentBuffer, public Buffer
+	{
+	public:
+		ResidentBuffer(const Settings& settings);
+		std::shared_ptr<Core::BaseTask> CreateCopyToBufferTask(const std::shared_ptr<Core::Buffer>& dst, std::size_t byteLength, std::size_t srcByteOffset, std::size_t dstByteOffset) const override;
+		std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;
 	};
 
 	class UploadBuffer final : public Core::UploadBuffer, public MappedBuffer
@@ -63,7 +82,7 @@ namespace MMPEngine::Backend::Dx12
 	public:
 		UploadBuffer(const Settings& settings);
 		void Write(const void* src, std::size_t byteLength, std::size_t byteOffset) override;
-		std::shared_ptr<Core::BaseTask> CreateCopyToBufferTask(const std::shared_ptr<Buffer>& dst, std::size_t byteLength, std::size_t srcByteOffset, std::size_t dstByteOffset) const override;
+		std::shared_ptr<Core::BaseTask> CreateCopyToBufferTask(const std::shared_ptr<Core::Buffer>& dst, std::size_t byteLength, std::size_t srcByteOffset, std::size_t dstByteOffset) const override;
 		std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;
 	};
 
@@ -73,7 +92,7 @@ namespace MMPEngine::Backend::Dx12
 		ReadBackBuffer(const Settings& settings);
 		void Read(void* dst, std::size_t byteLength, std::size_t byteOffset) override;
 		std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;
-		std::shared_ptr<Core::BaseTask> CreateCopyToBufferTask(const std::shared_ptr<Buffer>& dst, std::size_t byteLength, std::size_t srcByteOffset, std::size_t dstByteOffset) const override;
+		std::shared_ptr<Core::BaseTask> CreateCopyToBufferTask(const std::shared_ptr<Core::Buffer>& dst, std::size_t byteLength, std::size_t srcByteOffset, std::size_t dstByteOffset) const override;
 	};
 
 

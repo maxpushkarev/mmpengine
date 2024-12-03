@@ -32,7 +32,7 @@ namespace MMPEngine::Core
 	{
 		const auto dstUnderlyingBuffer = dst->GetUnderlyingBuffer();
 		const auto minMax = std::minmax(GetSettings().byteLength, dstUnderlyingBuffer->GetSettings().byteLength);
-		return CreateCopyToBufferTask(dstUnderlyingBuffer, minMax.first, 0, 0);
+		return GetUnderlyingBuffer()->CreateCopyToBufferTask(dstUnderlyingBuffer, minMax.first, 0, 0);
 	}
 
 	UploadBuffer::UploadBuffer(const Settings& settings) : Buffer(settings)
