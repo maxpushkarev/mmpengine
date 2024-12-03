@@ -5,7 +5,7 @@ namespace MMPEngine::Core
 	BaseTask::BaseTask() = default;
 	BaseTask::~BaseTask() = default;
 
-	std::shared_ptr<BaseTask> BaseTask::Empty = std::make_shared<BaseTask>();
+	std::shared_ptr<BaseTask> BaseTask::kEmpty = std::make_shared<BaseTask>();
 
     void BaseTask::Run(const std::shared_ptr<BaseStream>& stream)
     {
@@ -13,4 +13,18 @@ namespace MMPEngine::Core
 	void BaseTask::Finalize(const std::shared_ptr<BaseStream>& stream)
 	{
 	}
+
+	void StreamBarrierTask::Run(const std::shared_ptr<BaseStream>& stream)
+	{
+		BaseTask::Run(stream);
+		stream->SubmitAndWait();
+	}
+
+	void StreamBarrierTask::Finalize(const std::shared_ptr<BaseStream>& stream)
+	{
+		BaseTask::Finalize(stream);
+		stream->Restart();
+	}
+
+	std::shared_ptr<StreamBarrierTask> StreamBarrierTask::kInstance = std::make_shared<StreamBarrierTask>();
 }

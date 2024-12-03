@@ -24,7 +24,16 @@ namespace MMPEngine::Core
 		BaseTask& operator=(const BaseTask&) = delete;
 		BaseTask& operator=(BaseTask&&) noexcept = default;
 
-		static std::shared_ptr<BaseTask> Empty;
+		static std::shared_ptr<BaseTask> kEmpty;
+	};
+
+	class StreamBarrierTask final : public BaseTask
+	{
+	protected:
+		void Run(const std::shared_ptr<BaseStream>& stream) override;
+		void Finalize(const std::shared_ptr<BaseStream>& stream) override;
+	public:
+		static std::shared_ptr<StreamBarrierTask> kInstance;
 	};
 
 	template<typename TAppContext, typename TStreamContext>

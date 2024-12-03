@@ -24,7 +24,7 @@ namespace MMPEngine::Core
 
     std::shared_ptr<BaseTask> BaseEntity::CreateInitializationTask()
     {
-        return BaseTask::Empty;
+        return BaseTask::kEmpty;
     }
 
     std::string_view BaseEntity::GetName() const
