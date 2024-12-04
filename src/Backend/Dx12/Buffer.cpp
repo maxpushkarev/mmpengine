@@ -17,23 +17,35 @@ namespace MMPEngine::Backend::Dx12
 		_switchDstStateTask = dstBuffer->CreateSwitchStateTask(D3D12_RESOURCE_STATE_COPY_DEST);
 	}
 
-	void CopyBufferTask::Run(const std::shared_ptr<Core::BaseStream>& stream)
+	void CopyBufferTask::OnScheduled(const std::shared_ptr<Core::BaseStream>& stream)
 	{
-		Task::Run(stream);
+		Task::OnScheduled(stream);
 
 		stream->Schedule(_switchSrcStateTask);
 		stream->Schedule(_switchDstStateTask);
 		stream->Schedule(_commandTask);
 	}
 
-	void CopyBufferTask::Finalize(const std::shared_ptr<Core::BaseStream>& stream)
+
+	void CopyBufferTask::Run(const std::shared_ptr<Core::BaseStream>& stream)
 	{
-		Task::Finalize(stream);
+		Task::Run(stream);
+	}
+
+	void CopyBufferTask::OnComplete(const std::shared_ptr<Core::BaseStream>& stream)
+	{
+		Task::OnComplete(stream);
 	}
 
 	CopyBufferTask::CommandTask::CommandTask(const std::shared_ptr<CopyBufferTaskContext>& context) : TaskWithInternalContext<CopyBufferTaskContext>(context)
 	{
 	}
+
+	void CopyBufferTask::CommandTask::OnScheduled(const std::shared_ptr<Core::BaseStream>& stream)
+	{
+		Task::OnScheduled(stream);
+	}
+
 
 	void CopyBufferTask::CommandTask::Run(const std::shared_ptr<Core::BaseStream>& stream)
 	{
@@ -56,9 +68,9 @@ namespace MMPEngine::Backend::Dx12
 		}
 	}
 
-	void CopyBufferTask::CommandTask::Finalize(const std::shared_ptr<Core::BaseStream>& stream)
+	void CopyBufferTask::CommandTask::OnComplete(const std::shared_ptr<Core::BaseStream>& stream)
 	{
-		Task::Finalize(stream);
+		Task::OnComplete(stream);
 	}
 
 	UploadBuffer::UploadBuffer(const Settings& settings) : Core::BaseEntity(settings.name), Core::UploadBuffer(settings)
@@ -166,11 +178,16 @@ namespace MMPEngine::Backend::Dx12
 		}
 	}
 
-	Buffer::InitTask::InitTask(const std::shared_ptr<InitTaskContext>& context) : TaskWithInternalContext(context)
+	Buffer::CreateBufferTask::CreateBufferTask(const std::shared_ptr<InitTaskContext>& context) : TaskWithInternalContext(context)
 	{
 	}
 
-	void Buffer::InitTask::Run(const std::shared_ptr<Core::BaseStream>& stream)
+	void Buffer::CreateBufferTask::OnScheduled(const std::shared_ptr<Core::BaseStream>& stream)
+	{
+		Task::OnScheduled(stream);
+	}
+
+	void Buffer::CreateBufferTask::Run(const std::shared_ptr<Core::BaseStream>& stream)
 	{
 		Task::Run(stream);
 
@@ -178,7 +195,7 @@ namespace MMPEngine::Backend::Dx12
 		const auto ac = _specificAppContext.lock();
 		const auto entity = _internalTaskContext->entity.lock();
 
-		if(sc && ac && entity)
+		if (sc && ac && entity)
 		{
 			const auto heapProperties = CD3DX12_HEAP_PROPERTIES(_internalTaskContext->heapType);
 			auto resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(_internalTaskContext->byteSize);
@@ -203,12 +220,31 @@ namespace MMPEngine::Backend::Dx12
 
 			entity->SetNativeResource(bufferResource);
 
-			if(const auto mappedEntity = std::dynamic_pointer_cast<MappedBuffer>(entity))
+			if (const auto mappedEntity = std::dynamic_pointer_cast<MappedBuffer>(entity))
 			{
 				mappedEntity->Map();
 			}
+		}
+	}
 
-			if(_internalTaskContext->heapType == D3D12_HEAP_TYPE_UPLOAD)
+	void Buffer::CreateBufferTask::OnComplete(const std::shared_ptr<Core::BaseStream>& stream)
+	{
+		Task::OnComplete(stream);
+	}
+
+	Buffer::InitTask::InitTask(const std::shared_ptr<InitTaskContext>& context) : TaskWithInternalContext(context)
+	{
+	}
+
+	void Buffer::InitTask::OnScheduled(const std::shared_ptr<Core::BaseStream>& stream)
+	{
+		Task::OnScheduled(stream);
+
+		if(const auto entity = _internalTaskContext->entity.lock())
+		{
+			stream->Schedule(std::make_shared<CreateBufferTask>(_internalTaskContext));
+
+			if (_internalTaskContext->heapType == D3D12_HEAP_TYPE_UPLOAD)
 			{
 				stream->Schedule(entity->CreateSwitchStateTask(D3D12_RESOURCE_STATE_GENERIC_READ));
 			}
@@ -220,9 +256,15 @@ namespace MMPEngine::Backend::Dx12
 		}
 	}
 
-	void Buffer::InitTask::Finalize(const std::shared_ptr<Core::BaseStream>& stream)
+
+	void Buffer::InitTask::Run(const std::shared_ptr<Core::BaseStream>& stream)
 	{
-		Task::Finalize(stream);
+		Task::Run(stream);
+	}
+
+	void Buffer::InitTask::OnComplete(const std::shared_ptr<Core::BaseStream>& stream)
+	{
+		Task::OnComplete(stream);
 	}
 
 
@@ -295,6 +337,11 @@ namespace MMPEngine::Backend::Dx12
 	{
 	}
 
+	void InputAssemblerBuffer::WriteUploadDataTask::OnScheduled(const std::shared_ptr<Core::BaseStream>& stream)
+	{
+		Task::OnScheduled(stream);
+	}
+
 	void InputAssemblerBuffer::WriteUploadDataTask::Run(const std::shared_ptr<Core::BaseStream>& stream)
 	{
 		Task::Run(stream);
@@ -305,18 +352,18 @@ namespace MMPEngine::Backend::Dx12
 		}
 	}
 
-	void InputAssemblerBuffer::WriteUploadDataTask::Finalize(const std::shared_ptr<Core::BaseStream>& stream)
+	void InputAssemblerBuffer::WriteUploadDataTask::OnComplete(const std::shared_ptr<Core::BaseStream>& stream)
 	{
-		Task::Finalize(stream);
+		Task::OnComplete(stream);
 	}
 
 	InputAssemblerBuffer::InitTask::InitTask(const std::shared_ptr<TaskContext>& context) : TaskWithInternalContext(context)
 	{
 	}
 
-	void InputAssemblerBuffer::InitTask::Run(const std::shared_ptr<Core::BaseStream>& stream)
+	void InputAssemblerBuffer::InitTask::OnScheduled(const std::shared_ptr<Core::BaseStream>& stream)
 	{
-		Task::Run(stream);
+		Task::OnScheduled(stream);
 
 		if (const auto entity = _internalTaskContext->entity.lock())
 		{
@@ -329,10 +376,15 @@ namespace MMPEngine::Backend::Dx12
 		}
 	}
 
-
-	void InputAssemblerBuffer::InitTask::Finalize(const std::shared_ptr<Core::BaseStream>& stream)
+	void InputAssemblerBuffer::InitTask::Run(const std::shared_ptr<Core::BaseStream>& stream)
 	{
-		Task::Finalize(stream);
+		Task::Run(stream);
+	}
+
+
+	void InputAssemblerBuffer::InitTask::OnComplete(const std::shared_ptr<Core::BaseStream>& stream)
+	{
+		Task::OnComplete(stream);
 
 		if(const auto entity = _internalTaskContext->entity.lock())
 		{

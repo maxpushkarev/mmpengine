@@ -10,7 +10,12 @@ namespace MMPEngine::Core
     void BaseTask::Run(const std::shared_ptr<BaseStream>& stream)
     {
     }
-	void BaseTask::Finalize(const std::shared_ptr<BaseStream>& stream)
+
+	void BaseTask::OnScheduled(const std::shared_ptr<BaseStream>& stream)
+	{
+	}
+
+	void BaseTask::OnComplete(const std::shared_ptr<BaseStream>& stream)
 	{
 	}
 

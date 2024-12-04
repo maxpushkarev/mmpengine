@@ -16,8 +16,8 @@ namespace MMPEngine::Core
 	std::unordered_map<BaseStream::State, std::unordered_set<BaseStream::State>> BaseStream::_validTransitionsMap {
 		{ State::Start, {State::Start, State::Scheduling, State::Execution, State::Sync}},
 		{ State::Scheduling, {State::Scheduling, State::Execution} },
-		{ State::Execution, {State::Sync, State::Scheduling, State::Start}},
-		{ State::Sync, { State::Start, State::Complete } },
+		{ State::Execution, {State::Sync, State::Start}},
+		{ State::Sync, { State::Complete } },
 		{ State::Complete, {State::Start} }
 	};
 
@@ -49,16 +49,10 @@ namespace MMPEngine::Core
 
 	void BaseStream::Schedule(const std::shared_ptr<BaseTask>& task)
 	{
-		const auto execution = _currentState == State::Execution;
-
 		SwitchState(State::Scheduling);
 		_scheduledTasks.push(task);
 		ScheduleInternal(task);
-
-		if(execution)
-		{
-			SwitchState(State::Execution);
-		}
+		task->OnScheduled(shared_from_this());
 	}
 
 	void BaseStream::Submit()
@@ -106,7 +100,7 @@ namespace MMPEngine::Core
 		const auto thisPtr = shared_from_this();
 		while (!_finalizedTasks.empty())
 		{
-			_finalizedTasks.front()->Finalize(thisPtr);
+			_finalizedTasks.front()->OnComplete(thisPtr);
 			_finalizedTasks.pop();
 		}
 	}

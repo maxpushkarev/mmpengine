@@ -29,8 +29,9 @@ namespace MMPEngine::Backend::Dx12
 		{
 		public:
 			SwitchStateTask(const std::shared_ptr<SwitchStateTaskContext>& context);
+			void OnScheduled(const std::shared_ptr<Core::BaseStream>& stream) override;
 			void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
-			void Finalize(const std::shared_ptr<Core::BaseStream>& stream) override;
+			void OnComplete(const std::shared_ptr<Core::BaseStream>& stream) override;
 		};
 
 		virtual std::shared_ptr<Core::BaseTask> CreateSwitchStateTask(D3D12_RESOURCE_STATES nextStateMask) override;

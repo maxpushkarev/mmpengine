@@ -41,6 +41,11 @@ namespace MMPEngine::Backend::Dx12
 	{
 	}
 
+	void ResourceEntity::SwitchStateTask::OnScheduled(const std::shared_ptr<Core::BaseStream>& stream)
+	{
+		Task::OnScheduled(stream);
+	}
+
 	void ResourceEntity::SwitchStateTask::Run(const std::shared_ptr<Core::BaseStream>& stream)
 	{
 		Task::Run(stream);
@@ -63,8 +68,8 @@ namespace MMPEngine::Backend::Dx12
 		}
 	}
 
-	void ResourceEntity::SwitchStateTask::Finalize(const std::shared_ptr<Core::BaseStream>& stream)
+	void ResourceEntity::SwitchStateTask::OnComplete(const std::shared_ptr<Core::BaseStream>& stream)
 	{
-		Task::Finalize(stream);
+		Task::OnComplete(stream);
 	}
 }

@@ -21,13 +21,15 @@ namespace MMPEngine::Backend::Dx12
 		{
 		public:
 			CommandTask(const std::shared_ptr<CopyBufferTaskContext>& context);
+			void OnScheduled(const std::shared_ptr<Core::BaseStream>& stream) override;
 			void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
-			void Finalize(const std::shared_ptr<Core::BaseStream>& stream) override;
+			void OnComplete(const std::shared_ptr<Core::BaseStream>& stream) override;
 		};
 	public:
 		CopyBufferTask(const std::shared_ptr<CopyBufferTaskContext>& context);
+		void OnScheduled(const std::shared_ptr<Core::BaseStream>& stream) override;
 		void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
-		void Finalize(const std::shared_ptr<Core::BaseStream>& stream) override;
+		void OnComplete(const std::shared_ptr<Core::BaseStream>& stream) override;
 	private:
 		std::shared_ptr<BaseTask> _switchSrcStateTask;
 		std::shared_ptr<BaseTask> _switchDstStateTask;
@@ -48,19 +50,29 @@ namespace MMPEngine::Backend::Dx12
 			std::size_t byteSize = 0;
 		};
 
+		class CreateBufferTask : public Task, public Core::TaskWithInternalContext<InitTaskContext>
+		{
+		public:
+			CreateBufferTask(const std::shared_ptr<InitTaskContext>& context);
+			void OnScheduled(const std::shared_ptr<Core::BaseStream>& stream) override;
+			void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
+			void OnComplete(const std::shared_ptr<Core::BaseStream>& stream) override;
+		};
+
 		class InitTask final : public Task, public Core::TaskWithInternalContext<InitTaskContext>
 		{
 		public:
 			InitTask(const std::shared_ptr<InitTaskContext>& context);
+			void OnScheduled(const std::shared_ptr<Core::BaseStream>& stream) override;
 			void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
-			void Finalize(const std::shared_ptr<Core::BaseStream>& stream) override;
+			void OnComplete(const std::shared_ptr<Core::BaseStream>& stream) override;
 		};
 	};
 
 
 	class MappedBuffer : public Buffer
 	{
-		friend class MMPEngine::Backend::Dx12::Buffer::InitTask;
+		friend class MMPEngine::Backend::Dx12::Buffer::CreateBufferTask;
 
 	public:
 		MappedBuffer(std::string_view name);
@@ -117,16 +129,18 @@ namespace MMPEngine::Backend::Dx12
 		{
 		public:
 			InitTask(const std::shared_ptr<TaskContext>& context);
+			void OnScheduled(const std::shared_ptr<Core::BaseStream>& stream) override;
 			void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
-			void Finalize(const std::shared_ptr<Core::BaseStream>& stream) override;
+			void OnComplete(const std::shared_ptr<Core::BaseStream>& stream) override;
 		};
 
 		class WriteUploadDataTask final : public Task, public Core::TaskWithInternalContext<TaskContext>
 		{
 		public:
 			WriteUploadDataTask(const std::shared_ptr<TaskContext>& context);
+			void OnScheduled(const std::shared_ptr<Core::BaseStream>& stream) override;
 			void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
-			void Finalize(const std::shared_ptr<Core::BaseStream>& stream) override;
+			void OnComplete(const std::shared_ptr<Core::BaseStream>& stream) override;
 		};
 
 	public:

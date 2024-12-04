@@ -15,8 +15,9 @@ namespace MMPEngine::Core
 		BaseTask();
 		virtual ~BaseTask();
 	protected:
+		virtual void OnScheduled(const std::shared_ptr<BaseStream>& stream);
 		virtual void Run(const std::shared_ptr<BaseStream>& stream);
-		virtual void Finalize(const std::shared_ptr<BaseStream>& stream);
+		virtual void OnComplete(const std::shared_ptr<BaseStream>& stream);
 
 	public:
 		BaseTask(const BaseTask&) = delete;
@@ -41,8 +42,9 @@ namespace MMPEngine::Core
 		static_assert(std::is_base_of_v<AppContext, TAppContext>, "TAppContext must be derived from AppContext");
 		static_assert(std::is_base_of_v<StreamContext, TStreamContext>, "TStreamContext must be derived from StreamContext");
 	public:
+		void OnScheduled(const std::shared_ptr<BaseStream>& stream) override;
 		void Run(const std::shared_ptr<BaseStream>& stream) override;
-		void Finalize(const std::shared_ptr<BaseStream>& stream) override;
+		void OnComplete(const std::shared_ptr<BaseStream>& stream) override;
 	private:
 		void UpdateCache(const std::shared_ptr<BaseStream>& stream);
 	protected:
@@ -61,6 +63,12 @@ namespace MMPEngine::Core
 		std::shared_ptr<TTaskContext> _internalTaskContext;
 	};
 
+	template<typename TAppContext, typename TStreamContext>
+	inline void ExternalContextSpecificTask<TAppContext, TStreamContext>::OnScheduled(const std::shared_ptr<BaseStream>& stream)
+	{
+		BaseTask::OnScheduled(stream);
+		UpdateCache(stream);
+	}
 
 	template<typename TAppContext, typename TStreamContext>
 	inline void ExternalContextSpecificTask<TAppContext, TStreamContext>::Run(const std::shared_ptr<BaseStream>& stream)
@@ -70,9 +78,9 @@ namespace MMPEngine::Core
 	}
 
 	template<typename TAppContext, typename TStreamContext>
-	inline void ExternalContextSpecificTask<TAppContext, TStreamContext>::Finalize(const std::shared_ptr<BaseStream>& stream)
+	inline void ExternalContextSpecificTask<TAppContext, TStreamContext>::OnComplete(const std::shared_ptr<BaseStream>& stream)
 	{
-		BaseTask::Finalize(stream);
+		BaseTask::OnComplete(stream);
 		UpdateCache(stream);
 	}
 
