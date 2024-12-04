@@ -1,6 +1,16 @@
 cmake_minimum_required(VERSION 3.5)
 project(mmpengine VERSION 1.0.0 LANGUAGES C CXX)
 
+# Avoid warning about DOWNLOAD_EXTRACT_TIMESTAMP in CMake 2.24:
+if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.24.0")
+  cmake_policy(SET CMP0135 NEW)
+endif()
+
+include(FetchContent)
+
+FetchContent_Declare(json URL https://github.com/nlohmann/json/releases/download/v3.11.3/json.tar.xz)
+FetchContent_MakeAvailable(json)
+
 set_property(GLOBAL PROPERTY MMPENGINE_CORE_NAME "mmpengine.core")
 set_property(GLOBAL PROPERTY MMPENGINE_FRONTEND_NAME "mmpengine.frontend")
 
@@ -45,7 +55,7 @@ get_property(frontend_name_tmp GLOBAL PROPERTY MMPENGINE_FRONTEND_NAME)
 mmpengine_create_proj(${core_name_tmp} src/Core)
 mmpengine_create_proj(${frontend_name_tmp} src/Frontend)
 
-target_link_libraries(${frontend_name_tmp} PRIVATE ${core_name_tmp})
+target_link_libraries(${frontend_name_tmp} PRIVATE ${core_name_tmp} nlohmann_json::nlohmann_json)
 
 IF (WIN32)
 
