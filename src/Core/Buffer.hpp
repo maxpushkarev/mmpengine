@@ -51,7 +51,7 @@ namespace MMPEngine::Core
 
 	class InputAssemblerBuffer : public Buffer
 	{
-	protected:
+	public:
 		struct IASettings final
 		{
 			const void* rawData;
@@ -61,8 +61,21 @@ namespace MMPEngine::Core
 			IASettings ia;
 			Buffer::Settings base;
 		};
+	protected:
 		InputAssemblerBuffer(const Settings& settings);
 		IASettings _ia;
+	};
+
+	class VertexBuffer : public virtual InputAssemblerBuffer
+	{
+	protected:
+		VertexBuffer(const Settings& settings);
+	};
+
+	class IndexBuffer : public virtual InputAssemblerBuffer
+	{
+	protected:
+		IndexBuffer(const Settings& settings);
 	};
 
 	template<class TConstantBufferData>

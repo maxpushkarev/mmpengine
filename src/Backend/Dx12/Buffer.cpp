@@ -230,6 +230,117 @@ namespace MMPEngine::Backend::Dx12
 	{
 	}
 
+	InputAssemblerBuffer::InputAssemblerBuffer(const Core::InputAssemblerBuffer::Settings& settings) : Core::InputAssemblerBuffer(settings)
+	{
+		_upload = std::make_shared<UploadBuffer>(settings.base);
+		_resident = std::make_shared<ResidentBuffer>(settings.base);
+	}
+
+	std::shared_ptr<Core::BaseTask> InputAssemblerBuffer::CreateCopyToBufferTask(const std::shared_ptr<Core::Buffer>& dst, std::size_t byteLength, std::size_t srcByteOffset, std::size_t dstByteOffset) const
+	{
+		return _resident->CreateCopyToBufferTask(dst, byteLength, srcByteOffset, dstByteOffset);
+	}
+
+	std::shared_ptr<Core::Buffer> InputAssemblerBuffer::GetUnderlyingBuffer()
+	{
+		return _resident;
+	}
+
+	std::shared_ptr<Core::BaseTask> InputAssemblerBuffer::CreateInitializationTask()
+	{
+		const auto context = std::make_shared<TaskContext>();
+		context->entity = std::dynamic_pointer_cast<Dx12::InputAssemblerBuffer>(shared_from_this());
+		return std::make_shared<InitTask>(context);
+	}
+
+	VertexBuffer::VertexBuffer(const Core::InputAssemblerBuffer::Settings& settings) : Core::InputAssemblerBuffer(settings), Core::VertexBuffer(settings), InputAssemblerBuffer(settings)
+	{
+	}
+
+	IndexBuffer::IndexBuffer(const Core::InputAssemblerBuffer::Settings& settings) : Core::InputAssemblerBuffer(settings), Core::IndexBuffer(settings), InputAssemblerBuffer(settings)
+	{
+	}
+
+	std::shared_ptr<Core::BaseTask> IndexBuffer::CreateInitializationTask()
+	{
+		return InputAssemblerBuffer::CreateInitializationTask();
+	}
+
+	std::shared_ptr<Core::Buffer> IndexBuffer::GetUnderlyingBuffer()
+	{
+		return InputAssemblerBuffer::GetUnderlyingBuffer();
+	}
+
+	std::shared_ptr<Core::BaseTask> IndexBuffer::CreateCopyToBufferTask(const std::shared_ptr<Core::Buffer>& dst, std::size_t byteLength, std::size_t srcByteOffset, std::size_t dstByteOffset) const
+	{
+		return InputAssemblerBuffer::CreateCopyToBufferTask(dst, byteLength, srcByteOffset, dstByteOffset);
+	}
+
+	std::shared_ptr<Core::BaseTask> VertexBuffer::CreateCopyToBufferTask(const std::shared_ptr<Core::Buffer>& dst, std::size_t byteLength, std::size_t srcByteOffset, std::size_t dstByteOffset) const
+	{
+		return InputAssemblerBuffer::CreateCopyToBufferTask(dst, byteLength, srcByteOffset, dstByteOffset);
+	}
+
+	std::shared_ptr<Core::BaseTask> VertexBuffer::CreateInitializationTask()
+	{
+		return InputAssemblerBuffer::CreateInitializationTask();
+	}
+
+	std::shared_ptr<Core::Buffer> VertexBuffer::GetUnderlyingBuffer()
+	{
+		return InputAssemblerBuffer::GetUnderlyingBuffer();		
+	}
+
+	InputAssemblerBuffer::WriteUploadDataTask::WriteUploadDataTask(const std::shared_ptr<TaskContext>& context) : TaskWithInternalContext(context)
+	{
+	}
+
+	void InputAssemblerBuffer::WriteUploadDataTask::Run(const std::shared_ptr<Core::BaseStream>& stream)
+	{
+		Task::Run(stream);
+
+		if (const auto entity = _internalTaskContext->entity.lock())
+		{
+			entity->_upload->Write(entity->_ia.rawData, entity->GetSettings().byteLength, 0);
+		}
+	}
+
+	void InputAssemblerBuffer::WriteUploadDataTask::Finalize(const std::shared_ptr<Core::BaseStream>& stream)
+	{
+		Task::Finalize(stream);
+	}
+
+	InputAssemblerBuffer::InitTask::InitTask(const std::shared_ptr<TaskContext>& context) : TaskWithInternalContext(context)
+	{
+	}
+
+	void InputAssemblerBuffer::InitTask::Run(const std::shared_ptr<Core::BaseStream>& stream)
+	{
+		Task::Run(stream);
+
+		if (const auto entity = _internalTaskContext->entity.lock())
+		{
+			stream->Schedule(entity->_upload->CreateInitializationTask());
+			stream->Schedule(entity->_resident->CreateInitializationTask());
+			stream->Schedule(Core::StreamBarrierTask::kInstance);
+			stream->Schedule(std::make_shared<WriteUploadDataTask>(_internalTaskContext));
+			stream->Schedule(entity->_upload->CopyToBuffer(entity->_resident));
+			stream->Schedule(entity->_resident->CreateSwitchStateTask(D3D12_RESOURCE_STATE_GENERIC_READ));
+		}
+	}
+
+
+	void InputAssemblerBuffer::InitTask::Finalize(const std::shared_ptr<Core::BaseStream>& stream)
+	{
+		Task::Finalize(stream);
+
+		if(const auto entity = _internalTaskContext->entity.lock())
+		{
+			entity->_upload.reset();
+		}
+	}
+
+
 	std::shared_ptr<Core::BaseTask> ResidentBuffer::CreateInitializationTask()
 	{
 		const auto tc = std::make_shared<InitTaskContext>();

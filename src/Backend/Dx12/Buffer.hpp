@@ -104,6 +104,57 @@ namespace MMPEngine::Backend::Dx12
 		std::shared_ptr<Core::BaseTask> CreateCopyToBufferTask(const std::shared_ptr<Core::Buffer>& dst, std::size_t byteLength, std::size_t srcByteOffset, std::size_t dstByteOffset) const override;
 	};
 
+	class InputAssemblerBuffer : public virtual Core::InputAssemblerBuffer
+	{
+	protected:
+		InputAssemblerBuffer(const Core::InputAssemblerBuffer::Settings& settings);
+
+		class TaskContext final : public InitContext<InputAssemblerBuffer>
+		{
+		};
+
+		class InitTask final : public Task, public Core::TaskWithInternalContext<TaskContext>
+		{
+		public:
+			InitTask(const std::shared_ptr<TaskContext>& context);
+			void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
+			void Finalize(const std::shared_ptr<Core::BaseStream>& stream) override;
+		};
+
+		class WriteUploadDataTask final : public Task, public Core::TaskWithInternalContext<TaskContext>
+		{
+		public:
+			WriteUploadDataTask(const std::shared_ptr<TaskContext>& context);
+			void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
+			void Finalize(const std::shared_ptr<Core::BaseStream>& stream) override;
+		};
+
+	public:
+		std::shared_ptr<Core::Buffer> GetUnderlyingBuffer() override;
+		std::shared_ptr<Core::BaseTask> CreateCopyToBufferTask(const std::shared_ptr<Core::Buffer>& dst, std::size_t byteLength, std::size_t srcByteOffset, std::size_t dstByteOffset) const override;
+		std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;
+	protected:
+		std::shared_ptr<UploadBuffer> _upload;
+		std::shared_ptr<ResidentBuffer> _resident;
+	};
+
+	class VertexBuffer final : public Core::VertexBuffer, public Dx12::InputAssemblerBuffer
+	{
+	public:
+		VertexBuffer(const Core::InputAssemblerBuffer::Settings& settings);
+		std::shared_ptr<Core::Buffer> GetUnderlyingBuffer() override;
+		std::shared_ptr<Core::BaseTask> CreateCopyToBufferTask(const std::shared_ptr<Core::Buffer>& dst, std::size_t byteLength, std::size_t srcByteOffset, std::size_t dstByteOffset) const override;
+		std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;
+	};
+
+	class IndexBuffer final : public Core::IndexBuffer, Dx12::InputAssemblerBuffer
+	{
+	public:
+		IndexBuffer(const Core::InputAssemblerBuffer::Settings& settings);
+		std::shared_ptr<Core::Buffer> GetUnderlyingBuffer() override;
+		std::shared_ptr<Core::BaseTask> CreateCopyToBufferTask(const std::shared_ptr<Core::Buffer>& dst, std::size_t byteLength, std::size_t srcByteOffset, std::size_t dstByteOffset) const override;
+		std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;
+	};
 
 	template<class TConstantBufferData>
 	class ConstantBuffer final : public Core::ConstantBuffer<TConstantBufferData>

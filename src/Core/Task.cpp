@@ -19,7 +19,7 @@ namespace MMPEngine::Core
 		BaseTask::Run(stream);
 
 		stream->SubmitInternal();
-		stream->WaitInternal();
+		stream->SyncInternal();
 		stream->RestartInternal();
 	}
 

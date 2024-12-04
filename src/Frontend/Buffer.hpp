@@ -8,11 +8,11 @@
 
 namespace MMPEngine::Frontend
 {
-	template<typename TCoreBuffer>
+	template<typename TCoreBuffer, typename TSettings = Core::Buffer::Settings>
 	class Buffer : public TCoreBuffer
 	{
 	public:
-		Buffer(const std::shared_ptr<Core::AppContext>& appContext, const Core::Buffer::Settings& settings);
+		Buffer(const std::shared_ptr<Core::AppContext>& appContext, const TSettings& settings);
 		std::shared_ptr<Core::BaseTask> CreateCopyToBufferTask(const std::shared_ptr<Core::Buffer>& dst, std::size_t byteLength, std::size_t srcByteOffset, std::size_t dstByteOffset) const override;
 		std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;
 		std::shared_ptr<Core::Buffer> GetUnderlyingBuffer() override;
@@ -41,6 +41,18 @@ namespace MMPEngine::Frontend
 	{
 	public:
 		ResidentBuffer(const std::shared_ptr<Core::AppContext>& appContext, const Settings& settings);
+	};
+
+	class VertexBuffer final : public Buffer<Core::VertexBuffer, Core::InputAssemblerBuffer::Settings>
+	{
+	public:
+		VertexBuffer(const std::shared_ptr<Core::AppContext>& appContext, const Settings& settings);
+	};
+
+	class IndexBuffer final : public Buffer<Core::IndexBuffer, Core::InputAssemblerBuffer::Settings>
+	{
+	public:
+		IndexBuffer(const std::shared_ptr<Core::AppContext>& appContext, const Settings& settings);
 	};
 
 	class BaseStructuredBuffer
@@ -160,28 +172,37 @@ namespace MMPEngine::Frontend
 	std::shared_ptr<Core::ResidentBuffer> Buffer<Core::ResidentBuffer>::CreateImpl(const std::shared_ptr<Core::AppContext>& appContext);
 	template<>
 	std::shared_ptr<Core::ReadBackBuffer> Buffer<Core::ReadBackBuffer>::CreateImpl(const std::shared_ptr<Core::AppContext>& appContext);
+	template<>
+	std::shared_ptr<Core::VertexBuffer> Buffer<Core::VertexBuffer, Core::InputAssemblerBuffer::Settings>::CreateImpl(const std::shared_ptr<Core::AppContext>& appContext);
+	template<>
+	std::shared_ptr<Core::IndexBuffer> Buffer<Core::IndexBuffer, Core::InputAssemblerBuffer::Settings>::CreateImpl(const std::shared_ptr<Core::AppContext>& appContext);
 
-	template <typename TCoreBuffer>
-	Buffer<TCoreBuffer>::Buffer(const std::shared_ptr<Core::AppContext>& appContext, const Core::Buffer::Settings& settings)
+	template<>
+	Buffer<Core::VertexBuffer, Core::InputAssemblerBuffer::Settings>::Buffer(const std::shared_ptr<Core::AppContext>& appContext, const Core::InputAssemblerBuffer::Settings& settings);
+	template<>
+	Buffer<Core::IndexBuffer, Core::InputAssemblerBuffer::Settings>::Buffer(const std::shared_ptr<Core::AppContext>& appContext, const Core::InputAssemblerBuffer::Settings& settings);
+
+	template <typename TCoreBuffer, typename TSettings>
+	Buffer<TCoreBuffer, TSettings>::Buffer(const std::shared_ptr<Core::AppContext>& appContext, const TSettings& settings)
 		: TCoreBuffer(settings)
 	{
 		_impl = CreateImpl(appContext);
 	}
 
-	template <typename TCoreBuffer>
-	std::shared_ptr<Core::BaseTask> Buffer<TCoreBuffer>::CreateInitializationTask()
+	template <typename TCoreBuffer, typename TSettings>
+	std::shared_ptr<Core::BaseTask> Buffer<TCoreBuffer, TSettings>::CreateInitializationTask()
 	{
 		return _impl->CreateInitializationTask();
 	}
 
-	template <typename TCoreBuffer>
-	std::shared_ptr<Core::Buffer> Buffer<TCoreBuffer>::GetUnderlyingBuffer()
+	template <typename TCoreBuffer, typename TSettings>
+	std::shared_ptr<Core::Buffer> Buffer<TCoreBuffer, TSettings>::GetUnderlyingBuffer()
 	{
 		return _impl->GetUnderlyingBuffer();
 	}
 
-	template <typename TCoreBuffer>
-	std::shared_ptr<Core::BaseTask> Buffer<TCoreBuffer>::CreateCopyToBufferTask(const std::shared_ptr<Core::Buffer>& dst, std::size_t byteLength, std::size_t srcByteOffset, std::size_t dstByteOffset) const
+	template <typename TCoreBuffer, typename TSettings>
+	std::shared_ptr<Core::BaseTask> Buffer<TCoreBuffer, TSettings>::CreateCopyToBufferTask(const std::shared_ptr<Core::Buffer>& dst, std::size_t byteLength, std::size_t srcByteOffset, std::size_t dstByteOffset) const
 	{
 		return _impl->CreateCopyToBufferTask(dst, byteLength, srcByteOffset, dstByteOffset);
 	}

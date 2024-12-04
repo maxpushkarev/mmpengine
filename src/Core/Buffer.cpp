@@ -50,4 +50,12 @@ namespace MMPEngine::Core
 	ResidentBuffer::ResidentBuffer(const Settings& settings) : Buffer(settings)
 	{
 	}
+
+	VertexBuffer::VertexBuffer(const Settings& settings)
+	{
+	}
+
+	IndexBuffer::IndexBuffer(const Settings& settings)
+	{
+	}
 }
