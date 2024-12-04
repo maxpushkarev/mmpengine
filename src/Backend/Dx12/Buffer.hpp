@@ -16,6 +16,14 @@ namespace MMPEngine::Backend::Dx12
 
 	class CopyBufferTask final : public Task, public Core::TaskWithInternalContext<CopyBufferTaskContext>
 	{
+	private:
+		class CommandTask final : public Task, public Core::TaskWithInternalContext<CopyBufferTaskContext>
+		{
+		public:
+			CommandTask(const std::shared_ptr<CopyBufferTaskContext>& context);
+			void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
+			void Finalize(const std::shared_ptr<Core::BaseStream>& stream) override;
+		};
 	public:
 		CopyBufferTask(const std::shared_ptr<CopyBufferTaskContext>& context);
 		void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
@@ -23,6 +31,7 @@ namespace MMPEngine::Backend::Dx12
 	private:
 		std::shared_ptr<BaseTask> _switchSrcStateTask;
 		std::shared_ptr<BaseTask> _switchDstStateTask;
+		std::shared_ptr<CommandTask> _commandTask;
 	};
 
 	class Buffer : public ResourceEntity

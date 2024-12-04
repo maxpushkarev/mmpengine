@@ -11,14 +11,16 @@ namespace MMPEngine::Core
 
 	class BaseStream : public std::enable_shared_from_this<BaseStream>
 	{
+		friend class StreamBarrierTask;
+
 	protected:
 
 		enum class State : std::uint8_t
 		{
-			Idle,
+			Start,
 			Scheduling,
 			Execution,
-			Await,
+			Sync,
 			Complete
 		};
 
@@ -29,7 +31,7 @@ namespace MMPEngine::Core
 
 		virtual void RestartInternal();
 		virtual void ScheduleInternal(const std::shared_ptr<BaseTask>& task);
-		virtual void WaitInternal();
+		virtual void SyncInternal();
 		virtual void SubmitInternal();
 
 	public:
@@ -64,9 +66,12 @@ namespace MMPEngine::Core
 		Executor CreateExecutor(bool waitAfterSubmit = true);
 	private:
 		void SwitchState(State targetState);
+		void WaitInternal();
+		void FinalizeTasks();
 	private:
 		std::queue<std::shared_ptr<BaseTask>> _scheduledTasks;
-		State _currentState = State::Idle;
+		std::queue<std::shared_ptr<BaseTask>> _finalizedTasks;
+		State _currentState = State::Start;
 		std::shared_ptr<AppContext> _appContext;
 		std::shared_ptr<StreamContext> _streamContext;
 

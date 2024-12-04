@@ -14,35 +14,23 @@ namespace MMPEngine::Core
 	BaseStream::~BaseStream() = default;
 
 	std::unordered_map<BaseStream::State, std::unordered_set<BaseStream::State>> BaseStream::_validTransitionsMap {
-		{ State::Idle, {State::Idle, State::Scheduling, State::Execution, State::Await}},
+		{ State::Start, {State::Start, State::Scheduling, State::Execution, State::Sync}},
 		{ State::Scheduling, {State::Scheduling, State::Execution} },
-		{ State::Execution, {State::Await, State::Idle}},
-		{ State::Await, { State::Complete } },
-		{ State::Complete, {State::Idle} }
+		{ State::Execution, {State::Sync, State::Scheduling, State::Start}},
+		{ State::Sync, { State::Start, State::Complete } },
+		{ State::Complete, {State::Start} }
 	};
 
 	void BaseStream::RestartInternal()
 	{
-		if(!_scheduledTasks.empty())
-		{
-			throw std::logic_error("some pending tasks found on stream restart");
-		}
 	}
 
 	void BaseStream::ScheduleInternal(const std::shared_ptr<BaseTask>& task)
 	{
-		_scheduledTasks.push(task);
 	}
 
-	void BaseStream::WaitInternal()
+	void BaseStream::SyncInternal()
 	{
-		const auto thisPtr = shared_from_this();
-
-		while(!_scheduledTasks.empty())
-		{
-			_scheduledTasks.front()->Finalize(thisPtr);
-			_scheduledTasks.pop();
-		}
 	}
 
     void BaseStream::SubmitInternal()
@@ -52,39 +40,77 @@ namespace MMPEngine::Core
 
     void BaseStream::Restart()
     {
-		SwitchState(State::Idle);
+		assert(_finalizedTasks.empty());
+		assert(_scheduledTasks.empty());
+
+		SwitchState(State::Start);
 		RestartInternal();
     }
 
 	void BaseStream::Schedule(const std::shared_ptr<BaseTask>& task)
 	{
+		const auto execution = _currentState == State::Execution;
+
 		SwitchState(State::Scheduling);
+		_scheduledTasks.push(task);
 		ScheduleInternal(task);
-		task->Run(shared_from_this());
+
+		if(execution)
+		{
+			SwitchState(State::Execution);
+		}
 	}
 
 	void BaseStream::Submit()
 	{
-		if (_currentState == State::Idle || _currentState == State::Complete)
+		if (_currentState == State::Start || _currentState == State::Complete)
 		{
 			return;
 		}
 
 		SwitchState(State::Execution);
+
+		const auto thisPtr = shared_from_this();
+		while (!_scheduledTasks.empty())
+		{
+			const auto currentTask = _scheduledTasks.front();
+			_scheduledTasks.pop();
+
+			_finalizedTasks.push(currentTask);
+			currentTask->Run(thisPtr);
+		}
+
 		SubmitInternal();
 	}
 
 	void BaseStream::Wait()
 	{
-		if(_currentState == State::Await || _currentState == State::Complete || _currentState == State::Idle)
+		if(_currentState == State::Sync || _currentState == State::Complete || _currentState == State::Start)
 		{
 			return;
 		}
 
-		SwitchState(State::Await);
+		SwitchState(State::Sync);
 		WaitInternal();
 		SwitchState(State::Complete);
 	}
+
+	void BaseStream::WaitInternal()
+	{
+		SyncInternal();
+		FinalizeTasks();
+	}
+
+	void BaseStream::FinalizeTasks()
+	{
+		const auto thisPtr = shared_from_this();
+		while (!_finalizedTasks.empty())
+		{
+			_finalizedTasks.front()->Finalize(thisPtr);
+			_finalizedTasks.pop();
+		}
+	}
+
 
 	void BaseStream::SubmitAndWait()
 	{
@@ -121,11 +147,11 @@ namespace MMPEngine::Core
 	{
 		switch (state)
 		{
-			case BaseStream::State::Await:
-				stream << "Await";
+			case BaseStream::State::Sync:
+				stream << "Sync";
 				break;
-			case BaseStream::State::Idle:
-				stream << "Idle";
+			case BaseStream::State::Start:
+				stream << "Start";
 				break;
 			case BaseStream::State::Scheduling:
 				stream << "Scheduling";

@@ -12,6 +12,7 @@ namespace MMPEngine::Backend::Dx12
 		assert(srcBuffer);
 		assert(dstBuffer);
 
+		_commandTask = std::make_shared<CommandTask>(context);
 		_switchSrcStateTask = srcBuffer->CreateSwitchStateTask(D3D12_RESOURCE_STATE_COPY_SOURCE);
 		_switchDstStateTask = dstBuffer->CreateSwitchStateTask(D3D12_RESOURCE_STATE_COPY_DEST);
 	}
@@ -22,6 +23,21 @@ namespace MMPEngine::Backend::Dx12
 
 		stream->Schedule(_switchSrcStateTask);
 		stream->Schedule(_switchDstStateTask);
+		stream->Schedule(_commandTask);
+	}
+
+	void CopyBufferTask::Finalize(const std::shared_ptr<Core::BaseStream>& stream)
+	{
+		Task::Finalize(stream);
+	}
+
+	CopyBufferTask::CommandTask::CommandTask(const std::shared_ptr<CopyBufferTaskContext>& context) : TaskWithInternalContext<CopyBufferTaskContext>(context)
+	{
+	}
+
+	void CopyBufferTask::CommandTask::Run(const std::shared_ptr<Core::BaseStream>& stream)
+	{
+		Task::Run(stream);
 
 		const auto srcBuffer = _internalTaskContext->src.lock();
 		const auto dstBuffer = _internalTaskContext->dst.lock();
@@ -32,19 +48,18 @@ namespace MMPEngine::Backend::Dx12
 		if (const auto sc = _specificStreamContext.lock())
 		{
 			sc->cmdList->CopyBufferRegion(
-				dstBuffer->GetNativeResource().Get(), 
-				_internalTaskContext->dstByteOffset, 
-				srcBuffer->GetNativeResource().Get(), 
-				_internalTaskContext->srcByteOffset, 
+				dstBuffer->GetNativeResource().Get(),
+				_internalTaskContext->dstByteOffset,
+				srcBuffer->GetNativeResource().Get(),
+				_internalTaskContext->srcByteOffset,
 				_internalTaskContext->byteLength);
 		}
 	}
 
-	void CopyBufferTask::Finalize(const std::shared_ptr<Core::BaseStream>& stream)
+	void CopyBufferTask::CommandTask::Finalize(const std::shared_ptr<Core::BaseStream>& stream)
 	{
 		Task::Finalize(stream);
 	}
-
 
 	UploadBuffer::UploadBuffer(const Settings& settings) : Core::BaseEntity(settings.name), Core::UploadBuffer(settings)
 	{
@@ -241,5 +256,6 @@ namespace MMPEngine::Backend::Dx12
 
 		return std::make_shared<CopyBufferTask>(context);
 	}
+
 
 }

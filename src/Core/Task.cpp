@@ -17,13 +17,10 @@ namespace MMPEngine::Core
 	void StreamBarrierTask::Run(const std::shared_ptr<BaseStream>& stream)
 	{
 		BaseTask::Run(stream);
-		stream->SubmitAndWait();
-	}
 
-	void StreamBarrierTask::Finalize(const std::shared_ptr<BaseStream>& stream)
-	{
-		BaseTask::Finalize(stream);
-		stream->Restart();
+		stream->SubmitInternal();
+		stream->WaitInternal();
+		stream->RestartInternal();
 	}
 
 	std::shared_ptr<StreamBarrierTask> StreamBarrierTask::kInstance = std::make_shared<StreamBarrierTask>();

@@ -31,7 +31,6 @@ namespace MMPEngine::Core
 	{
 	protected:
 		void Run(const std::shared_ptr<BaseStream>& stream) override;
-		void Finalize(const std::shared_ptr<BaseStream>& stream) override;
 	public:
 		static std::shared_ptr<StreamBarrierTask> kInstance;
 	};

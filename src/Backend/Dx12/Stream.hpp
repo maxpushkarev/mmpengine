@@ -18,7 +18,7 @@ namespace MMPEngine::Backend::Dx12
 	protected:
 		void RestartInternal() override;
 		void SubmitInternal() override;
-		void WaitInternal() override;
+		void SyncInternal() override;
 	private:
 		std::uint64_t _lastFenceValue;
 		HANDLE _waitHandle;
