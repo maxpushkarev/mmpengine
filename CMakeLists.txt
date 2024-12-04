@@ -11,6 +11,17 @@ include(FetchContent)
 FetchContent_Declare(json URL https://github.com/nlohmann/json/releases/download/v3.11.3/json.tar.xz)
 FetchContent_MakeAvailable(json)
 
+FetchContent_Declare(assimp URL https://github.com/assimp/assimp/archive/refs/tags/v5.4.3.tar.gz)
+
+set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
+set(ASSIMP_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(ASSIMP_INJECT_DEBUG_POSTFIX OFF CACHE BOOL "" FORCE)
+set(ASSIMP_INSTALL OFF CACHE BOOL "" FORCE)
+set(ASSIMP_INSTALL_PDB OFF CACHE BOOL "" FORCE)
+set(ASSIMP_BUILD_ASSIMP_VIEW OFF CACHE BOOL "" FORCE)
+
+FetchContent_MakeAvailable(assimp)
+
 set_property(GLOBAL PROPERTY MMPENGINE_CORE_NAME "mmpengine.core")
 set_property(GLOBAL PROPERTY MMPENGINE_FRONTEND_NAME "mmpengine.frontend")
 
@@ -55,6 +66,7 @@ get_property(frontend_name_tmp GLOBAL PROPERTY MMPENGINE_FRONTEND_NAME)
 mmpengine_create_proj(${core_name_tmp} src/Core)
 mmpengine_create_proj(${frontend_name_tmp} src/Frontend)
 
+target_link_libraries(${core_name_tmp} PRIVATE assimp)
 target_link_libraries(${frontend_name_tmp} PRIVATE ${core_name_tmp} nlohmann_json::nlohmann_json)
 
 IF (WIN32)
