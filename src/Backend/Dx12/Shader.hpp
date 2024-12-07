@@ -14,4 +14,17 @@ namespace MMPEngine::Backend::Dx12
 	public:
 		explicit ComputeShader(std::filesystem::path&& path);
 	};
+
+	class VertexShader final : public Core::VertexShader, public Shader
+	{
+	public:
+		explicit VertexShader(std::filesystem::path&& path);
+	};
+
+	class PixelShader final : public Core::PixelShader, public Shader
+	{
+	public:
+		explicit PixelShader(std::filesystem::path&& path);
+	};
+
 }

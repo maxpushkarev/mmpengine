@@ -64,4 +64,13 @@ namespace MMPEngine::Core
 	ComputeShader::ComputeShader(std::filesystem::path&& path) : Shader(std::move(path))
 	{
 	}
+
+	VertexShader::VertexShader(std::filesystem::path&& path) : Shader(std::move(path))
+	{
+	}
+
+	PixelShader::PixelShader(std::filesystem::path&& path) : Shader(std::move(path))
+	{
+	}
+
 }

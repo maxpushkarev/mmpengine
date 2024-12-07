@@ -21,6 +21,42 @@ namespace MMPEngine::Frontend
 		return nullptr;
 	}
 
+
+	template<>
+	std::shared_ptr<Core::VertexShader> Shader::LoadFromFile(const std::shared_ptr<Core::AppContext>& appContext, std::filesystem::path&& path)
+	{
+		auto specificShaderPath = GetSpecificPath(appContext, std::move(path));
+
+		if (appContext->settings.backend == Core::BackendType::Dx12)
+		{
+#ifdef MMPENGINE_BACKEND_DX12
+			return std::make_shared<Backend::Dx12::VertexShader>(std::move(specificShaderPath));
+#else
+			throw Core::UnsupportedException("unable to load vertex shader for DX12 backend");
+#endif
+		}
+
+		return nullptr;
+	}
+
+	template<>
+	std::shared_ptr<Core::PixelShader> Shader::LoadFromFile(const std::shared_ptr<Core::AppContext>& appContext, std::filesystem::path&& path)
+	{
+		auto specificShaderPath = GetSpecificPath(appContext, std::move(path));
+
+		if (appContext->settings.backend == Core::BackendType::Dx12)
+		{
+#ifdef MMPENGINE_BACKEND_DX12
+			return std::make_shared<Backend::Dx12::PixelShader>(std::move(specificShaderPath));
+#else
+			throw Core::UnsupportedException("unable to load pixel shader for DX12 backend");
+#endif
+		}
+
+		return nullptr;
+	}
+
+
 	std::filesystem::path Shader::GetSpecificPath(const std::shared_ptr<Core::AppContext>& appContext, std::filesystem::path&& path)
 	{
 		assert(path.extension().string() == ".json");

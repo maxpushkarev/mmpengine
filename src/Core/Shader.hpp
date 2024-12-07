@@ -39,4 +39,16 @@ namespace MMPEngine::Core
 		explicit ComputeShader(std::filesystem::path&& path);
 	};
 
+	class VertexShader : public virtual Shader
+	{
+	protected:
+		explicit VertexShader(std::filesystem::path&& path);
+	};
+
+	class PixelShader : public virtual Shader
+	{
+	protected:
+		explicit PixelShader(std::filesystem::path&& path);
+	};
+
 }
