@@ -60,7 +60,6 @@ namespace MMPEngine::Frontend
 	template<typename TCoreMaterial>
 	inline std::shared_ptr<Core::BaseTask> Material<TCoreMaterial>::CreateTaskForUpdateParametersInternal()
 	{
-		auto params = _impl->GetParameters();
-		return _impl->CreateTaskForUpdateParameters(std::move(params));
+		return _impl->CreateTaskForUpdateParameters(std::move(this->_params));
 	}
 }
