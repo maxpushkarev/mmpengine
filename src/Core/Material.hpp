@@ -6,7 +6,7 @@
 
 namespace MMPEngine::Core
 {
-	class BaseMaterial : public IInitializationTaskSource
+	class BaseMaterial : public IInitializationTaskSource, public std::enable_shared_from_this<BaseMaterial>
 	{
 	public:
 		class Parameters final
