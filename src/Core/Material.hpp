@@ -30,11 +30,13 @@ namespace MMPEngine::Core
 			Parameters(const Parameters&);
 			Parameters(Parameters&&) noexcept;
 
-			Parameters& operator=(const Parameters&) = delete;
-			Parameters& operator=(Parameters&&) noexcept = delete;
+			Parameters& operator=(const Parameters&);
+			Parameters& operator=(Parameters&&) noexcept;
 
 			std::optional<EntryView> TryGet(std::string_view name) const;
 			const std::vector<Entry>& GetAll() const;
+
+
 		private:
 
 			void Build();
@@ -42,13 +44,38 @@ namespace MMPEngine::Core
 			std::vector<Entry> _entries;
 			std::unordered_map<std::string_view, EntryView> _viewMap;
 		};
+
+		std::shared_ptr<BaseTask> CreateInitializationTask() override;
+		std::shared_ptr<BaseTask> UpdateParameters(Parameters&& parameters);
+		virtual std::shared_ptr<BaseTask> CreateTaskForApply() = 0;
+	protected:
+
+		BaseMaterial(Parameters&& params);
+		virtual std::shared_ptr<BaseTask> UpdateParametersInternal() = 0;
+	protected:
+		Parameters _params;
 	};
 
-	class MeshMaterial : public BaseMaterial
+	class RenderingMaterial : public BaseMaterial
 	{
+	public:
+		struct Settings
+		{
+		};
+	protected:
+		RenderingMaterial(const Settings& settings, Parameters&& params);
+		Settings _settings;
+	};
+
+	class MeshMaterial : public RenderingMaterial
+	{
+	protected:
+		MeshMaterial(const Settings& settings, Parameters&& params);
 	};
 
 	class ComputeMaterial : public BaseMaterial
 	{
+	protected:
+		ComputeMaterial(Parameters&& params);
 	};
 }

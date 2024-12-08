@@ -32,6 +32,35 @@ namespace MMPEngine::Core
 		}
 	}
 
+	BaseMaterial::Parameters& BaseMaterial::Parameters::operator=(Parameters&& other) noexcept
+	{
+		if (this != &other)
+		{
+			_entries = std::move(other._entries);
+
+			other._viewMap.clear();
+			_viewMap.clear();
+
+			Build();
+		}
+
+		return *this;
+	}
+
+	BaseMaterial::Parameters& BaseMaterial::Parameters::operator=(const Parameters& other)
+	{
+		if (this != &other)
+		{
+			_entries = other._entries;
+			_viewMap.clear();
+
+			Build();
+		}
+
+		return *this;
+	}
+
+
 	const std::vector<BaseMaterial::Parameters::Entry>& BaseMaterial::Parameters::GetAll() const
 	{
 		return _entries;
@@ -62,6 +91,33 @@ namespace MMPEngine::Core
 
 			_viewMap.emplace(std::make_pair(name, entryView));
 		}
+	}
+
+	BaseMaterial::BaseMaterial(Parameters&& params) : _params(std::move(params))
+	{
+	}
+
+	std::shared_ptr<BaseTask> BaseMaterial::CreateInitializationTask()
+	{
+		return UpdateParametersInternal();
+	}
+
+	std::shared_ptr<BaseTask> BaseMaterial::UpdateParameters(Parameters&& parameters)
+	{
+		_params = std::move(parameters);
+		return UpdateParametersInternal();
+	}
+
+	RenderingMaterial::RenderingMaterial(const Settings& settings, Parameters&& params) : BaseMaterial(std::move(params)), _settings(settings)
+	{
+	}
+
+	MeshMaterial::MeshMaterial(const Settings& settings, Parameters&& params) : RenderingMaterial(settings, std::move(params))
+	{
+	}
+
+	ComputeMaterial::ComputeMaterial(Parameters&& params) : BaseMaterial(std::move(params))
+	{
 	}
 
 }
