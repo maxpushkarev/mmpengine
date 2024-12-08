@@ -11,7 +11,7 @@ namespace MMPEngine::Frontend
 	template<typename TCoreBuffer, typename TSettings = Core::Buffer::Settings>
 	class Buffer : public TCoreBuffer
 	{
-	public:
+	protected:
 		Buffer(const std::shared_ptr<Core::AppContext>& appContext, const TSettings& settings);
 		std::shared_ptr<Core::BaseTask> CreateCopyToBufferTask(const std::shared_ptr<Core::Buffer>& dst, std::size_t byteLength, std::size_t srcByteOffset, std::size_t dstByteOffset) const override;
 		std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;

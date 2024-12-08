@@ -2,6 +2,7 @@
 #include <optional>
 #include <Core/Base.hpp>
 #include <Core/Entity.hpp>
+#include <Core/Shader.hpp>
 
 namespace MMPEngine::Core
 {
@@ -23,7 +24,7 @@ namespace MMPEngine::Core
 				std::uint32_t index;
 			};
 
-			Parameters(std::vector<Entry>&& entries);
+			explicit Parameters(std::vector<Entry>&& entries);
 			Parameters();
 			~Parameters();
 
@@ -46,12 +47,13 @@ namespace MMPEngine::Core
 		};
 
 		std::shared_ptr<BaseTask> CreateInitializationTask() override;
-		std::shared_ptr<BaseTask> UpdateParameters(Parameters&& parameters);
+		std::shared_ptr<BaseTask> CreateTaskForUpdateParameters(Parameters&& parameters);
 		virtual std::shared_ptr<BaseTask> CreateTaskForApply() = 0;
+		const Parameters& GetParameters() const;
 	protected:
 
-		BaseMaterial(Parameters&& params);
-		virtual std::shared_ptr<BaseTask> UpdateParametersInternal() = 0;
+		BaseMaterial();
+		virtual std::shared_ptr<BaseTask> CreateTaskForUpdateParametersInternal() = 0;
 	protected:
 		Parameters _params;
 	};
@@ -63,19 +65,20 @@ namespace MMPEngine::Core
 		{
 		};
 	protected:
-		RenderingMaterial(const Settings& settings, Parameters&& params);
+		RenderingMaterial(const Settings& settings);
 		Settings _settings;
 	};
 
 	class MeshMaterial : public RenderingMaterial
 	{
 	protected:
-		MeshMaterial(const Settings& settings, Parameters&& params);
+		MeshMaterial(const Settings& settings);
 	};
 
 	class ComputeMaterial : public BaseMaterial
 	{
 	protected:
-		ComputeMaterial(Parameters&& params);
+		ComputeMaterial(const std::shared_ptr<ComputeShader>& computeShader);
+		std::shared_ptr<ComputeShader> _shader;
 	};
 }

@@ -93,30 +93,33 @@ namespace MMPEngine::Core
 		}
 	}
 
-	BaseMaterial::BaseMaterial(Parameters&& params) : _params(std::move(params))
-	{
-	}
+	BaseMaterial::BaseMaterial() = default;
 
 	std::shared_ptr<BaseTask> BaseMaterial::CreateInitializationTask()
 	{
-		return UpdateParametersInternal();
+		return BaseTask::kEmpty;
 	}
 
-	std::shared_ptr<BaseTask> BaseMaterial::UpdateParameters(Parameters&& parameters)
+	std::shared_ptr<BaseTask> BaseMaterial::CreateTaskForUpdateParameters(Parameters&& parameters)
 	{
 		_params = std::move(parameters);
-		return UpdateParametersInternal();
+		return CreateTaskForUpdateParametersInternal();
 	}
 
-	RenderingMaterial::RenderingMaterial(const Settings& settings, Parameters&& params) : BaseMaterial(std::move(params)), _settings(settings)
+	const BaseMaterial::Parameters& BaseMaterial::GetParameters() const
+	{
+		return _params;
+	}
+
+	RenderingMaterial::RenderingMaterial(const Settings& settings) : _settings(settings)
 	{
 	}
 
-	MeshMaterial::MeshMaterial(const Settings& settings, Parameters&& params) : RenderingMaterial(settings, std::move(params))
+	MeshMaterial::MeshMaterial(const Settings& settings) : RenderingMaterial(settings)
 	{
 	}
 
-	ComputeMaterial::ComputeMaterial(Parameters&& params) : BaseMaterial(std::move(params))
+	ComputeMaterial::ComputeMaterial(const std::shared_ptr<ComputeShader>& computeShader) : _shader(computeShader)
 	{
 	}
 
