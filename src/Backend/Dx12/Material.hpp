@@ -79,6 +79,7 @@ namespace MMPEngine::Backend::Dx12
 		for(std::size_t i = 0; i < allParams.size(); ++i)
 		{
 			const auto& p = allParams.at(i);
+			const auto index = static_cast<std::uint32_t>(i);
 
 			if constexpr (std::is_same_v<TCoreMaterial, Core::ComputeMaterial>)
 			{
