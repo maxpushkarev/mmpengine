@@ -108,7 +108,7 @@ namespace MMPEngine::Backend::Dx12
 	class UploadBuffer final : public Core::UploadBuffer, public MappedBuffer
 	{
 	private:
-		class WriteTaskProps final : public Core::Context::Properties
+		class WriteTaskContext final : public Core::UploadBuffer::WriteTaskContext
 		{
 		public:
 			std::weak_ptr<UploadBuffer> uploadBuffer;
@@ -116,7 +116,7 @@ namespace MMPEngine::Backend::Dx12
 		class WriteTask final : public Task, public Core::TaskWithContext<Core::UploadBuffer::WriteTaskContext>
 		{
 		private:
-			class Impl final : public Task, public MappedBufferTask, public Core::TaskWithContext<Core::UploadBuffer::WriteTaskContext>
+			class Impl final : public Task, public MappedBufferTask, public Core::TaskWithContext<WriteTaskContext>
 			{
 			public:
 				Impl(const std::shared_ptr<WriteTaskContext>& context);
@@ -126,6 +126,7 @@ namespace MMPEngine::Backend::Dx12
 			};
 			std::shared_ptr<BaseTask> _prepareStateTask;
 			std::shared_ptr<BaseTask> _implTask;
+
 		public:
 			WriteTask(const std::shared_ptr<WriteTaskContext>& context);
 			void OnScheduled(const std::shared_ptr<Core::BaseStream>& stream) override;
@@ -142,7 +143,7 @@ namespace MMPEngine::Backend::Dx12
 	class ReadBackBuffer final : public Core::ReadBackBuffer, public MappedBuffer
 	{
 	private:
-		class ReadTaskProps final : public Core::Context::Properties
+		class ReadTaskContext final : public Core::ReadBackBuffer::ReadTaskContext
 		{
 		public:
 			std::weak_ptr<ReadBackBuffer> readBackBuffer;
@@ -150,7 +151,7 @@ namespace MMPEngine::Backend::Dx12
 		class ReadTask final : public Task, public Core::TaskWithContext<Core::ReadBackBuffer::ReadTaskContext>
 		{
 		private:
-			class Impl final : public Task, public MappedBufferTask, public Core::TaskWithContext<Core::ReadBackBuffer::ReadTaskContext>
+			class Impl final : public Task, public MappedBufferTask, public Core::TaskWithContext<ReadTaskContext>
 			{
 			public:
 				Impl(const std::shared_ptr<ReadTaskContext>& context);
