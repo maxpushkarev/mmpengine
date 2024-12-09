@@ -20,6 +20,20 @@ namespace MMPEngine::Backend::Dx12
 	void DirectComputeJob::InitTask::Run(const std::shared_ptr<Core::BaseStream>& stream)
 	{
 		Task::Run(stream);
+
+		const auto job = _internalTaskContext->job.lock();
+		assert(job);
+		const auto cs = job->_material->GetShader();
+		assert(cs);
+
+		D3D12_COMPUTE_PIPELINE_STATE_DESC psoDesc = {};
+
+		psoDesc.CS =
+		{
+			cs->GetCompiledBinaryData(),
+			cs->GetCompiledBinaryLength()
+		};
+		psoDesc.Flags = D3D12_PIPELINE_STATE_FLAG_NONE;
 	}
 
 	void DirectComputeJob::InitTask::OnComplete(const std::shared_ptr<Core::BaseStream>& stream)
@@ -49,7 +63,7 @@ namespace MMPEngine::Backend::Dx12
 	std::shared_ptr<Core::BaseTask> DirectComputeJob::CreateInitializationTask()
 	{
 		const auto ctx = std::make_shared<InitContext>();
-		ctx->_job = std::dynamic_pointer_cast<DirectComputeJob>(shared_from_this());
+		ctx->job = std::dynamic_pointer_cast<DirectComputeJob>(shared_from_this());
 		return std::make_shared<InitTask>(ctx);
 	}
 

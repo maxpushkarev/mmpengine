@@ -123,7 +123,7 @@ namespace MMPEngine::Core
 	{
 	}
 
-    std::shared_ptr<ComputeShader> ComputeMaterial::GetShader() const
+	const std::shared_ptr<ComputeShader>& ComputeMaterial::GetShader() const
     {
         return _shader;
     }

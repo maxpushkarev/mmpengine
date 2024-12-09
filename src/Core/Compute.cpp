@@ -2,7 +2,11 @@
 
 namespace MMPEngine::Core
 {
-	DirectComputeJob::DirectComputeJob(const std::shared_ptr<ComputeMaterial>& material) : _material(material)
+	BaseComputeJob::BaseComputeJob(const std::shared_ptr<ComputeMaterial>& material) : _material(material)
+	{
+	}
+
+	DirectComputeJob::DirectComputeJob(const std::shared_ptr<ComputeMaterial>& material) : BaseComputeJob(material)
 	{
 	}
 }

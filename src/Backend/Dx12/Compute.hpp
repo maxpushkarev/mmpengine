@@ -12,7 +12,7 @@ namespace MMPEngine::Backend::Dx12
 		class InitContext final : public Core::TaskContext
 		{
 		public:
-			std::weak_ptr<DirectComputeJob> _job;
+			std::weak_ptr<DirectComputeJob> job;
 		};
 
 		class ExecutionContext final : public Core::DirectComputeContext

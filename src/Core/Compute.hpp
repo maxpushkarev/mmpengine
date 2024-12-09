@@ -10,10 +10,16 @@ namespace MMPEngine::Core
 		Core::Vector3Uint dimensions {1,1,1};
 	};
 
-	class DirectComputeJob : public Job<DirectComputeContext>
+	class BaseComputeJob
+	{
+	protected:
+		BaseComputeJob(const std::shared_ptr<ComputeMaterial>& material);
+		std::shared_ptr<ComputeMaterial> _material;
+	};
+
+	class DirectComputeJob : public BaseComputeJob, public Job<DirectComputeContext>
 	{
 	protected:
 		DirectComputeJob(const std::shared_ptr<ComputeMaterial>& material);
-		std::shared_ptr<ComputeMaterial> _material;
 	};
 }

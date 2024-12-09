@@ -81,6 +81,6 @@ namespace MMPEngine::Core
 		ComputeMaterial(const std::shared_ptr<ComputeShader>& computeShader);
 		std::shared_ptr<ComputeShader> _shader;
 	public:
-		std::shared_ptr<ComputeShader> GetShader() const;
+		const std::shared_ptr<ComputeShader>& GetShader() const;
 	};
 }
