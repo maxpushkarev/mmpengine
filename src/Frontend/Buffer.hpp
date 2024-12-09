@@ -13,10 +13,11 @@ namespace MMPEngine::Frontend
 	{
 	protected:
 		Buffer(const std::shared_ptr<Core::AppContext>& appContext, const TSettings& settings);
+		std::shared_ptr<TCoreBuffer> CreateImpl(const std::shared_ptr<Core::AppContext>& appContext);
+	public:
 		std::shared_ptr<Core::BaseTask> CreateCopyToBufferTask(const std::shared_ptr<Core::Buffer>& dst, std::size_t byteLength, std::size_t srcByteOffset, std::size_t dstByteOffset) const override;
 		std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;
 		std::shared_ptr<Core::Buffer> GetUnderlyingBuffer() override;
-		std::shared_ptr<TCoreBuffer> CreateImpl(const std::shared_ptr<Core::AppContext>& appContext);
 	protected:
 		std::shared_ptr<TCoreBuffer> _impl;
 
