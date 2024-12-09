@@ -15,15 +15,15 @@ namespace MMPEngine::Core
 	protected:
 		Context();
 	public:
-		class CustomProperties
+		class Properties
 		{
 		public:
-			CustomProperties();
-			CustomProperties(const CustomProperties&) = delete;
-			CustomProperties(CustomProperties&&) noexcept = delete;
-			CustomProperties& operator=(const CustomProperties&) = delete;
-			CustomProperties& operator=(CustomProperties&&) noexcept = delete;
-			virtual ~CustomProperties();
+			Properties();
+			Properties(const Properties&) = delete;
+			Properties(Properties&&) noexcept = delete;
+			Properties& operator=(const Properties&) = delete;
+			Properties& operator=(Properties&&) noexcept = delete;
+			virtual ~Properties();
 		};
 		Context(const Context&) = delete;
 		Context(Context&&) noexcept = delete;
@@ -31,7 +31,7 @@ namespace MMPEngine::Core
 		Context& operator=(Context&&) noexcept = delete;
 		virtual ~Context();
 
-		std::shared_ptr<CustomProperties> customProps;
+		std::shared_ptr<Properties> properties;
 	};
 
 #ifdef MMPENGINE_WIN

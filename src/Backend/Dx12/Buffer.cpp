@@ -86,7 +86,7 @@ namespace MMPEngine::Backend::Dx12
 		ctx->byteOffset = byteOffset;
 		ctx->byteLength = byteLength;
 		ctx->src = src;
-		ctx->customProps = props;
+		ctx->properties = props;
 
 		return std::make_shared<WriteTask>(ctx);
 	}
@@ -132,7 +132,7 @@ namespace MMPEngine::Backend::Dx12
 		ctx->byteOffset = byteOffset;
 		ctx->byteLength = byteLength;
 		ctx->dst = dst;
-		ctx->customProps = props;
+		ctx->properties = props;
 
 		return std::make_shared<ReadTask>(ctx);
 	}
@@ -422,7 +422,7 @@ namespace MMPEngine::Backend::Dx12
 
 	UploadBuffer::WriteTask::WriteTask(const std::shared_ptr<WriteTaskContext>& context) : TaskWithInternalContext(context)
 	{
-		const auto buffer = std::static_pointer_cast<WriteTaskProps>(_internalTaskContext->customProps)->uploadBuffer.lock();
+		const auto buffer = std::static_pointer_cast<WriteTaskProps>(_internalTaskContext->properties)->uploadBuffer.lock();
 		assert(buffer);
 
 		_implTask = std::make_shared<Impl>(context);
@@ -460,7 +460,7 @@ namespace MMPEngine::Backend::Dx12
 	void UploadBuffer::WriteTask::Impl::Run(const std::shared_ptr<Core::BaseStream>& stream)
 	{
 		Task::Run(stream);
-		if (const auto entity = std::static_pointer_cast<WriteTaskProps>(_internalTaskContext->customProps)->uploadBuffer.lock())
+		if (const auto entity = std::static_pointer_cast<WriteTaskProps>(_internalTaskContext->properties)->uploadBuffer.lock())
 		{
 			std::memcpy((static_cast<char*>(GetMappedPtr(entity)) + _internalTaskContext->byteOffset), _internalTaskContext->src, _internalTaskContext->byteLength);
 		}
@@ -474,7 +474,7 @@ namespace MMPEngine::Backend::Dx12
 
 	ReadBackBuffer::ReadTask::ReadTask(const std::shared_ptr<ReadTaskContext>& context) : TaskWithInternalContext(context)
 	{
-		const auto buffer = std::static_pointer_cast<ReadTaskProps>(_internalTaskContext->customProps)->readBackBuffer.lock();
+		const auto buffer = std::static_pointer_cast<ReadTaskProps>(_internalTaskContext->properties)->readBackBuffer.lock();
 		assert(buffer);
 
 		_implTask = std::make_shared<Impl>(context);
@@ -513,7 +513,7 @@ namespace MMPEngine::Backend::Dx12
 	{
 		Task::Run(stream);
 
-		if (const auto entity = std::static_pointer_cast<ReadTaskProps>(_internalTaskContext->customProps)->readBackBuffer.lock())
+		if (const auto entity = std::static_pointer_cast<ReadTaskProps>(_internalTaskContext->properties)->readBackBuffer.lock())
 		{
 			std::memcpy(_internalTaskContext->dst, (static_cast<char*>(GetMappedPtr(entity)) + _internalTaskContext->byteOffset), _internalTaskContext->byteLength);
 		}

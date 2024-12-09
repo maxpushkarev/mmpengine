@@ -108,7 +108,7 @@ namespace MMPEngine::Backend::Dx12
 	class UploadBuffer final : public Core::UploadBuffer, public MappedBuffer
 	{
 	private:
-		class WriteTaskProps final : public Core::Context::CustomProperties
+		class WriteTaskProps final : public Core::Context::Properties
 		{
 		public:
 			std::weak_ptr<UploadBuffer> uploadBuffer;
@@ -142,7 +142,7 @@ namespace MMPEngine::Backend::Dx12
 	class ReadBackBuffer final : public Core::ReadBackBuffer, public MappedBuffer
 	{
 	private:
-		class ReadTaskProps final : public Core::Context::CustomProperties
+		class ReadTaskProps final : public Core::Context::Properties
 		{
 		public:
 			std::weak_ptr<ReadBackBuffer> readBackBuffer;

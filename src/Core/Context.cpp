@@ -5,8 +5,8 @@ namespace MMPEngine::Core
 	Context::Context() = default;
 	Context::~Context() = default;
 
-	Context::CustomProperties::CustomProperties() = default;
-	Context::CustomProperties::~CustomProperties() = default;
+	Context::Properties::Properties() = default;
+	Context::Properties::~Properties() = default;
 
 	AppContext::AppContext(const Settings& s) :
 		settings(s),
