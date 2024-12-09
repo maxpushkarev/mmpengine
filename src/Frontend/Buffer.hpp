@@ -27,7 +27,7 @@ namespace MMPEngine::Frontend
 	{
 	public:
 		UploadBuffer(const std::shared_ptr<Core::AppContext>& appContext, const Settings& settings);
-		std::shared_ptr<Core::TaskWithInternalContext<WriteTaskContext>> CreateWriteTask(const void* src, std::size_t byteLength, std::size_t byteOffset = 0) override;
+		std::shared_ptr<Core::TaskWithContext<WriteTaskContext>> CreateWriteTask(const void* src, std::size_t byteLength, std::size_t byteOffset = 0) override;
 	};
 
 
@@ -35,7 +35,7 @@ namespace MMPEngine::Frontend
 	{
 	public:
 		ReadBackBuffer(const std::shared_ptr<Core::AppContext>& appContext, const Settings& settings);
-		std::shared_ptr<Core::TaskWithInternalContext<ReadTaskContext>> CreateReadTask(void* dst, std::size_t byteLength, std::size_t byteOffset = 0) override;
+		std::shared_ptr<Core::TaskWithContext<ReadTaskContext>> CreateReadTask(void* dst, std::size_t byteLength, std::size_t byteOffset = 0) override;
 	};
 
 	class ResidentBuffer : public Buffer<Core::ResidentBuffer>
@@ -79,7 +79,7 @@ namespace MMPEngine::Frontend
 	{
 	public:
 		StructuredUploadBuffer(const std::shared_ptr<Core::AppContext>& appContext, const BaseStructuredBuffer::Settings& settings);
-		std::shared_ptr<Core::TaskWithInternalContext<Core::UploadBuffer::WriteTaskContext>> CreateWriteStructTask(const TStruct& item, std::size_t index);
+		std::shared_ptr<Core::TaskWithContext<Core::UploadBuffer::WriteTaskContext>> CreateWriteStructTask(const TStruct& item, std::size_t index);
 	};
 
 
@@ -88,7 +88,7 @@ namespace MMPEngine::Frontend
 	{
 	public:
 		StructuredReadBackBuffer(const std::shared_ptr<Core::AppContext>& appContext, const BaseStructuredBuffer::Settings& settings);
-		std::shared_ptr<Core::TaskWithInternalContext<Core::ReadBackBuffer::ReadTaskContext>> CreateReadStructTask(TStruct& item, std::size_t index);
+		std::shared_ptr<Core::TaskWithContext<Core::ReadBackBuffer::ReadTaskContext>> CreateReadStructTask(TStruct& item, std::size_t index);
 	};
 
 	template<typename TStruct>
@@ -106,7 +106,7 @@ namespace MMPEngine::Frontend
 		ConstantBuffer(const std::shared_ptr<Core::AppContext>& appContext, std::string_view name);
 		ConstantBuffer(const std::shared_ptr<Core::AppContext>& appContext);
 
-		std::shared_ptr<Core::TaskWithInternalContext<Core::UploadBuffer::WriteTaskContext>> CreateWriteAsyncTask(const TConstantBufferData& data) override;
+		std::shared_ptr<Core::TaskWithContext<Core::UploadBuffer::WriteTaskContext>> CreateWriteAsyncTask(const TConstantBufferData& data) override;
 
 		std::shared_ptr<Core::BaseTask> CreateCopyToBufferTask(const std::shared_ptr<Core::Buffer>& dst, std::size_t byteLength, std::size_t srcByteOffset, std::size_t dstByteOffset) const override;
 		std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;
@@ -145,7 +145,7 @@ namespace MMPEngine::Frontend
 	}
 
 	template <class TConstantBufferData>
-	inline std::shared_ptr<Core::TaskWithInternalContext<Core::UploadBuffer::WriteTaskContext>> ConstantBuffer<TConstantBufferData>::CreateWriteAsyncTask(const TConstantBufferData& data)
+	inline std::shared_ptr<Core::TaskWithContext<Core::UploadBuffer::WriteTaskContext>> ConstantBuffer<TConstantBufferData>::CreateWriteAsyncTask(const TConstantBufferData& data)
 	{
 		return _impl->CreateWriteAsyncTask(data);
 	}
@@ -216,7 +216,7 @@ namespace MMPEngine::Frontend
 	}
 
 	template <typename TStruct>
-	std::shared_ptr<Core::TaskWithInternalContext<Core::UploadBuffer::WriteTaskContext>> StructuredUploadBuffer<TStruct>::CreateWriteStructTask(const TStruct& item, std::size_t index)
+	std::shared_ptr<Core::TaskWithContext<Core::UploadBuffer::WriteTaskContext>> StructuredUploadBuffer<TStruct>::CreateWriteStructTask(const TStruct& item, std::size_t index)
 	{
 		return this->CreateWriteTask(std::addressof(item), sizeof(TStruct), sizeof(TStruct) * index);
 	}
@@ -228,7 +228,7 @@ namespace MMPEngine::Frontend
 	}
 
 	template <typename TStruct>
-	std::shared_ptr<Core::TaskWithInternalContext<Core::ReadBackBuffer::ReadTaskContext>> StructuredReadBackBuffer<TStruct>::CreateReadStructTask(TStruct& item, std::size_t index)
+	std::shared_ptr<Core::TaskWithContext<Core::ReadBackBuffer::ReadTaskContext>> StructuredReadBackBuffer<TStruct>::CreateReadStructTask(TStruct& item, std::size_t index)
 	{
 		return this->CreateReadTask(std::addressof(item), sizeof(TStruct), sizeof(TStruct) * index);
 	}

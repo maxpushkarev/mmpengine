@@ -103,7 +103,7 @@ namespace MMPEngine::Frontend
 	{
 	}
 
-	std::shared_ptr<Core::TaskWithInternalContext<UploadBuffer::WriteTaskContext>> UploadBuffer::CreateWriteTask(const void* src, std::size_t byteLength, std::size_t byteOffset)
+	std::shared_ptr<Core::TaskWithContext<UploadBuffer::WriteTaskContext>> UploadBuffer::CreateWriteTask(const void* src, std::size_t byteLength, std::size_t byteOffset)
 	{
 		return _impl->CreateWriteTask(src, byteLength, byteOffset);
 	}
@@ -112,7 +112,7 @@ namespace MMPEngine::Frontend
 	{
 	}
 
-	std::shared_ptr<Core::TaskWithInternalContext<ReadBackBuffer::ReadTaskContext>> ReadBackBuffer::CreateReadTask(void* dst, std::size_t byteLength, std::size_t byteOffset)
+	std::shared_ptr<Core::TaskWithContext<ReadBackBuffer::ReadTaskContext>> ReadBackBuffer::CreateReadTask(void* dst, std::size_t byteLength, std::size_t byteOffset)
 	{
 		return _impl->CreateReadTask(dst, byteLength, byteOffset);
 	}

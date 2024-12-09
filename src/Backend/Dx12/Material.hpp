@@ -31,7 +31,7 @@ namespace MMPEngine::Backend::Dx12
 			const Core::BaseMaterial::Parameters* params;
 		};
 
-		class ParametersUpdatedTask : public Task, public Core::TaskWithInternalContext<ParametersUpdatedTaskContext>
+		class ParametersUpdatedTask : public Task, public Core::TaskWithContext<ParametersUpdatedTaskContext>
 		{
 		public:
 			ParametersUpdatedTask(const std::shared_ptr<ParametersUpdatedTaskContext>& context);
@@ -40,7 +40,7 @@ namespace MMPEngine::Backend::Dx12
 			void OnComplete(const std::shared_ptr<Core::BaseStream>& stream) override;
 		};
 
-		class ApplyParametersTask : public Task, public Core::TaskWithInternalContext<ApplyMaterialTaskContext>
+		class ApplyParametersTask : public Task, public Core::TaskWithContext<ApplyMaterialTaskContext>
 		{
 		public:
 			ApplyParametersTask(const std::shared_ptr<ApplyMaterialTaskContext>& context);
@@ -105,7 +105,7 @@ namespace MMPEngine::Backend::Dx12
 		}
 	}
 	template<class TCoreMaterial>
-	inline MaterialImpl<TCoreMaterial>::ParametersUpdatedTask::ParametersUpdatedTask(const std::shared_ptr<ParametersUpdatedTaskContext>& context) : Core::TaskWithInternalContext<ParametersUpdatedTaskContext>(context)
+	inline MaterialImpl<TCoreMaterial>::ParametersUpdatedTask::ParametersUpdatedTask(const std::shared_ptr<ParametersUpdatedTaskContext>& context) : Core::TaskWithContext<ParametersUpdatedTaskContext>(context)
 	{
 	}
 
@@ -132,7 +132,7 @@ namespace MMPEngine::Backend::Dx12
 	}
 
 	template<class TCoreMaterial>
-	inline MaterialImpl<TCoreMaterial>::ApplyParametersTask::ApplyParametersTask(const std::shared_ptr<ApplyMaterialTaskContext>& context) : Core::TaskWithInternalContext<ApplyMaterialTaskContext>(context)
+	inline MaterialImpl<TCoreMaterial>::ApplyParametersTask::ApplyParametersTask(const std::shared_ptr<ApplyMaterialTaskContext>& context) : Core::TaskWithContext<ApplyMaterialTaskContext>(context)
 	{
 	}
 

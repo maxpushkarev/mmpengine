@@ -80,5 +80,7 @@ namespace MMPEngine::Core
 	protected:
 		ComputeMaterial(const std::shared_ptr<ComputeShader>& computeShader);
 		std::shared_ptr<ComputeShader> _shader;
+	public:
+		std::shared_ptr<ComputeShader> GetShader() const;
 	};
 }

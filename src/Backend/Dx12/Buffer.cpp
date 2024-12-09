@@ -4,7 +4,7 @@
 
 namespace MMPEngine::Backend::Dx12
 {
-	CopyBufferTask::CopyBufferTask(const std::shared_ptr<CopyBufferTaskContext>& context) : TaskWithInternalContext<CopyBufferTaskContext>(context)
+	CopyBufferTask::CopyBufferTask(const std::shared_ptr<CopyBufferTaskContext>& context) : TaskWithContext<CopyBufferTaskContext>(context)
 	{
 		const auto srcBuffer = _internalTaskContext->src.lock();
 		const auto dstBuffer = _internalTaskContext->dst.lock();
@@ -37,7 +37,7 @@ namespace MMPEngine::Backend::Dx12
 		Task::OnComplete(stream);
 	}
 
-	CopyBufferTask::CommandTask::CommandTask(const std::shared_ptr<CopyBufferTaskContext>& context) : TaskWithInternalContext<CopyBufferTaskContext>(context)
+	CopyBufferTask::CommandTask::CommandTask(const std::shared_ptr<CopyBufferTaskContext>& context) : TaskWithContext<CopyBufferTaskContext>(context)
 	{
 	}
 
@@ -77,7 +77,7 @@ namespace MMPEngine::Backend::Dx12
 	{
 	}
 
-	std::shared_ptr<Core::TaskWithInternalContext<Core::UploadBuffer::WriteTaskContext>> UploadBuffer::CreateWriteTask(const void* src, std::size_t byteLength, std::size_t byteOffset)
+	std::shared_ptr<Core::TaskWithContext<Core::UploadBuffer::WriteTaskContext>> UploadBuffer::CreateWriteTask(const void* src, std::size_t byteLength, std::size_t byteOffset)
 	{
 		const auto ctx = std::make_shared<WriteTaskContext>();
 		const auto props = std::make_shared<WriteTaskProps>();
@@ -123,7 +123,7 @@ namespace MMPEngine::Backend::Dx12
 	{
 	}
 
-	std::shared_ptr<Core::TaskWithInternalContext<Core::ReadBackBuffer::ReadTaskContext>> ReadBackBuffer::CreateReadTask(void* dst, std::size_t byteLength, std::size_t byteOffset)
+	std::shared_ptr<Core::TaskWithContext<Core::ReadBackBuffer::ReadTaskContext>> ReadBackBuffer::CreateReadTask(void* dst, std::size_t byteLength, std::size_t byteOffset)
 	{
 		const auto ctx = std::make_shared<ReadTaskContext>();
 		const auto props = std::make_shared<ReadTaskProps>();
@@ -196,7 +196,7 @@ namespace MMPEngine::Backend::Dx12
 		}
 	}
 
-	Buffer::CreateBufferTask::CreateBufferTask(const std::shared_ptr<InitTaskContext>& context) : TaskWithInternalContext(context)
+	Buffer::CreateBufferTask::CreateBufferTask(const std::shared_ptr<InitTaskContext>& context) : TaskWithContext(context)
 	{
 	}
 
@@ -250,7 +250,7 @@ namespace MMPEngine::Backend::Dx12
 		Task::OnComplete(stream);
 	}
 
-	Buffer::InitTask::InitTask(const std::shared_ptr<InitTaskContext>& context) : TaskWithInternalContext(context)
+	Buffer::InitTask::InitTask(const std::shared_ptr<InitTaskContext>& context) : TaskWithContext(context)
 	{
 	}
 
@@ -351,7 +351,7 @@ namespace MMPEngine::Backend::Dx12
 		return InputAssemblerBuffer::GetUnderlyingBuffer();		
 	}
 
-	InputAssemblerBuffer::InitTask::InitTask(const std::shared_ptr<TaskContext>& context) : TaskWithInternalContext(context)
+	InputAssemblerBuffer::InitTask::InitTask(const std::shared_ptr<TaskContext>& context) : TaskWithContext(context)
 	{
 	}
 
@@ -420,7 +420,7 @@ namespace MMPEngine::Backend::Dx12
 	}
 
 
-	UploadBuffer::WriteTask::WriteTask(const std::shared_ptr<WriteTaskContext>& context) : TaskWithInternalContext(context)
+	UploadBuffer::WriteTask::WriteTask(const std::shared_ptr<WriteTaskContext>& context) : TaskWithContext(context)
 	{
 		const auto buffer = std::static_pointer_cast<WriteTaskProps>(_internalTaskContext->properties)->uploadBuffer.lock();
 		assert(buffer);
@@ -448,7 +448,7 @@ namespace MMPEngine::Backend::Dx12
 		Task::OnComplete(stream);
 	}
 
-	UploadBuffer::WriteTask::Impl::Impl(const std::shared_ptr<WriteTaskContext>& context) : TaskWithInternalContext(context)
+	UploadBuffer::WriteTask::Impl::Impl(const std::shared_ptr<WriteTaskContext>& context) : TaskWithContext(context)
 	{
 	}
 
@@ -472,7 +472,7 @@ namespace MMPEngine::Backend::Dx12
 	}
 
 
-	ReadBackBuffer::ReadTask::ReadTask(const std::shared_ptr<ReadTaskContext>& context) : TaskWithInternalContext(context)
+	ReadBackBuffer::ReadTask::ReadTask(const std::shared_ptr<ReadTaskContext>& context) : TaskWithContext(context)
 	{
 		const auto buffer = std::static_pointer_cast<ReadTaskProps>(_internalTaskContext->properties)->readBackBuffer.lock();
 		assert(buffer);
@@ -500,7 +500,7 @@ namespace MMPEngine::Backend::Dx12
 		Task::OnComplete(stream);
 	}
 
-	ReadBackBuffer::ReadTask::Impl::Impl(const std::shared_ptr<ReadTaskContext>& context) : TaskWithInternalContext(context)
+	ReadBackBuffer::ReadTask::Impl::Impl(const std::shared_ptr<ReadTaskContext>& context) : TaskWithContext(context)
 	{
 	}
 

@@ -37,7 +37,7 @@ namespace MMPEngine::Backend::Dx12
 	}
 
 
-	ResourceEntity::SwitchStateTask::SwitchStateTask(const std::shared_ptr<SwitchStateTaskContext>& context) : TaskWithInternalContext(context)
+	ResourceEntity::SwitchStateTask::SwitchStateTask(const std::shared_ptr<SwitchStateTaskContext>& context) : TaskWithContext(context)
 	{
 	}
 

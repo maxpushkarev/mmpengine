@@ -39,7 +39,7 @@ namespace MMPEngine::Core
 			std::size_t byteLength = 0;
 			std::size_t byteOffset = 0;
 		};
-		virtual std::shared_ptr<TaskWithInternalContext<WriteTaskContext>> CreateWriteTask(const void* src, std::size_t byteLength, std::size_t byteOffset = 0) = 0;
+		virtual std::shared_ptr<TaskWithContext<WriteTaskContext>> CreateWriteTask(const void* src, std::size_t byteLength, std::size_t byteOffset = 0) = 0;
 	};
 
 	class ReadBackBuffer : public Buffer
@@ -54,7 +54,7 @@ namespace MMPEngine::Core
 			std::size_t byteLength = 0;
 			std::size_t byteOffset = 0;
 		};
-		virtual std::shared_ptr<TaskWithInternalContext<ReadTaskContext>> CreateReadTask(void* dst, std::size_t byteLength, std::size_t byteOffset = 0) = 0;
+		virtual std::shared_ptr<TaskWithContext<ReadTaskContext>> CreateReadTask(void* dst, std::size_t byteLength, std::size_t byteOffset = 0) = 0;
 	};
 
 	class ResidentBuffer : public Buffer
@@ -103,7 +103,7 @@ namespace MMPEngine::Core
 		ConstantBuffer(const Settings& settings);
 
 	public:
-		virtual std::shared_ptr<TaskWithInternalContext<Core::UploadBuffer::WriteTaskContext>> CreateWriteAsyncTask(const TData& data) = 0;
+		virtual std::shared_ptr<TaskWithContext<Core::UploadBuffer::WriteTaskContext>> CreateWriteAsyncTask(const TData& data) = 0;
 	};
 
 	template<class TConstantBufferData>

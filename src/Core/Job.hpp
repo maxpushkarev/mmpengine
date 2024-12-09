@@ -4,7 +4,7 @@
 
 namespace MMPEngine::Core
 {
-	class BaseJob : public IInitializationTaskSource
+	class BaseJob : public IInitializationTaskSource, public std::enable_shared_from_this<BaseJob>
 	{
 	};
 
@@ -12,7 +12,7 @@ namespace MMPEngine::Core
 	class Job : public BaseJob
 	{
 	public:
-		virtual std::shared_ptr<TaskWithInternalContext<TExecutionTaskContext>> CreateExecutionTask() = 0;
+		virtual std::shared_ptr<TaskWithContext<TExecutionTaskContext>> CreateExecutionTask() = 0;
 	};
 
 	template<>

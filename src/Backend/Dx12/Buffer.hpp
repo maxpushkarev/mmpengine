@@ -15,10 +15,10 @@ namespace MMPEngine::Backend::Dx12
 		std::size_t dstByteOffset = 0;
 	};
 
-	class CopyBufferTask final : public Task, public Core::TaskWithInternalContext<CopyBufferTaskContext>
+	class CopyBufferTask final : public Task, public Core::TaskWithContext<CopyBufferTaskContext>
 	{
 	private:
-		class CommandTask final : public Task, public Core::TaskWithInternalContext<CopyBufferTaskContext>
+		class CommandTask final : public Task, public Core::TaskWithContext<CopyBufferTaskContext>
 		{
 		public:
 			CommandTask(const std::shared_ptr<CopyBufferTaskContext>& context);
@@ -51,7 +51,7 @@ namespace MMPEngine::Backend::Dx12
 			std::size_t byteSize = 0;
 		};
 
-		class CreateBufferTask : public Task, public Core::TaskWithInternalContext<InitTaskContext>
+		class CreateBufferTask : public Task, public Core::TaskWithContext<InitTaskContext>
 		{
 		public:
 			CreateBufferTask(const std::shared_ptr<InitTaskContext>& context);
@@ -60,7 +60,7 @@ namespace MMPEngine::Backend::Dx12
 			void OnComplete(const std::shared_ptr<Core::BaseStream>& stream) override;
 		};
 
-		class InitTask final : public Task, public Core::TaskWithInternalContext<InitTaskContext>
+		class InitTask final : public Task, public Core::TaskWithContext<InitTaskContext>
 		{
 		public:
 			InitTask(const std::shared_ptr<InitTaskContext>& context);
@@ -113,10 +113,10 @@ namespace MMPEngine::Backend::Dx12
 		public:
 			std::weak_ptr<UploadBuffer> uploadBuffer;
 		};
-		class WriteTask final : public Task, public Core::TaskWithInternalContext<Core::UploadBuffer::WriteTaskContext>
+		class WriteTask final : public Task, public Core::TaskWithContext<Core::UploadBuffer::WriteTaskContext>
 		{
 		private:
-			class Impl final : public Task, public MappedBufferTask, public Core::TaskWithInternalContext<Core::UploadBuffer::WriteTaskContext>
+			class Impl final : public Task, public MappedBufferTask, public Core::TaskWithContext<Core::UploadBuffer::WriteTaskContext>
 			{
 			public:
 				Impl(const std::shared_ptr<WriteTaskContext>& context);
@@ -134,7 +134,7 @@ namespace MMPEngine::Backend::Dx12
 		};
 	public:
 		UploadBuffer(const Settings& settings);
-		std::shared_ptr<Core::TaskWithInternalContext<Core::UploadBuffer::WriteTaskContext>> CreateWriteTask(const void* src, std::size_t byteLength, std::size_t byteOffset) override;
+		std::shared_ptr<Core::TaskWithContext<Core::UploadBuffer::WriteTaskContext>> CreateWriteTask(const void* src, std::size_t byteLength, std::size_t byteOffset) override;
 		std::shared_ptr<Core::BaseTask> CreateCopyToBufferTask(const std::shared_ptr<Core::Buffer>& dst, std::size_t byteLength, std::size_t srcByteOffset, std::size_t dstByteOffset) const override;
 		std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;
 	};
@@ -147,10 +147,10 @@ namespace MMPEngine::Backend::Dx12
 		public:
 			std::weak_ptr<ReadBackBuffer> readBackBuffer;
 		};
-		class ReadTask final : public Task, public Core::TaskWithInternalContext<Core::ReadBackBuffer::ReadTaskContext>
+		class ReadTask final : public Task, public Core::TaskWithContext<Core::ReadBackBuffer::ReadTaskContext>
 		{
 		private:
-			class Impl final : public Task, public MappedBufferTask, public Core::TaskWithInternalContext<Core::ReadBackBuffer::ReadTaskContext>
+			class Impl final : public Task, public MappedBufferTask, public Core::TaskWithContext<Core::ReadBackBuffer::ReadTaskContext>
 			{
 			public:
 				Impl(const std::shared_ptr<ReadTaskContext>& context);
@@ -168,7 +168,7 @@ namespace MMPEngine::Backend::Dx12
 		};
 	public:
 		ReadBackBuffer(const Settings& settings);
-		std::shared_ptr<Core::TaskWithInternalContext<Core::ReadBackBuffer::ReadTaskContext>> CreateReadTask(void* dst, std::size_t byteLength, std::size_t byteOffset) override;
+		std::shared_ptr<Core::TaskWithContext<Core::ReadBackBuffer::ReadTaskContext>> CreateReadTask(void* dst, std::size_t byteLength, std::size_t byteOffset) override;
 		std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;
 		std::shared_ptr<Core::BaseTask> CreateCopyToBufferTask(const std::shared_ptr<Core::Buffer>& dst, std::size_t byteLength, std::size_t srcByteOffset, std::size_t dstByteOffset) const override;
 	};
@@ -182,7 +182,7 @@ namespace MMPEngine::Backend::Dx12
 		{
 		};
 
-		class InitTask final : public Task, public Core::TaskWithInternalContext<TaskContext>
+		class InitTask final : public Task, public Core::TaskWithContext<TaskContext>
 		{
 		public:
 			InitTask(const std::shared_ptr<TaskContext>& context);
@@ -224,7 +224,7 @@ namespace MMPEngine::Backend::Dx12
 	public:
 		ConstantBuffer(std::string_view name);
 		ConstantBuffer();
-		std::shared_ptr<Core::TaskWithInternalContext<Core::UploadBuffer::WriteTaskContext>> CreateWriteAsyncTask(const TConstantBufferData& data) override;
+		std::shared_ptr<Core::TaskWithContext<Core::UploadBuffer::WriteTaskContext>> CreateWriteAsyncTask(const TConstantBufferData& data) override;
 
 		std::shared_ptr<Core::BaseTask> CreateCopyToBufferTask(const std::shared_ptr<Core::Buffer>& dst, std::size_t byteLength, std::size_t srcByteOffset, std::size_t dstByteOffset) const override;
 		std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;
@@ -250,7 +250,7 @@ namespace MMPEngine::Backend::Dx12
 	}
 
 	template <class TConstantBufferData>
-	std::shared_ptr<Core::TaskWithInternalContext<Core::UploadBuffer::WriteTaskContext>> ConstantBuffer<TConstantBufferData>::CreateWriteAsyncTask(const TConstantBufferData& data)
+	std::shared_ptr<Core::TaskWithContext<Core::UploadBuffer::WriteTaskContext>> ConstantBuffer<TConstantBufferData>::CreateWriteAsyncTask(const TConstantBufferData& data)
 	{
 		return _uploadBuffer->CreateWriteTask(std::addressof(data), sizeof(data), 0);
 	}

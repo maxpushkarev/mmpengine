@@ -8,7 +8,7 @@ namespace MMPEngine::Frontend
 	public:
 		DirectComputeJob(const std::shared_ptr<Core::AppContext>& appContext, const std::shared_ptr<Core::ComputeMaterial>& material);
 		std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;
-		std::shared_ptr<Core::TaskWithInternalContext<Core::DirectComputeContext>> CreateExecutionTask() override;
+		std::shared_ptr<Core::TaskWithContext<Core::DirectComputeContext>> CreateExecutionTask() override;
 	private:
 		std::shared_ptr<Core::DirectComputeJob> _impl;
 	};

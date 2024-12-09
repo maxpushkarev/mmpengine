@@ -25,7 +25,7 @@ namespace MMPEngine::Backend::Dx12
 		public:
 			D3D12_RESOURCE_STATES nextStateMask;
 		};
-		class SwitchStateTask final : public Task, public Core::TaskWithInternalContext<SwitchStateTaskContext>
+		class SwitchStateTask final : public Task, public Core::TaskWithContext<SwitchStateTaskContext>
 		{
 		public:
 			SwitchStateTask(const std::shared_ptr<SwitchStateTaskContext>& context);
