@@ -20,7 +20,7 @@ namespace MMPEngine::Backend::Dx12
 		ResourceEntity();
 	public:
 
-		class SwitchStateTaskContext final : public InitContext<ResourceEntity>
+		class SwitchStateTaskContext final : public EntityTaskContext<ResourceEntity>
 		{
 		public:
 			D3D12_RESOURCE_STATES nextStateMask;

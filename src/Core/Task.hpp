@@ -61,6 +61,8 @@ namespace MMPEngine::Core
 	protected:
 		TaskWithInternalContext(const std::shared_ptr<TTaskContext>& innerContext);
 		std::shared_ptr<TTaskContext> _internalTaskContext;
+	public:
+		std::shared_ptr<TTaskContext> GetContext() const;
 	};
 
 	template<typename TAppContext, typename TStreamContext>
@@ -106,5 +108,11 @@ namespace MMPEngine::Core
 	inline TaskWithInternalContext<TInnerContext>::TaskWithInternalContext(const std::shared_ptr<TInnerContext>& innerContext) :
 		_internalTaskContext(innerContext)
 	{
+	}
+
+	template<typename TTaskContext>
+	inline std::shared_ptr<TTaskContext> TaskWithInternalContext<TTaskContext>::GetContext() const
+	{
+		return _internalTaskContext;
 	}
 }

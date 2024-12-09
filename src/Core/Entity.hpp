@@ -13,7 +13,7 @@ namespace MMPEngine::Core
 		~BaseEntity() override;
 
 		template<typename TEntity>
-		class InitContext : public TaskContext
+		class EntityTaskContext : public TaskContext
 		{
 		public:
 			std::weak_ptr<TEntity> entity;

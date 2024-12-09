@@ -103,18 +103,18 @@ namespace MMPEngine::Frontend
 	{
 	}
 
-	void UploadBuffer::Write(const void* src, std::size_t byteLength, std::size_t byteOffset)
+	std::shared_ptr<Core::TaskWithInternalContext<UploadBuffer::WriteTaskContext>> UploadBuffer::CreateWriteTask(const void* src, std::size_t byteLength, std::size_t byteOffset)
 	{
-		_impl->Write(src, byteLength, byteOffset);
+		return _impl->CreateWriteTask(src, byteLength, byteOffset);
 	}
 
 	ReadBackBuffer::ReadBackBuffer(const std::shared_ptr<Core::AppContext>& appContext, const Settings& settings) : Core::BaseEntity(settings.name), Buffer(appContext, settings)
 	{
 	}
 
-	void ReadBackBuffer::Read(void* dst, std::size_t byteLength, std::size_t byteOffset)
+	std::shared_ptr<Core::TaskWithInternalContext<ReadBackBuffer::ReadTaskContext>> ReadBackBuffer::CreateReadTask(void* dst, std::size_t byteLength, std::size_t byteOffset)
 	{
-		_impl->Read(dst, byteLength, byteOffset);
+		return _impl->CreateReadTask(dst, byteLength, byteOffset);
 	}
 
 	ResidentBuffer::ResidentBuffer(const std::shared_ptr<Core::AppContext>& appContext, const Settings& settings) : Core::BaseEntity(settings.name), Buffer(appContext, settings)

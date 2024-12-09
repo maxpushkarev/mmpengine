@@ -59,7 +59,7 @@ namespace MMPEngine::Backend::Dx12
 
 		if (const auto sc = _specificStreamContext.lock())
 		{
-			sc->cmdList->CopyBufferRegion(
+			sc->PopulateCommandsInList()->CopyBufferRegion(
 				dstBuffer->GetNativeResource().Get(),
 				_internalTaskContext->dstByteOffset,
 				srcBuffer->GetNativeResource().Get(),
@@ -77,9 +77,18 @@ namespace MMPEngine::Backend::Dx12
 	{
 	}
 
-	void UploadBuffer::Write(const void* src, std::size_t byteLength, std::size_t byteOffset)
+	std::shared_ptr<Core::TaskWithInternalContext<Core::UploadBuffer::WriteTaskContext>> UploadBuffer::CreateWriteTask(const void* src, std::size_t byteLength, std::size_t byteOffset)
 	{
-		std::memcpy((static_cast<char*>(_mappedBufferPtr) + byteOffset), src, byteLength);
+		const auto ctx = std::make_shared<WriteTaskContext>();
+		const auto props = std::make_shared<WriteTaskProps>();
+		props->uploadBuffer = std::dynamic_pointer_cast<UploadBuffer>(shared_from_this());
+
+		ctx->byteOffset = byteOffset;
+		ctx->byteLength = byteLength;
+		ctx->src = src;
+		ctx->customProps = props;
+
+		return std::make_shared<WriteTask>(ctx);
 	}
 
 	std::shared_ptr<Core::BaseTask> UploadBuffer::CreateCopyToBufferTask(
@@ -114,9 +123,18 @@ namespace MMPEngine::Backend::Dx12
 	{
 	}
 
-	void ReadBackBuffer::Read(void* dst, std::size_t byteLength, std::size_t byteOffset)
+	std::shared_ptr<Core::TaskWithInternalContext<Core::ReadBackBuffer::ReadTaskContext>> ReadBackBuffer::CreateReadTask(void* dst, std::size_t byteLength, std::size_t byteOffset)
 	{
-		std::memcpy(dst, (static_cast<char*>(_mappedBufferPtr) + byteOffset), byteLength);
+		const auto ctx = std::make_shared<ReadTaskContext>();
+		const auto props = std::make_shared<ReadTaskProps>();
+		props->readBackBuffer = std::dynamic_pointer_cast<ReadBackBuffer>(shared_from_this());
+
+		ctx->byteOffset = byteOffset;
+		ctx->byteLength = byteLength;
+		ctx->dst = dst;
+		ctx->customProps = props;
+
+		return std::make_shared<ReadTask>(ctx);
 	}
 
 	std::shared_ptr<Core::BaseTask> ReadBackBuffer::CreateInitializationTask()
@@ -333,30 +351,6 @@ namespace MMPEngine::Backend::Dx12
 		return InputAssemblerBuffer::GetUnderlyingBuffer();		
 	}
 
-	InputAssemblerBuffer::WriteUploadDataTask::WriteUploadDataTask(const std::shared_ptr<TaskContext>& context) : TaskWithInternalContext(context)
-	{
-	}
-
-	void InputAssemblerBuffer::WriteUploadDataTask::OnScheduled(const std::shared_ptr<Core::BaseStream>& stream)
-	{
-		Task::OnScheduled(stream);
-	}
-
-	void InputAssemblerBuffer::WriteUploadDataTask::Run(const std::shared_ptr<Core::BaseStream>& stream)
-	{
-		Task::Run(stream);
-
-		if (const auto entity = _internalTaskContext->entity.lock())
-		{
-			entity->_upload->Write(entity->_ia.rawData, entity->GetSettings().byteLength, 0);
-		}
-	}
-
-	void InputAssemblerBuffer::WriteUploadDataTask::OnComplete(const std::shared_ptr<Core::BaseStream>& stream)
-	{
-		Task::OnComplete(stream);
-	}
-
 	InputAssemblerBuffer::InitTask::InitTask(const std::shared_ptr<TaskContext>& context) : TaskWithInternalContext(context)
 	{
 	}
@@ -370,7 +364,7 @@ namespace MMPEngine::Backend::Dx12
 			stream->Schedule(entity->_upload->CreateInitializationTask());
 			stream->Schedule(entity->_resident->CreateInitializationTask());
 			stream->Schedule(Core::StreamBarrierTask::kInstance);
-			stream->Schedule(std::make_shared<WriteUploadDataTask>(_internalTaskContext));
+			stream->Schedule(entity->_upload->CreateWriteTask(entity->_ia.rawData, entity->GetSettings().byteLength, 0));
 			stream->Schedule(entity->_upload->CopyToBuffer(entity->_resident));
 			stream->Schedule(entity->_resident->CreateSwitchStateTask(D3D12_RESOURCE_STATE_GENERIC_READ));
 		}
@@ -420,5 +414,114 @@ namespace MMPEngine::Backend::Dx12
 		return std::make_shared<CopyBufferTask>(context);
 	}
 
+	void* MappedBuffer::MappedBufferTask::GetMappedPtr(const std::shared_ptr<MappedBuffer>& mappedBuffer)
+	{
+		return mappedBuffer->_mappedBufferPtr;
+	}
+
+
+	UploadBuffer::WriteTask::WriteTask(const std::shared_ptr<WriteTaskContext>& context) : TaskWithInternalContext(context)
+	{
+		const auto buffer = std::static_pointer_cast<WriteTaskProps>(_internalTaskContext->customProps)->uploadBuffer.lock();
+		assert(buffer);
+
+		_implTask = std::make_shared<Impl>(context);
+		_prepareStateTask = buffer->CreateSwitchStateTask(D3D12_RESOURCE_STATE_GENERIC_READ);
+	}
+
+	void UploadBuffer::WriteTask::OnScheduled(const std::shared_ptr<Core::BaseStream>& stream)
+	{
+		Task::OnScheduled(stream);
+
+		stream->Schedule(_prepareStateTask);
+		stream->Schedule(Core::StreamBarrierTask::kInstance);
+		stream->Schedule(_implTask);
+	}
+
+	void UploadBuffer::WriteTask::Run(const std::shared_ptr<Core::BaseStream>& stream)
+	{
+		Task::Run(stream);
+	}
+
+	void UploadBuffer::WriteTask::OnComplete(const std::shared_ptr<Core::BaseStream>& stream)
+	{
+		Task::OnComplete(stream);
+	}
+
+	UploadBuffer::WriteTask::Impl::Impl(const std::shared_ptr<WriteTaskContext>& context) : TaskWithInternalContext(context)
+	{
+	}
+
+	void UploadBuffer::WriteTask::Impl::OnScheduled(const std::shared_ptr<Core::BaseStream>& stream)
+	{
+		Task::OnScheduled(stream);
+	}
+
+	void UploadBuffer::WriteTask::Impl::Run(const std::shared_ptr<Core::BaseStream>& stream)
+	{
+		Task::Run(stream);
+		if (const auto entity = std::static_pointer_cast<WriteTaskProps>(_internalTaskContext->customProps)->uploadBuffer.lock())
+		{
+			std::memcpy((static_cast<char*>(GetMappedPtr(entity)) + _internalTaskContext->byteOffset), _internalTaskContext->src, _internalTaskContext->byteLength);
+		}
+	}
+
+	void UploadBuffer::WriteTask::Impl::OnComplete(const std::shared_ptr<Core::BaseStream>& stream)
+	{
+		Task::OnComplete(stream);
+	}
+
+
+	ReadBackBuffer::ReadTask::ReadTask(const std::shared_ptr<ReadTaskContext>& context) : TaskWithInternalContext(context)
+	{
+		const auto buffer = std::static_pointer_cast<ReadTaskProps>(_internalTaskContext->customProps)->readBackBuffer.lock();
+		assert(buffer);
+
+		_implTask = std::make_shared<Impl>(context);
+		_prepareStateTask = buffer->CreateSwitchStateTask(D3D12_RESOURCE_STATE_COPY_DEST);
+	}
+
+	void ReadBackBuffer::ReadTask::OnScheduled(const std::shared_ptr<Core::BaseStream>& stream)
+	{
+		Task::OnScheduled(stream);
+
+		stream->Schedule(_prepareStateTask);
+		stream->Schedule(Core::StreamBarrierTask::kInstance);
+		stream->Schedule(_implTask);
+	}
+
+	void ReadBackBuffer::ReadTask::Run(const std::shared_ptr<Core::BaseStream>& stream)
+	{
+		Task::Run(stream);
+	}
+
+	void ReadBackBuffer::ReadTask::OnComplete(const std::shared_ptr<Core::BaseStream>& stream)
+	{
+		Task::OnComplete(stream);
+	}
+
+	ReadBackBuffer::ReadTask::Impl::Impl(const std::shared_ptr<ReadTaskContext>& context) : TaskWithInternalContext(context)
+	{
+	}
+
+	void ReadBackBuffer::ReadTask::Impl::OnScheduled(const std::shared_ptr<Core::BaseStream>& stream)
+	{
+		Task::OnScheduled(stream);
+	}
+
+	void ReadBackBuffer::ReadTask::Impl::Run(const std::shared_ptr<Core::BaseStream>& stream)
+	{
+		Task::Run(stream);
+
+		if (const auto entity = std::static_pointer_cast<ReadTaskProps>(_internalTaskContext->customProps)->readBackBuffer.lock())
+		{
+			std::memcpy(_internalTaskContext->dst, (static_cast<char*>(GetMappedPtr(entity)) + _internalTaskContext->byteOffset), _internalTaskContext->byteLength);
+		}
+	}
+
+	void ReadBackBuffer::ReadTask::Impl::OnComplete(const std::shared_ptr<Core::BaseStream>& stream)
+	{
+		Task::OnComplete(stream);
+	}
 
 }

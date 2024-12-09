@@ -60,7 +60,7 @@ namespace MMPEngine::Backend::Dx12
 
 				if(const auto sc = _specificStreamContext.lock())
 				{
-					sc->cmdList->ResourceBarrier(static_cast<std::uint32_t>(std::size(transitions)), transitions);
+					sc->PopulateCommandsInList()->ResourceBarrier(static_cast<std::uint32_t>(std::size(transitions)), transitions);
 				}
 
 				entity->_currentStateMask = _internalTaskContext->nextStateMask;

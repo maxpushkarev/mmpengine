@@ -6,7 +6,7 @@ namespace MMPEngine::Backend::Dx12
 		: Super(appContext, streamContext)
 	{
 		_waitHandle = CreateEventEx(nullptr, nullptr, false, EVENT_ALL_ACCESS);
-		_lastFenceValue = _specificStreamContext->fence->GetCompletedValue();
+		_lastFenceValue = _specificStreamContext->_fence->GetCompletedValue();
 	}
 
 	Stream::~Stream()
@@ -18,8 +18,9 @@ namespace MMPEngine::Backend::Dx12
 	{
 		Super::RestartInternal();
 
-		_specificStreamContext->cmdAllocator->Reset();
-		_specificStreamContext->cmdList->Reset(_specificStreamContext->cmdAllocator.Get(), nullptr);
+		_specificStreamContext->_cmdAllocator->Reset();
+		_specificStreamContext->_cmdList->Reset(_specificStreamContext->_cmdAllocator.Get(), nullptr);
+		_specificStreamContext->_populatedCommands = false;
 	}
 
 
@@ -27,9 +28,13 @@ namespace MMPEngine::Backend::Dx12
 	{
 		Super::SubmitInternal();
 
-		_specificStreamContext->cmdList->Close();
-		ID3D12CommandList* cmdLists[] { _specificStreamContext->cmdList.Get() };
-		_specificStreamContext->cmdQueue->ExecuteCommandLists(static_cast<std::uint32_t>(std::size(cmdLists)), cmdLists);
+		_specificStreamContext->_cmdList->Close();
+
+		if(_specificStreamContext->_populatedCommands)
+		{
+			ID3D12CommandList* cmdLists[]{ _specificStreamContext->_cmdList.Get() };
+			_specificStreamContext->_cmdQueue->ExecuteCommandLists(static_cast<std::uint32_t>(std::size(cmdLists)), cmdLists);
+		}
 	}
 
 
@@ -37,15 +42,18 @@ namespace MMPEngine::Backend::Dx12
 	{
 		Super::SyncInternal();
 
-		const auto fence = _specificStreamContext->fence;
-
-		++_lastFenceValue;
-		_specificStreamContext->cmdQueue->Signal(fence.Get(), _lastFenceValue);
-
-		if (fence->GetCompletedValue() < _lastFenceValue)
+		if (_specificStreamContext->_populatedCommands)
 		{
-			fence->SetEventOnCompletion(_lastFenceValue, _waitHandle);
-			WaitForSingleObject(_waitHandle, INFINITE);
+			const auto fence = _specificStreamContext->_fence;
+
+			++_lastFenceValue;
+			_specificStreamContext->_cmdQueue->Signal(fence.Get(), _lastFenceValue);
+
+			if (fence->GetCompletedValue() < _lastFenceValue)
+			{
+				fence->SetEventOnCompletion(_lastFenceValue, _waitHandle);
+				WaitForSingleObject(_waitHandle, INFINITE);
+			}
 		}
 	}
 

@@ -5,4 +5,20 @@ namespace MMPEngine::Backend::Dx12
 	AppContext::AppContext(const Core::AppContext::Settings& s) : Core::AppContext(s)
 	{
 	}
+
+	StreamContext::StreamContext(
+		const Microsoft::WRL::ComPtr<ID3D12CommandQueue>& queue, 
+		const Microsoft::WRL::ComPtr<ID3D12CommandAllocator>& allocator, 
+		const Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>& list, 
+		const Microsoft::WRL::ComPtr<ID3D12Fence>& fence
+	) : _cmdQueue(queue), _cmdAllocator(allocator), _cmdList(list), _fence(fence)
+	{
+	}
+
+	Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>& StreamContext::PopulateCommandsInList()
+	{
+		_populatedCommands = true;
+		return _cmdList;
+	}
+
 }
