@@ -48,9 +48,8 @@ namespace MMPEngine::Core
 	private:
 		void UpdateCache(const std::shared_ptr<BaseStream>& stream);
 	protected:
-		std::weak_ptr<BaseStream> _cachedStream;
-		std::weak_ptr<TAppContext> _specificAppContext;
-		std::weak_ptr<TStreamContext> _specificStreamContext;
+		std::shared_ptr<TAppContext> _specificAppContext;
+		std::shared_ptr<TStreamContext> _specificStreamContext;
 	};
 
 
@@ -89,19 +88,8 @@ namespace MMPEngine::Core
 	template<typename TAppContext, typename TStreamContext>
 	inline void ExternalContextSpecificTask<TAppContext, TStreamContext>::UpdateCache(const std::shared_ptr<BaseStream>& stream)
 	{
-		const auto cachedStream = _cachedStream.lock();
-		if(!cachedStream || cachedStream != stream)
-		{
-			_specificStreamContext.reset();
-			_specificAppContext.reset();
-
-			_cachedStream = stream;
-			_specificAppContext = std::dynamic_pointer_cast<TAppContext>(stream->GetAppContext());
-			_specificStreamContext = std::dynamic_pointer_cast<TStreamContext>(stream->GetStreamContext());
-
-			assert(!_specificStreamContext.expired());
-			assert(!_specificAppContext.expired());
-		}
+		_specificAppContext = std::static_pointer_cast<TAppContext>(stream->GetAppContext());
+		_specificStreamContext = std::static_pointer_cast<TStreamContext>(stream->GetStreamContext());
 	}
 
 	template<typename TInnerContext>

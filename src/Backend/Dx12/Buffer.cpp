@@ -57,15 +57,13 @@ namespace MMPEngine::Backend::Dx12
 		assert(srcBuffer);
 		assert(dstBuffer);
 
-		if (const auto sc = _specificStreamContext.lock())
-		{
-			sc->PopulateCommandsInList()->CopyBufferRegion(
-				dstBuffer->GetNativeResource().Get(),
-				_internalTaskContext->dstByteOffset,
-				srcBuffer->GetNativeResource().Get(),
-				_internalTaskContext->srcByteOffset,
-				_internalTaskContext->byteLength);
-		}
+		_specificStreamContext->PopulateCommandsInList()->CopyBufferRegion(
+			dstBuffer->GetNativeResource().Get(),
+			_internalTaskContext->dstByteOffset,
+			srcBuffer->GetNativeResource().Get(),
+			_internalTaskContext->srcByteOffset,
+			_internalTaskContext->byteLength);
+		
 	}
 
 	void CopyBufferTask::CommandTask::OnComplete(const std::shared_ptr<Core::BaseStream>& stream)
@@ -203,8 +201,8 @@ namespace MMPEngine::Backend::Dx12
 	{
 		Task::Run(stream);
 
-		const auto sc = _specificStreamContext.lock();
-		const auto ac = _specificAppContext.lock();
+		const auto sc = _specificStreamContext;
+		const auto ac = _specificAppContext;
 		const auto entity = _internalTaskContext->entity.lock();
 
 		if (sc && ac && entity)
@@ -303,8 +301,8 @@ namespace MMPEngine::Backend::Dx12
 	{
 		Task::Run(stream);
 
-		const auto sc = _specificStreamContext.lock();
-		const auto ac = _specificAppContext.lock();
+		const auto sc = _specificStreamContext;
+		const auto ac = _specificAppContext;
 		const auto entity = _internalTaskContext->entity.lock();
 
 		if (sc && ac && entity)

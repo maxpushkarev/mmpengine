@@ -184,9 +184,9 @@ namespace MMPEngine::Backend::Dx12
 	inline void MaterialImpl<TCoreMaterial>::ParametersUpdatedTask::Run(const std::shared_ptr<Core::BaseStream>& stream)
 	{
 		Task::Run(stream);
-		if (const auto matImpl = this->_internalTaskContext->materialImplPtr.lock() ; const auto ac = _specificAppContext.lock())
+		if (const auto matImpl = this->_internalTaskContext->materialImplPtr.lock())
 		{
-			matImpl->OnParametersUpdated(ac, *this->_internalTaskContext->params);
+			matImpl->OnParametersUpdated(_specificAppContext, *this->_internalTaskContext->params);
 		}
 	}
 

@@ -24,7 +24,7 @@ namespace MMPEngine::Backend::Dx12
 	{
 		Task::Run(stream);
 
-		const auto ac = _specificAppContext.lock();
+		const auto ac = _specificAppContext;
 		assert(ac);
 
 		const auto job = _internalTaskContext->job.lock();
@@ -105,10 +105,10 @@ namespace MMPEngine::Backend::Dx12
 	{
 		Task::Run(stream);
 
-		if (const auto job = _internalTaskContext->job.lock() ; const auto sc = _specificStreamContext.lock())
+		if (const auto job = _internalTaskContext->job.lock())
 		{
-			sc->PopulateCommandsInList()->SetPipelineState(job->_pipelineState.Get());
-			sc->PopulateCommandsInList()->SetComputeRootSignature(job->_rootSignature.Get());
+			_specificStreamContext->PopulateCommandsInList()->SetPipelineState(job->_pipelineState.Get());
+			_specificStreamContext->PopulateCommandsInList()->SetComputeRootSignature(job->_rootSignature.Get());
 		}
 	}
 
