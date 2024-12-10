@@ -18,6 +18,9 @@ namespace MMPEngine::Backend::Dx12
 		Material& operator=(const Material&) = delete;
 		Material& operator=(Material&&) noexcept = delete;
 		virtual ~Material();
+
+		Microsoft::WRL::ComPtr<ID3D12RootSignature> GetRootSignature() const;
+
 	protected:
 
 		class ApplyMaterialTaskContext final : public Core::TaskContext
@@ -58,11 +61,16 @@ namespace MMPEngine::Backend::Dx12
 			std::shared_ptr<Core::BaseTask> _switchState;
 			std::shared_ptr<Core::BaseTask> _apply;
 		};
+		
+		std::vector<std::function<void(const std::shared_ptr<StreamContext>& streamContext)>> _applyParametersCallbacks;
 
+		void UpdateRootSignatureAndSwitchTasks(const Core::BaseMaterial::Parameters& params);
+
+	private:
 		void SwitchParametersStates(const std::shared_ptr<Core::BaseStream>& stream);
 		void ApplyParameters(const std::shared_ptr<StreamContext>& streamContext);
 
-		std::vector<std::function<void(const std::shared_ptr<StreamContext>& streamContext)>> _applyParametersCallbacks;
+		Microsoft::WRL::ComPtr<ID3D12RootSignature> _rootSignature;
 		std::vector<std::shared_ptr<Core::BaseTask>> _switchStateTasks;
 	};
 
@@ -102,7 +110,8 @@ namespace MMPEngine::Backend::Dx12
 	inline void MaterialImpl<TCoreMaterial>::OnParametersUpdated(const Core::BaseMaterial::Parameters& params)
 	{
 		_applyParametersCallbacks.clear();
-		_switchStateTasks.clear();
+
+		this->UpdateRootSignatureAndSwitchTasks(params);
 
 		const auto& allParams = params.GetAll();
 
@@ -110,8 +119,6 @@ namespace MMPEngine::Backend::Dx12
 		{
 			const auto& parameterEntry = allParams.at(i);
 			const auto index = static_cast<std::uint32_t>(i);
-
-			const auto switchStateTaskContext = std::make_shared<Dx12::ResourceEntity::SwitchStateTaskContext>();
 
 			if constexpr (std::is_same_v<TCoreMaterial, Core::ComputeMaterial>)
 			{
@@ -122,25 +129,25 @@ namespace MMPEngine::Backend::Dx12
 					assert(coreBuffer);
 					const auto nativeBuffer = std::dynamic_pointer_cast<Dx12::ResourceEntity>(coreBuffer->GetUnderlyingBuffer());
 					assert(nativeBuffer);
-					
-					switchStateTaskContext->entity = nativeBuffer;
+
 
 					switch (bufferSettings.type)
 					{
 						case Core::BaseMaterial::Parameters::Buffer::Type::UnorderedAccess:
-							switchStateTaskContext->nextStateMask = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
 							_applyParametersCallbacks.emplace_back([nativeBuffer, index](const auto& ctx)
 							{
 								//ctx->PopulateCommandsInList()->SetComputeRootDescriptorTable(static_cast<std::uint32_t>(index), nativeBuffer->GetShaderVisibleDescriptorHandle()->GetGPUDescriptorHandle());
 							});
 							break;
 						case Core::BaseMaterial::Parameters::Buffer::Type::UniformConstants:
-						case Core::BaseMaterial::Parameters::Buffer::Type::Readonly:
-							switchStateTaskContext->nextStateMask = D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE;
+						case Core::BaseMaterial::Parameters::Buffer::Type::ReadonlyAccess:
+							_applyParametersCallbacks.emplace_back([nativeBuffer, index](const auto& ctx)
+							{
+								ctx->PopulateCommandsInList()->SetComputeRootUnorderedAccessView(static_cast<std::uint32_t>(index), nativeBuffer->GetNativeResource()->GetGPUVirtualAddress());
+							});
 							break;
 					}
 
-					_switchStateTasks.emplace_back(std::make_shared<Dx12::ResourceEntity::SwitchStateTask>(switchStateTaskContext));
 					continue;	
 				}
 

@@ -19,7 +19,7 @@ namespace MMPEngine::Core
 				enum class Type : std::uint8_t
 				{
 					UniformConstants,
-					Readonly,
+					ReadonlyAccess,
 					UnorderedAccess
 				};
 
@@ -30,7 +30,7 @@ namespace MMPEngine::Core
 			{
 				enum class Type : std::uint8_t
 				{
-					Readonly,
+					ReadonlyAccess,
 					UnorderedAccess
 				};
 

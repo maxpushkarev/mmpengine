@@ -37,8 +37,8 @@ namespace MMPEngine::Backend::Dx12
 		virtual std::shared_ptr<Core::BaseTask> CreateSwitchStateTask(D3D12_RESOURCE_STATES nextStateMask) override;
 		virtual const BaseDescriptorHeap::Handle* GetShaderVisibleDescriptorHandle() const;
 		virtual const BaseDescriptorHeap::Handle* GetShaderInVisibleDescriptorHandle() const;
-	protected:
 		Microsoft::WRL::ComPtr<ID3D12Resource> GetNativeResource() const override;
+	protected:
 		void SetNativeResource(const Microsoft::WRL::ComPtr<ID3D12Resource>& nativeResource);
 		Microsoft::WRL::ComPtr<ID3D12Resource> _nativeResource;
 		static constexpr auto _defaultState = D3D12_RESOURCE_STATE_COMMON;
