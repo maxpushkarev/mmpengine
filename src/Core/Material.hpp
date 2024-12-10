@@ -74,6 +74,7 @@ namespace MMPEngine::Core
 		};
 
 		std::shared_ptr<BaseTask> CreateInitializationTask() override;
+		virtual std::shared_ptr<Core::BaseMaterial> GetUnderlyingMaterial();
 		std::shared_ptr<BaseTask> CreateTaskForUpdateParameters(Parameters&& parameters);
 		virtual std::shared_ptr<BaseTask> CreateTaskForApply() = 0;
 		const Parameters& GetParameters() const;

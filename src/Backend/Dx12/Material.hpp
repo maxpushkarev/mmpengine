@@ -64,7 +64,7 @@ namespace MMPEngine::Backend::Dx12
 		
 		std::vector<std::function<void(const std::shared_ptr<StreamContext>& streamContext)>> _applyParametersCallbacks;
 
-		void UpdateRootSignatureAndSwitchTasks(const Core::BaseMaterial::Parameters& params);
+		void UpdateRootSignatureAndSwitchTasks(const std::shared_ptr<AppContext>& appContext, const Core::BaseMaterial::Parameters& params);
 
 	private:
 		void SwitchParametersStates(const std::shared_ptr<Core::BaseStream>& stream);
@@ -95,7 +95,7 @@ namespace MMPEngine::Backend::Dx12
 			void OnComplete(const std::shared_ptr<Core::BaseStream>& stream) override;
 		};
 
-		void OnParametersUpdated(const Core::BaseMaterial::Parameters& params);
+		void OnParametersUpdated(const std::shared_ptr<AppContext>& appContext, const Core::BaseMaterial::Parameters& params);
 	};
 
 	class ComputeMaterial final : public Core::ComputeMaterial, public MaterialImpl<Core::ComputeMaterial>
@@ -107,11 +107,11 @@ namespace MMPEngine::Backend::Dx12
 	};
 
 	template<class TCoreMaterial>
-	inline void MaterialImpl<TCoreMaterial>::OnParametersUpdated(const Core::BaseMaterial::Parameters& params)
+	inline void MaterialImpl<TCoreMaterial>::OnParametersUpdated(const std::shared_ptr<AppContext>& appContext, const Core::BaseMaterial::Parameters& params)
 	{
 		_applyParametersCallbacks.clear();
 
-		this->UpdateRootSignatureAndSwitchTasks(params);
+		this->UpdateRootSignatureAndSwitchTasks(appContext, params);
 
 		const auto& allParams = params.GetAll();
 
@@ -136,7 +136,7 @@ namespace MMPEngine::Backend::Dx12
 						case Core::BaseMaterial::Parameters::Buffer::Type::UnorderedAccess:
 							_applyParametersCallbacks.emplace_back([nativeBuffer, index](const auto& ctx)
 							{
-								//ctx->PopulateCommandsInList()->SetComputeRootDescriptorTable(static_cast<std::uint32_t>(index), nativeBuffer->GetShaderVisibleDescriptorHandle()->GetGPUDescriptorHandle());
+								ctx->PopulateCommandsInList()->SetComputeRootDescriptorTable(static_cast<std::uint32_t>(index), nativeBuffer->GetShaderVisibleDescriptorHandle()->GetGPUDescriptorHandle());
 							});
 							break;
 						case Core::BaseMaterial::Parameters::Buffer::Type::UniformConstants:
@@ -184,9 +184,9 @@ namespace MMPEngine::Backend::Dx12
 	inline void MaterialImpl<TCoreMaterial>::ParametersUpdatedTask::Run(const std::shared_ptr<Core::BaseStream>& stream)
 	{
 		Task::Run(stream);
-		if (const auto matImpl = this->_internalTaskContext->materialImplPtr.lock())
+		if (const auto matImpl = this->_internalTaskContext->materialImplPtr.lock() ; const auto ac = _specificAppContext.lock())
 		{
-			matImpl->OnParametersUpdated(*this->_internalTaskContext->params);
+			matImpl->OnParametersUpdated(ac, *this->_internalTaskContext->params);
 		}
 	}
 

@@ -95,6 +95,11 @@ namespace MMPEngine::Core
 
 	BaseMaterial::BaseMaterial() = default;
 
+    std::shared_ptr<Core::BaseMaterial> BaseMaterial::GetUnderlyingMaterial()
+    {
+        return shared_from_this();
+    }
+
 	std::shared_ptr<BaseTask> BaseMaterial::CreateInitializationTask()
 	{
 		return BaseTask::kEmpty;

@@ -17,6 +17,7 @@ namespace MMPEngine::Frontend
 	public:
 		std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;
 		std::shared_ptr<Core::BaseTask> CreateTaskForApply() override;
+		std::shared_ptr<Core::BaseMaterial> GetUnderlyingMaterial() override;
 	protected:
 		std::shared_ptr<Core::BaseTask> CreateTaskForUpdateParametersInternal() override;
 		std::shared_ptr<TCoreMaterial> _impl;
@@ -61,5 +62,11 @@ namespace MMPEngine::Frontend
 	inline std::shared_ptr<Core::BaseTask> Material<TCoreMaterial>::CreateTaskForUpdateParametersInternal()
 	{
 		return _impl->CreateTaskForUpdateParameters(std::move(this->_params));
+	}
+
+	template<typename TCoreMaterial>
+	inline std::shared_ptr<Core::BaseMaterial> Material<TCoreMaterial>::GetUnderlyingMaterial()
+	{
+		return _impl->GetUnderlyingMaterial();
 	}
 }

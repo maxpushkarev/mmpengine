@@ -31,6 +31,15 @@ namespace MMPEngine::Backend::Dx12
 
 		class ExecutionTask final : public Task, public Core::ContextualTask<Core::DirectComputeContext>
 		{
+		private:
+			class SetPipelineState final : public Task, public Core::ContextualTask<ExecutionContext>
+			{
+			public:
+				SetPipelineState(const std::shared_ptr<ExecutionContext>& ctx);
+				void OnScheduled(const std::shared_ptr<Core::BaseStream>& stream) override;
+				void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
+				void OnComplete(const std::shared_ptr<Core::BaseStream>& stream) override;
+			};
 		public:
 			ExecutionTask(const std::shared_ptr<ExecutionContext>& ctx);
 			void OnScheduled(const std::shared_ptr<Core::BaseStream>& stream) override;
@@ -39,7 +48,11 @@ namespace MMPEngine::Backend::Dx12
 		private:
 			std::shared_ptr<ExecutionContext> _executionContext;
 			std::shared_ptr<BaseTask> _applyMaterial;
+			std::shared_ptr<SetPipelineState> _setPipelineState;
  		};
+
+		Microsoft::WRL::ComPtr<ID3D12PipelineState> _pipelineState;
+		Microsoft::WRL::ComPtr<ID3D12RootSignature> _rootSignature;
 
 	public:
 		DirectComputeJob(const std::shared_ptr<Core::ComputeMaterial>& material);

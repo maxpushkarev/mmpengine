@@ -1,6 +1,9 @@
+#include "Compute.hpp"
+
 #include <Backend/Dx12/Compute.hpp>
 #include <Backend/Dx12/Material.hpp>
 #include <cassert>
+#include <Backend/Dx12/d3dx12.h>
 
 namespace MMPEngine::Backend::Dx12
 {
@@ -21,10 +24,19 @@ namespace MMPEngine::Backend::Dx12
 	{
 		Task::Run(stream);
 
+		const auto ac = _specificAppContext.lock();
+		assert(ac);
+
 		const auto job = _internalTaskContext->job.lock();
 		assert(job);
 		const auto cs = job->_material->GetShader();
 		assert(cs);
+
+		const auto material = std::dynamic_pointer_cast<Dx12::ComputeMaterial>(job->_material->GetUnderlyingMaterial());
+		assert(material);
+
+		job->_rootSignature = material->GetRootSignature();
+		assert(job->_rootSignature);
 
 		D3D12_COMPUTE_PIPELINE_STATE_DESC psoDesc = {};
 
@@ -33,7 +45,20 @@ namespace MMPEngine::Backend::Dx12
 			cs->GetCompiledBinaryData(),
 			cs->GetCompiledBinaryLength()
 		};
+
+		psoDesc.pRootSignature = job->_rootSignature.Get();
 		psoDesc.Flags = D3D12_PIPELINE_STATE_FLAG_NONE;
+
+		auto psoStream = CD3DX12_PIPELINE_STATE_STREAM{ psoDesc };
+		D3D12_PIPELINE_STATE_STREAM_DESC streamDesc;
+		streamDesc.pPipelineStateSubobjectStream = &psoStream;
+		streamDesc.SizeInBytes = sizeof(psoStream);
+
+		Microsoft::WRL::ComPtr<ID3D12Device2> castedDevice = nullptr;
+		ac->device->QueryInterface(IID_PPV_ARGS(castedDevice.GetAddressOf()));
+		assert(castedDevice != nullptr);
+
+		castedDevice->CreatePipelineState(&streamDesc, IID_PPV_ARGS(&job->_pipelineState));
 	}
 
 	void DirectComputeJob::InitTask::OnComplete(const std::shared_ptr<Core::BaseStream>& stream)
@@ -44,6 +69,7 @@ namespace MMPEngine::Backend::Dx12
 	DirectComputeJob::ExecutionTask::ExecutionTask(const std::shared_ptr<ExecutionContext>& ctx) : ContextualTask(ctx), _executionContext(ctx)
 	{
 		_applyMaterial = ctx->job.lock()->_material->CreateTaskForApply();
+		_setPipelineState = std::make_shared<SetPipelineState>(ctx);
 	}
 
 	void DirectComputeJob::ExecutionTask::OnScheduled(const std::shared_ptr<Core::BaseStream>& stream)
@@ -51,6 +77,7 @@ namespace MMPEngine::Backend::Dx12
 		Task::OnScheduled(stream);
 		if(const auto job = _executionContext->job.lock())
 		{
+			stream->Schedule(_setPipelineState);
 			stream->Schedule(_applyMaterial);
 		}
 	}
@@ -64,6 +91,32 @@ namespace MMPEngine::Backend::Dx12
 	{
 		Task::OnComplete(stream);
 	}
+
+	DirectComputeJob::ExecutionTask::SetPipelineState::SetPipelineState(const std::shared_ptr<ExecutionContext>& ctx) : ContextualTask(ctx)
+	{
+	}
+
+	void DirectComputeJob::ExecutionTask::SetPipelineState::OnScheduled(const std::shared_ptr<Core::BaseStream>& stream)
+	{
+		Task::OnScheduled(stream);
+	}
+
+	void DirectComputeJob::ExecutionTask::SetPipelineState::Run(const std::shared_ptr<Core::BaseStream>& stream)
+	{
+		Task::Run(stream);
+
+		if (const auto job = _internalTaskContext->job.lock() ; const auto sc = _specificStreamContext.lock())
+		{
+			sc->PopulateCommandsInList()->SetPipelineState(job->_pipelineState.Get());
+			sc->PopulateCommandsInList()->SetComputeRootSignature(job->_rootSignature.Get());
+		}
+	}
+
+	void DirectComputeJob::ExecutionTask::SetPipelineState::OnComplete(const std::shared_ptr<Core::BaseStream>& stream)
+	{
+		Task::OnComplete(stream);
+	}
+
 
 	std::shared_ptr<Core::BaseTask> DirectComputeJob::CreateInitializationTask()
 	{
