@@ -27,7 +27,7 @@ namespace MMPEngine::Backend::Dx12
 		const auto ac = _specificAppContext;
 		assert(ac);
 
-		const auto job = _internalTaskContext->job.lock();
+		const auto job = _internalTaskContext->job;
 		assert(job);
 		const auto cs = job->_material->GetShader();
 		assert(cs);
@@ -68,14 +68,14 @@ namespace MMPEngine::Backend::Dx12
 
 	DirectComputeJob::ExecutionTask::ExecutionTask(const std::shared_ptr<ExecutionContext>& ctx) : ContextualTask(ctx), _executionContext(ctx)
 	{
-		_applyMaterial = ctx->job.lock()->_material->CreateTaskForApply();
+		_applyMaterial = ctx->job->_material->CreateTaskForApply();
 		_setPipelineState = std::make_shared<SetPipelineState>(ctx);
 	}
 
 	void DirectComputeJob::ExecutionTask::OnScheduled(const std::shared_ptr<Core::BaseStream>& stream)
 	{
 		Task::OnScheduled(stream);
-		if(const auto job = _executionContext->job.lock())
+		if(const auto job = _executionContext->job)
 		{
 			stream->Schedule(_setPipelineState);
 			stream->Schedule(_applyMaterial);
@@ -105,7 +105,7 @@ namespace MMPEngine::Backend::Dx12
 	{
 		Task::Run(stream);
 
-		if (const auto job = _internalTaskContext->job.lock())
+		if (const auto job = _internalTaskContext->job)
 		{
 			_specificStreamContext->PopulateCommandsInList()->SetPipelineState(job->_pipelineState.Get());
 			_specificStreamContext->PopulateCommandsInList()->SetComputeRootSignature(job->_rootSignature.Get());

@@ -12,7 +12,7 @@ namespace MMPEngine::Core
 		class InitTaskContext : public TaskContext
 		{
 		public:
-			std::weak_ptr<Shader> shader;
+			std::shared_ptr<Shader> shader;
 		};
 
 		class LoadCompiledShaderFile : public ContextualTask<InitTaskContext>

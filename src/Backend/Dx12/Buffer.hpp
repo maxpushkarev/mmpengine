@@ -8,8 +8,8 @@ namespace MMPEngine::Backend::Dx12
 	class CopyBufferTaskContext : public Core::TaskContext
 	{
 	public:
-		std::weak_ptr<Dx12::BaseEntity> src;
-		std::weak_ptr<Dx12::BaseEntity> dst;
+		std::shared_ptr<Dx12::BaseEntity> src;
+		std::shared_ptr<Dx12::BaseEntity> dst;
 		std::size_t byteLength = 0;
 		std::size_t srcByteOffset = 0;
 		std::size_t dstByteOffset = 0;
@@ -18,10 +18,10 @@ namespace MMPEngine::Backend::Dx12
 	class CopyBufferTask final : public Task, public Core::ContextualTask<CopyBufferTaskContext>
 	{
 	private:
-		class CommandTask final : public Task, public Core::ContextualTask<CopyBufferTaskContext>
+		class Impl final : public Task, public Core::ContextualTask<CopyBufferTaskContext>
 		{
 		public:
-			CommandTask(const std::shared_ptr<CopyBufferTaskContext>& context);
+			Impl(const std::shared_ptr<CopyBufferTaskContext>& context);
 			void OnScheduled(const std::shared_ptr<Core::BaseStream>& stream) override;
 			void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
 			void OnComplete(const std::shared_ptr<Core::BaseStream>& stream) override;
@@ -34,7 +34,7 @@ namespace MMPEngine::Backend::Dx12
 	private:
 		std::shared_ptr<BaseTask> _switchSrcStateTask;
 		std::shared_ptr<BaseTask> _switchDstStateTask;
-		std::shared_ptr<CommandTask> _commandTask;
+		std::shared_ptr<Impl> _commandTask;
 	};
 
 	class Buffer : public ResourceEntity
@@ -112,7 +112,7 @@ namespace MMPEngine::Backend::Dx12
 		{
 		public:
 			bool isCounter = false;
-			std::weak_ptr<UaBuffer> counter = {};
+			std::shared_ptr<UaBuffer> counter = {};
 			Core::BaseUnorderedAccessBuffer::Settings settings{};
 		};
 
@@ -155,7 +155,7 @@ namespace MMPEngine::Backend::Dx12
 		class WriteTaskContext final : public Core::UploadBuffer::WriteTaskContext
 		{
 		public:
-			std::weak_ptr<UploadBuffer> uploadBuffer;
+			std::shared_ptr<UploadBuffer> uploadBuffer;
 		};
 		class WriteTask final : public Task, public Core::ContextualTask<Core::UploadBuffer::WriteTaskContext>
 		{
@@ -190,7 +190,7 @@ namespace MMPEngine::Backend::Dx12
 		class ReadTaskContext final : public Core::ReadBackBuffer::ReadTaskContext
 		{
 		public:
-			std::weak_ptr<ReadBackBuffer> readBackBuffer;
+			std::shared_ptr<ReadBackBuffer> readBackBuffer;
 		};
 		class ReadTask final : public Task, public Core::ContextualTask<Core::ReadBackBuffer::ReadTaskContext>
 		{

@@ -60,7 +60,7 @@ namespace MMPEngine::Backend::Dx12
 	{
 		Task::Run(stream);
 
-		if(const auto entity = _internalTaskContext->entity.lock())
+		if(const auto entity = _internalTaskContext->entity)
 		{
 			if((entity->_currentStateMask & _internalTaskContext->nextStateMask) != _internalTaskContext->nextStateMask)
 			{

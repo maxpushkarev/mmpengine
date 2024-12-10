@@ -16,7 +16,7 @@ namespace MMPEngine::Core
 		class EntityTaskContext : public TaskContext
 		{
 		public:
-			std::weak_ptr<TEntity> entity;
+			std::shared_ptr<TEntity> entity;
 		};
 
 	public:

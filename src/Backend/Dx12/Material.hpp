@@ -26,7 +26,7 @@ namespace MMPEngine::Backend::Dx12
 		class ApplyMaterialTaskContext final : public Core::TaskContext
 		{
 		public:
-			std::weak_ptr<Material> materialPtr;
+			std::shared_ptr<Material> materialPtr;
 		};
 
 		class ApplyParametersTask : public Task, public Core::ContextualTask<ApplyMaterialTaskContext>
@@ -82,7 +82,7 @@ namespace MMPEngine::Backend::Dx12
 		class ParametersUpdatedTaskContext final : public Core::TaskContext
 		{
 		public:
-			std::weak_ptr<MaterialImpl> materialImplPtr;
+			std::shared_ptr<MaterialImpl> materialImplPtr;
 			const Core::BaseMaterial::Parameters* params;
 		};
 
@@ -184,7 +184,7 @@ namespace MMPEngine::Backend::Dx12
 	inline void MaterialImpl<TCoreMaterial>::ParametersUpdatedTask::Run(const std::shared_ptr<Core::BaseStream>& stream)
 	{
 		Task::Run(stream);
-		if (const auto matImpl = this->_internalTaskContext->materialImplPtr.lock())
+		if (const auto matImpl = this->_internalTaskContext->materialImplPtr)
 		{
 			matImpl->OnParametersUpdated(_specificAppContext, *this->_internalTaskContext->params);
 		}

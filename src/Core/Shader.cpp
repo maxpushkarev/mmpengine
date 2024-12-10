@@ -34,7 +34,7 @@ namespace MMPEngine::Core
 	{
 		ContextualTask::Run(stream);
 
-		if (const auto shader = _internalTaskContext->shader.lock())
+		if (const auto shader = _internalTaskContext->shader)
 		{
 			assert(std::filesystem::exists(shader->_path));
 
@@ -54,7 +54,7 @@ namespace MMPEngine::Core
 	{
 		ContextualTask::OnComplete(stream);
 
-		if(const auto shader = _internalTaskContext->shader.lock())
+		if(const auto shader = _internalTaskContext->shader)
 		{
 			std::filesystem::path p {};
 			shader->_path.swap(p);

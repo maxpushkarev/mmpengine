@@ -46,7 +46,7 @@ namespace MMPEngine::Core
 			Executor& operator=(Executor&&) noexcept = delete;
 			~Executor();
 		private:
-			std::weak_ptr<BaseStream> _stream;
+			std::shared_ptr<BaseStream> _stream;
 			bool _waitAfterSubmit;
 		};
 

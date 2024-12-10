@@ -162,21 +162,15 @@ namespace MMPEngine::Core
 
 	BaseStream::Executor::Executor(const std::shared_ptr<BaseStream>& stream, bool waitAfterSubmit) : _stream(stream), _waitAfterSubmit(waitAfterSubmit)
 	{
-		if(const auto s = _stream.lock())
-		{
-			s->Restart();
-		}
+		_stream->Restart();
 	}
 
 	BaseStream::Executor::~Executor()
 	{
-		if (const auto s = _stream.lock())
+		_stream->Submit();
+		if(_waitAfterSubmit)
 		{
-			s->Submit();
-			if(_waitAfterSubmit)
-			{
-				s->Wait();
-			}
+			_stream->Wait();
 		}
 	}
 
