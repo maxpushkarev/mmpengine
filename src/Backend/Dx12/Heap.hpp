@@ -38,6 +38,7 @@ namespace MMPEngine::Backend::Dx12
 		{
 			friend class BaseDescriptorHeap;
 		public:
+			Handle();
 			D3D12_CPU_DESCRIPTOR_HANDLE GetCPUDescriptorHandle() const;
 			D3D12_GPU_DESCRIPTOR_HANDLE GetGPUDescriptorHandle() const;
 		protected:

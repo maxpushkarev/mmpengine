@@ -71,6 +71,8 @@ namespace MMPEngine::Backend::Dx12
 		}
 	}
 
+	BaseDescriptorHeap::Handle::Handle() = default;
+
 	D3D12_CPU_DESCRIPTOR_HANDLE BaseDescriptorHeap::Handle::GetCPUDescriptorHandle() const
 	{
 		if (_entry.has_value())

@@ -25,7 +25,7 @@ namespace MMPEngine::Backend::Dx12
 		public:
 			D3D12_RESOURCE_STATES nextStateMask;
 		};
-		class SwitchStateTask final : public Task, public Core::TaskWithContext<SwitchStateTaskContext>
+		class SwitchStateTask final : public Task, public Core::ContextualTask<SwitchStateTaskContext>
 		{
 		public:
 			SwitchStateTask(const std::shared_ptr<SwitchStateTaskContext>& context);
@@ -35,6 +35,8 @@ namespace MMPEngine::Backend::Dx12
 		};
 
 		virtual std::shared_ptr<Core::BaseTask> CreateSwitchStateTask(D3D12_RESOURCE_STATES nextStateMask) override;
+		virtual const BaseDescriptorHeap::Handle* GetShaderVisibleDescriptorHandle() const;
+		virtual const BaseDescriptorHeap::Handle* GetShaderInVisibleDescriptorHandle() const;
 	protected:
 		Microsoft::WRL::ComPtr<ID3D12Resource> GetNativeResource() const override;
 		void SetNativeResource(const Microsoft::WRL::ComPtr<ID3D12Resource>& nativeResource);

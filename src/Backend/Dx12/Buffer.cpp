@@ -4,7 +4,7 @@
 
 namespace MMPEngine::Backend::Dx12
 {
-	CopyBufferTask::CopyBufferTask(const std::shared_ptr<CopyBufferTaskContext>& context) : TaskWithContext<CopyBufferTaskContext>(context)
+	CopyBufferTask::CopyBufferTask(const std::shared_ptr<CopyBufferTaskContext>& context) : ContextualTask<CopyBufferTaskContext>(context)
 	{
 		const auto srcBuffer = _internalTaskContext->src.lock();
 		const auto dstBuffer = _internalTaskContext->dst.lock();
@@ -37,7 +37,7 @@ namespace MMPEngine::Backend::Dx12
 		Task::OnComplete(stream);
 	}
 
-	CopyBufferTask::CommandTask::CommandTask(const std::shared_ptr<CopyBufferTaskContext>& context) : TaskWithContext<CopyBufferTaskContext>(context)
+	CopyBufferTask::CommandTask::CommandTask(const std::shared_ptr<CopyBufferTaskContext>& context) : ContextualTask<CopyBufferTaskContext>(context)
 	{
 	}
 
@@ -77,7 +77,7 @@ namespace MMPEngine::Backend::Dx12
 	{
 	}
 
-	std::shared_ptr<Core::TaskWithContext<Core::UploadBuffer::WriteTaskContext>> UploadBuffer::CreateWriteTask(const void* src, std::size_t byteLength, std::size_t byteOffset)
+	std::shared_ptr<Core::ContextualTask<Core::UploadBuffer::WriteTaskContext>> UploadBuffer::CreateWriteTask(const void* src, std::size_t byteLength, std::size_t byteOffset)
 	{
 		const auto ctx = std::make_shared<WriteTaskContext>();
 		ctx->uploadBuffer = std::dynamic_pointer_cast<UploadBuffer>(shared_from_this());
@@ -120,7 +120,7 @@ namespace MMPEngine::Backend::Dx12
 	{
 	}
 
-	std::shared_ptr<Core::TaskWithContext<Core::ReadBackBuffer::ReadTaskContext>> ReadBackBuffer::CreateReadTask(void* dst, std::size_t byteLength, std::size_t byteOffset)
+	std::shared_ptr<Core::ContextualTask<Core::ReadBackBuffer::ReadTaskContext>> ReadBackBuffer::CreateReadTask(void* dst, std::size_t byteLength, std::size_t byteOffset)
 	{
 		const auto ctx = std::make_shared<ReadTaskContext>();
 		ctx->readBackBuffer = std::dynamic_pointer_cast<ReadBackBuffer>(shared_from_this());
@@ -190,7 +190,7 @@ namespace MMPEngine::Backend::Dx12
 		}
 	}
 
-	Buffer::CreateBufferTask::CreateBufferTask(const std::shared_ptr<InitTaskContext>& context) : TaskWithContext(context)
+	Buffer::CreateBufferTask::CreateBufferTask(const std::shared_ptr<InitTaskContext>& context) : ContextualTask(context)
 	{
 	}
 
@@ -244,7 +244,7 @@ namespace MMPEngine::Backend::Dx12
 		Task::OnComplete(stream);
 	}
 
-	Buffer::InitTask::InitTask(const std::shared_ptr<InitTaskContext>& context) : TaskWithContext(context)
+	Buffer::InitTask::InitTask(const std::shared_ptr<InitTaskContext>& context) : ContextualTask(context)
 	{
 	}
 
@@ -279,10 +279,168 @@ namespace MMPEngine::Backend::Dx12
 		Task::OnComplete(stream);
 	}
 
+	const BaseDescriptorHeap::Handle* UaBuffer::GetShaderInVisibleDescriptorHandle() const
+	{
+		return &_shaderInVisibleHandle;
+	}
+
+	const BaseDescriptorHeap::Handle* UaBuffer::GetShaderVisibleDescriptorHandle() const
+	{
+		return &_shaderVisibleHandle;
+	}
+
+
+	UaBuffer::CreateUaDescriptorsTask::CreateUaDescriptorsTask(const std::shared_ptr<InitUaTaskContext>& context) : ContextualTask(context)
+	{
+	}
+
+	void UaBuffer::CreateUaDescriptorsTask::OnScheduled(const std::shared_ptr<Core::BaseStream>& stream)
+	{
+		Task::OnScheduled(stream);
+	}
+
+	void UaBuffer::CreateUaDescriptorsTask::Run(const std::shared_ptr<Core::BaseStream>& stream)
+	{
+		Task::Run(stream);
+
+		const auto sc = _specificStreamContext.lock();
+		const auto ac = _specificAppContext.lock();
+		const auto entity = _internalTaskContext->entity.lock();
+
+		if (sc && ac && entity)
+		{
+			entity->_shaderVisibleHandle = ac->cbvSrvUavShaderVisibleHeap->Allocate();
+			entity->_shaderInVisibleHandle = ac->cbvSrvUavShaderInVisibleHeap->Allocate();
+
+			D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc;
+
+			uavDesc.Format = _internalTaskContext->isCounter ? DXGI_FORMAT_R32_UINT : DXGI_FORMAT_UNKNOWN;
+			uavDesc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER;
+			uavDesc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_NONE;
+			uavDesc.Buffer.CounterOffsetInBytes = 0;
+			uavDesc.Buffer.FirstElement = 0;
+			uavDesc.Buffer.NumElements = _internalTaskContext->isCounter ? 1 : static_cast<std::uint32_t>(_internalTaskContext->settings.elementsCount);
+			uavDesc.Buffer.StructureByteStride = static_cast<std::uint32_t>(_internalTaskContext->settings.stride);
+
+
+			const auto counter = _internalTaskContext->counter.lock();
+			ID3D12Resource* counterPtr = nullptr;
+
+			if(counter)
+			{
+				counterPtr = counter->GetNativeResource().Get();
+			}
+
+
+			ac->device->CreateUnorderedAccessView(
+				entity->GetNativeResource().Get(),
+				counterPtr,
+				&uavDesc,
+				entity->_shaderVisibleHandle.GetCPUDescriptorHandle()
+			);
+
+
+			ac->device->CreateUnorderedAccessView(
+				entity->GetNativeResource().Get(),
+				counterPtr,
+				&uavDesc,
+				entity->_shaderInVisibleHandle.GetCPUDescriptorHandle()
+			);
+		}
+	}
+
+	void UaBuffer::CreateUaDescriptorsTask::OnComplete(const std::shared_ptr<Core::BaseStream>& stream)
+	{
+		Task::OnComplete(stream);
+	}
+
+	UaBuffer::InitUaTask::InitUaTask(const std::shared_ptr<InitUaTaskContext>& context) : ContextualTask(context)
+	{
+	}
+
+	void UaBuffer::InitUaTask::OnScheduled(const std::shared_ptr<Core::BaseStream>& stream)
+	{
+		Task::OnScheduled(stream);
+
+		const auto initTaskContext = std::make_shared<InitTaskContext>();
+		initTaskContext->entity = _internalTaskContext->entity;
+		initTaskContext->byteSize = _internalTaskContext->settings.stride * _internalTaskContext->settings.elementsCount;
+		initTaskContext->unorderedAccess = true;
+		initTaskContext->heapType = D3D12_HEAP_TYPE_DEFAULT;
+
+		stream->Schedule(std::make_shared<InitTask>(initTaskContext));
+		stream->Schedule(std::make_shared<CreateUaDescriptorsTask>(_internalTaskContext));
+	}
+
+	void UaBuffer::InitUaTask::Run(const std::shared_ptr<Core::BaseStream>& stream)
+	{
+		Task::Run(stream);
+	}
+
+	void UaBuffer::InitUaTask::OnComplete(const std::shared_ptr<Core::BaseStream>& stream)
+	{
+		Task::OnComplete(stream);
+	}
+
+	UnorderedAccessBuffer::UnorderedAccessBuffer(const Settings& settings) : Core::BaseEntity(settings.name), Core::UnorderedAccessBuffer(settings)
+	{
+	}
+
+	std::shared_ptr<Core::BaseTask> UnorderedAccessBuffer::CreateInitializationTask()
+	{
+		const auto tc = std::make_shared<InitUaTaskContext>();
+		tc->entity = std::dynamic_pointer_cast<Dx12::UaBuffer>(shared_from_this());
+		tc->settings = _uaSettings;
+		tc->isCounter = false;
+		tc->counter = {};
+
+		return std::make_shared<InitUaTask>(tc);
+	}
+
+	std::shared_ptr<Core::BaseTask> UnorderedAccessBuffer::CreateCopyToBufferTask(const std::shared_ptr<Core::Buffer>& dst, std::size_t byteLength, std::size_t srcByteOffset, std::size_t dstByteOffset) const
+	{
+		const auto context = std::make_shared<CopyBufferTaskContext>();
+		context->src = std::dynamic_pointer_cast<BaseEntity>(std::const_pointer_cast<Core::BaseEntity>(shared_from_this()));
+		context->dst = std::dynamic_pointer_cast<BaseEntity>(dst);
+		context->srcByteOffset = srcByteOffset;
+		context->dstByteOffset = dstByteOffset;
+		context->byteLength = byteLength;
+
+		return std::make_shared<CopyBufferTask>(context);
+	}
+
 
 	ResidentBuffer::ResidentBuffer(const Settings& settings) : Core::BaseEntity(settings.name), Core::ResidentBuffer(settings)
 	{
 	}
+
+	std::shared_ptr<Core::BaseTask> ResidentBuffer::CreateInitializationTask()
+	{
+		const auto tc = std::make_shared<InitTaskContext>();
+		tc->entity = std::dynamic_pointer_cast<Dx12::Buffer>(shared_from_this());
+		tc->byteSize = _settings.byteLength;
+		tc->unorderedAccess = false;
+		tc->heapType = D3D12_HEAP_TYPE_DEFAULT;
+
+		return std::make_shared<InitTask>(tc);
+	}
+
+	std::shared_ptr<Core::BaseTask> ResidentBuffer::CreateCopyToBufferTask(
+		const std::shared_ptr<Core::Buffer>& dst,
+		std::size_t byteLength,
+		std::size_t srcByteOffset,
+		std::size_t dstByteOffset) const
+	{
+		const auto context = std::make_shared<CopyBufferTaskContext>();
+		context->src = std::dynamic_pointer_cast<BaseEntity>(std::const_pointer_cast<Core::BaseEntity>(shared_from_this()));
+		context->dst = std::dynamic_pointer_cast<BaseEntity>(dst);
+		context->srcByteOffset = srcByteOffset;
+		context->dstByteOffset = dstByteOffset;
+		context->byteLength = byteLength;
+
+		return std::make_shared<CopyBufferTask>(context);
+	}
+
 
 	InputAssemblerBuffer::InputAssemblerBuffer(const Core::InputAssemblerBuffer::Settings& settings) : Core::InputAssemblerBuffer(settings)
 	{
@@ -345,7 +503,7 @@ namespace MMPEngine::Backend::Dx12
 		return InputAssemblerBuffer::GetUnderlyingBuffer();		
 	}
 
-	InputAssemblerBuffer::InitTask::InitTask(const std::shared_ptr<TaskContext>& context) : TaskWithContext(context)
+	InputAssemblerBuffer::InitTask::InitTask(const std::shared_ptr<TaskContext>& context) : ContextualTask(context)
 	{
 	}
 
@@ -380,41 +538,13 @@ namespace MMPEngine::Backend::Dx12
 		}
 	}
 
-
-	std::shared_ptr<Core::BaseTask> ResidentBuffer::CreateInitializationTask()
-	{
-		const auto tc = std::make_shared<InitTaskContext>();
-		tc->entity = std::dynamic_pointer_cast<Dx12::Buffer>(shared_from_this());
-		tc->byteSize = _settings.byteLength;
-		tc->unorderedAccess = false;
-		tc->heapType = D3D12_HEAP_TYPE_DEFAULT;
-
-		return std::make_shared<InitTask>(tc);
-	}
-
-	std::shared_ptr<Core::BaseTask> ResidentBuffer::CreateCopyToBufferTask(
-		const std::shared_ptr<Core::Buffer>& dst,
-		std::size_t byteLength,
-		std::size_t srcByteOffset,
-		std::size_t dstByteOffset) const
-	{
-		const auto context = std::make_shared<CopyBufferTaskContext>();
-		context->src = std::dynamic_pointer_cast<BaseEntity>(std::const_pointer_cast<Core::BaseEntity>(shared_from_this()));
-		context->dst = std::dynamic_pointer_cast<BaseEntity>(dst);
-		context->srcByteOffset = srcByteOffset;
-		context->dstByteOffset = dstByteOffset;
-		context->byteLength = byteLength;
-
-		return std::make_shared<CopyBufferTask>(context);
-	}
-
 	void* MappedBuffer::MappedBufferTask::GetMappedPtr(const std::shared_ptr<MappedBuffer>& mappedBuffer)
 	{
 		return mappedBuffer->_mappedBufferPtr;
 	}
 
 
-	UploadBuffer::WriteTask::WriteTask(const std::shared_ptr<WriteTaskContext>& context) : TaskWithContext(context)
+	UploadBuffer::WriteTask::WriteTask(const std::shared_ptr<WriteTaskContext>& context) : ContextualTask(context)
 	{
 		const auto buffer= context->uploadBuffer.lock();
 		assert(buffer);
@@ -442,7 +572,7 @@ namespace MMPEngine::Backend::Dx12
 		Task::OnComplete(stream);
 	}
 
-	UploadBuffer::WriteTask::Impl::Impl(const std::shared_ptr<WriteTaskContext>& context) : TaskWithContext(context)
+	UploadBuffer::WriteTask::Impl::Impl(const std::shared_ptr<WriteTaskContext>& context) : ContextualTask(context)
 	{
 	}
 
@@ -466,7 +596,7 @@ namespace MMPEngine::Backend::Dx12
 	}
 
 
-	ReadBackBuffer::ReadTask::ReadTask(const std::shared_ptr<ReadTaskContext>& context) : TaskWithContext(context)
+	ReadBackBuffer::ReadTask::ReadTask(const std::shared_ptr<ReadTaskContext>& context) : ContextualTask(context)
 	{
 		const auto buffer = context->readBackBuffer.lock();
 		assert(buffer);
@@ -494,7 +624,7 @@ namespace MMPEngine::Backend::Dx12
 		Task::OnComplete(stream);
 	}
 
-	ReadBackBuffer::ReadTask::Impl::Impl(const std::shared_ptr<ReadTaskContext>& context) : TaskWithContext(context)
+	ReadBackBuffer::ReadTask::Impl::Impl(const std::shared_ptr<ReadTaskContext>& context) : ContextualTask(context)
 	{
 	}
 

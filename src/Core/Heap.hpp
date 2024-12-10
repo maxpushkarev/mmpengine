@@ -36,6 +36,7 @@ namespace MMPEngine::Core
 		class Handle
 		{
 		protected:
+			Handle();
 			Handle(const std::shared_ptr<BaseItemHeap>& heap, const Entry& entry);
 		public:
 			Handle(const Handle&) = delete;

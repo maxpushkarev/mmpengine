@@ -8,7 +8,7 @@ namespace MMPEngine::Backend::Dx12
 	{
 	}
 
-	DirectComputeJob::InitTask::InitTask(const std::shared_ptr<InitContext>& ctx) : TaskWithContext(ctx)
+	DirectComputeJob::InitTask::InitTask(const std::shared_ptr<InitContext>& ctx) : ContextualTask(ctx)
 	{
 	}
 
@@ -41,13 +41,18 @@ namespace MMPEngine::Backend::Dx12
 		Task::OnComplete(stream);
 	}
 
-	DirectComputeJob::ExecutionTask::ExecutionTask(const std::shared_ptr<ExecutionContext>& ctx) : TaskWithContext(ctx), _executionContext(ctx)
+	DirectComputeJob::ExecutionTask::ExecutionTask(const std::shared_ptr<ExecutionContext>& ctx) : ContextualTask(ctx), _executionContext(ctx)
 	{
+		_applyMaterial = ctx->job.lock()->_material->CreateTaskForApply();
 	}
 
 	void DirectComputeJob::ExecutionTask::OnScheduled(const std::shared_ptr<Core::BaseStream>& stream)
 	{
 		Task::OnScheduled(stream);
+		if(const auto job = _executionContext->job.lock())
+		{
+			stream->Schedule(_applyMaterial);
+		}
 	}
 
 	void DirectComputeJob::ExecutionTask::Run(const std::shared_ptr<Core::BaseStream>& stream)
@@ -67,10 +72,10 @@ namespace MMPEngine::Backend::Dx12
 		return std::make_shared<InitTask>(ctx);
 	}
 
-	std::shared_ptr<Core::TaskWithContext<Core::DirectComputeContext>> DirectComputeJob::CreateExecutionTask()
+	std::shared_ptr<Core::ContextualTask<Core::DirectComputeContext>> DirectComputeJob::CreateExecutionTask()
 	{
 		const auto ctx = std::make_shared<ExecutionContext>();
-		ctx->_job = std::dynamic_pointer_cast<DirectComputeJob>(shared_from_this());
+		ctx->job = std::dynamic_pointer_cast<DirectComputeJob>(shared_from_this());
 		return std::make_shared<ExecutionTask>(ctx);
 	}
 

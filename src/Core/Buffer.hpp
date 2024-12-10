@@ -39,7 +39,7 @@ namespace MMPEngine::Core
 			std::size_t byteLength = 0;
 			std::size_t byteOffset = 0;
 		};
-		virtual std::shared_ptr<TaskWithContext<WriteTaskContext>> CreateWriteTask(const void* src, std::size_t byteLength, std::size_t byteOffset = 0) = 0;
+		virtual std::shared_ptr<ContextualTask<WriteTaskContext>> CreateWriteTask(const void* src, std::size_t byteLength, std::size_t byteOffset = 0) = 0;
 	};
 
 	class ReadBackBuffer : public Buffer
@@ -54,13 +54,51 @@ namespace MMPEngine::Core
 			std::size_t byteLength = 0;
 			std::size_t byteOffset = 0;
 		};
-		virtual std::shared_ptr<TaskWithContext<ReadTaskContext>> CreateReadTask(void* dst, std::size_t byteLength, std::size_t byteOffset = 0) = 0;
+		virtual std::shared_ptr<ContextualTask<ReadTaskContext>> CreateReadTask(void* dst, std::size_t byteLength, std::size_t byteOffset = 0) = 0;
 	};
 
 	class ResidentBuffer : public Buffer
 	{
 	protected:
 		ResidentBuffer(const Settings& settings);
+	};
+
+	class BaseUnorderedAccessBuffer : public Buffer
+	{
+	public:
+		struct Settings final
+		{
+			std::size_t stride = sizeof(std::uint32_t);
+			std::size_t elementsCount = 0;
+			std::string name = {};
+		};
+		BaseUnorderedAccessBuffer(const Settings& settings);
+	protected:
+		Settings _uaSettings;
+	};
+
+	class UnorderedAccessBuffer : public BaseUnorderedAccessBuffer
+	{
+	protected:
+		UnorderedAccessBuffer(const Settings& settings);
+	};
+
+	class CounteredUnorderedAccessBuffer : public BaseUnorderedAccessBuffer
+	{
+	protected:
+		CounteredUnorderedAccessBuffer(const Settings& settings);
+	public:
+
+		class ReadCounterContext : public TaskContext
+		{
+		public:
+			using ValueType = std::uint32_t;
+			ValueType value;
+		};
+
+		virtual std::shared_ptr<BaseTask> CreateResetCounterTask() = 0;
+		virtual std::shared_ptr<ContextualTask<ReadCounterContext>> CreateReadCounterTask() = 0;
+
 	};
 
 	class InputAssemblerBuffer : public Buffer
@@ -103,7 +141,7 @@ namespace MMPEngine::Core
 		ConstantBuffer(const Settings& settings);
 
 	public:
-		virtual std::shared_ptr<TaskWithContext<Core::UploadBuffer::WriteTaskContext>> CreateWriteAsyncTask(const TData& data) = 0;
+		virtual std::shared_ptr<ContextualTask<Core::UploadBuffer::WriteTaskContext>> CreateWriteAsyncTask(const TData& data) = 0;
 	};
 
 	template<class TConstantBufferData>

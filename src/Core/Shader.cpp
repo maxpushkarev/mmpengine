@@ -26,13 +26,13 @@ namespace MMPEngine::Core
 	}
 
 
-	Shader::LoadCompiledShaderFile::LoadCompiledShaderFile(const std::shared_ptr<InitTaskContext>& ctx) : TaskWithContext(ctx)
+	Shader::LoadCompiledShaderFile::LoadCompiledShaderFile(const std::shared_ptr<InitTaskContext>& ctx) : ContextualTask(ctx)
 	{
 	}
 
 	void Shader::LoadCompiledShaderFile::Run(const std::shared_ptr<BaseStream>& stream)
 	{
-		TaskWithContext::Run(stream);
+		ContextualTask::Run(stream);
 
 		if (const auto shader = _internalTaskContext->shader.lock())
 		{
@@ -52,7 +52,7 @@ namespace MMPEngine::Core
 
 	void Shader::LoadCompiledShaderFile::OnComplete(const std::shared_ptr<BaseStream>& stream)
 	{
-		TaskWithContext::OnComplete(stream);
+		ContextualTask::OnComplete(stream);
 
 		if(const auto shader = _internalTaskContext->shader.lock())
 		{

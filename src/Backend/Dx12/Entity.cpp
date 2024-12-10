@@ -10,6 +10,16 @@ namespace MMPEngine::Backend::Dx12
 	{
 	}
 
+	const BaseDescriptorHeap::Handle* ResourceEntity::GetShaderInVisibleDescriptorHandle() const
+	{
+		return nullptr;
+	}
+
+	const BaseDescriptorHeap::Handle* ResourceEntity::GetShaderVisibleDescriptorHandle() const
+	{
+		return nullptr;
+	}
+
 	void ResourceEntity::SetUpNativeResourceName()
 	{
 		const auto str = GetName();
@@ -37,7 +47,7 @@ namespace MMPEngine::Backend::Dx12
 	}
 
 
-	ResourceEntity::SwitchStateTask::SwitchStateTask(const std::shared_ptr<SwitchStateTaskContext>& context) : TaskWithContext(context)
+	ResourceEntity::SwitchStateTask::SwitchStateTask(const std::shared_ptr<SwitchStateTaskContext>& context) : ContextualTask(context)
 	{
 	}
 

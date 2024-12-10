@@ -55,11 +55,11 @@ namespace MMPEngine::Core
 
 
 	template<typename TTaskContext>
-	class TaskWithContext : public virtual BaseTask
+	class ContextualTask : public virtual BaseTask
 	{
 		static_assert(std::is_base_of_v<TaskContext, TTaskContext>, "TTaskContext must be derived from TaskContext");
 	protected:
-		TaskWithContext(const std::shared_ptr<TTaskContext>& innerContext);
+		ContextualTask(const std::shared_ptr<TTaskContext>& innerContext);
 		std::shared_ptr<TTaskContext> _internalTaskContext;
 	public:
 		std::shared_ptr<TTaskContext> GetContext() const;
@@ -105,13 +105,13 @@ namespace MMPEngine::Core
 	}
 
 	template<typename TInnerContext>
-	inline TaskWithContext<TInnerContext>::TaskWithContext(const std::shared_ptr<TInnerContext>& innerContext) :
+	inline ContextualTask<TInnerContext>::ContextualTask(const std::shared_ptr<TInnerContext>& innerContext) :
 		_internalTaskContext(innerContext)
 	{
 	}
 
 	template<typename TTaskContext>
-	inline std::shared_ptr<TTaskContext> TaskWithContext<TTaskContext>::GetContext() const
+	inline std::shared_ptr<TTaskContext> ContextualTask<TTaskContext>::GetContext() const
 	{
 		return _internalTaskContext;
 	}

@@ -1,5 +1,6 @@
 #pragma once
 #include <optional>
+#include <variant>
 #include <Core/Base.hpp>
 #include <Core/Entity.hpp>
 #include <Core/Shader.hpp>
@@ -12,10 +13,36 @@ namespace MMPEngine::Core
 		class Parameters final
 		{
 		public:
+
+			struct Buffer final
+			{
+				enum class Type : std::uint8_t
+				{
+					UniformConstants,
+					Readonly,
+					UnorderedAccess
+				};
+
+				Type type;
+			};
+
+			struct Texture final
+			{
+				enum class Type : std::uint8_t
+				{
+					Readonly,
+					UnorderedAccess
+				};
+
+				Type type;
+			};
+
+
 			struct Entry final
 			{
 				std::string name;
 				std::shared_ptr<BaseEntity> entity;
+				std::variant<Buffer,Texture> settings;
 			};
 
 			struct EntryView final

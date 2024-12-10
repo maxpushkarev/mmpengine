@@ -1,7 +1,6 @@
 #pragma once
 #include <Core/Compute.hpp>
-
-#include "Task.hpp"
+#include <Backend/Dx12/Task.hpp>
 
 namespace MMPEngine::Backend::Dx12
 {
@@ -18,10 +17,10 @@ namespace MMPEngine::Backend::Dx12
 		class ExecutionContext final : public Core::DirectComputeContext
 		{
 		public:
-			std::weak_ptr<DirectComputeJob> _job;
+			std::weak_ptr<DirectComputeJob> job;
 		};
 
-		class InitTask final : public Task, public Core::TaskWithContext<InitContext>
+		class InitTask final : public Task, public Core::ContextualTask<InitContext>
 		{
 		public:
 			InitTask(const std::shared_ptr<InitContext>& ctx);
@@ -30,7 +29,7 @@ namespace MMPEngine::Backend::Dx12
 			void OnComplete(const std::shared_ptr<Core::BaseStream>& stream) override;
 		};
 
-		class ExecutionTask final : public Task, public Core::TaskWithContext<Core::DirectComputeContext>
+		class ExecutionTask final : public Task, public Core::ContextualTask<Core::DirectComputeContext>
 		{
 		public:
 			ExecutionTask(const std::shared_ptr<ExecutionContext>& ctx);
@@ -39,11 +38,12 @@ namespace MMPEngine::Backend::Dx12
 			void OnComplete(const std::shared_ptr<Core::BaseStream>& stream) override;
 		private:
 			std::shared_ptr<ExecutionContext> _executionContext;
-		};
+			std::shared_ptr<BaseTask> _applyMaterial;
+ 		};
 
 	public:
 		DirectComputeJob(const std::shared_ptr<Core::ComputeMaterial>& material);
 		std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;
-		std::shared_ptr<Core::TaskWithContext<Core::DirectComputeContext>> CreateExecutionTask() override;
+		std::shared_ptr<Core::ContextualTask<Core::DirectComputeContext>> CreateExecutionTask() override;
 	};
 }

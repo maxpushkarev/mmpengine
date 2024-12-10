@@ -51,6 +51,21 @@ namespace MMPEngine::Frontend
 	}
 
 	template<>
+	std::shared_ptr<Core::UnorderedAccessBuffer> Buffer<Core::UnorderedAccessBuffer, Core::BaseUnorderedAccessBuffer::Settings>::CreateImpl(const std::shared_ptr<Core::AppContext>& appContext)
+	{
+		if (appContext->settings.backend == Core::BackendType::Dx12)
+		{
+#ifdef MMPENGINE_BACKEND_DX12
+			return std::make_shared<Backend::Dx12::UnorderedAccessBuffer>(this->_uaSettings);
+#else
+			throw Core::UnsupportedException("unable to create unordered access buffer for DX12 backend");
+#endif
+		}
+
+		return nullptr;
+	}
+
+	template<>
 	std::shared_ptr<Core::ReadBackBuffer> Buffer<Core::ReadBackBuffer>::CreateImpl(const std::shared_ptr<Core::AppContext>& appContext)
 	{
 		if (appContext->settings.backend == Core::BackendType::Dx12)
@@ -103,7 +118,7 @@ namespace MMPEngine::Frontend
 	{
 	}
 
-	std::shared_ptr<Core::TaskWithContext<UploadBuffer::WriteTaskContext>> UploadBuffer::CreateWriteTask(const void* src, std::size_t byteLength, std::size_t byteOffset)
+	std::shared_ptr<Core::ContextualTask<UploadBuffer::WriteTaskContext>> UploadBuffer::CreateWriteTask(const void* src, std::size_t byteLength, std::size_t byteOffset)
 	{
 		return _impl->CreateWriteTask(src, byteLength, byteOffset);
 	}
@@ -112,12 +127,16 @@ namespace MMPEngine::Frontend
 	{
 	}
 
-	std::shared_ptr<Core::TaskWithContext<ReadBackBuffer::ReadTaskContext>> ReadBackBuffer::CreateReadTask(void* dst, std::size_t byteLength, std::size_t byteOffset)
+	std::shared_ptr<Core::ContextualTask<ReadBackBuffer::ReadTaskContext>> ReadBackBuffer::CreateReadTask(void* dst, std::size_t byteLength, std::size_t byteOffset)
 	{
 		return _impl->CreateReadTask(dst, byteLength, byteOffset);
 	}
 
 	ResidentBuffer::ResidentBuffer(const std::shared_ptr<Core::AppContext>& appContext, const Settings& settings) : Core::BaseEntity(settings.name), Buffer(appContext, settings)
+	{
+	}
+
+	UnorderedAccessBuffer::UnorderedAccessBuffer(const std::shared_ptr<Core::AppContext>& appContext, const Settings& settings) : Core::BaseEntity(settings.name), Buffer(appContext, settings)
 	{
 	}
 

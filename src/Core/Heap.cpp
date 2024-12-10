@@ -32,6 +32,8 @@ namespace MMPEngine::Core
 		_blocks.at(entry.blockIndex)->Release(entry.slotIndexInBlock);
 	}
 
+	BaseItemHeap::Handle::Handle() = default;
+
 	BaseItemHeap::Handle::Handle(const std::shared_ptr<BaseItemHeap>& heap, const Entry& entry) : _entry(entry), _heap(heap)
 	{
 	}

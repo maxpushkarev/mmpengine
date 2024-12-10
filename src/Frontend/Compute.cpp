@@ -18,7 +18,7 @@ namespace MMPEngine::Frontend
 		}
 	}
 
-	std::shared_ptr<Core::TaskWithContext<Core::DirectComputeContext>> DirectComputeJob::CreateExecutionTask()
+	std::shared_ptr<Core::ContextualTask<Core::DirectComputeContext>> DirectComputeJob::CreateExecutionTask()
 	{
 		return _impl->CreateExecutionTask();
 	}

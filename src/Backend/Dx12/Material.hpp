@@ -1,28 +1,75 @@
 #pragma once
 #include <functional>
+#include <cassert>
 #include <Core/Material.hpp>
 #include <Backend/Dx12/Task.hpp>
 #include <Backend/Dx12/Stream.hpp>
+#include <Backend/Dx12/Buffer.hpp>
+#include <Backend/Dx12/Texture.hpp>
 
 namespace MMPEngine::Backend::Dx12
 {
-	template<class TCoreMaterial>
-	class MaterialImpl
+	class Material
 	{
 	public:
-		MaterialImpl();
-		MaterialImpl(const MaterialImpl&) = delete;
-		MaterialImpl(MaterialImpl&&) = delete;
-		MaterialImpl& operator=(const MaterialImpl&) = delete;
-		MaterialImpl& operator=(MaterialImpl&&) = delete;
-		virtual ~MaterialImpl();
+		Material();
+		Material(const Material&) = delete;
+		Material(Material&&) noexcept = delete;
+		Material& operator=(const Material&) = delete;
+		Material& operator=(Material&&) noexcept = delete;
+		virtual ~Material();
 	protected:
 
 		class ApplyMaterialTaskContext final : public Core::TaskContext
 		{
 		public:
-			std::weak_ptr<MaterialImpl> materialImplPtr;
+			std::weak_ptr<Material> materialPtr;
 		};
+
+		class ApplyParametersTask : public Task, public Core::ContextualTask<ApplyMaterialTaskContext>
+		{
+		private:
+
+			class SwitchState final : public Task, public Core::ContextualTask<ApplyMaterialTaskContext>
+			{
+			public:
+				SwitchState(const std::shared_ptr<ApplyMaterialTaskContext>& context);
+				void OnScheduled(const std::shared_ptr<Core::BaseStream>& stream) override;
+				void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
+				void OnComplete(const std::shared_ptr<Core::BaseStream>& stream) override;
+			};
+
+			class Apply final : public Task, public Core::ContextualTask<ApplyMaterialTaskContext>
+			{
+			public:
+				Apply(const std::shared_ptr<ApplyMaterialTaskContext>& context);
+				void OnScheduled(const std::shared_ptr<Core::BaseStream>& stream) override;
+				void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
+				void OnComplete(const std::shared_ptr<Core::BaseStream>& stream) override;
+			};
+
+		public:
+			ApplyParametersTask(const std::shared_ptr<ApplyMaterialTaskContext>& context);
+			void OnScheduled(const std::shared_ptr<Core::BaseStream>& stream) override;
+			void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
+			void OnComplete(const std::shared_ptr<Core::BaseStream>& stream) override;
+
+		private:
+			std::shared_ptr<Core::BaseTask> _switchState;
+			std::shared_ptr<Core::BaseTask> _apply;
+		};
+
+		void SwitchParametersStates(const std::shared_ptr<Core::BaseStream>& stream);
+		void ApplyParameters(const std::shared_ptr<StreamContext>& streamContext);
+
+		std::vector<std::function<void(const std::shared_ptr<StreamContext>& streamContext)>> _applyParametersCallbacks;
+		std::vector<std::shared_ptr<Core::BaseTask>> _switchStateTasks;
+	};
+
+	template<class TCoreMaterial>
+	class MaterialImpl : public Material
+	{
+	protected:
 
 		class ParametersUpdatedTaskContext final : public Core::TaskContext
 		{
@@ -31,7 +78,7 @@ namespace MMPEngine::Backend::Dx12
 			const Core::BaseMaterial::Parameters* params;
 		};
 
-		class ParametersUpdatedTask : public Task, public Core::TaskWithContext<ParametersUpdatedTaskContext>
+		class ParametersUpdatedTask : public Task, public Core::ContextualTask<ParametersUpdatedTaskContext>
 		{
 		public:
 			ParametersUpdatedTask(const std::shared_ptr<ParametersUpdatedTaskContext>& context);
@@ -40,19 +87,7 @@ namespace MMPEngine::Backend::Dx12
 			void OnComplete(const std::shared_ptr<Core::BaseStream>& stream) override;
 		};
 
-		class ApplyParametersTask : public Task, public Core::TaskWithContext<ApplyMaterialTaskContext>
-		{
-		public:
-			ApplyParametersTask(const std::shared_ptr<ApplyMaterialTaskContext>& context);
-			void OnScheduled(const std::shared_ptr<Core::BaseStream>& stream) override;
-			void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
-			void OnComplete(const std::shared_ptr<Core::BaseStream>& stream) override;
-		};
-
 		void OnParametersUpdated(const Core::BaseMaterial::Parameters& params);
-		void ApplyParameters(const std::shared_ptr<StreamContext>& stream);
-	private:
-		std::unordered_map<std::string_view, std::function<void(const std::shared_ptr<StreamContext>& streamContext)>> _applyParameters;
 	};
 
 	class ComputeMaterial final : public Core::ComputeMaterial, public MaterialImpl<Core::ComputeMaterial>
@@ -64,26 +99,57 @@ namespace MMPEngine::Backend::Dx12
 	};
 
 	template<class TCoreMaterial>
-	inline MaterialImpl<TCoreMaterial>::MaterialImpl() = default;
-
-	template<class TCoreMaterial>
-	inline MaterialImpl<TCoreMaterial>::~MaterialImpl() = default;
-
-	template<class TCoreMaterial>
 	inline void MaterialImpl<TCoreMaterial>::OnParametersUpdated(const Core::BaseMaterial::Parameters& params)
 	{
-		_applyParameters.clear();
+		_applyParametersCallbacks.clear();
+		_switchStateTasks.clear();
 
 		const auto& allParams = params.GetAll();
 
 		for(std::size_t i = 0; i < allParams.size(); ++i)
 		{
-			const auto& p = allParams.at(i);
+			const auto& parameterEntry = allParams.at(i);
 			const auto index = static_cast<std::uint32_t>(i);
+
+			const auto switchStateTaskContext = std::make_shared<Dx12::ResourceEntity::SwitchStateTaskContext>();
 
 			if constexpr (std::is_same_v<TCoreMaterial, Core::ComputeMaterial>)
 			{
-				//TODO: populate compute commands
+				if(std::holds_alternative<Core::BaseMaterial::Parameters::Buffer>(parameterEntry.settings))
+				{
+					const auto bufferSettings = std::get<Core::BaseMaterial::Parameters::Buffer>(parameterEntry.settings);
+					const auto coreBuffer = std::dynamic_pointer_cast<Core::Buffer>(parameterEntry.entity);
+					assert(coreBuffer);
+					const auto nativeBuffer = std::dynamic_pointer_cast<Dx12::ResourceEntity>(coreBuffer->GetUnderlyingBuffer());
+					assert(nativeBuffer);
+					
+					switchStateTaskContext->entity = nativeBuffer;
+
+					switch (bufferSettings.type)
+					{
+						case Core::BaseMaterial::Parameters::Buffer::Type::UnorderedAccess:
+							switchStateTaskContext->nextStateMask = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+							_applyParametersCallbacks.emplace_back([nativeBuffer, index](const auto& ctx)
+							{
+								//ctx->PopulateCommandsInList()->SetComputeRootDescriptorTable(static_cast<std::uint32_t>(index), nativeBuffer->GetShaderVisibleDescriptorHandle()->GetGPUDescriptorHandle());
+							});
+							break;
+						case Core::BaseMaterial::Parameters::Buffer::Type::UniformConstants:
+						case Core::BaseMaterial::Parameters::Buffer::Type::Readonly:
+							switchStateTaskContext->nextStateMask = D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE;
+							break;
+					}
+
+					_switchStateTasks.emplace_back(std::make_shared<Dx12::ResourceEntity::SwitchStateTask>(switchStateTaskContext));
+					continue;	
+				}
+
+				if (std::holds_alternative<Core::BaseMaterial::Parameters::Texture>(parameterEntry.settings))
+				{
+					continue;
+				}
+
+				throw Core::UnsupportedException("unsupported dx12 entity type in material");
 			}
 			else if constexpr (std::is_base_of_v<Core::RenderingMaterial, TCoreMaterial>)
 			{
@@ -97,15 +163,7 @@ namespace MMPEngine::Backend::Dx12
 	}
 
 	template<class TCoreMaterial>
-	inline void MaterialImpl<TCoreMaterial>::ApplyParameters(const std::shared_ptr<StreamContext>& streamContext)
-	{
-		for(const auto& [_, fn] : _applyParameters)
-		{
-			fn(streamContext);
-		}
-	}
-	template<class TCoreMaterial>
-	inline MaterialImpl<TCoreMaterial>::ParametersUpdatedTask::ParametersUpdatedTask(const std::shared_ptr<ParametersUpdatedTaskContext>& context) : Core::TaskWithContext<ParametersUpdatedTaskContext>(context)
+	inline MaterialImpl<TCoreMaterial>::ParametersUpdatedTask::ParametersUpdatedTask(const std::shared_ptr<ParametersUpdatedTaskContext>& context) : Core::ContextualTask<ParametersUpdatedTaskContext>(context)
 	{
 	}
 
@@ -127,33 +185,6 @@ namespace MMPEngine::Backend::Dx12
 
 	template<class TCoreMaterial>
 	inline void MaterialImpl<TCoreMaterial>::ParametersUpdatedTask::OnComplete(const std::shared_ptr<Core::BaseStream>& stream)
-	{
-		Task::OnComplete(stream);
-	}
-
-	template<class TCoreMaterial>
-	inline MaterialImpl<TCoreMaterial>::ApplyParametersTask::ApplyParametersTask(const std::shared_ptr<ApplyMaterialTaskContext>& context) : Core::TaskWithContext<ApplyMaterialTaskContext>(context)
-	{
-	}
-
-	template<class TCoreMaterial>
-	inline void MaterialImpl<TCoreMaterial>::ApplyParametersTask::OnScheduled(const std::shared_ptr<Core::BaseStream>& stream)
-	{
-		Task::OnScheduled(stream);
-	}
-
-	template<class TCoreMaterial>
-	inline void MaterialImpl<TCoreMaterial>::ApplyParametersTask::Run(const std::shared_ptr<Core::BaseStream>& stream)
-	{
-		Task::Run(stream);
-		if(const auto matImpl = this->_internalTaskContext->materialImplPtr.lock() ; const auto sc = _specificStreamContext.lock())
-		{
-			matImpl->ApplyParameters(sc);
-		}
-	}
-
-	template<class TCoreMaterial>
-	inline void MaterialImpl<TCoreMaterial>::ApplyParametersTask::OnComplete(const std::shared_ptr<Core::BaseStream>& stream)
 	{
 		Task::OnComplete(stream);
 	}

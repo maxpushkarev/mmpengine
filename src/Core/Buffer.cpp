@@ -58,4 +58,16 @@ namespace MMPEngine::Core
 	IndexBuffer::IndexBuffer(const Settings& settings)
 	{
 	}
+
+	BaseUnorderedAccessBuffer::BaseUnorderedAccessBuffer(const Settings& settings) : Buffer(Core::Buffer::Settings {settings.stride * settings.elementsCount, settings.name}), _uaSettings(settings)
+	{
+	}
+
+	UnorderedAccessBuffer::UnorderedAccessBuffer(const Settings& settings) : BaseUnorderedAccessBuffer(settings)
+	{
+	}
+
+	CounteredUnorderedAccessBuffer::CounteredUnorderedAccessBuffer(const Settings& settings) : BaseUnorderedAccessBuffer(settings)
+	{
+	}
 }
