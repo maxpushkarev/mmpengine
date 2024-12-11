@@ -10,12 +10,12 @@ namespace MMPEngine::Backend::Dx12
 	{
 	}
 
-	const BaseDescriptorHeap::Handle* ResourceEntity::GetShaderInVisibleDescriptorHandle() const
+	const BaseDescriptorHeap::Handle* BaseEntity::GetShaderInVisibleDescriptorHandle() const
 	{
 		return nullptr;
 	}
 
-	const BaseDescriptorHeap::Handle* ResourceEntity::GetShaderVisibleDescriptorHandle() const
+	const BaseDescriptorHeap::Handle* BaseEntity::GetShaderVisibleDescriptorHandle() const
 	{
 		return nullptr;
 	}
