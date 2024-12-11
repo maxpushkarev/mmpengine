@@ -39,12 +39,14 @@ namespace MMPEngine::Backend::Dx12
 			friend class BaseDescriptorHeap;
 		public:
 			Handle();
-			D3D12_CPU_DESCRIPTOR_HANDLE GetCPUDescriptorHandle() const;
-			D3D12_GPU_DESCRIPTOR_HANDLE GetGPUDescriptorHandle() const;
+			const D3D12_CPU_DESCRIPTOR_HANDLE& GetCPUDescriptorHandle() const;
+			const D3D12_GPU_DESCRIPTOR_HANDLE& GetGPUDescriptorHandle() const;
 		protected:
 			Handle(const std::shared_ptr<BaseDescriptorHeap>& descHeap, const Entry& entry);
 		private:
 			std::weak_ptr<BaseDescriptorHeap> _descHeap;
+			D3D12_CPU_DESCRIPTOR_HANDLE _cpuHandle;
+			D3D12_GPU_DESCRIPTOR_HANDLE _gpuHandle;
 		};
 		Handle Allocate();
 	private:

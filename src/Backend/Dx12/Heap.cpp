@@ -73,37 +73,27 @@ namespace MMPEngine::Backend::Dx12
 
 	BaseDescriptorHeap::Handle::Handle() = default;
 
-	D3D12_CPU_DESCRIPTOR_HANDLE BaseDescriptorHeap::Handle::GetCPUDescriptorHandle() const
+	const D3D12_CPU_DESCRIPTOR_HANDLE& BaseDescriptorHeap::Handle::GetCPUDescriptorHandle() const
 	{
-		if (_entry.has_value())
-		{
-			if (const auto heap = _descHeap.lock())
-			{
-				return heap->GetNativeCPUDescriptorHandle(_entry.value());
-			}
-
-			return {};
-		}
-		throw std::logic_error("bad access to heap handle");
+		return _cpuHandle;
 	}
 
-	D3D12_GPU_DESCRIPTOR_HANDLE BaseDescriptorHeap::Handle::GetGPUDescriptorHandle() const
+	const D3D12_GPU_DESCRIPTOR_HANDLE& BaseDescriptorHeap::Handle::GetGPUDescriptorHandle() const
 	{
-		if (_entry.has_value())
-		{
-			if (const auto heap = _descHeap.lock())
-			{
-				return heap->GetNativeGPUDescriptorHandle(_entry.value());
-			}
-
-			return {};
-		}
-		throw std::logic_error("bad access to heap handle");
+		return _gpuHandle;
 	}
 
 	BaseDescriptorHeap::Handle::Handle(const std::shared_ptr<BaseDescriptorHeap>& descHeap, const Entry& entry)
 		: Core::BaseItemHeap::Handle(descHeap, entry), _descHeap(descHeap)
 	{
+		if (_entry.has_value())
+		{
+			if (const auto heap = _descHeap.lock())
+			{
+				_gpuHandle = heap->GetNativeGPUDescriptorHandle(_entry.value());
+				_cpuHandle = heap->GetNativeCPUDescriptorHandle(_entry.value());
+			}
+		}
 	}
 
 	BaseDescriptorHeap::Block::Block(std::uint32_t size, const Microsoft::WRL::ComPtr<ID3D12Device>& device, const NativeSettings& nativeSettings) : Core::BaseItemHeap::Block(size)
