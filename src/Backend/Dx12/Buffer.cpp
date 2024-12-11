@@ -6,8 +6,8 @@ namespace MMPEngine::Backend::Dx12
 {
 	CopyBufferTask::CopyBufferTask(const std::shared_ptr<CopyBufferTaskContext>& context) : ContextualTask<CopyBufferTaskContext>(context)
 	{
-		const auto srcBuffer = _internalTaskContext->src;
-		const auto dstBuffer = _internalTaskContext->dst;
+		const auto srcBuffer = _taskContext->src;
+		const auto dstBuffer = _taskContext->dst;
 
 		assert(srcBuffer);
 		assert(dstBuffer);
@@ -51,18 +51,18 @@ namespace MMPEngine::Backend::Dx12
 	{
 		Task::Run(stream);
 
-		const auto srcBuffer = _internalTaskContext->src;
-		const auto dstBuffer = _internalTaskContext->dst;
+		const auto srcBuffer = _taskContext->src;
+		const auto dstBuffer = _taskContext->dst;
 
 		assert(srcBuffer);
 		assert(dstBuffer);
 
 		_specificStreamContext->PopulateCommandsInList()->CopyBufferRegion(
 			dstBuffer->GetNativeResource().Get(),
-			_internalTaskContext->dstByteOffset,
+			_taskContext->dstByteOffset,
 			srcBuffer->GetNativeResource().Get(),
-			_internalTaskContext->srcByteOffset,
-			_internalTaskContext->byteLength);
+			_taskContext->srcByteOffset,
+			_taskContext->byteLength);
 		
 	}
 
@@ -203,15 +203,15 @@ namespace MMPEngine::Backend::Dx12
 
 		const auto sc = _specificStreamContext;
 		const auto ac = _specificAppContext;
-		const auto entity = _internalTaskContext->entity;
+		const auto entity = _taskContext->entity;
 
 		if (sc && ac && entity)
 		{
-			const auto heapProperties = CD3DX12_HEAP_PROPERTIES(_internalTaskContext->heapType);
-			auto resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(_internalTaskContext->byteSize);
+			const auto heapProperties = CD3DX12_HEAP_PROPERTIES(_taskContext->heapType);
+			auto resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(_taskContext->byteSize);
 			resourceDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
 
-			if (_internalTaskContext->unorderedAccess)
+			if (_taskContext->unorderedAccess)
 			{
 				resourceDesc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
 			}
@@ -250,16 +250,16 @@ namespace MMPEngine::Backend::Dx12
 	{
 		Task::OnScheduled(stream);
 
-		if(const auto entity = _internalTaskContext->entity)
+		if(const auto entity = _taskContext->entity)
 		{
-			stream->Schedule(std::make_shared<CreateBufferTask>(_internalTaskContext));
+			stream->Schedule(std::make_shared<CreateBufferTask>(_taskContext));
 
-			if (_internalTaskContext->heapType == D3D12_HEAP_TYPE_UPLOAD)
+			if (_taskContext->heapType == D3D12_HEAP_TYPE_UPLOAD)
 			{
 				stream->Schedule(entity->CreateSwitchStateTask(D3D12_RESOURCE_STATE_GENERIC_READ));
 			}
 
-			if (_internalTaskContext->heapType == D3D12_HEAP_TYPE_READBACK)
+			if (_taskContext->heapType == D3D12_HEAP_TYPE_READBACK)
 			{
 				stream->Schedule(entity->CreateSwitchStateTask(D3D12_RESOURCE_STATE_COPY_DEST));
 			}
@@ -303,7 +303,7 @@ namespace MMPEngine::Backend::Dx12
 
 		const auto sc = _specificStreamContext;
 		const auto ac = _specificAppContext;
-		const auto entity = _internalTaskContext->entity;
+		const auto entity = _taskContext->entity;
 
 		if (sc && ac && entity)
 		{
@@ -312,16 +312,16 @@ namespace MMPEngine::Backend::Dx12
 
 			D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc;
 
-			uavDesc.Format = _internalTaskContext->isCounter ? DXGI_FORMAT_R32_UINT : DXGI_FORMAT_UNKNOWN;
+			uavDesc.Format = _taskContext->isCounter ? DXGI_FORMAT_R32_UINT : DXGI_FORMAT_UNKNOWN;
 			uavDesc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER;
 			uavDesc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_NONE;
 			uavDesc.Buffer.CounterOffsetInBytes = 0;
 			uavDesc.Buffer.FirstElement = 0;
-			uavDesc.Buffer.NumElements = _internalTaskContext->isCounter ? 1 : static_cast<std::uint32_t>(_internalTaskContext->settings.elementsCount);
-			uavDesc.Buffer.StructureByteStride = static_cast<std::uint32_t>(_internalTaskContext->settings.stride);
+			uavDesc.Buffer.NumElements = _taskContext->isCounter ? 1 : static_cast<std::uint32_t>(_taskContext->settings.elementsCount);
+			uavDesc.Buffer.StructureByteStride = static_cast<std::uint32_t>(_taskContext->settings.stride);
 
 
-			const auto counter = _internalTaskContext->counter;
+			const auto counter = _taskContext->counter;
 			ID3D12Resource* counterPtr = nullptr;
 
 			if(counter)
@@ -361,13 +361,13 @@ namespace MMPEngine::Backend::Dx12
 		Task::OnScheduled(stream);
 
 		const auto initTaskContext = std::make_shared<InitTaskContext>();
-		initTaskContext->entity = _internalTaskContext->entity;
-		initTaskContext->byteSize = _internalTaskContext->settings.stride * _internalTaskContext->settings.elementsCount;
+		initTaskContext->entity = _taskContext->entity;
+		initTaskContext->byteSize = _taskContext->settings.stride * _taskContext->settings.elementsCount;
 		initTaskContext->unorderedAccess = true;
 		initTaskContext->heapType = D3D12_HEAP_TYPE_DEFAULT;
 
 		stream->Schedule(std::make_shared<InitTask>(initTaskContext));
-		stream->Schedule(std::make_shared<CreateUaDescriptorsTask>(_internalTaskContext));
+		stream->Schedule(std::make_shared<CreateUaDescriptorsTask>(_taskContext));
 	}
 
 	void UaBuffer::InitUaTask::Run(const std::shared_ptr<Core::BaseStream>& stream)
@@ -509,7 +509,7 @@ namespace MMPEngine::Backend::Dx12
 	{
 		Task::OnScheduled(stream);
 
-		if (const auto entity = _internalTaskContext->entity)
+		if (const auto entity = _taskContext->entity)
 		{
 			stream->Schedule(entity->_upload->CreateInitializationTask());
 			stream->Schedule(entity->_resident->CreateInitializationTask());
@@ -530,7 +530,7 @@ namespace MMPEngine::Backend::Dx12
 	{
 		Task::OnComplete(stream);
 
-		if(const auto entity = _internalTaskContext->entity)
+		if(const auto entity = _taskContext->entity)
 		{
 			entity->_upload.reset();
 		}
@@ -582,9 +582,9 @@ namespace MMPEngine::Backend::Dx12
 	void UploadBuffer::WriteTask::Impl::Run(const std::shared_ptr<Core::BaseStream>& stream)
 	{
 		Task::Run(stream);
-		if (const auto entity = _internalTaskContext->uploadBuffer)
+		if (const auto entity = _taskContext->uploadBuffer)
 		{
-			std::memcpy((static_cast<char*>(GetMappedPtr(entity)) + _internalTaskContext->byteOffset), _internalTaskContext->src, _internalTaskContext->byteLength);
+			std::memcpy((static_cast<char*>(GetMappedPtr(entity)) + _taskContext->byteOffset), _taskContext->src, _taskContext->byteLength);
 		}
 	}
 
@@ -635,9 +635,9 @@ namespace MMPEngine::Backend::Dx12
 	{
 		Task::Run(stream);
 
-		if (const auto entity = _internalTaskContext->readBackBuffer)
+		if (const auto entity = _taskContext->readBackBuffer)
 		{
-			std::memcpy(_internalTaskContext->dst, (static_cast<char*>(GetMappedPtr(entity)) + _internalTaskContext->byteOffset), _internalTaskContext->byteLength);
+			std::memcpy(_taskContext->dst, (static_cast<char*>(GetMappedPtr(entity)) + _taskContext->byteOffset), _taskContext->byteLength);
 		}
 	}
 

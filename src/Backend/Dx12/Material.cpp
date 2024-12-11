@@ -161,7 +161,7 @@ namespace MMPEngine::Backend::Dx12
 	{
 		Task::OnScheduled(stream);
 
-		if (const auto mat = this->_internalTaskContext->materialPtr)
+		if (const auto mat = this->_taskContext->materialPtr)
 		{
 			mat->SwitchParametersStates(stream);
 		}
@@ -191,7 +191,7 @@ namespace MMPEngine::Backend::Dx12
 	{
 		Task::Run(stream);
 
-		if (const auto mat = this->_internalTaskContext->materialPtr; const auto sc = _specificStreamContext)
+		if (const auto mat = this->_taskContext->materialPtr; const auto sc = _specificStreamContext)
 		{
 			mat->ApplyParameters(sc);
 		}

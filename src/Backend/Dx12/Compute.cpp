@@ -1,5 +1,3 @@
-#include "Compute.hpp"
-
 #include <Backend/Dx12/Compute.hpp>
 #include <Backend/Dx12/Material.hpp>
 #include <cassert>
@@ -27,7 +25,7 @@ namespace MMPEngine::Backend::Dx12
 		const auto ac = _specificAppContext;
 		assert(ac);
 
-		const auto job = _internalTaskContext->job;
+		const auto job = _taskContext->job;
 		assert(job);
 		const auto cs = job->_material->GetShader();
 		assert(cs);
@@ -70,16 +68,19 @@ namespace MMPEngine::Backend::Dx12
 	{
 		_applyMaterial = ctx->job->_material->CreateTaskForApply();
 		_setPipelineState = std::make_shared<SetPipelineState>(ctx);
+		_dispatch = std::make_shared<Dispatch>(ctx);
+		_setDescriptorHeaps = std::make_shared<BindDescriptorHeapsTask>(std::make_shared<BindDescriptorHeapsTaskContext>());
 	}
 
 	void DirectComputeJob::ExecutionTask::OnScheduled(const std::shared_ptr<Core::BaseStream>& stream)
 	{
 		Task::OnScheduled(stream);
-		if(const auto job = _executionContext->job)
-		{
-			stream->Schedule(_setPipelineState);
-			stream->Schedule(_applyMaterial);
-		}
+
+		_setDescriptorHeaps->GetContext()->FillDescriptors(_specificAppContext);
+		stream->Schedule(_setDescriptorHeaps);
+		stream->Schedule(_setPipelineState);
+		stream->Schedule(_applyMaterial);
+		stream->Schedule(_dispatch);
 	}
 
 	void DirectComputeJob::ExecutionTask::Run(const std::shared_ptr<Core::BaseStream>& stream)
@@ -105,7 +106,7 @@ namespace MMPEngine::Backend::Dx12
 	{
 		Task::Run(stream);
 
-		if (const auto job = _internalTaskContext->job)
+		if (const auto job = _taskContext->job)
 		{
 			_specificStreamContext->PopulateCommandsInList()->SetPipelineState(job->_pipelineState.Get());
 			_specificStreamContext->PopulateCommandsInList()->SetComputeRootSignature(job->_rootSignature.Get());
@@ -117,6 +118,26 @@ namespace MMPEngine::Backend::Dx12
 		Task::OnComplete(stream);
 	}
 
+	DirectComputeJob::ExecutionTask::Dispatch::Dispatch(const std::shared_ptr<ExecutionContext>& ctx) : ContextualTask(ctx)
+	{
+	}
+
+	void DirectComputeJob::ExecutionTask::Dispatch::OnScheduled(const std::shared_ptr<Core::BaseStream>& stream)
+	{
+		Task::OnScheduled(stream);
+	}
+
+	void DirectComputeJob::ExecutionTask::Dispatch::Run(const std::shared_ptr<Core::BaseStream>& stream)
+	{
+		Task::Run(stream);
+		const auto& dim = _taskContext->dimensions;
+		_specificStreamContext->PopulateCommandsInList()->Dispatch(dim.x, dim.y, dim.z);
+	}
+
+	void DirectComputeJob::ExecutionTask::Dispatch::OnComplete(const std::shared_ptr<Core::BaseStream>& stream)
+	{
+		Task::OnComplete(stream);
+	}
 
 	std::shared_ptr<Core::BaseTask> DirectComputeJob::CreateInitializationTask()
 	{

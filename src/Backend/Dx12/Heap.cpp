@@ -33,6 +33,7 @@ namespace MMPEngine::Backend::Dx12
 
 	D3D12_GPU_DESCRIPTOR_HANDLE BaseDescriptorHeap::GetNativeGPUDescriptorHandle(const Entry& entry) const
 	{
+		assert(_nativeSettings.flags & D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE);
 		RebuildCacheIfNeed();
 
 
@@ -46,6 +47,18 @@ namespace MMPEngine::Backend::Dx12
 	{
 		return {std::dynamic_pointer_cast<BaseDescriptorHeap>(shared_from_this()), AllocateEntry() };
 	}
+
+	void BaseDescriptorHeap::CollectNativeBlocks(std::vector<ID3D12DescriptorHeap*>& nativeHeaps) const
+	{
+		RebuildCacheIfNeed();
+
+		const auto& cached = _nativeBlocksCache.value();
+		for(const auto& heapPtr : cached)
+		{
+			nativeHeaps.push_back(heapPtr.Get());
+		}
+	}
+
 
 	void BaseDescriptorHeap::ResetCache()
 	{
@@ -80,17 +93,21 @@ namespace MMPEngine::Backend::Dx12
 
 	const D3D12_GPU_DESCRIPTOR_HANDLE& BaseDescriptorHeap::Handle::GetGPUDescriptorHandle() const
 	{
+		assert(_heapFlags & D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE);
 		return _gpuHandle;
 	}
 
 	BaseDescriptorHeap::Handle::Handle(const std::shared_ptr<BaseDescriptorHeap>& descHeap, const Entry& entry)
-		: Core::BaseItemHeap::Handle(descHeap, entry), _descHeap(descHeap)
+		: Core::BaseItemHeap::Handle(descHeap, entry), _descHeap(descHeap), _heapFlags(descHeap->_nativeSettings.flags)
 	{
 		if (_entry.has_value())
 		{
 			if (const auto heap = _descHeap.lock())
 			{
-				_gpuHandle = heap->GetNativeGPUDescriptorHandle(_entry.value());
+				if(_heapFlags & D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE)
+				{
+					_gpuHandle = heap->GetNativeGPUDescriptorHandle(_entry.value());
+				}
 				_cpuHandle = heap->GetNativeCPUDescriptorHandle(_entry.value());
 			}
 		}

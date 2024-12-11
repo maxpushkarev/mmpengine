@@ -22,5 +22,6 @@ namespace MMPEngine::Backend::Dx12
 	private:
 		std::uint64_t _lastFenceValue;
 		HANDLE _waitHandle;
+		std::vector<ID3D12DescriptorHeap*> _heaps;
 	};
 }

@@ -45,10 +45,12 @@ namespace MMPEngine::Backend::Dx12
 			Handle(const std::shared_ptr<BaseDescriptorHeap>& descHeap, const Entry& entry);
 		private:
 			std::weak_ptr<BaseDescriptorHeap> _descHeap;
-			D3D12_CPU_DESCRIPTOR_HANDLE _cpuHandle;
-			D3D12_GPU_DESCRIPTOR_HANDLE _gpuHandle;
+			D3D12_CPU_DESCRIPTOR_HANDLE _cpuHandle = { 0 };
+			D3D12_GPU_DESCRIPTOR_HANDLE _gpuHandle = { 0 };
+			D3D12_DESCRIPTOR_HEAP_FLAGS _heapFlags;
 		};
 		Handle Allocate();
+		void CollectNativeBlocks(std::vector<ID3D12DescriptorHeap*>& nativeHeaps) const; 
 	private:
 		mutable std::optional<std::vector<Microsoft::WRL::ComPtr<ID3D12DescriptorHeap>>> _nativeBlocksCache;
 		void ResetCache();

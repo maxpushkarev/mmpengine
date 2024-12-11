@@ -41,6 +41,17 @@ namespace MMPEngine::Backend::Dx12
 				void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
 				void OnComplete(const std::shared_ptr<Core::BaseStream>& stream) override;
 			};
+
+			class Dispatch final : public Task, public Core::ContextualTask<ExecutionContext>
+			{
+			public:
+				Dispatch(const std::shared_ptr<ExecutionContext>& ctx);
+				void OnScheduled(const std::shared_ptr<Core::BaseStream>& stream) override;
+				void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
+				void OnComplete(const std::shared_ptr<Core::BaseStream>& stream) override;
+			};
+
+
 		public:
 			ExecutionTask(const std::shared_ptr<ExecutionContext>& ctx);
 			void OnScheduled(const std::shared_ptr<Core::BaseStream>& stream) override;
@@ -48,8 +59,10 @@ namespace MMPEngine::Backend::Dx12
 			void OnComplete(const std::shared_ptr<Core::BaseStream>& stream) override;
 		private:
 			std::shared_ptr<ExecutionContext> _executionContext;
+			std::shared_ptr<BindDescriptorHeapsTask> _setDescriptorHeaps;
 			std::shared_ptr<BaseTask> _applyMaterial;
-			std::shared_ptr<SetPipelineState> _setPipelineState;
+			std::shared_ptr<BaseTask> _setPipelineState;
+			std::shared_ptr<Dispatch> _dispatch;
  		};
 
 	public:

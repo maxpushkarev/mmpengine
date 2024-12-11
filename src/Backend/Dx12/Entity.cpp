@@ -60,16 +60,16 @@ namespace MMPEngine::Backend::Dx12
 	{
 		Task::Run(stream);
 
-		if(const auto entity = _internalTaskContext->entity)
+		if(const auto entity = _taskContext->entity)
 		{
-			if((entity->_currentStateMask & _internalTaskContext->nextStateMask) != _internalTaskContext->nextStateMask)
+			if((entity->_currentStateMask & _taskContext->nextStateMask) != _taskContext->nextStateMask)
 			{
 				const D3D12_RESOURCE_BARRIER transitions[] = {
-					CD3DX12_RESOURCE_BARRIER::Transition(entity->GetNativeResource().Get(),  entity->_currentStateMask, _internalTaskContext->nextStateMask)
+					CD3DX12_RESOURCE_BARRIER::Transition(entity->GetNativeResource().Get(),  entity->_currentStateMask, _taskContext->nextStateMask)
 				};
 
 				_specificStreamContext->PopulateCommandsInList()->ResourceBarrier(static_cast<std::uint32_t>(std::size(transitions)), transitions);
-				entity->_currentStateMask = _internalTaskContext->nextStateMask;
+				entity->_currentStateMask = _taskContext->nextStateMask;
 			}
 		}
 	}
