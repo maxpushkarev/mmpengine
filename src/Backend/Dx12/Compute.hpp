@@ -1,10 +1,11 @@
 #pragma once
 #include <Core/Compute.hpp>
 #include <Backend/Dx12/Task.hpp>
+#include <Backend/Dx12/Job.hpp>
 
 namespace MMPEngine::Backend::Dx12
 {
-	class DirectComputeJob final : public Core::DirectComputeJob
+	class DirectComputeJob final : public Core::DirectComputeJob, public Dx12::Job
 	{
 	private:
 
@@ -50,9 +51,6 @@ namespace MMPEngine::Backend::Dx12
 			std::shared_ptr<BaseTask> _applyMaterial;
 			std::shared_ptr<SetPipelineState> _setPipelineState;
  		};
-
-		Microsoft::WRL::ComPtr<ID3D12PipelineState> _pipelineState;
-		Microsoft::WRL::ComPtr<ID3D12RootSignature> _rootSignature;
 
 	public:
 		DirectComputeJob(const std::shared_ptr<Core::ComputeMaterial>& material);
