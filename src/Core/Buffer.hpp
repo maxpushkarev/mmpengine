@@ -35,7 +35,7 @@ namespace MMPEngine::Core
 		class WriteTaskContext : public TaskContext
 		{
 		public:
-			const void* src;
+			const void* src = nullptr;
 			std::size_t byteLength = 0;
 			std::size_t byteOffset = 0;
 		};
@@ -50,7 +50,7 @@ namespace MMPEngine::Core
 		class ReadTaskContext : public TaskContext
 		{
 		public:
-			void* dst;
+			void* dst = nullptr;
 			std::size_t byteLength = 0;
 			std::size_t byteOffset = 0;
 		};

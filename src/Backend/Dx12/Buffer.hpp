@@ -46,7 +46,7 @@ namespace MMPEngine::Backend::Dx12
 		class InitTaskContext final : public EntityTaskContext<Buffer>
 		{
 		public:
-			D3D12_HEAP_TYPE heapType;
+			D3D12_HEAP_TYPE heapType = D3D12_HEAP_TYPE_DEFAULT;
 			bool unorderedAccess = false;
 			std::size_t byteSize = 0;
 		};
