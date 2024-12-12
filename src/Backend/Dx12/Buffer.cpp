@@ -227,7 +227,7 @@ namespace MMPEngine::Backend::Dx12
 
 			Microsoft::WRL::ComPtr<ID3D12Resource> bufferResource = nullptr;
 
-			//TODO: save memory space by batching multiple resources into one (for example: constant buffers)
+			//TODO: batch constant buffers
 			ac->device->CreateCommittedResource(
 				&heapProperties,
 				D3D12_HEAP_FLAG_NONE,
