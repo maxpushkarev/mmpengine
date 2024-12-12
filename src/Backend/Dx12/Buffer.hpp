@@ -43,6 +43,7 @@ namespace MMPEngine::Backend::Dx12
 		{
 		public:
 			D3D12_HEAP_TYPE heapType = D3D12_HEAP_TYPE_DEFAULT;
+			bool unorderedAccess = false;
 			std::size_t byteSize = 0;
 		};
 
@@ -102,19 +103,25 @@ namespace MMPEngine::Backend::Dx12
 		class InitUaTaskContext : public Core::EntityTaskContext<UaBuffer>
 		{
 		public:
-			bool withCounter = false;
+			bool isCounter = false;
+			std::shared_ptr<Dx12::UaBuffer> counterAttachment = nullptr;
 			Core::BaseUnorderedAccessBuffer::Settings settings{};
+		};
+
+		class CreateUaDescriptors final : public Task<InitUaTaskContext>
+		{
+		public:
+			CreateUaDescriptors(const std::shared_ptr<InitUaTaskContext>& context);
+			void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
 		};
 
 		class InitUaTask final : public Task<InitUaTaskContext>
 		{
 		public:
 			InitUaTask(const std::shared_ptr<InitUaTaskContext>& context);
-			void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
-		private:
-			void CreateUaBuffer();
-			void CreateUaDescriptors();
+			void OnScheduled(const std::shared_ptr<Core::BaseStream>& stream) override;
 		};
+
 	public:
 		const BaseDescriptorHeap::Handle* GetShaderInVisibleDescriptorHandle() const override;
 		const BaseDescriptorHeap::Handle* GetShaderVisibleDescriptorHandle() const override;
@@ -123,12 +130,43 @@ namespace MMPEngine::Backend::Dx12
 		BaseDescriptorHeap::Handle _shaderInVisibleHandle;
 	};
 
-	class UnorderedAccessBuffer : public Core::UnorderedAccessBuffer, public UaBuffer
+	class UnorderedAccessBuffer final : public Core::UnorderedAccessBuffer, public UaBuffer
 	{
 	public:
 		UnorderedAccessBuffer(const Settings& settings);
 		std::shared_ptr<Core::BaseTask> CreateCopyToBufferTask(const std::shared_ptr<Core::Buffer>& dst, std::size_t byteLength, std::size_t srcByteOffset, std::size_t dstByteOffset) const override;
 		std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;
+	};
+
+	class CounteredUnorderedAccessBuffer final : public Core::CounteredUnorderedAccessBuffer, public UaBuffer
+	{
+	private:
+		class ResetCounter final : public Task<Core::EntityTaskContext<UaBuffer>>
+		{
+		private:
+			class Impl final : public Task<Core::EntityTaskContext<UaBuffer>>
+			{
+			public:
+				Impl(const std::shared_ptr<Core::EntityTaskContext<UaBuffer>>& ctx);
+			protected:
+				void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
+			};
+		public:
+			ResetCounter(const std::shared_ptr<Core::EntityTaskContext<UaBuffer>>& ctx);
+		protected:
+			void OnScheduled(const std::shared_ptr<Core::BaseStream>& stream) override;
+		};
+
+	public:
+		CounteredUnorderedAccessBuffer(const Settings& settings);
+		std::shared_ptr<Core::BaseTask> CreateCopyToBufferTask(const std::shared_ptr<Core::Buffer>& dst, std::size_t byteLength, std::size_t srcByteOffset, std::size_t dstByteOffset) const override;
+		std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;
+		std::shared_ptr<Core::BaseTask> CreateSwitchStateTask(D3D12_RESOURCE_STATES nextStateMask) override;
+		std::shared_ptr<Core::BaseTask> CreateResetCounterTask() override;
+		std::shared_ptr<Core::BaseTask> CreateCopyCounterTask(const std::shared_ptr<Core::Buffer>& dst, std::size_t byteLength, std::size_t dstByteOffset) override;
+	private:
+		//TODO: try to merge data with counter (usage CounterOffsetInBytes)
+		std::shared_ptr<UnorderedAccessBuffer> _counter;
 	};
 
 	class UploadBuffer final : public Core::UploadBuffer, public MappedBuffer

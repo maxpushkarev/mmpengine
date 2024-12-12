@@ -73,6 +73,7 @@ namespace MMPEngine::Core
 			std::string name = {};
 		};
 		BaseUnorderedAccessBuffer(const Settings& settings);
+		const Settings& GetUnorderedAccessSettings() const;
 	protected:
 		Settings _uaSettings;
 	};
@@ -88,16 +89,12 @@ namespace MMPEngine::Core
 	protected:
 		CounteredUnorderedAccessBuffer(const Settings& settings);
 	public:
-
-		class ReadCounterContext : public TaskContext
-		{
-		public:
-			using ValueType = std::uint32_t;
-			ValueType value;
-		};
+		using CounterValueType = std::uint32_t;
 
 		virtual std::shared_ptr<BaseTask> CreateResetCounterTask() = 0;
-		virtual std::shared_ptr<ContextualTask<ReadCounterContext>> CreateReadCounterTask() = 0;
+		virtual std::shared_ptr<BaseTask> CreateCopyCounterTask(const std::shared_ptr<Buffer>& dst,
+			std::size_t byteLength,
+			std::size_t dstByteOffset) = 0;
 
 	};
 

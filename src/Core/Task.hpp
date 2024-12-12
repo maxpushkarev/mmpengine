@@ -27,6 +27,17 @@ namespace MMPEngine::Core
 		static std::shared_ptr<BaseTask> kEmpty;
 	};
 
+	class BatchTask final : public BaseTask
+	{
+	public:
+		BatchTask(std::initializer_list<std::shared_ptr<BaseTask>> tasks);
+		BatchTask(std::vector<std::shared_ptr<BaseTask>>&& tasks);
+	protected:
+		void OnScheduled(const std::shared_ptr<BaseStream>& stream) override;
+	private:
+		std::vector<std::shared_ptr<BaseTask>> _tasks;
+	};
+
 	class StreamBarrierTask final : public BaseTask
 	{
 	protected:

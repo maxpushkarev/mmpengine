@@ -62,6 +62,11 @@ namespace MMPEngine::Core
 	{
 	}
 
+	const Core::BaseUnorderedAccessBuffer::Settings& BaseUnorderedAccessBuffer::GetUnorderedAccessSettings() const
+	{
+		return _uaSettings;
+	}
+
 	UnorderedAccessBuffer::UnorderedAccessBuffer(const Settings& settings) : BaseUnorderedAccessBuffer(settings)
 	{
 	}

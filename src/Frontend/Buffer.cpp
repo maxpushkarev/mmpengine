@@ -66,6 +66,21 @@ namespace MMPEngine::Frontend
 	}
 
 	template<>
+	std::shared_ptr<Core::CounteredUnorderedAccessBuffer> Buffer<Core::CounteredUnorderedAccessBuffer, Core::BaseUnorderedAccessBuffer::Settings>::CreateImpl(const std::shared_ptr<Core::AppContext>& appContext)
+	{
+		if (appContext->settings.backend == Core::BackendType::Dx12)
+		{
+#ifdef MMPENGINE_BACKEND_DX12
+			return std::make_shared<Backend::Dx12::CounteredUnorderedAccessBuffer>(this->_uaSettings);
+#else
+			throw Core::UnsupportedException("unable to create countered unordered access buffer for DX12 backend");
+#endif
+		}
+
+		return nullptr;
+	}
+
+	template<>
 	std::shared_ptr<Core::ReadBackBuffer> Buffer<Core::ReadBackBuffer>::CreateImpl(const std::shared_ptr<Core::AppContext>& appContext)
 	{
 		if (appContext->settings.backend == Core::BackendType::Dx12)
@@ -138,6 +153,20 @@ namespace MMPEngine::Frontend
 
 	UnorderedAccessBuffer::UnorderedAccessBuffer(const std::shared_ptr<Core::AppContext>& appContext, const Settings& settings) : Buffer(appContext, settings)
 	{
+	}
+
+	CounteredUnorderedAccessBuffer::CounteredUnorderedAccessBuffer(const std::shared_ptr<Core::AppContext>& appContext, const Settings& settings) : Buffer(appContext, settings)
+	{
+	}
+
+	std::shared_ptr<Core::BaseTask> CounteredUnorderedAccessBuffer::CreateResetCounterTask()
+	{
+		return _impl->CreateResetCounterTask();
+	}
+
+	std::shared_ptr<Core::BaseTask> CounteredUnorderedAccessBuffer::CreateCopyCounterTask(const std::shared_ptr<Core::Buffer>& dst, std::size_t byteLength, std::size_t dstByteOffset)
+	{
+		return _impl->CreateCopyCounterTask(dst, byteLength, dstByteOffset);
 	}
 
 	VertexBuffer::VertexBuffer(const std::shared_ptr<Core::AppContext>& appContext, const Settings& settings) : Buffer(appContext, settings)

@@ -50,6 +50,14 @@ namespace MMPEngine::Frontend
 		UnorderedAccessBuffer(const std::shared_ptr<Core::AppContext>& appContext, const Settings& settings);
 	};
 
+	class CounteredUnorderedAccessBuffer : public Buffer<Core::CounteredUnorderedAccessBuffer, Core::BaseUnorderedAccessBuffer::Settings>
+	{
+	public:
+		CounteredUnorderedAccessBuffer(const std::shared_ptr<Core::AppContext>& appContext, const Settings& settings);
+		std::shared_ptr<Core::BaseTask> CreateCopyCounterTask(const std::shared_ptr<Core::Buffer>& dst, std::size_t byteLength, std::size_t dstByteOffset) override;
+		std::shared_ptr<Core::BaseTask> CreateResetCounterTask() override;
+	};;
+
 	class VertexBuffer final : public Buffer<Core::VertexBuffer, Core::InputAssemblerBuffer::Settings>
 	{
 	public:
@@ -182,6 +190,8 @@ namespace MMPEngine::Frontend
 	std::shared_ptr<Core::ReadBackBuffer> Buffer<Core::ReadBackBuffer>::CreateImpl(const std::shared_ptr<Core::AppContext>& appContext);
 	template<>
 	std::shared_ptr<Core::UnorderedAccessBuffer> Buffer<Core::UnorderedAccessBuffer, Core::BaseUnorderedAccessBuffer::Settings>::CreateImpl(const std::shared_ptr<Core::AppContext>& appContext);
+	template<>
+	std::shared_ptr<Core::CounteredUnorderedAccessBuffer> Buffer<Core::CounteredUnorderedAccessBuffer, Core::BaseUnorderedAccessBuffer::Settings>::CreateImpl(const std::shared_ptr<Core::AppContext>& appContext);
 	template<>
 	std::shared_ptr<Core::VertexBuffer> Buffer<Core::VertexBuffer, Core::InputAssemblerBuffer::Settings>::CreateImpl(const std::shared_ptr<Core::AppContext>& appContext);
 	template<>
