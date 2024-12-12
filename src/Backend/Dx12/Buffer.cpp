@@ -96,7 +96,6 @@ namespace MMPEngine::Backend::Dx12
 		const auto tc = std::make_shared<InitTaskContext>();
 		tc->entity = std::dynamic_pointer_cast<MappedBuffer>(shared_from_this());
 		tc->byteSize = _settings.byteLength;
-		tc->unorderedAccess = false;
 		tc->heapType = D3D12_HEAP_TYPE_UPLOAD;
 
 		return std::make_shared<InitTask>(tc);
@@ -123,7 +122,6 @@ namespace MMPEngine::Backend::Dx12
 		const auto tc = std::make_shared<InitTaskContext>();
 		tc->entity = std::dynamic_pointer_cast<MappedBuffer>(shared_from_this());
 		tc->byteSize = _settings.byteLength;
-		tc->unorderedAccess = false;
 		tc->heapType = D3D12_HEAP_TYPE_READBACK;
 
 		return std::make_shared<InitTask>(tc);
@@ -196,11 +194,6 @@ namespace MMPEngine::Backend::Dx12
 			auto resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(tc->byteSize);
 			resourceDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
 
-			if (tc->unorderedAccess)
-			{
-				resourceDesc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
-			}
-
 			Microsoft::WRL::ComPtr<ID3D12Resource> bufferResource = nullptr;
 
 			//TODO: batch constant buffers
@@ -256,15 +249,49 @@ namespace MMPEngine::Backend::Dx12
 		return &_shaderVisibleHandle;
 	}
 
-
-	UaBuffer::CreateUaDescriptorsTask::CreateUaDescriptorsTask(const std::shared_ptr<InitUaTaskContext>& context) : Task(context)
+	UaBuffer::InitUaTask::InitUaTask(const std::shared_ptr<InitUaTaskContext>& context) : Task(context)
 	{
 	}
 
-	void UaBuffer::CreateUaDescriptorsTask::Run(const std::shared_ptr<Core::BaseStream>& stream)
+	void UaBuffer::InitUaTask::Run(const std::shared_ptr<Core::BaseStream>& stream)
 	{
 		Task::Run(stream);
 
+		CreateUaBuffer();
+		CreateUaDescriptors();
+	}
+
+	void UaBuffer::InitUaTask::CreateUaBuffer()
+	{
+		const auto tc = GetTaskContext();
+		const auto sc = _specificStreamContext;
+		const auto ac = _specificAppContext;
+		const auto entity = tc->entity;
+
+		if (sc && ac && entity)
+		{
+			const auto byteSize = tc->settings.stride * tc->settings.elementsCount;
+			const auto heapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
+			auto resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(byteSize);
+			resourceDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
+
+			Microsoft::WRL::ComPtr<ID3D12Resource> bufferResource = nullptr;
+
+			ac->device->CreateCommittedResource(
+				&heapProperties,
+				D3D12_HEAP_FLAG_NONE,
+				&resourceDesc,
+				ResourceEntity::_defaultState,
+				nullptr,
+				IID_PPV_ARGS(&bufferResource));
+
+			assert(bufferResource);
+			entity->SetNativeResource(bufferResource, 0);
+		}
+	}
+
+	void UaBuffer::InitUaTask::CreateUaDescriptors()
+	{
 		const auto tc = GetTaskContext();
 		const auto sc = _specificStreamContext;
 		const auto ac = _specificAppContext;
@@ -277,27 +304,18 @@ namespace MMPEngine::Backend::Dx12
 
 			D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc;
 
-			uavDesc.Format = tc->isCounter ? DXGI_FORMAT_R32_UINT : DXGI_FORMAT_UNKNOWN;
+			uavDesc.Format = DXGI_FORMAT_UNKNOWN;
 			uavDesc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER;
 			uavDesc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_NONE;
 			uavDesc.Buffer.CounterOffsetInBytes = 0;
 			uavDesc.Buffer.FirstElement = 0;
-			uavDesc.Buffer.NumElements = tc->isCounter ? 1 : static_cast<std::uint32_t>(tc->settings.elementsCount);
+			uavDesc.Buffer.NumElements = static_cast<std::uint32_t>(tc->settings.elementsCount);
 			uavDesc.Buffer.StructureByteStride = static_cast<std::uint32_t>(tc->settings.stride);
-
-
-			const auto counter = tc->counter;
-			ID3D12Resource* counterPtr = nullptr;
-
-			if(counter)
-			{
-				counterPtr = counter->GetNativeResource().Get();
-			}
 
 
 			ac->device->CreateUnorderedAccessView(
 				entity->GetNativeResource().Get(),
-				counterPtr,
+				nullptr,
 				&uavDesc,
 				entity->_shaderVisibleHandle.GetCPUDescriptorHandle()
 			);
@@ -305,32 +323,14 @@ namespace MMPEngine::Backend::Dx12
 
 			ac->device->CreateUnorderedAccessView(
 				entity->GetNativeResource().Get(),
-				counterPtr,
+				nullptr,
 				&uavDesc,
 				entity->_shaderInVisibleHandle.GetCPUDescriptorHandle()
 			);
 		}
 	}
 
-	UaBuffer::InitUaTask::InitUaTask(const std::shared_ptr<InitUaTaskContext>& context) : Task(context)
-	{
-	}
 
-	void UaBuffer::InitUaTask::OnScheduled(const std::shared_ptr<Core::BaseStream>& stream)
-	{
-		Task::OnScheduled(stream);
-
-		const auto tc = GetTaskContext();
-		const auto initTaskContext = std::make_shared<InitTaskContext>();
-
-		initTaskContext->entity = tc->entity;
-		initTaskContext->byteSize = tc->settings.stride * tc->settings.elementsCount;
-		initTaskContext->unorderedAccess = true;
-		initTaskContext->heapType = D3D12_HEAP_TYPE_DEFAULT;
-
-		stream->Schedule(std::make_shared<InitTask>(initTaskContext));
-		stream->Schedule(std::make_shared<CreateUaDescriptorsTask>(tc));
-	}
 
 	UnorderedAccessBuffer::UnorderedAccessBuffer(const Settings& settings) : Core::UnorderedAccessBuffer(settings)
 	{
@@ -341,8 +341,7 @@ namespace MMPEngine::Backend::Dx12
 		const auto tc = std::make_shared<InitUaTaskContext>();
 		tc->entity = std::dynamic_pointer_cast<Dx12::UaBuffer>(shared_from_this());
 		tc->settings = _uaSettings;
-		tc->isCounter = false;
-		tc->counter = {};
+		tc->withCounter = false;
 
 		return std::make_shared<InitUaTask>(tc);
 	}
@@ -369,7 +368,6 @@ namespace MMPEngine::Backend::Dx12
 		const auto tc = std::make_shared<InitTaskContext>();
 		tc->entity = std::dynamic_pointer_cast<Dx12::Buffer>(shared_from_this());
 		tc->byteSize = _settings.byteLength;
-		tc->unorderedAccess = false;
 		tc->heapType = D3D12_HEAP_TYPE_DEFAULT;
 
 		return std::make_shared<InitTask>(tc);

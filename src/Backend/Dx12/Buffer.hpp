@@ -43,7 +43,6 @@ namespace MMPEngine::Backend::Dx12
 		{
 		public:
 			D3D12_HEAP_TYPE heapType = D3D12_HEAP_TYPE_DEFAULT;
-			bool unorderedAccess = false;
 			std::size_t byteSize = 0;
 		};
 
@@ -103,23 +102,18 @@ namespace MMPEngine::Backend::Dx12
 		class InitUaTaskContext : public Core::EntityTaskContext<UaBuffer>
 		{
 		public:
-			bool isCounter = false;
-			std::shared_ptr<UaBuffer> counter = {};
+			bool withCounter = false;
 			Core::BaseUnorderedAccessBuffer::Settings settings{};
-		};
-
-		class CreateUaDescriptorsTask : public Task<InitUaTaskContext>
-		{
-		public:
-			CreateUaDescriptorsTask(const std::shared_ptr<InitUaTaskContext>& context);
-			void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
 		};
 
 		class InitUaTask final : public Task<InitUaTaskContext>
 		{
 		public:
 			InitUaTask(const std::shared_ptr<InitUaTaskContext>& context);
-			void OnScheduled(const std::shared_ptr<Core::BaseStream>& stream) override;
+			void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
+		private:
+			void CreateUaBuffer();
+			void CreateUaDescriptors();
 		};
 	public:
 		const BaseDescriptorHeap::Handle* GetShaderInVisibleDescriptorHandle() const override;
