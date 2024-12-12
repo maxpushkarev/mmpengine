@@ -8,14 +8,14 @@ namespace MMPEngine::Frontend
 {
 	template<>
 	Buffer<Core::VertexBuffer, Core::InputAssemblerBuffer::Settings>::Buffer(const std::shared_ptr<Core::AppContext>& appContext, const Core::InputAssemblerBuffer::Settings& settings)
-		: Core::InputAssemblerBuffer(settings), Core::VertexBuffer(settings)
+		: Core::VertexBuffer(settings)
 	{
 		_impl = CreateImpl(appContext);
 	}
 
 	template<>
 	Buffer<Core::IndexBuffer, Core::InputAssemblerBuffer::Settings>::Buffer(const std::shared_ptr<Core::AppContext>& appContext, const Core::InputAssemblerBuffer::Settings& settings)
-		: Core::InputAssemblerBuffer(settings), Core::IndexBuffer(settings)
+		: Core::IndexBuffer(settings)
 	{
 		_impl = CreateImpl(appContext);
 	}
@@ -114,7 +114,7 @@ namespace MMPEngine::Frontend
 		return nullptr;
 	}
 
-	UploadBuffer::UploadBuffer(const std::shared_ptr<Core::AppContext>& appContext, const Settings& settings) : Core::BaseEntity(settings.name), Buffer(appContext, settings)
+	UploadBuffer::UploadBuffer(const std::shared_ptr<Core::AppContext>& appContext, const Settings& settings) : Buffer(appContext, settings)
 	{
 	}
 
@@ -123,7 +123,7 @@ namespace MMPEngine::Frontend
 		return _impl->CreateWriteTask(src, byteLength, byteOffset);
 	}
 
-	ReadBackBuffer::ReadBackBuffer(const std::shared_ptr<Core::AppContext>& appContext, const Settings& settings) : Core::BaseEntity(settings.name), Buffer(appContext, settings)
+	ReadBackBuffer::ReadBackBuffer(const std::shared_ptr<Core::AppContext>& appContext, const Settings& settings) : Buffer(appContext, settings)
 	{
 	}
 
@@ -132,19 +132,19 @@ namespace MMPEngine::Frontend
 		return _impl->CreateReadTask(dst, byteLength, byteOffset);
 	}
 
-	ResidentBuffer::ResidentBuffer(const std::shared_ptr<Core::AppContext>& appContext, const Settings& settings) : Core::BaseEntity(settings.name), Buffer(appContext, settings)
+	ResidentBuffer::ResidentBuffer(const std::shared_ptr<Core::AppContext>& appContext, const Settings& settings) : Buffer(appContext, settings)
 	{
 	}
 
-	UnorderedAccessBuffer::UnorderedAccessBuffer(const std::shared_ptr<Core::AppContext>& appContext, const Settings& settings) : Core::BaseEntity(settings.name), Buffer(appContext, settings)
+	UnorderedAccessBuffer::UnorderedAccessBuffer(const std::shared_ptr<Core::AppContext>& appContext, const Settings& settings) : Buffer(appContext, settings)
 	{
 	}
 
-	VertexBuffer::VertexBuffer(const std::shared_ptr<Core::AppContext>& appContext, const Settings& settings) : Core::BaseEntity(settings.base.name), Core::InputAssemblerBuffer(settings), Buffer(appContext, settings)
+	VertexBuffer::VertexBuffer(const std::shared_ptr<Core::AppContext>& appContext, const Settings& settings) : Buffer(appContext, settings)
 	{
 	}
 
-	IndexBuffer::IndexBuffer(const std::shared_ptr<Core::AppContext>& appContext, const Settings& settings) : Core::BaseEntity(settings.base.name), Core::InputAssemblerBuffer(settings), Buffer(appContext, settings)
+	IndexBuffer::IndexBuffer(const std::shared_ptr<Core::AppContext>& appContext, const Settings& settings) : Buffer(appContext, settings)
 	{
 	}
 }

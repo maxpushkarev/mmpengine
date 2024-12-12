@@ -1,5 +1,4 @@
 #include <Core/Buffer.hpp>
-#include <cmath>
 
 namespace MMPEngine::Core
 {
@@ -8,7 +7,7 @@ namespace MMPEngine::Core
 		return _settings;
 	}
 
-	Buffer::Buffer(const Settings& settings) : _settings(settings)
+	Buffer::Buffer(const Settings& settings) : BaseEntity(settings.name), _settings(settings)
 	{
 	}
 
@@ -51,11 +50,11 @@ namespace MMPEngine::Core
 	{
 	}
 
-	VertexBuffer::VertexBuffer(const Settings& settings)
+	VertexBuffer::VertexBuffer(const Settings& settings) : InputAssemblerBuffer(settings)
 	{
 	}
 
-	IndexBuffer::IndexBuffer(const Settings& settings)
+	IndexBuffer::IndexBuffer(const Settings& settings) : InputAssemblerBuffer(settings)
 	{
 	}
 

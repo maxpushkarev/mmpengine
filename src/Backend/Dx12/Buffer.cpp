@@ -57,11 +57,20 @@ namespace MMPEngine::Backend::Dx12
 		assert(srcBuffer);
 		assert(dstBuffer);
 
+		const auto srcNative = srcBuffer->GetNativeResource().Get();
+		const auto dstNative = dstBuffer->GetNativeResource().Get();
+
+		const auto srcNativeAddress = srcBuffer->GetNativeGPUAddress();
+		const auto dstNativeAddress = dstBuffer->GetNativeGPUAddress();
+
+		assert(srcNativeAddress >= srcNative->GetGPUVirtualAddress());
+		assert(dstNativeAddress >= dstNative->GetGPUVirtualAddress());
+
 		_specificStreamContext->PopulateCommandsInList()->CopyBufferRegion(
 			dstBuffer->GetNativeResource().Get(),
-			_taskContext->dstByteOffset,
+			static_cast<std::uint64_t>(_taskContext->dstByteOffset) + static_cast<std::uint64_t>(dstNativeAddress - dstNative->GetGPUVirtualAddress()),
 			srcBuffer->GetNativeResource().Get(),
-			_taskContext->srcByteOffset,
+			static_cast<std::uint64_t>(_taskContext->srcByteOffset) + static_cast<std::uint64_t>(srcNativeAddress - srcNative->GetGPUVirtualAddress()),
 			_taskContext->byteLength);
 		
 	}
@@ -71,7 +80,7 @@ namespace MMPEngine::Backend::Dx12
 		Task::OnComplete(stream);
 	}
 
-	UploadBuffer::UploadBuffer(const Settings& settings) : Core::BaseEntity(settings.name), Core::UploadBuffer(settings)
+	UploadBuffer::UploadBuffer(const Settings& settings) : Core::UploadBuffer(settings)
 	{
 	}
 
@@ -93,8 +102,8 @@ namespace MMPEngine::Backend::Dx12
 		std::size_t dstByteOffset) const
 	{
 		const auto context = std::make_shared<CopyBufferTaskContext>();
-		context->src = std::dynamic_pointer_cast<BaseEntity>(std::const_pointer_cast<Core::BaseEntity>(shared_from_this()));
-		context->dst = std::dynamic_pointer_cast<BaseEntity>(dst);
+		context->src = std::dynamic_pointer_cast<Dx12::BaseEntity>(std::const_pointer_cast<Core::BaseEntity>(shared_from_this()));
+		context->dst = std::dynamic_pointer_cast<Dx12::BaseEntity>(dst);
 		context->srcByteOffset = srcByteOffset;
 		context->dstByteOffset = dstByteOffset;
 		context->byteLength = byteLength;
@@ -114,7 +123,7 @@ namespace MMPEngine::Backend::Dx12
 	}
 
 
-	ReadBackBuffer::ReadBackBuffer(const Settings& settings) : Core::BaseEntity(settings.name), Core::ReadBackBuffer(settings)
+	ReadBackBuffer::ReadBackBuffer(const Settings& settings) : Core::ReadBackBuffer(settings)
 	{
 	}
 
@@ -147,8 +156,8 @@ namespace MMPEngine::Backend::Dx12
 		std::size_t dstByteOffset) const
 	{
 		const auto context = std::make_shared<CopyBufferTaskContext>();
-		context->src = std::dynamic_pointer_cast<BaseEntity>(std::const_pointer_cast<Core::BaseEntity>(shared_from_this()));
-		context->dst = std::dynamic_pointer_cast<BaseEntity>(dst);
+		context->src = std::dynamic_pointer_cast<Dx12::BaseEntity>(std::const_pointer_cast<Core::BaseEntity>(shared_from_this()));
+		context->dst = std::dynamic_pointer_cast<Dx12::BaseEntity>(dst);
 		context->srcByteOffset = srcByteOffset;
 		context->dstByteOffset = dstByteOffset;
 		context->byteLength = byteLength;
@@ -218,6 +227,7 @@ namespace MMPEngine::Backend::Dx12
 
 			Microsoft::WRL::ComPtr<ID3D12Resource> bufferResource = nullptr;
 
+			//TODO: save memory space by batching multiple resources into one (for example: constant buffers)
 			ac->device->CreateCommittedResource(
 				&heapProperties,
 				D3D12_HEAP_FLAG_NONE,
@@ -227,8 +237,7 @@ namespace MMPEngine::Backend::Dx12
 				IID_PPV_ARGS(&bufferResource));
 
 			assert(bufferResource);
-
-			entity->SetNativeResource(bufferResource);
+			entity->SetNativeResource(bufferResource, 0);
 
 			if (const auto mappedEntity = std::dynamic_pointer_cast<MappedBuffer>(entity))
 			{
@@ -380,7 +389,7 @@ namespace MMPEngine::Backend::Dx12
 		Task::OnComplete(stream);
 	}
 
-	UnorderedAccessBuffer::UnorderedAccessBuffer(const Settings& settings) : Core::BaseEntity(settings.name), Core::UnorderedAccessBuffer(settings)
+	UnorderedAccessBuffer::UnorderedAccessBuffer(const Settings& settings) : Core::UnorderedAccessBuffer(settings)
 	{
 	}
 
@@ -398,8 +407,8 @@ namespace MMPEngine::Backend::Dx12
 	std::shared_ptr<Core::BaseTask> UnorderedAccessBuffer::CreateCopyToBufferTask(const std::shared_ptr<Core::Buffer>& dst, std::size_t byteLength, std::size_t srcByteOffset, std::size_t dstByteOffset) const
 	{
 		const auto context = std::make_shared<CopyBufferTaskContext>();
-		context->src = std::dynamic_pointer_cast<BaseEntity>(std::const_pointer_cast<Core::BaseEntity>(shared_from_this()));
-		context->dst = std::dynamic_pointer_cast<BaseEntity>(dst);
+		context->src = std::dynamic_pointer_cast<Dx12::BaseEntity>(std::const_pointer_cast<Core::BaseEntity>(shared_from_this()));
+		context->dst = std::dynamic_pointer_cast<Dx12::BaseEntity>(dst);
 		context->srcByteOffset = srcByteOffset;
 		context->dstByteOffset = dstByteOffset;
 		context->byteLength = byteLength;
@@ -408,7 +417,7 @@ namespace MMPEngine::Backend::Dx12
 	}
 
 
-	ResidentBuffer::ResidentBuffer(const Settings& settings) : Core::BaseEntity(settings.name), Core::ResidentBuffer(settings)
+	ResidentBuffer::ResidentBuffer(const Settings& settings) : Core::ResidentBuffer(settings)
 	{
 	}
 
@@ -430,8 +439,8 @@ namespace MMPEngine::Backend::Dx12
 		std::size_t dstByteOffset) const
 	{
 		const auto context = std::make_shared<CopyBufferTaskContext>();
-		context->src = std::dynamic_pointer_cast<BaseEntity>(std::const_pointer_cast<Core::BaseEntity>(shared_from_this()));
-		context->dst = std::dynamic_pointer_cast<BaseEntity>(dst);
+		context->src = std::dynamic_pointer_cast<Dx12::BaseEntity>(std::const_pointer_cast<Core::BaseEntity>(shared_from_this()));
+		context->dst = std::dynamic_pointer_cast<Dx12::BaseEntity>(dst);
 		context->srcByteOffset = srcByteOffset;
 		context->dstByteOffset = dstByteOffset;
 		context->byteLength = byteLength;
@@ -440,65 +449,54 @@ namespace MMPEngine::Backend::Dx12
 	}
 
 
-	InputAssemblerBuffer::InputAssemblerBuffer(const Core::InputAssemblerBuffer::Settings& settings) : Core::InputAssemblerBuffer(settings)
+	InputAssemblerBuffer::InputAssemblerBuffer(const Core::InputAssemblerBuffer::Settings& settings) : _ia(settings.ia)
 	{
 		_upload = std::make_shared<UploadBuffer>(settings.base);
 		_resident = std::make_shared<ResidentBuffer>(settings.base);
 	}
 
-	std::shared_ptr<Core::BaseTask> InputAssemblerBuffer::CreateCopyToBufferTask(const std::shared_ptr<Core::Buffer>& dst, std::size_t byteLength, std::size_t srcByteOffset, std::size_t dstByteOffset) const
+	InputAssemblerBuffer::~InputAssemblerBuffer() = default;
+
+	VertexBuffer::VertexBuffer(const Core::InputAssemblerBuffer::Settings& settings) : Core::VertexBuffer(settings), Dx12::InputAssemblerBuffer(settings)
 	{
-		return _resident->CreateCopyToBufferTask(dst, byteLength, srcByteOffset, dstByteOffset);
 	}
 
-	std::shared_ptr<Core::Buffer> InputAssemblerBuffer::GetUnderlyingBuffer()
+	IndexBuffer::IndexBuffer(const Core::InputAssemblerBuffer::Settings& settings) : Core::IndexBuffer(settings), Dx12::InputAssemblerBuffer(settings)
 	{
-		return _resident;
 	}
 
-	std::shared_ptr<Core::BaseTask> InputAssemblerBuffer::CreateInitializationTask()
+	std::shared_ptr<Core::BaseTask> IndexBuffer::CreateInitializationTask()
 	{
 		const auto context = std::make_shared<TaskContext>();
 		context->entity = std::dynamic_pointer_cast<Dx12::InputAssemblerBuffer>(shared_from_this());
 		return std::make_shared<InitTask>(context);
 	}
 
-	VertexBuffer::VertexBuffer(const Core::InputAssemblerBuffer::Settings& settings) : Core::InputAssemblerBuffer(settings), Core::VertexBuffer(settings), InputAssemblerBuffer(settings)
-	{
-	}
-
-	IndexBuffer::IndexBuffer(const Core::InputAssemblerBuffer::Settings& settings) : Core::InputAssemblerBuffer(settings), Core::IndexBuffer(settings), InputAssemblerBuffer(settings)
-	{
-	}
-
-	std::shared_ptr<Core::BaseTask> IndexBuffer::CreateInitializationTask()
-	{
-		return InputAssemblerBuffer::CreateInitializationTask();
-	}
-
 	std::shared_ptr<Core::Buffer> IndexBuffer::GetUnderlyingBuffer()
 	{
-		return InputAssemblerBuffer::GetUnderlyingBuffer();
+		return _resident;
 	}
 
 	std::shared_ptr<Core::BaseTask> IndexBuffer::CreateCopyToBufferTask(const std::shared_ptr<Core::Buffer>& dst, std::size_t byteLength, std::size_t srcByteOffset, std::size_t dstByteOffset) const
 	{
-		return InputAssemblerBuffer::CreateCopyToBufferTask(dst, byteLength, srcByteOffset, dstByteOffset);
+		return _resident->CreateCopyToBufferTask(dst, byteLength, srcByteOffset, dstByteOffset);
 	}
 
 	std::shared_ptr<Core::BaseTask> VertexBuffer::CreateCopyToBufferTask(const std::shared_ptr<Core::Buffer>& dst, std::size_t byteLength, std::size_t srcByteOffset, std::size_t dstByteOffset) const
 	{
-		return InputAssemblerBuffer::CreateCopyToBufferTask(dst, byteLength, srcByteOffset, dstByteOffset);
+		return _resident->CreateCopyToBufferTask(dst, byteLength, srcByteOffset, dstByteOffset);
 	}
 
 	std::shared_ptr<Core::BaseTask> VertexBuffer::CreateInitializationTask()
 	{
-		return InputAssemblerBuffer::CreateInitializationTask();
+		const auto context = std::make_shared<TaskContext>();
+		context->entity = std::dynamic_pointer_cast<Dx12::InputAssemblerBuffer>(shared_from_this());
+		return std::make_shared<InitTask>(context);
 	}
 
 	std::shared_ptr<Core::Buffer> VertexBuffer::GetUnderlyingBuffer()
 	{
-		return InputAssemblerBuffer::GetUnderlyingBuffer();		
+		return _resident;
 	}
 
 	InputAssemblerBuffer::InitTask::InitTask(const std::shared_ptr<TaskContext>& context) : ContextualTask(context)
@@ -514,7 +512,7 @@ namespace MMPEngine::Backend::Dx12
 			stream->Schedule(entity->_upload->CreateInitializationTask());
 			stream->Schedule(entity->_resident->CreateInitializationTask());
 			stream->Schedule(Core::StreamBarrierTask::kInstance);
-			stream->Schedule(entity->_upload->CreateWriteTask(entity->_ia.rawData, entity->GetSettings().byteLength, 0));
+			stream->Schedule(entity->_upload->CreateWriteTask(entity->_ia.rawData, entity->_upload->GetSettings().byteLength, 0));
 			stream->Schedule(entity->_upload->CopyToBuffer(entity->_resident));
 			stream->Schedule(entity->_resident->CreateSwitchStateTask(D3D12_RESOURCE_STATE_GENERIC_READ));
 		}

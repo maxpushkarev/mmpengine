@@ -43,7 +43,7 @@ namespace MMPEngine::Backend::Dx12
 		Buffer(std::string_view name);
 		Buffer();
 
-		class InitTaskContext final : public EntityTaskContext<Buffer>
+		class InitTaskContext final : public Core::EntityTaskContext<Buffer>
 		{
 		public:
 			D3D12_HEAP_TYPE heapType = D3D12_HEAP_TYPE_DEFAULT;
@@ -108,7 +108,7 @@ namespace MMPEngine::Backend::Dx12
 	class UaBuffer : public Buffer
 	{
 	protected:
-		class InitUaTaskContext : public EntityTaskContext<UaBuffer>
+		class InitUaTaskContext : public Core::EntityTaskContext<UaBuffer>
 		{
 		public:
 			bool isCounter = false;
@@ -218,12 +218,18 @@ namespace MMPEngine::Backend::Dx12
 		std::shared_ptr<Core::BaseTask> CreateCopyToBufferTask(const std::shared_ptr<Core::Buffer>& dst, std::size_t byteLength, std::size_t srcByteOffset, std::size_t dstByteOffset) const override;
 	};
 
-	class InputAssemblerBuffer : public virtual Core::InputAssemblerBuffer
+	class InputAssemblerBuffer
 	{
+	public:
+		InputAssemblerBuffer(const InputAssemblerBuffer&) = delete;
+		InputAssemblerBuffer(InputAssemblerBuffer&&) noexcept = delete;
+		InputAssemblerBuffer& operator=(const InputAssemblerBuffer&) = delete;
+		InputAssemblerBuffer& operator=(InputAssemblerBuffer&&) noexcept = delete;
 	protected:
 		InputAssemblerBuffer(const Core::InputAssemblerBuffer::Settings& settings);
+		virtual ~InputAssemblerBuffer();
 
-		class TaskContext final : public EntityTaskContext<InputAssemblerBuffer>
+		class TaskContext final : public Core::EntityTaskContext<InputAssemblerBuffer>
 		{
 		};
 
@@ -235,14 +241,11 @@ namespace MMPEngine::Backend::Dx12
 			void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
 			void OnComplete(const std::shared_ptr<Core::BaseStream>& stream) override;
 		};
-
-	public:
-		std::shared_ptr<Core::Buffer> GetUnderlyingBuffer() override;
-		std::shared_ptr<Core::BaseTask> CreateCopyToBufferTask(const std::shared_ptr<Core::Buffer>& dst, std::size_t byteLength, std::size_t srcByteOffset, std::size_t dstByteOffset) const override;
-		std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;
 	protected:
 		std::shared_ptr<UploadBuffer> _upload;
 		std::shared_ptr<ResidentBuffer> _resident;
+	private:
+		Core::InputAssemblerBuffer::IASettings _ia;
 	};
 
 	class VertexBuffer final : public Core::VertexBuffer, public Dx12::InputAssemblerBuffer
@@ -254,7 +257,7 @@ namespace MMPEngine::Backend::Dx12
 		std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;
 	};
 
-	class IndexBuffer final : public Core::IndexBuffer, Dx12::InputAssemblerBuffer
+	class IndexBuffer final : public Core::IndexBuffer, public Dx12::InputAssemblerBuffer
 	{
 	public:
 		IndexBuffer(const Core::InputAssemblerBuffer::Settings& settings);
@@ -281,15 +284,13 @@ namespace MMPEngine::Backend::Dx12
 	};
 
 	template<class TConstantBufferData>
-	inline ConstantBuffer<TConstantBufferData>::ConstantBuffer(std::string_view name) : Core::BaseEntity(name),
-		Core::ConstantBuffer<TConstantBufferData>(Core::Buffer::Settings {GetRequiredSize(), std::string {name}})
+	inline ConstantBuffer<TConstantBufferData>::ConstantBuffer(std::string_view name) : Core::ConstantBuffer<TConstantBufferData>(Core::Buffer::Settings {GetRequiredSize(), std::string {name}})
 	{
 		_uploadBuffer = std::make_shared<UploadBuffer>(this->_settings);
 	}
 
 	template<class TConstantBufferData>
-	inline ConstantBuffer<TConstantBufferData>::ConstantBuffer() : Core::BaseEntity(""),
-		Core::ConstantBuffer<TConstantBufferData>(Core::Buffer::Settings {GetRequiredSize(), ""})
+	inline ConstantBuffer<TConstantBufferData>::ConstantBuffer() : Core::ConstantBuffer<TConstantBufferData>(Core::Buffer::Settings {GetRequiredSize(), ""})
 	{
 		_uploadBuffer = std::make_shared<UploadBuffer>(this->_settings);
 	}

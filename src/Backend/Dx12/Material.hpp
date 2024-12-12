@@ -142,13 +142,13 @@ namespace MMPEngine::Backend::Dx12
 						case Core::BaseMaterial::Parameters::Buffer::Type::UniformConstants:
 							_applyParametersCallbacks.emplace_back([nativeBuffer, index](const auto& ctx)
 							{
-								ctx->PopulateCommandsInList()->SetComputeRootConstantBufferView(static_cast<std::uint32_t>(index), nativeBuffer->GetNativeResource()->GetGPUVirtualAddress());
+								ctx->PopulateCommandsInList()->SetComputeRootConstantBufferView(static_cast<std::uint32_t>(index), nativeBuffer->GetNativeGPUAddress());
 							});
 							break;
 						case Core::BaseMaterial::Parameters::Buffer::Type::ReadonlyAccess:
 							_applyParametersCallbacks.emplace_back([nativeBuffer, index](const auto& ctx)
 							{
-								ctx->PopulateCommandsInList()->SetComputeRootShaderResourceView(static_cast<std::uint32_t>(index), nativeBuffer->GetNativeResource()->GetGPUVirtualAddress());
+								ctx->PopulateCommandsInList()->SetComputeRootShaderResourceView(static_cast<std::uint32_t>(index), nativeBuffer->GetNativeGPUAddress());
 							});
 							break;
 					}

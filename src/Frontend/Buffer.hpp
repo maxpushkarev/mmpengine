@@ -123,7 +123,7 @@ namespace MMPEngine::Frontend
 	};
 
 	template<class TConstantBufferData>
-	inline ConstantBuffer<TConstantBufferData>::ConstantBuffer(const std::shared_ptr<Core::AppContext>& appContext, std::string_view name) : Core::BaseEntity(name),
+	inline ConstantBuffer<TConstantBufferData>::ConstantBuffer(const std::shared_ptr<Core::AppContext>& appContext, std::string_view name) :
 		Core::ConstantBuffer<TConstantBufferData>(Core::Buffer::Settings {sizeof(TConstantBufferData), std::string {name}})
 	{
 		if (appContext->settings.backend == Core::BackendType::Dx12)
@@ -137,7 +137,7 @@ namespace MMPEngine::Frontend
 	}
 
 	template<class TConstantBufferData>
-	inline ConstantBuffer<TConstantBufferData>::ConstantBuffer(const std::shared_ptr<Core::AppContext>& appContext) : Core::BaseEntity(),
+	inline ConstantBuffer<TConstantBufferData>::ConstantBuffer(const std::shared_ptr<Core::AppContext>& appContext) :
 		Core::ConstantBuffer<TConstantBufferData>(Core::Buffer::Settings {sizeof(TConstantBufferData), ""})
 	{
 		if (appContext->settings.backend == Core::BackendType::Dx12)

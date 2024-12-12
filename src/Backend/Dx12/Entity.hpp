@@ -6,11 +6,19 @@
 
 namespace MMPEngine::Backend::Dx12
 {
-	class BaseEntity : public virtual Core::BaseEntity
+	class BaseEntity : public virtual std::enable_shared_from_this<Core::BaseEntity>
 	{
 	public:
+		BaseEntity();
+		BaseEntity(const BaseEntity&) = delete;
+		BaseEntity(BaseEntity&&) noexcept = delete;
+		BaseEntity& operator=(const BaseEntity&) = delete;
+		BaseEntity& operator=(BaseEntity&&) noexcept = delete;
+		virtual ~BaseEntity();
+
 		virtual std::shared_ptr<Core::BaseTask> CreateSwitchStateTask(D3D12_RESOURCE_STATES nextStateMask) = 0;
 		virtual Microsoft::WRL::ComPtr<ID3D12Resource> GetNativeResource() const = 0;
+		virtual D3D12_GPU_VIRTUAL_ADDRESS GetNativeGPUAddress() const = 0;
 		virtual const BaseDescriptorHeap::Handle* GetShaderVisibleDescriptorHandle() const;
 		virtual const BaseDescriptorHeap::Handle* GetShaderInVisibleDescriptorHandle() const;
 	};
@@ -22,7 +30,7 @@ namespace MMPEngine::Backend::Dx12
 		ResourceEntity();
 	public:
 
-		class SwitchStateTaskContext final : public EntityTaskContext<ResourceEntity>
+		class SwitchStateTaskContext final : public Core::EntityTaskContext<ResourceEntity>
 		{
 		public:
 			D3D12_RESOURCE_STATES nextStateMask;
@@ -36,14 +44,14 @@ namespace MMPEngine::Backend::Dx12
 			void OnComplete(const std::shared_ptr<Core::BaseStream>& stream) override;
 		};
 
-		virtual std::shared_ptr<Core::BaseTask> CreateSwitchStateTask(D3D12_RESOURCE_STATES nextStateMask) override;
+		std::shared_ptr<Core::BaseTask> CreateSwitchStateTask(D3D12_RESOURCE_STATES nextStateMask) override;
 		Microsoft::WRL::ComPtr<ID3D12Resource> GetNativeResource() const override;
+		D3D12_GPU_VIRTUAL_ADDRESS GetNativeGPUAddress() const override;
 	protected:
-		void SetNativeResource(const Microsoft::WRL::ComPtr<ID3D12Resource>& nativeResource);
+		void SetNativeResource(const Microsoft::WRL::ComPtr<ID3D12Resource>& nativeResource, std::uint32_t offsetInsideResource);
 		Microsoft::WRL::ComPtr<ID3D12Resource> _nativeResource;
+		std::uint32_t _offsetInsideResource = 0;
 		static constexpr auto _defaultState = D3D12_RESOURCE_STATE_COMMON;
-	private:
-		void SetUpNativeResourceName();
 	private:
 		D3D12_RESOURCE_STATES _currentStateMask = _defaultState;
 	};

@@ -5,21 +5,22 @@
 
 namespace MMPEngine::Core
 {
-	class BaseEntity : public IInitializationTaskSource, public INamed, public std::enable_shared_from_this<BaseEntity>
+	template<typename TEntity>
+	class EntityTaskContext : public TaskContext
+	{
+	public:
+		std::shared_ptr<TEntity> entity;
+	};
+
+	class BaseEntity : public IInitializationTaskSource, public INamed, public virtual std::enable_shared_from_this<BaseEntity>
 	{
 	protected:
 		BaseEntity(std::string_view name);
 		BaseEntity();
 		~BaseEntity() override;
 
-		template<typename TEntity>
-		class EntityTaskContext : public TaskContext
-		{
-		public:
-			std::shared_ptr<TEntity> entity;
-		};
-
 	public:
+
 		BaseEntity(const BaseEntity&) = delete;
 		BaseEntity(BaseEntity&&) noexcept = delete;
 		BaseEntity& operator=(const BaseEntity&) = delete;

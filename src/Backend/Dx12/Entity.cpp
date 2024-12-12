@@ -3,10 +3,13 @@
 
 namespace MMPEngine::Backend::Dx12
 {
+	BaseEntity::BaseEntity() = default;
+	BaseEntity::~BaseEntity() = default;
+
 
 	ResourceEntity::ResourceEntity() = default;
 
-	ResourceEntity::ResourceEntity(std::string_view name) : Core::BaseEntity(name)
+	ResourceEntity::ResourceEntity(std::string_view name)
 	{
 	}
 
@@ -18,13 +21,6 @@ namespace MMPEngine::Backend::Dx12
 	const BaseDescriptorHeap::Handle* BaseEntity::GetShaderVisibleDescriptorHandle() const
 	{
 		return nullptr;
-	}
-
-	void ResourceEntity::SetUpNativeResourceName()
-	{
-		const auto str = GetName();
-		std::wstring wName(std::begin(str), std::end(str));
-		_nativeResource->SetName(wName.c_str());
 	}
 
 	std::shared_ptr<Core::BaseTask> ResourceEntity::CreateSwitchStateTask(D3D12_RESOURCE_STATES nextStateMask)
@@ -40,10 +36,15 @@ namespace MMPEngine::Backend::Dx12
 		return _nativeResource;
 	}
 
-	void ResourceEntity::SetNativeResource(const Microsoft::WRL::ComPtr<ID3D12Resource>& nativeResource)
+	D3D12_GPU_VIRTUAL_ADDRESS ResourceEntity::GetNativeGPUAddress() const
+	{
+		return _nativeResource->GetGPUVirtualAddress() + static_cast<D3D12_GPU_VIRTUAL_ADDRESS>(_offsetInsideResource);
+	}
+
+	void ResourceEntity::SetNativeResource(const Microsoft::WRL::ComPtr<ID3D12Resource>& nativeResource, std::uint32_t offsetInsideResource)
 	{
 		_nativeResource = nativeResource;
-		SetUpNativeResourceName();
+		_offsetInsideResource = offsetInsideResource;
 	}
 
 

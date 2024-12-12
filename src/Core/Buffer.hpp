@@ -3,7 +3,7 @@
 
 namespace MMPEngine::Core
 {
-	class Buffer : public virtual BaseEntity
+	class Buffer : public BaseEntity
 	{
 	public:
 		struct Settings final
@@ -118,13 +118,13 @@ namespace MMPEngine::Core
 		IASettings _ia;
 	};
 
-	class VertexBuffer : public virtual InputAssemblerBuffer
+	class VertexBuffer : public InputAssemblerBuffer
 	{
 	protected:
 		VertexBuffer(const Settings& settings);
 	};
 
-	class IndexBuffer : public virtual InputAssemblerBuffer
+	class IndexBuffer : public InputAssemblerBuffer
 	{
 	protected:
 		IndexBuffer(const Settings& settings);
