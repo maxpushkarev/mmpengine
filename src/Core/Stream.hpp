@@ -95,8 +95,26 @@ namespace MMPEngine::Core
 	};
 
 	template<typename TAppContext, typename TStreamContext>
+	class AppStreamContextCache
+	{
+		static_assert(std::is_base_of_v<AppContext, TAppContext>, "TAppContext must be derived from AppContext");
+		static_assert(std::is_base_of_v<StreamContext, TStreamContext>, "TStreamContext must be derived from StreamContext");
+	protected:
+		void UpdateCache(const std::shared_ptr<BaseStream>& stream);
+		std::shared_ptr<TAppContext> _specificAppContext;
+		std::shared_ptr<TStreamContext> _specificStreamContext;
+	};
+
+	template<typename TAppContext, typename TStreamContext>
 	Stream<TAppContext, TStreamContext>::Stream(const std::shared_ptr<TAppContext>& appContext, const std::shared_ptr<TStreamContext>& streamContext)
 		: Core::BaseStream(appContext, streamContext), _specificAppContext(appContext), _specificStreamContext(streamContext)
 	{
+	}
+
+	template<typename TAppContext, typename TStreamContext>
+	inline void AppStreamContextCache<TAppContext, TStreamContext>::UpdateCache(const std::shared_ptr<BaseStream>& stream)
+	{
+		_specificAppContext = std::static_pointer_cast<TAppContext>(stream->GetAppContext());
+		_specificStreamContext = std::static_pointer_cast<TStreamContext>(stream->GetStreamContext());
 	}
 }

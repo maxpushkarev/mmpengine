@@ -9,14 +9,10 @@ namespace MMPEngine::Backend::Dx12
 	{
 	}
 
-	DirectComputeJob::InitTask::InitTask(const std::shared_ptr<InitContext>& ctx) : ContextualTask(ctx)
+	DirectComputeJob::InitTask::InitTask(const std::shared_ptr<InitContext>& ctx) : Task(ctx)
 	{
 	}
 
-	void DirectComputeJob::InitTask::OnScheduled(const std::shared_ptr<Core::BaseStream>& stream)
-	{
-		Task::OnScheduled(stream);
-	}
 
 	void DirectComputeJob::InitTask::Run(const std::shared_ptr<Core::BaseStream>& stream)
 	{
@@ -25,7 +21,7 @@ namespace MMPEngine::Backend::Dx12
 		const auto ac = _specificAppContext;
 		assert(ac);
 
-		const auto job = _taskContext->job;
+		const auto job = GetTaskContext()->job;
 		assert(job);
 		const auto cs = job->_material->GetShader();
 		assert(cs);
@@ -59,12 +55,7 @@ namespace MMPEngine::Backend::Dx12
 		castedDevice->CreatePipelineState(&streamDesc, IID_PPV_ARGS(&job->_pipelineState));
 	}
 
-	void DirectComputeJob::InitTask::OnComplete(const std::shared_ptr<Core::BaseStream>& stream)
-	{
-		Task::OnComplete(stream);
-	}
-
-	DirectComputeJob::ExecutionTask::ExecutionTask(const std::shared_ptr<ExecutionContext>& ctx) : ContextualTask(ctx), _executionContext(ctx)
+	DirectComputeJob::ExecutionTask::ExecutionTask(const std::shared_ptr<ExecutionContext>& ctx) : Task(ctx), _executionContext(ctx)
 	{
 		_applyMaterial = ctx->job->_material->CreateTaskForApply();
 		_setPipelineState = std::make_shared<SetPipelineState>(ctx);
@@ -76,67 +67,37 @@ namespace MMPEngine::Backend::Dx12
 	{
 		Task::OnScheduled(stream);
 
-		_setDescriptorHeaps->GetContext()->FillDescriptors(_specificAppContext);
+		_setDescriptorHeaps->GetTaskContext()->FillDescriptors(_specificAppContext);
 		stream->Schedule(_setDescriptorHeaps);
 		stream->Schedule(_setPipelineState);
 		stream->Schedule(_applyMaterial);
 		stream->Schedule(_dispatch);
 	}
 
-	void DirectComputeJob::ExecutionTask::Run(const std::shared_ptr<Core::BaseStream>& stream)
+	DirectComputeJob::ExecutionTask::SetPipelineState::SetPipelineState(const std::shared_ptr<ExecutionContext>& ctx) : Task(ctx)
 	{
-		Task::Run(stream);
-	}
-
-	void DirectComputeJob::ExecutionTask::OnComplete(const std::shared_ptr<Core::BaseStream>& stream)
-	{
-		Task::OnComplete(stream);
-	}
-
-	DirectComputeJob::ExecutionTask::SetPipelineState::SetPipelineState(const std::shared_ptr<ExecutionContext>& ctx) : ContextualTask(ctx)
-	{
-	}
-
-	void DirectComputeJob::ExecutionTask::SetPipelineState::OnScheduled(const std::shared_ptr<Core::BaseStream>& stream)
-	{
-		Task::OnScheduled(stream);
 	}
 
 	void DirectComputeJob::ExecutionTask::SetPipelineState::Run(const std::shared_ptr<Core::BaseStream>& stream)
 	{
 		Task::Run(stream);
 
-		if (const auto job = _taskContext->job)
+		if (const auto job = GetTaskContext()->job)
 		{
 			_specificStreamContext->PopulateCommandsInList()->SetPipelineState(job->_pipelineState.Get());
 			_specificStreamContext->PopulateCommandsInList()->SetComputeRootSignature(job->_rootSignature.Get());
 		}
 	}
 
-	void DirectComputeJob::ExecutionTask::SetPipelineState::OnComplete(const std::shared_ptr<Core::BaseStream>& stream)
+	DirectComputeJob::ExecutionTask::Dispatch::Dispatch(const std::shared_ptr<ExecutionContext>& ctx) : Task(ctx)
 	{
-		Task::OnComplete(stream);
-	}
-
-	DirectComputeJob::ExecutionTask::Dispatch::Dispatch(const std::shared_ptr<ExecutionContext>& ctx) : ContextualTask(ctx)
-	{
-	}
-
-	void DirectComputeJob::ExecutionTask::Dispatch::OnScheduled(const std::shared_ptr<Core::BaseStream>& stream)
-	{
-		Task::OnScheduled(stream);
 	}
 
 	void DirectComputeJob::ExecutionTask::Dispatch::Run(const std::shared_ptr<Core::BaseStream>& stream)
 	{
 		Task::Run(stream);
-		const auto& dim = _taskContext->dimensions;
+		const auto& dim = GetTaskContext()->dimensions;
 		_specificStreamContext->PopulateCommandsInList()->Dispatch(dim.x, dim.y, dim.z);
-	}
-
-	void DirectComputeJob::ExecutionTask::Dispatch::OnComplete(const std::shared_ptr<Core::BaseStream>& stream)
-	{
-		Task::OnComplete(stream);
 	}
 
 	std::shared_ptr<Core::BaseTask> DirectComputeJob::CreateInitializationTask()

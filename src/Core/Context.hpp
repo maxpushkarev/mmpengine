@@ -66,4 +66,32 @@ typedef HWND NativeWindow;
 	class TaskContext : public Context
 	{
 	};
+
+	template<typename TTaskContext>
+	class TaskContextHolder
+	{
+		static_assert(std::is_base_of_v<TaskContext, TTaskContext>, "TTaskContext must be derived from TaskContext");
+	protected:
+		TaskContextHolder(const std::shared_ptr<TTaskContext>& taskContext);
+	public:
+		std::shared_ptr<TTaskContext> GetTaskContext() const;
+	private:
+		std::shared_ptr<TTaskContext> _taskContext;
+	};
+
+	template <typename TTaskContext>
+	inline TaskContextHolder<TTaskContext>::TaskContextHolder(const std::shared_ptr<TTaskContext>& taskContext) : _taskContext(taskContext)
+	{
+	}
+
+	template <typename TTaskContext>
+	std::shared_ptr<TTaskContext> TaskContextHolder<TTaskContext>::GetTaskContext() const
+	{
+		return _taskContext;
+	}
+
+	template<>
+	class TaskContextHolder<void>
+	{
+	};
 }

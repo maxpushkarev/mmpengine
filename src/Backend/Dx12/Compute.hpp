@@ -8,7 +8,6 @@ namespace MMPEngine::Backend::Dx12
 	class DirectComputeJob final : public Core::DirectComputeJob, public Dx12::Job
 	{
 	private:
-
 		class InitContext final : public Core::TaskContext
 		{
 		public:
@@ -21,42 +20,34 @@ namespace MMPEngine::Backend::Dx12
 			std::shared_ptr<DirectComputeJob> job;
 		};
 
-		class InitTask final : public Task, public Core::ContextualTask<InitContext>
+		class InitTask final : public Task<InitContext>
 		{
 		public:
 			InitTask(const std::shared_ptr<InitContext>& ctx);
-			void OnScheduled(const std::shared_ptr<Core::BaseStream>& stream) override;
 			void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
-			void OnComplete(const std::shared_ptr<Core::BaseStream>& stream) override;
 		};
 
-		class ExecutionTask final : public Task, public Core::ContextualTask<Core::DirectComputeContext>
+		class ExecutionTask final : public Task<Core::DirectComputeContext>
 		{
 		private:
-			class SetPipelineState final : public Task, public Core::ContextualTask<ExecutionContext>
+			class SetPipelineState final : public Task<ExecutionContext>
 			{
 			public:
 				SetPipelineState(const std::shared_ptr<ExecutionContext>& ctx);
-				void OnScheduled(const std::shared_ptr<Core::BaseStream>& stream) override;
 				void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
-				void OnComplete(const std::shared_ptr<Core::BaseStream>& stream) override;
 			};
 
-			class Dispatch final : public Task, public Core::ContextualTask<ExecutionContext>
+			class Dispatch final : public Task<ExecutionContext>
 			{
 			public:
 				Dispatch(const std::shared_ptr<ExecutionContext>& ctx);
-				void OnScheduled(const std::shared_ptr<Core::BaseStream>& stream) override;
 				void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
-				void OnComplete(const std::shared_ptr<Core::BaseStream>& stream) override;
 			};
 
 
 		public:
 			ExecutionTask(const std::shared_ptr<ExecutionContext>& ctx);
 			void OnScheduled(const std::shared_ptr<Core::BaseStream>& stream) override;
-			void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
-			void OnComplete(const std::shared_ptr<Core::BaseStream>& stream) override;
 		private:
 			std::shared_ptr<ExecutionContext> _executionContext;
 			std::shared_ptr<BindDescriptorHeapsTask> _setDescriptorHeaps;

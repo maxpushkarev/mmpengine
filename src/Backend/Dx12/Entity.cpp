@@ -48,35 +48,25 @@ namespace MMPEngine::Backend::Dx12
 	}
 
 
-	ResourceEntity::SwitchStateTask::SwitchStateTask(const std::shared_ptr<SwitchStateTaskContext>& context) : ContextualTask(context)
+	ResourceEntity::SwitchStateTask::SwitchStateTask(const std::shared_ptr<SwitchStateTaskContext>& context) : Task(context)
 	{
-	}
-
-	void ResourceEntity::SwitchStateTask::OnScheduled(const std::shared_ptr<Core::BaseStream>& stream)
-	{
-		Task::OnScheduled(stream);
 	}
 
 	void ResourceEntity::SwitchStateTask::Run(const std::shared_ptr<Core::BaseStream>& stream)
 	{
 		Task::Run(stream);
 
-		if(const auto entity = _taskContext->entity)
+		if(const auto tc = GetTaskContext() ; const auto entity = tc->entity)
 		{
-			if((entity->_currentStateMask & _taskContext->nextStateMask) != _taskContext->nextStateMask)
+			if((entity->_currentStateMask & tc->nextStateMask) != tc->nextStateMask)
 			{
 				const D3D12_RESOURCE_BARRIER transitions[] = {
-					CD3DX12_RESOURCE_BARRIER::Transition(entity->GetNativeResource().Get(),  entity->_currentStateMask, _taskContext->nextStateMask)
+					CD3DX12_RESOURCE_BARRIER::Transition(entity->GetNativeResource().Get(),  entity->_currentStateMask, tc->nextStateMask)
 				};
 
 				_specificStreamContext->PopulateCommandsInList()->ResourceBarrier(static_cast<std::uint32_t>(std::size(transitions)), transitions);
-				entity->_currentStateMask = _taskContext->nextStateMask;
+				entity->_currentStateMask = tc->nextStateMask;
 			}
 		}
-	}
-
-	void ResourceEntity::SwitchStateTask::OnComplete(const std::shared_ptr<Core::BaseStream>& stream)
-	{
-		Task::OnComplete(stream);
 	}
 }

@@ -26,15 +26,15 @@ namespace MMPEngine::Core
 	}
 
 
-	Shader::LoadCompiledShaderFile::LoadCompiledShaderFile(const std::shared_ptr<InitTaskContext>& ctx) : ContextualTask(ctx)
+	Shader::LoadCompiledShaderFile::LoadCompiledShaderFile(const std::shared_ptr<InitTaskContext>& ctx) : ContextualTask<MMPEngine::Core::Shader::InitTaskContext>(ctx)
 	{
 	}
 
 	void Shader::LoadCompiledShaderFile::Run(const std::shared_ptr<BaseStream>& stream)
 	{
-		ContextualTask::Run(stream);
+		BaseTask::Run(stream);
 
-		if (const auto shader = _taskContext->shader)
+		if (const auto shader = GetTaskContext()->shader)
 		{
 			assert(std::filesystem::exists(shader->_path));
 
@@ -52,9 +52,9 @@ namespace MMPEngine::Core
 
 	void Shader::LoadCompiledShaderFile::OnComplete(const std::shared_ptr<BaseStream>& stream)
 	{
-		ContextualTask::OnComplete(stream);
+		BaseTask::OnComplete(stream);
 
-		if(const auto shader = _taskContext->shader)
+		if(const auto shader = GetTaskContext()->shader)
 		{
 			std::filesystem::path p {};
 			shader->_path.swap(p);

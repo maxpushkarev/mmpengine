@@ -4,7 +4,15 @@
 
 namespace MMPEngine::Backend::Dx12
 {
-	class Task : public Core::ExternalContextSpecificTask<AppContext, StreamContext>
+	template<typename TTaskContext>
+	class Task : public Core::ContextHolderTask<AppContext, StreamContext, TTaskContext>
+	{
+	protected:
+		Task(const std::shared_ptr<TTaskContext>& taskContext);
+	};
+
+	template<>
+	class Task<void> : public Core::ContextHolderTask<AppContext, StreamContext, void>
 	{
 	protected:
 		Task();
@@ -17,14 +25,19 @@ namespace MMPEngine::Backend::Dx12
 		void FillDescriptors(const std::shared_ptr<AppContext>& ac);
 	};
 
-	class BindDescriptorHeapsTask : public Task, public Core::ContextualTask<BindDescriptorHeapsTaskContext>
+	class BindDescriptorHeapsTask : public Task<BindDescriptorHeapsTaskContext>
 	{
 	public:
 		BindDescriptorHeapsTask(const std::shared_ptr<BindDescriptorHeapsTaskContext>& ctx);
-		void OnScheduled(const std::shared_ptr<Core::BaseStream>& stream) override;
 		void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
-		void OnComplete(const std::shared_ptr<Core::BaseStream>& stream) override;
 	private:
 		std::vector<ID3D12DescriptorHeap*> _nativeHeaps;
 	};
+
+	template <typename TTaskContext>
+	Task<TTaskContext>::Task(const std::shared_ptr<TTaskContext>& taskContext) : Core::ContextHolderTask<AppContext, StreamContext, TTaskContext>(taskContext)
+	{
+	}
+
+
 }

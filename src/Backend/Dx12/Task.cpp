@@ -2,7 +2,7 @@
 
 namespace MMPEngine::Backend::Dx12
 {
-	Task::Task() = default;
+	Task<void>::Task() = default;
 
 	void BindDescriptorHeapsTaskContext::FillDescriptors(const std::shared_ptr<AppContext>& ac)
 	{
@@ -12,13 +12,8 @@ namespace MMPEngine::Backend::Dx12
 		descriptorHeaps.push_back(ac->rtvHeap);
 	}
 
-	BindDescriptorHeapsTask::BindDescriptorHeapsTask(const std::shared_ptr<BindDescriptorHeapsTaskContext>& ctx) : ContextualTask(ctx)
+	BindDescriptorHeapsTask::BindDescriptorHeapsTask(const std::shared_ptr<BindDescriptorHeapsTaskContext>& ctx) : Task(ctx)
 	{
-	}
-
-	void BindDescriptorHeapsTask::OnScheduled(const std::shared_ptr<Core::BaseStream>& stream)
-	{
-		Task::OnScheduled(stream);
 	}
 
 	void BindDescriptorHeapsTask::Run(const std::shared_ptr<Core::BaseStream>& stream)
@@ -26,7 +21,7 @@ namespace MMPEngine::Backend::Dx12
 		Task::Run(stream);
 		_nativeHeaps.clear();
 
-		for(const auto& h : _taskContext->descriptorHeaps)
+		for(const auto& h : GetTaskContext()->descriptorHeaps)
 		{
 			h->CollectNativeBlocks(_nativeHeaps);
 		}
@@ -35,11 +30,6 @@ namespace MMPEngine::Backend::Dx12
 			static_cast<std::uint32_t>(_nativeHeaps.size()),
 			_nativeHeaps.data()
 		);
-	}
-
-	void BindDescriptorHeapsTask::OnComplete(const std::shared_ptr<Core::BaseStream>& stream)
-	{
-		Task::OnComplete(stream);
 	}
 
 }

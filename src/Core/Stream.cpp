@@ -3,6 +3,7 @@
 #include <Core/Task.hpp>
 #include <Core/Text.hpp>
 #include <Core/Context.hpp>
+#include <cassert>
 
 namespace MMPEngine::Core
 {

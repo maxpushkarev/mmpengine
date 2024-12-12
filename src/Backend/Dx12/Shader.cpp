@@ -1,4 +1,5 @@
 #include <Backend/Dx12/Shader.hpp>
+#include <cassert>
 
 namespace MMPEngine::Backend::Dx12
 {

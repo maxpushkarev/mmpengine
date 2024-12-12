@@ -15,22 +15,18 @@ namespace MMPEngine::Backend::Dx12
 		std::size_t dstByteOffset = 0;
 	};
 
-	class CopyBufferTask final : public Task, public Core::ContextualTask<CopyBufferTaskContext>
+	class CopyBufferTask final : public Task<CopyBufferTaskContext>
 	{
 	private:
-		class Impl final : public Task, public Core::ContextualTask<CopyBufferTaskContext>
+		class Impl final : public Task<CopyBufferTaskContext>
 		{
 		public:
 			Impl(const std::shared_ptr<CopyBufferTaskContext>& context);
-			void OnScheduled(const std::shared_ptr<Core::BaseStream>& stream) override;
 			void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
-			void OnComplete(const std::shared_ptr<Core::BaseStream>& stream) override;
 		};
 	public:
 		CopyBufferTask(const std::shared_ptr<CopyBufferTaskContext>& context);
 		void OnScheduled(const std::shared_ptr<Core::BaseStream>& stream) override;
-		void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
-		void OnComplete(const std::shared_ptr<Core::BaseStream>& stream) override;
 	private:
 		std::shared_ptr<BaseTask> _switchSrcStateTask;
 		std::shared_ptr<BaseTask> _switchDstStateTask;
@@ -51,22 +47,18 @@ namespace MMPEngine::Backend::Dx12
 			std::size_t byteSize = 0;
 		};
 
-		class CreateBufferTask : public Task, public Core::ContextualTask<InitTaskContext>
+		class CreateBufferTask : public Task<InitTaskContext>
 		{
 		public:
 			CreateBufferTask(const std::shared_ptr<InitTaskContext>& context);
-			void OnScheduled(const std::shared_ptr<Core::BaseStream>& stream) override;
 			void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
-			void OnComplete(const std::shared_ptr<Core::BaseStream>& stream) override;
 		};
 
-		class InitTask final : public Task, public Core::ContextualTask<InitTaskContext>
+		class InitTask final : public Task<InitTaskContext>
 		{
 		public:
 			InitTask(const std::shared_ptr<InitTaskContext>& context);
 			void OnScheduled(const std::shared_ptr<Core::BaseStream>& stream) override;
-			void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
-			void OnComplete(const std::shared_ptr<Core::BaseStream>& stream) override;
 		};
 	};
 
@@ -116,22 +108,18 @@ namespace MMPEngine::Backend::Dx12
 			Core::BaseUnorderedAccessBuffer::Settings settings{};
 		};
 
-		class CreateUaDescriptorsTask : public Task, public Core::ContextualTask<InitUaTaskContext>
+		class CreateUaDescriptorsTask : public Task<InitUaTaskContext>
 		{
 		public:
 			CreateUaDescriptorsTask(const std::shared_ptr<InitUaTaskContext>& context);
-			void OnScheduled(const std::shared_ptr<Core::BaseStream>& stream) override;
 			void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
-			void OnComplete(const std::shared_ptr<Core::BaseStream>& stream) override;
 		};
 
-		class InitUaTask final : public Task, public Core::ContextualTask<InitUaTaskContext>
+		class InitUaTask final : public Task<InitUaTaskContext>
 		{
 		public:
 			InitUaTask(const std::shared_ptr<InitUaTaskContext>& context);
 			void OnScheduled(const std::shared_ptr<Core::BaseStream>& stream) override;
-			void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
-			void OnComplete(const std::shared_ptr<Core::BaseStream>& stream) override;
 		};
 	public:
 		const BaseDescriptorHeap::Handle* GetShaderInVisibleDescriptorHandle() const override;
@@ -157,16 +145,14 @@ namespace MMPEngine::Backend::Dx12
 		public:
 			std::shared_ptr<UploadBuffer> uploadBuffer;
 		};
-		class WriteTask final : public Task, public Core::ContextualTask<Core::UploadBuffer::WriteTaskContext>
+		class WriteTask final : public Task<Core::UploadBuffer::WriteTaskContext>
 		{
 		private:
-			class Impl final : public Task, public MappedBufferTask, public Core::ContextualTask<WriteTaskContext>
+			class Impl final : public MappedBufferTask, public Task<WriteTaskContext>
 			{
 			public:
 				Impl(const std::shared_ptr<WriteTaskContext>& context);
-				void OnScheduled(const std::shared_ptr<Core::BaseStream>& stream) override;
 				void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
-				void OnComplete(const std::shared_ptr<Core::BaseStream>& stream) override;
 			};
 			std::shared_ptr<BaseTask> _prepareStateTask;
 			std::shared_ptr<BaseTask> _implTask;
@@ -174,8 +160,6 @@ namespace MMPEngine::Backend::Dx12
 		public:
 			WriteTask(const std::shared_ptr<WriteTaskContext>& context);
 			void OnScheduled(const std::shared_ptr<Core::BaseStream>& stream) override;
-			void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
-			void OnComplete(const std::shared_ptr<Core::BaseStream>& stream) override;
 		};
 	public:
 		UploadBuffer(const Settings& settings);
@@ -192,24 +176,20 @@ namespace MMPEngine::Backend::Dx12
 		public:
 			std::shared_ptr<ReadBackBuffer> readBackBuffer;
 		};
-		class ReadTask final : public Task, public Core::ContextualTask<Core::ReadBackBuffer::ReadTaskContext>
+		class ReadTask final : public Task<Core::ReadBackBuffer::ReadTaskContext>
 		{
 		private:
-			class Impl final : public Task, public MappedBufferTask, public Core::ContextualTask<ReadTaskContext>
+			class Impl final : public MappedBufferTask, public Task<ReadTaskContext>
 			{
 			public:
 				Impl(const std::shared_ptr<ReadTaskContext>& context);
-				void OnScheduled(const std::shared_ptr<Core::BaseStream>& stream) override;
 				void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
-				void OnComplete(const std::shared_ptr<Core::BaseStream>& stream) override;
 			};
 			std::shared_ptr<BaseTask> _prepareStateTask;
 			std::shared_ptr<BaseTask> _implTask;
 		public:
 			ReadTask(const std::shared_ptr<ReadTaskContext>& context);
 			void OnScheduled(const std::shared_ptr<Core::BaseStream>& stream) override;
-			void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
-			void OnComplete(const std::shared_ptr<Core::BaseStream>& stream) override;
 		};
 	public:
 		ReadBackBuffer(const Settings& settings);
@@ -233,12 +213,11 @@ namespace MMPEngine::Backend::Dx12
 		{
 		};
 
-		class InitTask final : public Task, public Core::ContextualTask<TaskContext>
+		class InitTask final : public Task<TaskContext>
 		{
 		public:
 			InitTask(const std::shared_ptr<TaskContext>& context);
 			void OnScheduled(const std::shared_ptr<Core::BaseStream>& stream) override;
-			void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
 			void OnComplete(const std::shared_ptr<Core::BaseStream>& stream) override;
 		};
 	protected:

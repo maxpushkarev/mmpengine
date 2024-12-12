@@ -29,33 +29,26 @@ namespace MMPEngine::Backend::Dx12
 			std::shared_ptr<Material> materialPtr;
 		};
 
-		class ApplyParametersTask : public Task, public Core::ContextualTask<ApplyMaterialTaskContext>
+		class ApplyParametersTask : public Task<ApplyMaterialTaskContext>
 		{
 		private:
-
-			class SwitchState final : public Task, public Core::ContextualTask<ApplyMaterialTaskContext>
+			class SwitchState final : public Task<ApplyMaterialTaskContext>
 			{
 			public:
 				SwitchState(const std::shared_ptr<ApplyMaterialTaskContext>& context);
 				void OnScheduled(const std::shared_ptr<Core::BaseStream>& stream) override;
-				void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
-				void OnComplete(const std::shared_ptr<Core::BaseStream>& stream) override;
 			};
 
-			class Apply final : public Task, public Core::ContextualTask<ApplyMaterialTaskContext>
+			class Apply final : public Task<ApplyMaterialTaskContext>
 			{
 			public:
 				Apply(const std::shared_ptr<ApplyMaterialTaskContext>& context);
-				void OnScheduled(const std::shared_ptr<Core::BaseStream>& stream) override;
 				void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
-				void OnComplete(const std::shared_ptr<Core::BaseStream>& stream) override;
 			};
 
 		public:
 			ApplyParametersTask(const std::shared_ptr<ApplyMaterialTaskContext>& context);
 			void OnScheduled(const std::shared_ptr<Core::BaseStream>& stream) override;
-			void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
-			void OnComplete(const std::shared_ptr<Core::BaseStream>& stream) override;
 
 		private:
 			std::shared_ptr<Core::BaseTask> _switchState;
@@ -86,13 +79,11 @@ namespace MMPEngine::Backend::Dx12
 			const Core::BaseMaterial::Parameters* params;
 		};
 
-		class ParametersUpdatedTask : public Task, public Core::ContextualTask<ParametersUpdatedTaskContext>
+		class ParametersUpdatedTask : public Task<ParametersUpdatedTaskContext>
 		{
 		public:
 			ParametersUpdatedTask(const std::shared_ptr<ParametersUpdatedTaskContext>& context);
-			void OnScheduled(const std::shared_ptr<Core::BaseStream>& stream) override;
 			void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
-			void OnComplete(const std::shared_ptr<Core::BaseStream>& stream) override;
 		};
 
 		void OnParametersUpdated(const std::shared_ptr<AppContext>& appContext, const Core::BaseMaterial::Parameters& params);
@@ -175,29 +166,18 @@ namespace MMPEngine::Backend::Dx12
 	}
 
 	template<class TCoreMaterial>
-	inline MaterialImpl<TCoreMaterial>::ParametersUpdatedTask::ParametersUpdatedTask(const std::shared_ptr<ParametersUpdatedTaskContext>& context) : Core::ContextualTask<ParametersUpdatedTaskContext>(context)
+	inline MaterialImpl<TCoreMaterial>::ParametersUpdatedTask::ParametersUpdatedTask(const std::shared_ptr<ParametersUpdatedTaskContext>& context) : Task<ParametersUpdatedTaskContext>(context)
 	{
 	}
 
-	template<class TCoreMaterial>
-	inline void MaterialImpl<TCoreMaterial>::ParametersUpdatedTask::OnScheduled(const std::shared_ptr<Core::BaseStream>& stream)
-	{
-		Task::OnScheduled(stream);
-	}
 
 	template<class TCoreMaterial>
 	inline void MaterialImpl<TCoreMaterial>::ParametersUpdatedTask::Run(const std::shared_ptr<Core::BaseStream>& stream)
 	{
-		Task::Run(stream);
-		if (const auto matImpl = this->_taskContext->materialImplPtr)
+		Task<ParametersUpdatedTaskContext>::Run(stream);
+		if (const auto tc = this->GetTaskContext() ; const auto matImpl = tc->materialImplPtr)
 		{
-			matImpl->OnParametersUpdated(_specificAppContext, *this->_taskContext->params);
+			matImpl->OnParametersUpdated(this->_specificAppContext, *tc->params);
 		}
-	}
-
-	template<class TCoreMaterial>
-	inline void MaterialImpl<TCoreMaterial>::ParametersUpdatedTask::OnComplete(const std::shared_ptr<Core::BaseStream>& stream)
-	{
-		Task::OnComplete(stream);
 	}
 }

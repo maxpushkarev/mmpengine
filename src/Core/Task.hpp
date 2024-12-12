@@ -1,5 +1,4 @@
 #pragma once
-#include <cassert>
 #include <memory>
 #include <Core/Context.hpp>
 #include <Core/Stream.hpp>
@@ -36,71 +35,82 @@ namespace MMPEngine::Core
 		static std::shared_ptr<StreamBarrierTask> kInstance;
 	};
 
-	template<typename TAppContext, typename TStreamContext>
-	class ExternalContextSpecificTask : public virtual BaseTask
+	template<typename TTaskContext>
+	class ContextualTask : public BaseTask, public TaskContextHolder<TTaskContext>
 	{
-		static_assert(std::is_base_of_v<AppContext, TAppContext>, "TAppContext must be derived from AppContext");
-		static_assert(std::is_base_of_v<StreamContext, TStreamContext>, "TStreamContext must be derived from StreamContext");
-	public:
+	protected:
+		ContextualTask(const std::shared_ptr<TTaskContext>& taskContext);
+	};
+
+	template<typename TTaskContext>
+	inline ContextualTask<TTaskContext>::ContextualTask(const std::shared_ptr<TTaskContext>& taskContext) : TaskContextHolder<TTaskContext>(taskContext)
+	{
+	}
+
+	template<typename TAppContext, typename TStreamContext, typename TTaskContext>
+	class ContextHolderTask : public AppStreamContextCache<TAppContext, TStreamContext>, public ContextualTask<TTaskContext>
+	{
+	protected:
+		ContextHolderTask(const std::shared_ptr<TTaskContext>& taskContext);
 		void OnScheduled(const std::shared_ptr<BaseStream>& stream) override;
 		void Run(const std::shared_ptr<BaseStream>& stream) override;
 		void OnComplete(const std::shared_ptr<BaseStream>& stream) override;
-	private:
-		void UpdateCache(const std::shared_ptr<BaseStream>& stream);
-	protected:
-		std::shared_ptr<TAppContext> _specificAppContext;
-		std::shared_ptr<TStreamContext> _specificStreamContext;
 	};
 
-
-	template<typename TTaskContext>
-	class ContextualTask : public virtual BaseTask
+	template<typename TAppContext, typename TStreamContext, typename TTaskContext>
+	inline ContextHolderTask<TAppContext, TStreamContext, TTaskContext>::ContextHolderTask(const std::shared_ptr<TTaskContext>& taskContext) : ContextualTask<TTaskContext>(taskContext)
 	{
-		static_assert(std::is_base_of_v<TaskContext, TTaskContext>, "TTaskContext must be derived from TaskContext");
-	protected:
-		ContextualTask(const std::shared_ptr<TTaskContext>& innerContext);
-		std::shared_ptr<TTaskContext> _taskContext;
-	public:
-		std::shared_ptr<TTaskContext> GetContext() const;
-	};
+	}
 
-	template<typename TAppContext, typename TStreamContext>
-	inline void ExternalContextSpecificTask<TAppContext, TStreamContext>::OnScheduled(const std::shared_ptr<BaseStream>& stream)
+	template<typename TAppContext, typename TStreamContext, typename TTaskContext>
+	inline void ContextHolderTask<TAppContext, TStreamContext, TTaskContext>::OnScheduled(const std::shared_ptr<BaseStream>& stream)
 	{
 		BaseTask::OnScheduled(stream);
-		UpdateCache(stream);
+		this->UpdateCache(stream);
 	}
 
-	template<typename TAppContext, typename TStreamContext>
-	inline void ExternalContextSpecificTask<TAppContext, TStreamContext>::Run(const std::shared_ptr<BaseStream>& stream)
+	template<typename TAppContext, typename TStreamContext, typename TTaskContext>
+	inline void ContextHolderTask<TAppContext, TStreamContext, TTaskContext>::Run(const std::shared_ptr<BaseStream>& stream)
 	{
 		BaseTask::Run(stream);
-		UpdateCache(stream);
+		this->UpdateCache(stream);
 	}
 
-	template<typename TAppContext, typename TStreamContext>
-	inline void ExternalContextSpecificTask<TAppContext, TStreamContext>::OnComplete(const std::shared_ptr<BaseStream>& stream)
+	template<typename TAppContext, typename TStreamContext, typename TTaskContext>
+	inline void ContextHolderTask<TAppContext, TStreamContext, TTaskContext>::OnComplete(const std::shared_ptr<BaseStream>& stream)
 	{
 		BaseTask::OnComplete(stream);
-		UpdateCache(stream);
+		this->UpdateCache(stream);
 	}
+
 
 	template<typename TAppContext, typename TStreamContext>
-	inline void ExternalContextSpecificTask<TAppContext, TStreamContext>::UpdateCache(const std::shared_ptr<BaseStream>& stream)
+	class ContextHolderTask<TAppContext, TStreamContext, void> : public AppStreamContextCache<TAppContext, TStreamContext>, public BaseTask
 	{
-		_specificAppContext = std::static_pointer_cast<TAppContext>(stream->GetAppContext());
-		_specificStreamContext = std::static_pointer_cast<TStreamContext>(stream->GetStreamContext());
+	protected:
+		void OnScheduled(const std::shared_ptr<BaseStream>& stream) override;
+		void Run(const std::shared_ptr<BaseStream>& stream) override;
+		void OnComplete(const std::shared_ptr<BaseStream>& stream) override;
+	};
+
+	template <typename TAppContext, typename TStreamContext>
+	void ContextHolderTask<TAppContext, TStreamContext, void>::OnScheduled(const std::shared_ptr<BaseStream>& stream)
+	{
+		BaseTask::OnScheduled(stream);
+		this->UpdateCache(stream);
 	}
 
-	template<typename TInnerContext>
-	inline ContextualTask<TInnerContext>::ContextualTask(const std::shared_ptr<TInnerContext>& innerContext) :
-		_taskContext(innerContext)
+	template <typename TAppContext, typename TStreamContext>
+	void ContextHolderTask<TAppContext, TStreamContext, void>::Run(const std::shared_ptr<BaseStream>& stream)
 	{
+		BaseTask::Run(stream);
+		this->UpdateCache(stream);
 	}
 
-	template<typename TTaskContext>
-	inline std::shared_ptr<TTaskContext> ContextualTask<TTaskContext>::GetContext() const
+	template <typename TAppContext, typename TStreamContext>
+	void ContextHolderTask<TAppContext, TStreamContext, void>::OnComplete(const std::shared_ptr<BaseStream>& stream)
 	{
-		return _taskContext;
+		BaseTask::OnComplete(stream);
+		this->UpdateCache(stream);
 	}
 }

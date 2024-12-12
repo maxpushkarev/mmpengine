@@ -129,7 +129,7 @@ namespace MMPEngine::Backend::Dx12
 	}
 
 
-	Material::ApplyParametersTask::ApplyParametersTask(const std::shared_ptr<ApplyMaterialTaskContext>& context) : Core::ContextualTask<ApplyMaterialTaskContext>(context)
+	Material::ApplyParametersTask::ApplyParametersTask(const std::shared_ptr<ApplyMaterialTaskContext>& context) : Task<ApplyMaterialTaskContext>(context)
 	{
 		_switchState = std::make_shared<SwitchState>(context);
 		_apply = std::make_shared<Apply>(context);
@@ -143,17 +143,8 @@ namespace MMPEngine::Backend::Dx12
 		stream->Schedule(_apply);
 	}
 
-	void Material::ApplyParametersTask::Run(const std::shared_ptr<Core::BaseStream>& stream)
-	{
-		Task::Run(stream);
-	}
 
-	void Material::ApplyParametersTask::OnComplete(const std::shared_ptr<Core::BaseStream>& stream)
-	{
-		Task::OnComplete(stream);
-	}
-
-	Material::ApplyParametersTask::SwitchState::SwitchState(const std::shared_ptr<ApplyMaterialTaskContext>& context) : Core::ContextualTask<ApplyMaterialTaskContext>(context)
+	Material::ApplyParametersTask::SwitchState::SwitchState(const std::shared_ptr<ApplyMaterialTaskContext>& context) : Task<ApplyMaterialTaskContext>(context)
 	{
 	}
 
@@ -161,47 +152,25 @@ namespace MMPEngine::Backend::Dx12
 	{
 		Task::OnScheduled(stream);
 
-		if (const auto mat = this->_taskContext->materialPtr)
+		if (const auto mat = this->GetTaskContext()->materialPtr)
 		{
 			mat->SwitchParametersStates(stream);
 		}
 	}
 
-	void Material::ApplyParametersTask::SwitchState::Run(const std::shared_ptr<Core::BaseStream>& stream)
+	Material::ApplyParametersTask::Apply::Apply(const std::shared_ptr<ApplyMaterialTaskContext>& context) : Task<ApplyMaterialTaskContext>(context)
 	{
-		Task::Run(stream);
-	}
-
-	void Material::ApplyParametersTask::SwitchState::OnComplete(const std::shared_ptr<Core::BaseStream>& stream)
-	{
-		Task::OnComplete(stream);
-	}
-
-
-	Material::ApplyParametersTask::Apply::Apply(const std::shared_ptr<ApplyMaterialTaskContext>& context) : Core::ContextualTask<ApplyMaterialTaskContext>(context)
-	{
-	}
-
-	void Material::ApplyParametersTask::Apply::OnScheduled(const std::shared_ptr<Core::BaseStream>& stream)
-	{
-		Task::OnScheduled(stream);
 	}
 
 	void Material::ApplyParametersTask::Apply::Run(const std::shared_ptr<Core::BaseStream>& stream)
 	{
 		Task::Run(stream);
 
-		if (const auto mat = this->_taskContext->materialPtr; const auto sc = _specificStreamContext)
+		if (const auto mat = this->GetTaskContext()->materialPtr; const auto sc = _specificStreamContext)
 		{
 			mat->ApplyParameters(sc);
 		}
 	}
-
-	void Material::ApplyParametersTask::Apply::OnComplete(const std::shared_ptr<Core::BaseStream>& stream)
-	{
-		Task::OnComplete(stream);
-	}
-
 
 	ComputeMaterial::ComputeMaterial(const std::shared_ptr<Core::ComputeShader>& computeShader) : Core::ComputeMaterial(computeShader)
 	{
