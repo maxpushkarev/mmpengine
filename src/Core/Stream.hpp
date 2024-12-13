@@ -55,6 +55,10 @@ namespace MMPEngine::Core
 		BaseStream& operator=(const BaseStream&) = delete;
 		BaseStream& operator=(BaseStream&&) noexcept = delete;
 
+		std::uint64_t GetSyncCounterValue() const;
+		std::uint64_t GetLastCompletedSyncCounterValue() const;
+		virtual bool IsSyncCounterValueCompleted(std::uint64_t counterValue) const;
+
 		void Restart();
 		void Schedule(const std::shared_ptr<BaseTask>& task);
 		void Submit();
@@ -69,6 +73,10 @@ namespace MMPEngine::Core
 		void WaitInternal();
 		void FinalizeTasks();
 	private:
+
+		std::uint64_t _syncCounter = 0;
+		std::uint64_t _lastCompletedSyncCounter = 0;
+
 		std::queue<std::shared_ptr<BaseTask>> _scheduledTasks;
 		std::queue<std::shared_ptr<BaseTask>> _finalizedTasks;
 		State _currentState = State::Start;

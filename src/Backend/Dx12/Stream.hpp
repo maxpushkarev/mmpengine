@@ -15,12 +15,13 @@ namespace MMPEngine::Backend::Dx12
 		Stream& operator=(const Stream&) = delete;
 		Stream& operator=(Stream&&) noexcept = delete;
 		~Stream() override;
+		bool IsSyncCounterValueCompleted(std::uint64_t counterValue) const override;
 	protected:
 		void RestartInternal() override;
 		void SubmitInternal() override;
 		void SyncInternal() override;
 	private:
-		std::uint64_t _lastFenceValue;
+		std::uint64_t _fenceSignalValue = 0;
 		HANDLE _waitHandle;
 		std::vector<ID3D12DescriptorHeap*> _heaps;
 	};

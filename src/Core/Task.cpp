@@ -47,4 +47,40 @@ namespace MMPEngine::Core
 	BatchTask::BatchTask(std::vector<std::shared_ptr<BaseTask>>&& tasks) : _tasks(std::move(tasks))
 	{
 	}
+
+	FunctionalTask::FunctionalTask(Handler&& onScheduleFn, Handler&& runFn, Handler&& onCompleteFn)
+		: _onScheduleFn(std::move(onScheduleFn)), _runFn(std::move(runFn)), _onOnCompleteFn(std::move(onCompleteFn))
+	{
+	}
+
+	void FunctionalTask::OnScheduled(const std::shared_ptr<BaseStream>& stream)
+	{
+		BaseTask::OnScheduled(stream);
+
+		if(_onScheduleFn)
+		{
+			_onScheduleFn(stream);
+		}
+	}
+
+	void FunctionalTask::Run(const std::shared_ptr<BaseStream>& stream)
+	{
+		BaseTask::Run(stream);
+
+		if(_runFn)
+		{
+			_runFn(stream);
+		}
+	}
+
+	void FunctionalTask::OnComplete(const std::shared_ptr<BaseStream>& stream)
+	{
+		BaseTask::OnComplete(stream);
+
+		if(_onOnCompleteFn)
+		{
+			_onOnCompleteFn(stream);
+		}
+	}
+
 }

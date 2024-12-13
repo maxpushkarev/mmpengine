@@ -24,6 +24,7 @@ namespace MMPEngine::Core
 
 	void BaseStream::RestartInternal()
 	{
+		++_syncCounter;
 	}
 
 	void BaseStream::ScheduleInternal(const std::shared_ptr<BaseTask>& task)
@@ -38,6 +39,20 @@ namespace MMPEngine::Core
     {
     }
 
+	std::uint64_t BaseStream::GetSyncCounterValue() const
+	{
+		return _syncCounter;
+	}
+
+	std::uint64_t BaseStream::GetLastCompletedSyncCounterValue() const
+	{
+		return _lastCompletedSyncCounter;
+	}
+
+	bool BaseStream::IsSyncCounterValueCompleted(std::uint64_t counterValue) const
+	{
+		return GetLastCompletedSyncCounterValue() >= counterValue;
+	}
 
     void BaseStream::Restart()
     {
@@ -88,6 +103,7 @@ namespace MMPEngine::Core
 		SwitchState(State::Sync);
 		WaitInternal();
 		SwitchState(State::Complete);
+		_lastCompletedSyncCounter = _syncCounter;
 	}
 
 	void BaseStream::WaitInternal()

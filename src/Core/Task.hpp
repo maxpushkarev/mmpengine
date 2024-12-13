@@ -1,4 +1,5 @@
 #pragma once
+#include <functional>
 #include <memory>
 #include <Core/Context.hpp>
 #include <Core/Stream.hpp>
@@ -44,6 +45,21 @@ namespace MMPEngine::Core
 		void Run(const std::shared_ptr<BaseStream>& stream) override;
 	public:
 		static std::shared_ptr<StreamBarrierTask> kInstance;
+	};
+
+	class FunctionalTask final : public BaseTask
+	{
+	public:
+		using Handler = std::function<void(const std::shared_ptr<BaseStream>& stream)>;
+		FunctionalTask(Handler&& onScheduleFn, Handler&& runFn, Handler&& onCompleteFn);
+	private:
+		Handler _onScheduleFn;
+		Handler _runFn;
+		Handler _onOnCompleteFn;
+	protected:
+		void OnScheduled(const std::shared_ptr<BaseStream>& stream) override;
+		void Run(const std::shared_ptr<BaseStream>& stream) override;
+		void OnComplete(const std::shared_ptr<BaseStream>& stream) override;
 	};
 
 	template<typename TTaskContext>

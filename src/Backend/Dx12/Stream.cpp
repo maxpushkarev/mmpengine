@@ -1,4 +1,5 @@
 #include <Backend/Dx12/Stream.hpp>
+#include <cassert>
 
 namespace MMPEngine::Backend::Dx12
 {
@@ -6,7 +7,7 @@ namespace MMPEngine::Backend::Dx12
 		: Super(appContext, streamContext)
 	{
 		_waitHandle = CreateEventEx(nullptr, nullptr, false, EVENT_ALL_ACCESS);
-		_lastFenceValue = _specificStreamContext->_fence->GetCompletedValue();
+		_fenceSignalValue = _specificStreamContext->_fence->GetCompletedValue();
 	}
 
 	Stream::~Stream()
@@ -34,6 +35,14 @@ namespace MMPEngine::Backend::Dx12
 		{
 			ID3D12CommandList* cmdLists[]{ _specificStreamContext->_cmdList.Get() };
 			_specificStreamContext->_cmdQueue->ExecuteCommandLists(static_cast<std::uint32_t>(std::size(cmdLists)), cmdLists);
+
+			const auto fence = _specificStreamContext->_fence;
+			const auto counterValue = GetSyncCounterValue();
+
+			assert(_fenceSignalValue < counterValue);
+
+			_fenceSignalValue = counterValue;
+			_specificStreamContext->_cmdQueue->Signal(fence.Get(), _fenceSignalValue);
 		}
 	}
 
@@ -46,15 +55,17 @@ namespace MMPEngine::Backend::Dx12
 		{
 			const auto fence = _specificStreamContext->_fence;
 
-			++_lastFenceValue;
-			_specificStreamContext->_cmdQueue->Signal(fence.Get(), _lastFenceValue);
-
-			if (fence->GetCompletedValue() < _lastFenceValue)
+			if (fence->GetCompletedValue() < _fenceSignalValue)
 			{
-				fence->SetEventOnCompletion(_lastFenceValue, _waitHandle);
+				fence->SetEventOnCompletion(_fenceSignalValue, _waitHandle);
 				WaitForSingleObject(_waitHandle, INFINITE);
 			}
 		}
+	}
+
+	bool Stream::IsSyncCounterValueCompleted(std::uint64_t counterValue) const
+	{
+		return  _specificStreamContext->_fence->GetCompletedValue() >= counterValue;
 	}
 
 }
