@@ -46,6 +46,10 @@ namespace MMPEngine::Core::Tests
 
 	TYPED_TEST_P(MathTests, Vector3_Dot)
 	{
+		Core::Vector3Float v1 {0.56f, -4.892f, 3.784f };
+		Core::Vector3Float v2 { -10.84f,-3.29f,0.61f };
+
+		EXPECT_EQ(this->_default->Dot(v1, v2), this->_mathImpl->Dot(v1, v2));
 	}
 
 	TYPED_TEST_P(MathTests, Vector3_Cross)
