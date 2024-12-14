@@ -3,7 +3,7 @@
 
 namespace MMPEngine::Backend::Dx12::Tests
 {
-	std::unique_ptr<Core::Math> DxMathProvider::Make()
+	std::unique_ptr<Core::Math> MathProvider::Make()
 	{
 		return std::make_unique<Dx12::Math>();
 	}
@@ -11,7 +11,7 @@ namespace MMPEngine::Backend::Dx12::Tests
 
 namespace MMPEngine::Core::Tests
 {
-	typedef testing::Types<MMPEngine::Backend::Dx12::Tests::DxMathProvider> Dx12Implementations;
+	typedef testing::Types<MMPEngine::Backend::Dx12::Tests::MathProvider> Dx12Implementations;
 	INSTANTIATE_TYPED_TEST_SUITE_P(MathTests,
 		MathTests,
 		Dx12Implementations

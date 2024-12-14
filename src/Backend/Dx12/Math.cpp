@@ -77,9 +77,23 @@ namespace MMPEngine::Backend::Dx12
 		DirectX::XMStoreFloat4x4(reinterpret_cast<DirectX::XMFLOAT4X4*>(&res), transposed);
 	}
 
-	void Math::Multiply(Core::Vector4Float& res, const Core::Matrix4x4& m, const Core::Vector4Float& v) const
+	void Math::MultiplyMatrixAndPoint(Core::Vector3Float& res, const Core::Matrix4x4& m, const Core::Vector3Float& p) const
 	{
-		
+		const auto pLoaded = DirectX::XMLoadFloat3(reinterpret_cast<const DirectX::XMFLOAT3*>(&p));
+		const auto mLoaded = DirectX::XMLoadFloat4x4(reinterpret_cast<const DirectX::XMFLOAT4X4*>(&m));
+		const auto r = DirectX::XMVector3TransformCoord(pLoaded, DirectX::XMMatrixTranspose(mLoaded));
+		DirectX::XMStoreFloat3(reinterpret_cast<DirectX::XMFLOAT3*>(&res), r);
 	}
 
+	void Math::MultiplyMatrixAndVector(Core::Vector3Float& res, const Core::Matrix4x4& m, const Core::Vector3Float& v) const
+	{
+		const auto vLoaded = DirectX::XMLoadFloat3(reinterpret_cast<const DirectX::XMFLOAT3*>(&v));
+
+		const auto t = DirectX::XMMatrixTranspose(DirectX::XMLoadFloat4x4(reinterpret_cast<const DirectX::XMFLOAT4X4*>(&m)));
+		DirectX::XMFLOAT3X3 tmp {};
+		DirectX::XMStoreFloat3x3(&tmp, t);
+
+		const auto r = DirectX::XMVector3Transform(vLoaded, DirectX::XMLoadFloat3x3(&tmp));
+		DirectX::XMStoreFloat3(reinterpret_cast<DirectX::XMFLOAT3*>(&res), r);
+	}
 }

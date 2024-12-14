@@ -35,7 +35,8 @@ namespace MMPEngine::Core
 
 		virtual void TRS(Matrix4x4& matrix, const Transform& transform) const;
 		virtual void Multiply(Matrix4x4& res, const Matrix4x4& m1, const Matrix4x4& m2) const;
-		virtual void Multiply(Vector4Float& res, const Matrix4x4& m, const Vector4Float& v) const;
+		virtual void MultiplyMatrixAndPoint(Core::Vector3Float& res, const Core::Matrix4x4& m, const Core::Vector3Float& p) const;
+		virtual void MultiplyMatrixAndVector(Core::Vector3Float& res, const Core::Matrix4x4& m, const Core::Vector3Float& v) const;
 		virtual void Transpose(Matrix4x4& res, const Matrix4x4& m) const;
 		virtual void Inverse(Matrix4x4& res, const Matrix4x4& m) const;
 

@@ -3,7 +3,7 @@
 
 namespace MMPEngine::Backend::Dx12::Tests
 {
-	class DxMathProvider : public MMPEngine::Core::Tests::BaseMathProvider
+	class MathProvider : public MMPEngine::Core::Tests::BaseMathProvider
 	{
 	public:
 		std::unique_ptr<Core::Math> Make() override;

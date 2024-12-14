@@ -68,7 +68,7 @@ namespace MMPEngine::Core::Tests
 
 	TYPED_TEST_P(MathTests, Vector3_Normalize)
 	{
-		const Core::Vector3Float v {0.56f, -4.892f, 3.784f };
+		constexpr  Core::Vector3Float v {0.56f, -4.892f, 3.784f };
 		Core::Vector3Float res1 = v;
 		Core::Vector3Float res2 = v;
 
@@ -80,7 +80,7 @@ namespace MMPEngine::Core::Tests
 
 	TYPED_TEST_P(MathTests, Vector3_Magnitude)
 	{
-		const Core::Vector3Float v {0.56f, -4.892f, 3.784f };
+		constexpr  Core::Vector3Float v {0.56f, -4.892f, 3.784f };
 
 		const auto res1 = this->_default->Magnitude(v);
 		const auto res2 = this->_mathImpl->Magnitude(v);
@@ -123,7 +123,6 @@ namespace MMPEngine::Core::Tests
 			}
 		};
 
-
 		Core::Matrix4x4 res1 {};
 		Core::Matrix4x4 res2 {};
 
@@ -133,8 +132,48 @@ namespace MMPEngine::Core::Tests
 		EXPECT_EQ(res1, res2);
 	}
 
-	TYPED_TEST_P(MathTests, Matrix4x4_Multiply_Vector4)
+	TYPED_TEST_P(MathTests, Matrix4x4_Multiply_Point)
 	{
+		constexpr Core::Matrix4x4 m {
+			{
+				{-1.457f, 3.333f, 0.049f, -8.24f},
+				{ -6.094f, 6.912f, -2.693f, 5.85f },
+				{ 9.42f, -0.018f, 7.12f, -4.12f },
+				{ -1.12f, 4.141f, 5.1177f, 1.0125f }
+			}
+		};
+
+		constexpr Core::Vector3Float p {0.56f, -4.892f, 3.784f };
+
+		Core::Vector3Float res1 {};
+		Core::Vector3Float res2 {};
+
+		this->_default->MultiplyMatrixAndPoint(res1, m, p);
+		this->_mathImpl->MultiplyMatrixAndPoint(res2, m, p);
+
+		ASSERT_EQ(res1, res2);
+	}
+
+	TYPED_TEST_P(MathTests, Matrix4x4_Multiply_Vector3)
+	{
+		constexpr Core::Matrix4x4 m {
+			{
+				{-1.457f, 3.333f, 0.049f, -8.24f},
+				{ -6.094f, 6.912f, -2.693f, 5.85f },
+				{ 9.42f, -0.018f, 7.12f, -4.12f },
+				{ -1.12f, 4.141f, 5.1177f, 1.0125f }
+			}
+		};
+
+		constexpr Core::Vector3Float v {0.56f, -4.892f, 3.784f };
+
+		Core::Vector3Float res1 {};
+		Core::Vector3Float res2 {};
+
+		this->_default->MultiplyMatrixAndVector(res1, m, v);
+		this->_mathImpl->MultiplyMatrixAndVector(res2, m, v);
+
+		ASSERT_EQ(res1, res2);
 	}
 
 	TYPED_TEST_P(MathTests, Matrix4x4_Inverse)
@@ -186,7 +225,8 @@ namespace MMPEngine::Core::Tests
 		Vector3_SquaredMagnitude,
 		Matrix4x4_Inverse,
 		Matrix4x4_Multiply,
-		Matrix4x4_Multiply_Vector4,
+		Matrix4x4_Multiply_Point,
+		Matrix4x4_Multiply_Vector3,
 		Matrix4x4_TRS,
 		Matrix4x4_Transpose);
 }
