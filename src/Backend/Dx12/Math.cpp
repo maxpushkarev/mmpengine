@@ -46,12 +46,12 @@ namespace MMPEngine::Backend::Dx12
 
 	std::float_t Math::SquaredMagnitude(const Core::Vector3Float& v) const
 	{
-		const auto length = DirectX::XMVector3Length(
+		const auto sqr = DirectX::XMVector3LengthSq(
 			DirectX::XMLoadFloat3(reinterpret_cast<const DirectX::XMFLOAT3*>(&v))
 		);
 
 		std::float_t res = 0;
-		DirectX::XMStoreFloat(&res, length);
+		DirectX::XMStoreFloat(&res, sqr);
 		return res;
 	}
 }

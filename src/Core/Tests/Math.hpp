@@ -54,18 +54,49 @@ namespace MMPEngine::Core::Tests
 
 	TYPED_TEST_P(MathTests, Vector3_Cross)
 	{
+		Core::Vector3Float v1 {0.56f, -4.892f, 3.784f };
+		Core::Vector3Float v2 { -10.84f, -3.29f, 0.61f };
+
+		Core::Vector3Float res1 {};
+		Core::Vector3Float res2 {};
+
+		this->_default->Cross(res1, v1, v2);
+		this->_mathImpl->Cross(res2, v1, v2);
+
+		EXPECT_EQ(res1, res2);
 	}
 
 	TYPED_TEST_P(MathTests, Vector3_Normalize)
 	{
+		const Core::Vector3Float v {0.56f, -4.892f, 3.784f };
+		Core::Vector3Float res1 = v;
+		Core::Vector3Float res2 = v;
+
+		this->_default->Normalize(res1);
+		this->_mathImpl->Normalize(res2);
+
+		EXPECT_EQ(res1, res2);
 	}
 
 	TYPED_TEST_P(MathTests, Vector3_Magnitude)
 	{
+		const Core::Vector3Float v {0.56f, -4.892f, 3.784f };
+
+		const auto res1 = this->_default->Magnitude(v);
+		const auto res2 = this->_mathImpl->Magnitude(v);
+
+		EXPECT_FLOAT_EQ(res1, res2);
+
 	}
 
 	TYPED_TEST_P(MathTests, Vector3_SquaredMagnitude)
 	{
+		const Core::Vector3Float v {0.56f, -4.892f, 3.784f };
+
+		const auto res1 = this->_default->SquaredMagnitude(v);
+		const auto res2 = this->_mathImpl->SquaredMagnitude(v);
+
+		EXPECT_FLOAT_EQ(res1, res2);
 	}
 
 	TYPED_TEST_P(MathTests, Matrix4x4_TRS)
