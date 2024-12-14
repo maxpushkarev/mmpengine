@@ -23,18 +23,21 @@ namespace MMPEngine::Core::Tests
 		static_assert(std::is_base_of_v<BaseMathProvider, TMathProvider>);
 	protected:
 
-		std::unique_ptr<Core::Math> _math;
+		std::unique_ptr<Core::Math> _mathImpl;
+		std::unique_ptr<Core::DefaultMath> _default;
 
 		inline void SetUp() override
 		{
 			testing::Test::SetUp();
 			TMathProvider provider {};
-			_math = provider.Make();
+			_mathImpl = provider.Make();
+			_default = std::make_unique<Core::DefaultMath>();
 		}
 
 		inline void TearDown() override
 		{
-			_math.reset();
+			_mathImpl.reset();
+			_default.reset();
 			testing::Test::TearDown();
 		}
 	};
@@ -61,11 +64,31 @@ namespace MMPEngine::Core::Tests
 	{
 	}
 
+	TYPED_TEST_P(MathTests, Matrix4x4_TRS)
+	{
+	}
+
+	TYPED_TEST_P(MathTests, Matrix4x4_Multiply)
+	{
+	}
+
+	TYPED_TEST_P(MathTests, Matrix4x4_Inverse)
+	{
+	}
+
+	TYPED_TEST_P(MathTests, Matrix4x4_Transpose)
+	{
+	}
+
 	REGISTER_TYPED_TEST_SUITE_P(
 		MathTests,
 		Vector3_Dot,
 		Vector3_Cross,
 		Vector3_Magnitude,
 		Vector3_Normalize,
-		Vector3_SquaredMagnitude);
+		Vector3_SquaredMagnitude,
+		Matrix4x4_Inverse,
+		Matrix4x4_Multiply,
+		Matrix4x4_TRS,
+		Matrix4x4_Transpose);
 }

@@ -49,7 +49,20 @@ namespace MMPEngine::Core
 		}
 	}
 
+
 	void Math::TRS(Matrix4x4& matrix, const Transform& transform) const
+	{
+	}
+
+	void Math::Multiply(Matrix4x4& res, const Matrix4x4& m1, const Matrix4x4& m2) const
+	{
+	}
+
+	void Math::Inverse(Matrix4x4& res, const Matrix4x4& m) const
+	{
+	}
+
+	void Math::Transpose(Matrix4x4& m) const
 	{
 	}
 }
