@@ -154,6 +154,28 @@ namespace MMPEngine::Core::Tests
 		ASSERT_EQ(res1, res2);
 	}
 
+	TYPED_TEST_P(MathTests, Matrix4x4_Multiply_Vector4)
+	{
+		constexpr Core::Matrix4x4 m {
+			{
+				{-1.457f, 3.333f, 0.049f, -8.24f},
+				{ -6.094f, 6.912f, -2.693f, 5.85f },
+				{ 9.42f, -0.018f, 7.12f, -4.12f },
+				{ -1.12f, 4.141f, 5.1177f, 1.0125f }
+			}
+		};
+
+		constexpr Core::Vector4Float v {0.56f, -4.892f, 3.784f, 1.0f };
+
+		Core::Vector4Float res1 {};
+		Core::Vector4Float res2 {};
+
+		this->_default->Multiply(res1, m, v);
+		this->_mathImpl->Multiply(res2, m, v);
+
+		ASSERT_EQ(res1, res2);
+	}
+
 	TYPED_TEST_P(MathTests, Matrix4x4_Multiply_Vector3)
 	{
 		constexpr Core::Matrix4x4 m {
@@ -227,6 +249,7 @@ namespace MMPEngine::Core::Tests
 		Matrix4x4_Multiply,
 		Matrix4x4_Multiply_Point,
 		Matrix4x4_Multiply_Vector3,
+		Matrix4x4_Multiply_Vector4,
 		Matrix4x4_TRS,
 		Matrix4x4_Transpose);
 }
