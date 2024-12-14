@@ -7,6 +7,6 @@ namespace MMPEngine::Frontend
 	class App final
 	{
 	public:
-		static std::shared_ptr<Core::BaseRootApp> BuildRootApp(const Core::AppContext::Settings& appContextSettings, const std::shared_ptr<Core::UserApp>& userApp);
+		static std::shared_ptr<Core::BaseRootApp> BuildRootApp(const Core::AppContext::Settings& appContextSettings, const std::shared_ptr<Core::UserApp>& userApp, std::unique_ptr<Core::BaseLogger>&& logger);
 	};
 }

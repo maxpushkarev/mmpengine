@@ -47,13 +47,13 @@ typedef HWND NativeWindow;
 			BackendType backend;
 		};
 	protected:
-		AppContext(const Settings&);
+		AppContext(const Settings&, std::unique_ptr<Core::BaseLogger>&&);
 	public:
 		const Settings settings;
 		Vector2Uint windowSize;
 		const PlatformType platform;
-		std::unique_ptr<BaseLogger> logger;
-		std::unique_ptr<Input> input;
+		const std::unique_ptr<BaseLogger> logger;
+		const std::unique_ptr<Input> input;
 #ifdef MMPENGINE_WIN
 		NativeWindow nativeWindow;
 #endif

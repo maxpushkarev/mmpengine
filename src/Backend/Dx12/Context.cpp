@@ -2,7 +2,7 @@
 
 namespace MMPEngine::Backend::Dx12
 {
-	AppContext::AppContext(const Core::AppContext::Settings& s) : Core::AppContext(s)
+	AppContext::AppContext(const Core::AppContext::Settings& s, std::unique_ptr<Core::BaseLogger>&& l) : Core::AppContext(s, std::move(l))
 	{
 	}
 

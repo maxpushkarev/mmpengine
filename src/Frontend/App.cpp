@@ -5,12 +5,15 @@
 
 namespace MMPEngine::Frontend
 {
-	std::shared_ptr<Core::BaseRootApp> App::BuildRootApp(const Core::AppContext::Settings& appContextSettings, const std::shared_ptr<Core::UserApp>& userApp)
+	std::shared_ptr<Core::BaseRootApp> App::BuildRootApp(
+		const Core::AppContext::Settings& appContextSettings, 
+		const std::shared_ptr<Core::UserApp>& userApp,
+		std::unique_ptr<Core::BaseLogger>&& logger)
 	{
 		if(appContextSettings.backend == Core::BackendType::Dx12)
 		{
 #ifdef MMPENGINE_BACKEND_DX12
-			const auto rootApp = std::make_shared<Backend::Dx12::RootApp>(std::make_shared<Backend::Dx12::AppContext>(appContextSettings));
+			const auto rootApp = std::make_shared<Backend::Dx12::RootApp>(std::make_shared<Backend::Dx12::AppContext>(appContextSettings, std::move(logger)));
 			rootApp->Attach(userApp);
 			return rootApp;
 #else

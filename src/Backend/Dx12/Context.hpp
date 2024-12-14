@@ -10,7 +10,7 @@ namespace MMPEngine::Backend::Dx12
 	class AppContext : public Core::AppContext
 	{
 	public:
-		AppContext(const Core::AppContext::Settings& s);
+		AppContext(const Core::AppContext::Settings& s, std::unique_ptr<Core::BaseLogger>&& logger);
 
 		Microsoft::WRL::ComPtr<ID3D12Device> device;
 		Microsoft::WRL::ComPtr<IDXGIFactory> factory;
