@@ -54,4 +54,32 @@ namespace MMPEngine::Backend::Dx12
 		DirectX::XMStoreFloat(&res, sqr);
 		return res;
 	}
+
+	void Math::Multiply(Core::Matrix4x4& res, const Core::Matrix4x4& m1, const Core::Matrix4x4& m2) const
+	{
+		const auto m1Loaded = DirectX::XMLoadFloat4x4(reinterpret_cast<const DirectX::XMFLOAT4X4*>(&m1));
+		const auto m2Loaded = DirectX::XMLoadFloat4x4(reinterpret_cast<const DirectX::XMFLOAT4X4*>(&m2));
+		const auto r = DirectX::XMMatrixMultiply(m1Loaded, m2Loaded);
+		DirectX::XMStoreFloat4x4(reinterpret_cast<DirectX::XMFLOAT4X4*>(&res), r);
+	}
+
+	void Math::Inverse(Core::Matrix4x4& res, const Core::Matrix4x4& m) const
+	{
+		const auto mLoaded = DirectX::XMLoadFloat4x4(reinterpret_cast<const DirectX::XMFLOAT4X4*>(&m));
+		const auto inv = DirectX::XMMatrixInverse(nullptr, mLoaded);
+		DirectX::XMStoreFloat4x4(reinterpret_cast<DirectX::XMFLOAT4X4*>(&res), inv);
+	}
+
+	void Math::Transpose(Core::Matrix4x4& res, const Core::Matrix4x4& m) const
+	{
+		const auto mLoaded = DirectX::XMLoadFloat4x4(reinterpret_cast<const DirectX::XMFLOAT4X4*>(&m));
+		const auto transposed = DirectX::XMMatrixTranspose(mLoaded);
+		DirectX::XMStoreFloat4x4(reinterpret_cast<DirectX::XMFLOAT4X4*>(&res), transposed);
+	}
+
+	void Math::Multiply(Core::Vector4Float& res, const Core::Matrix4x4& m, const Core::Vector4Float& v) const
+	{
+		
+	}
+
 }

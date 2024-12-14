@@ -11,5 +11,10 @@ namespace MMPEngine::Backend::Dx12
 		std::float_t Magnitude(const Core::Vector3Float& v) const override;
 		std::float_t SquaredMagnitude(const Core::Vector3Float& v) const override;
 		void Normalize(Core::Vector3Float& v) const override;
+
+		void Multiply(Core::Matrix4x4& res, const Core::Matrix4x4& m1, const Core::Matrix4x4& m2) const override;
+		void Inverse(Core::Matrix4x4& res, const Core::Matrix4x4& m) const override;
+		void Transpose(Core::Matrix4x4& res, const Core::Matrix4x4& m) const override;
+		void Multiply(Core::Vector4Float& res, const Core::Matrix4x4& m, const Core::Vector4Float& v) const override;
 	};
 }

@@ -91,7 +91,7 @@ namespace MMPEngine::Core::Tests
 
 	TYPED_TEST_P(MathTests, Vector3_SquaredMagnitude)
 	{
-		const Core::Vector3Float v {0.56f, -4.892f, 3.784f };
+		constexpr Core::Vector3Float v {0.56f, -4.892f, 3.784f };
 
 		const auto res1 = this->_default->SquaredMagnitude(v);
 		const auto res2 = this->_mathImpl->SquaredMagnitude(v);
@@ -105,6 +105,32 @@ namespace MMPEngine::Core::Tests
 
 	TYPED_TEST_P(MathTests, Matrix4x4_Multiply)
 	{
+		constexpr Core::Matrix4x4 m1 {
+			{
+				{-1.457f, 3.333f, 0.049f, -8.24f},
+				{ -6.094f, 6.912f, -2.693f, 5.85f },
+				{ 9.42f, -0.018f, 7.12f, -4.12f },
+				{ -1.12f, 4.141f, 5.1177f, 1.0125f }
+			}
+		};
+
+		constexpr Core::Matrix4x4 m2 {
+			{
+				{8.92f, 2.47f, -3.74f, 4.86f},
+				{ 9.711f, -1.83f, 6.932f, -8.03f },
+				{ -1.9282f, 1.241f, -2.17f, 2.59f },
+				{ 3.586f, -4.62f, 0.672f, -4.747f }
+			}
+		};
+
+
+		Core::Matrix4x4 res1 {};
+		Core::Matrix4x4 res2 {};
+
+		this->_default->Multiply(res1, m1, m2);
+		this->_mathImpl->Multiply(res2, m1, m2);
+
+		EXPECT_EQ(res1, res2);
 	}
 
 	TYPED_TEST_P(MathTests, Matrix4x4_Multiply_Vector4)
@@ -113,10 +139,42 @@ namespace MMPEngine::Core::Tests
 
 	TYPED_TEST_P(MathTests, Matrix4x4_Inverse)
 	{
+		constexpr Core::Matrix4x4 m {
+			{
+				{-1.457f, 3.333f, 0.049f, -8.24f},
+				{ -6.094f, 6.912f, -2.693f, 5.85f },
+				{ 9.42f, -0.018f, 7.12f, -4.12f },
+				{ -1.12f, 4.141f, 5.1177f, 1.0125f }
+			}
+		};
+
+		Core::Matrix4x4 res1 {};
+		this->_mathImpl->Inverse(res1, m);
+
+		Core::Matrix4x4 identity1 {};
+		this->_mathImpl->Multiply(identity1, m, res1);
+
+		ASSERT_EQ(Core::Math::kMatrix4x4Identity, identity1);
 	}
 
 	TYPED_TEST_P(MathTests, Matrix4x4_Transpose)
 	{
+		constexpr Core::Matrix4x4 m {
+			{
+				{-1.457f, 3.333f, 0.049f, -8.24f},
+				{ -6.094f, 6.912f, -2.693f, 5.85f },
+				{ 9.42f, -0.018f, 7.12f, -4.12f },
+				{ -1.12f, 4.141f, 5.1177f, 1.0125f }
+			}
+		};
+
+		Core::Matrix4x4 res1 {};
+		Core::Matrix4x4 res2 {};
+
+		this->_default->Transpose(res1, m);
+		this->_mathImpl->Transpose(res2, m);
+
+		ASSERT_EQ(res1, res2);
 	}
 
 	REGISTER_TYPED_TEST_SUITE_P(
