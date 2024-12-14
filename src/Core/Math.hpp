@@ -26,6 +26,15 @@ namespace MMPEngine::Core
 		};
 
 		inline static std::float_t ConvertDegreesToRadians(std::float_t degrees);
+
+		virtual std::float_t Dot(const Vector3Float& v1, const Vector3Float& v2) const;
+		virtual void Cross(Vector3Float& res, const Vector3Float& v1, const Vector3Float& v2) const;
+		virtual void Normalize(Vector3Float& v) const;
+		virtual std::float_t SquaredMagnitude(const Vector3Float& v) const;
+		virtual std::float_t Magnitude(const Vector3Float& v) const;
+
+		virtual void TRS(Matrix4x4& matrix, const Transform& transform) const;
+
 	private:
 		static constexpr auto _deg2Rad = kPi / 180.0f;
 	};
