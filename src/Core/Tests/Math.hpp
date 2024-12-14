@@ -72,6 +72,10 @@ namespace MMPEngine::Core::Tests
 	{
 	}
 
+	TYPED_TEST_P(MathTests, Matrix4x4_Multiply_Vector4)
+	{
+	}
+
 	TYPED_TEST_P(MathTests, Matrix4x4_Inverse)
 	{
 	}
@@ -89,6 +93,7 @@ namespace MMPEngine::Core::Tests
 		Vector3_SquaredMagnitude,
 		Matrix4x4_Inverse,
 		Matrix4x4_Multiply,
+		Matrix4x4_Multiply_Vector4,
 		Matrix4x4_TRS,
 		Matrix4x4_Transpose);
 }

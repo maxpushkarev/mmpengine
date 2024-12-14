@@ -65,4 +65,8 @@ namespace MMPEngine::Core
 	void Math::Transpose(Matrix4x4& m) const
 	{
 	}
+
+	void Math::Multiply(Vector4Float& res, const Matrix4x4& m, const Vector4Float& v) const
+	{
+	}
 }
