@@ -57,8 +57,8 @@ namespace MMPEngine::Core
 
 	struct Vector2Uint final
 	{
-		std::uint32_t x;
-		std::uint32_t y;
+		std::uint32_t x = 0;
+		std::uint32_t y = 0;
 
 		bool operator==(const Vector2Uint& rhs) const;
 		bool operator!=(const Vector2Uint& rhs) const;
@@ -66,9 +66,9 @@ namespace MMPEngine::Core
 
 	struct Vector3Uint final
 	{
-		std::uint32_t x;
-		std::uint32_t y;
-		std::uint32_t z;
+		std::uint32_t x = 0;
+		std::uint32_t y = 0;
+		std::uint32_t z = 0;
 
 		bool operator==(const Vector3Uint& rhs) const;
 		bool operator!=(const Vector3Uint& rhs) const;
@@ -76,10 +76,10 @@ namespace MMPEngine::Core
 
 	struct Vector4Uint final
 	{
-		std::uint32_t x;
-		std::uint32_t y;
-		std::uint32_t z;
-		std::uint32_t w;
+		std::uint32_t x = 0;
+		std::uint32_t y = 0;
+		std::uint32_t z = 0;
+		std::uint32_t w = 0;
 
 		bool operator==(const Vector4Uint& rhs) const;
 		bool operator!=(const Vector4Uint& rhs) const;
@@ -88,8 +88,8 @@ namespace MMPEngine::Core
 
 	struct Vector2Int final
 	{
-		std::int32_t x;
-		std::int32_t y;
+		std::int32_t x = 0;
+		std::int32_t y = 0;
 
 		bool operator==(const Vector2Int& rhs) const;
 		bool operator!=(const Vector2Int& rhs) const;
@@ -97,9 +97,9 @@ namespace MMPEngine::Core
 
 	struct Vector3Int final
 	{
-		std::int32_t x;
-		std::int32_t y;
-		std::int32_t z;
+		std::int32_t x = 0;
+		std::int32_t y = 0;
+		std::int32_t z = 0;
 
 		bool operator==(const Vector3Int& rhs) const;
 		bool operator!=(const Vector3Int& rhs) const;
@@ -107,10 +107,10 @@ namespace MMPEngine::Core
 
 	struct Vector4Int final
 	{
-		std::int32_t x;
-		std::int32_t y;
-		std::int32_t z;
-		std::int32_t w;
+		std::int32_t x = 0;
+		std::int32_t y = 0;
+		std::int32_t z = 0;
+		std::int32_t w = 0;
 
 		bool operator==(const Vector4Int& rhs) const;
 		bool operator!=(const Vector4Int& rhs) const;
@@ -119,8 +119,8 @@ namespace MMPEngine::Core
 
 	struct Vector2Float final
 	{
-		std::float_t x;
-		std::float_t y;
+		std::float_t x = 0.0f;
+		std::float_t y = 0.0f;
 
 		bool operator==(const Vector2Float& rhs) const;
 		bool operator!=(const Vector2Float& rhs) const;
@@ -128,9 +128,9 @@ namespace MMPEngine::Core
 
 	struct Vector3Float final
 	{
-		std::float_t x;
-		std::float_t y;
-		std::float_t z;
+		std::float_t x = 0.0f;
+		std::float_t y = 0.0f;
+		std::float_t z = 0.0f;
 
 		bool operator==(const Vector3Float& rhs) const;
 		bool operator!=(const Vector3Float& rhs) const;
@@ -138,13 +138,31 @@ namespace MMPEngine::Core
 
 	struct Vector4Float final
 	{
-		std::float_t x;
-		std::float_t y;
-		std::float_t z;
-		std::float_t w;
+		std::float_t x = 0.0f;
+		std::float_t y = 0.0f;
+		std::float_t z = 0.0f;
+		std::float_t w = 0.0f;
 
 		bool operator==(const Vector4Float& rhs) const;
 		bool operator!=(const Vector4Float& rhs) const;
+	};
+
+	struct Quaternion final
+	{
+		std::float_t x = 0.0f;
+		std::float_t y = 0.0f;
+		std::float_t z = 0.0f;
+		std::float_t w = 1.0f;
+
+		bool operator==(const Quaternion& rhs) const;
+		bool operator!=(const Quaternion& rhs) const;
+	};
+
+	struct Transform final
+	{
+		Vector3Float position = {0.0f, 0.0f, 0.0f};
+		Quaternion rotation = { 0.0f, 0.0f, 0.0f, 1.0f };
+		Vector3Float scale = {1.0f, 1.0f, 1.0f};
 	};
 
 	class UnsupportedException final : public std::runtime_error

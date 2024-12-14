@@ -121,5 +121,17 @@ namespace MMPEngine::Core
 		return !operator==(rhs);
 	}
 
+	bool Quaternion::operator==(const Quaternion& rhs) const
+	{
+		return std::abs(x - rhs.x) <= Constants::kFloatEps &&
+			std::abs(y - rhs.y) <= Constants::kFloatEps &&
+			std::abs(z - rhs.z) <= Constants::kFloatEps &&
+			std::abs(w - rhs.w) <= Constants::kFloatEps;
+	}
+
+	bool Quaternion::operator!=(const Quaternion& rhs) const
+	{
+		return !operator==(rhs);
+	}
 
 }
