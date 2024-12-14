@@ -14,7 +14,7 @@ namespace MMPEngine::Frontend
 		if(appContextSettings.backend == Core::BackendType::Dx12)
 		{
 #ifdef MMPENGINE_BACKEND_DX12
-			auto math = std::make_unique<Backend::Dx12::DxMath>();
+			auto math = std::make_unique<Backend::Dx12::Math>();
 			const auto rootApp = std::make_shared<Backend::Dx12::RootApp>(std::make_shared<Backend::Dx12::AppContext>(appContextSettings, std::move(math), std::move(logger)));
 			rootApp->Attach(userApp);
 			return rootApp;

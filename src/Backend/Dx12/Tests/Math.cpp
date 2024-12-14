@@ -5,7 +5,7 @@ namespace MMPEngine::Backend::Dx12::Tests
 {
 	std::unique_ptr<Core::Math> DxMathProvider::Make()
 	{
-		return std::make_unique<Dx12::DxMath>();
+		return std::make_unique<Dx12::Math>();
 	}
 }
 
