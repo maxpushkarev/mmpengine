@@ -70,6 +70,17 @@ function(mmpengine_create_proj projName folder)
 
 endfunction()
 
+function(mmpengine_create_test_proj projName folder)
+
+	add_executable(${projName} ${PROJECT_SOURCE_DIR}/${folder}/Base.cpp)
+	mmpengine_add_source_files_to_proj(${projName} ${folder})
+
+	set_target_properties(${projName} PROPERTIES LINKER_LANGUAGE CXX)
+	target_compile_features(${projName}  PRIVATE cxx_std_17)
+	target_include_directories(${projName} PRIVATE ${PROJECT_SOURCE_DIR}/src)
+
+endfunction()
+
 get_property(core_name_tmp GLOBAL PROPERTY MMPENGINE_CORE_NAME)
 get_property(frontend_name_tmp GLOBAL PROPERTY MMPENGINE_FRONTEND_NAME)
 
@@ -77,8 +88,13 @@ mmpengine_create_proj(${core_name_tmp} src/Core)
 mmpengine_create_proj(${frontend_name_tmp} src/Frontend)
 
 SET(core_test_name ${core_name_tmp}.tests)
+mmpengine_create_test_proj(${core_test_name} src/Core/Tests)
 
 target_link_libraries(${frontend_name_tmp} PRIVATE ${core_name_tmp} assimp nlohmann_json::nlohmann_json)
+target_link_libraries(${core_test_name} PRIVATE ${core_name_tmp} GTest::gtest_main)
+
+include(GoogleTest)
+gtest_discover_tests(${core_test_name})
 
 IF (WIN32)
 
@@ -95,6 +111,11 @@ IF (WIN32)
 	target_link_libraries(${dx12_name_tmp} PRIVATE D3D12.lib dxgi.lib dxguid.lib ${core_name_tmp})
 	target_link_libraries(${frontend_name_tmp} PRIVATE ${dx12_name_tmp})
 	target_compile_definitions(${frontend_name_tmp} PRIVATE ${dx12_macro_tmp}=1)
+
+	SET(dx12_test_name ${dx12_name_tmp}.tests)
+	mmpengine_create_test_proj(${dx12_test_name} src/Backend/Dx12/Tests)
+	target_link_libraries(${dx12_test_name} PRIVATE ${dx12_name_tmp} GTest::gtest_main)
+	gtest_discover_tests(${dx12_test_name})
 
 	#vulkan (TODO)
 
