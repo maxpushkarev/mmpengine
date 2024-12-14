@@ -134,4 +134,23 @@ namespace MMPEngine::Core
 		return !operator==(rhs);
 	}
 
+	bool Matrix4x4::operator==(const Matrix4x4& rhs) const
+	{
+		for(std::size_t i = 0; i < 4; ++i)
+		{
+			for(std::size_t j = 0; j < 4; ++j)
+			{
+				if(std::abs(m[i][j] - rhs.m[i][j]) > Constants::kFloatEps)
+				{
+					return false;
+				}
+			}
+		}
+		return true;
+	}
+
+	bool Matrix4x4::operator!=(const Matrix4x4& rhs) const
+	{
+		return !operator==(rhs);
+	}
 }

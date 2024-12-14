@@ -158,6 +158,14 @@ namespace MMPEngine::Core
 		bool operator!=(const Quaternion& rhs) const;
 	};
 
+	struct Matrix4x4 final
+	{
+		std::float_t m[4][4];
+
+		bool operator==(const Matrix4x4& rhs) const;
+		bool operator!=(const Matrix4x4& rhs) const;
+	};
+
 	struct Transform final
 	{
 		Vector3Float position = {0.0f, 0.0f, 0.0f};
