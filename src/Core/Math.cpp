@@ -97,7 +97,7 @@ namespace MMPEngine::Core
 	}
 
 	template<>
-	std::float_t Math::DeterminantInternal<Matrix4x4>(const Matrix4x4& m)
+	std::float_t Math::DeterminantInternal<Matrix4x4>(const Matrix4x4& m) const
 	{
 		return
 			m.m[0][0] * DeterminantInternal(Matrix3x3 {
@@ -131,7 +131,7 @@ namespace MMPEngine::Core
 	}
 
 	template<>
-	std::float_t Math::DeterminantInternal<Matrix3x3>(const Matrix3x3& m)
+	std::float_t Math::DeterminantInternal<Matrix3x3>(const Matrix3x3& m) const
 	{
 		return
 			m.m[0][0] * DeterminantInternal(Matrix2x2 {
@@ -155,7 +155,7 @@ namespace MMPEngine::Core
 	}
 
 	template<>
-	std::float_t Math::DeterminantInternal<Matrix2x2>(const Matrix2x2& m)
+	std::float_t Math::DeterminantInternal<Matrix2x2>(const Matrix2x2& m) const
 	{
 		return m.m[0][0] * m.m[1][1] - m.m[0][1] * m.m[1][0];
 	}
@@ -210,7 +210,7 @@ namespace MMPEngine::Core
 				assert(tmpRow == 3);
 				assert(tmpCol == 0);
 
-				const auto cofactor = sign * DeterminantInternal(tmp);
+				const auto cofactor = sign * Core::Math::DeterminantInternal(tmp);
 				res.m[i][j] = invDet * cofactor;
 			}
 		}

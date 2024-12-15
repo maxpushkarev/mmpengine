@@ -52,7 +52,7 @@ namespace MMPEngine::Core
 		static constexpr auto _minDetAbs = 0.000001f;
 
 		template<typename TMatrix>
-		static std::float_t DeterminantInternal(const TMatrix& m);
+		std::float_t DeterminantInternal(const TMatrix& m) const;
 	};
 
 	class DefaultMath final : public Math
@@ -60,16 +60,16 @@ namespace MMPEngine::Core
 	};
 
 	template<>
-	std::float_t Math::DeterminantInternal<Matrix4x4>(const Matrix4x4& m);
+	std::float_t Math::DeterminantInternal<Matrix4x4>(const Matrix4x4& m) const;
 
 	template<>
-	std::float_t Math::DeterminantInternal<Matrix3x3>(const Matrix3x3& m);
+	std::float_t Math::DeterminantInternal<Matrix3x3>(const Matrix3x3& m) const;
 
 	template<>
-	std::float_t Math::DeterminantInternal<Matrix2x2>(const Matrix2x2& m);
+	std::float_t Math::DeterminantInternal<Matrix2x2>(const Matrix2x2& m) const;
 
 	template<typename TMatrix>
-	inline std::float_t Math::DeterminantInternal(const TMatrix& m)
+	inline std::float_t Math::DeterminantInternal(const TMatrix& m) const
 	{
 		return 0.0f;
 	}
