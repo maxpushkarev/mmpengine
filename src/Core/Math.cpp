@@ -71,6 +71,17 @@ namespace MMPEngine::Core
 
 	void Math::TRS(Matrix4x4& matrix, const Transform& transform) const
 	{
+		Matrix4x4 translation {};
+		Matrix4x4 rotation {};
+		Matrix4x4 scale {};
+
+		Translation(translation, transform.position);
+		Rotation(rotation, transform.rotation);
+		Scale(scale, transform.scale);
+
+		Matrix4x4 tmp {};
+		Multiply(tmp, translation, rotation);
+		Multiply(matrix, tmp, scale);
 	}
 
 	void Math::Scale(Core::Matrix4x4& res, const Core::Vector3Float& scale) const
