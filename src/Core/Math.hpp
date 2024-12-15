@@ -1,5 +1,4 @@
 #pragma once
-#include <vector>
 #include <Core/Base.hpp>
 
 namespace MMPEngine::Core
@@ -54,22 +53,21 @@ namespace MMPEngine::Core
 
 		template<typename TMatrix>
 		static std::float_t DeterminantInternal(const TMatrix& m);
-
-
-		template<>
-		static std::float_t DeterminantInternal<Matrix4x4>(const Matrix4x4& m);
-
-		template<>
-		static std::float_t DeterminantInternal<Matrix3x3>(const Matrix3x3& m);
-
-		template<>
-		static std::float_t DeterminantInternal<Matrix2x2>(const Matrix2x2& m);
 	};
 
 	class DefaultMath final : public Math
 	{
 	};
 
+
+	template<>
+	std::float_t Math::DeterminantInternal<Matrix4x4>(const Matrix4x4& m);
+
+	template<>
+	std::float_t Math::DeterminantInternal<Matrix3x3>(const Matrix3x3& m);
+
+	template<>
+	std::float_t Math::DeterminantInternal<Matrix2x2>(const Matrix2x2& m);
 
 	template<typename TMatrix>
 	inline std::float_t Math::DeterminantInternal(const TMatrix& m)
