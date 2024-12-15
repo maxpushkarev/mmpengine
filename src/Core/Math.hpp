@@ -26,6 +26,10 @@ namespace MMPEngine::Core
 			}
 		};
 
+		static constexpr Quaternion kQuaternionIdentity = {
+			0.0f, 0.0f, 0.0f, 1.0f
+		};
+
 		static std::float_t ConvertDegreesToRadians(std::float_t degrees);
 
 		virtual std::float_t Dot(const Vector3Float& v1, const Vector3Float& v2) const;
