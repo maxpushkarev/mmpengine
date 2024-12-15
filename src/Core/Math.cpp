@@ -89,6 +89,9 @@ namespace MMPEngine::Core
 		res.m[2][3] = translation.z;
 	}
 
+	void Math::Rotation(Core::Matrix4x4& res, const Core::Quaternion& rotation) const
+	{
+	}
 
 	void Math::Multiply(Matrix4x4& res, const Matrix4x4& m1, const Matrix4x4& m2) const
 	{

@@ -96,6 +96,11 @@ namespace MMPEngine::Backend::Dx12
 		DirectX::XMStoreFloat4x4(reinterpret_cast<DirectX::XMFLOAT4X4*>(&res), DirectX::XMMatrixTranspose(mat));
 	}
 
+	void Math::Rotation(Core::Matrix4x4& res, const Core::Quaternion& rotation) const
+	{
+	}
+
+
 	void Math::TRS(Core::Matrix4x4& matrix, const Core::Transform& transform) const
 	{
 		const auto position = DirectX::XMLoadFloat3(reinterpret_cast<const DirectX::XMFLOAT3*>(&transform.position));

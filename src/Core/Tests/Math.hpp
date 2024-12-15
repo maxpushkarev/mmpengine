@@ -156,6 +156,20 @@ namespace MMPEngine::Core::Tests
 		ASSERT_EQ(res1, res2);
 	}
 
+	TYPED_TEST_P(MathTests, Matrix4x4_Rotation)
+	{
+		Core::Quaternion rotation {};
+		this->_default->RotationAroundAxis(rotation, { 1.0f, 1.0f, 0.0f }, Core::Math::ConvertDegreesToRadians(30.0f));
+
+		Core::Matrix4x4 res1 {};
+		Core::Matrix4x4 res2 {};
+
+		this->_default->Rotation(res1, rotation);
+		this->_mathImpl->Rotation(res2, rotation);
+
+		ASSERT_EQ(res1, res2);
+	}
+
 	TYPED_TEST_P(MathTests, Matrix4x4_Multiply)
 	{
 		constexpr Core::Matrix4x4 m1 {
@@ -374,6 +388,7 @@ namespace MMPEngine::Core::Tests
 		Matrix4x4_Multiply_Vector4,
 		Matrix4x4_Scale,
 		Matrix4x4_Translation,
+		Matrix4x4_Rotation,
 		Matrix4x4_TRS,
 		Matrix4x4_Transpose,
 		Quaternion_RotateAroundAxis,
