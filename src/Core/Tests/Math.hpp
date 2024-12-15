@@ -25,23 +25,10 @@ namespace MMPEngine::Core::Tests
 	{
 		static_assert(std::is_base_of_v<BaseMathProvider, TMathProvider>);
 	private:
-
-		class MockLogger : public Core::BaseLogger
-		{
-		public:
-			MockLogger() : Core::BaseLogger("math_test_logger")
-			{
-			}
-		protected:
-			void LogInternal(const char*) const override
-			{
-			}
-		};
-
 		class AppContext final : public Core::AppContext
 		{
 		public:
-			AppContext(std::unique_ptr<Core::Math>&& math) : Core::AppContext(Core::AppContext::Settings{}, std::move(math), std::make_unique<MockLogger>())
+			AppContext(std::unique_ptr<Core::Math>&& math) : Core::AppContext(Core::AppContext::Settings{}, std::move(math), nullptr)
 			{
 			}
 		};
