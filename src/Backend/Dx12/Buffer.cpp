@@ -46,17 +46,17 @@ namespace MMPEngine::Backend::Dx12
 		const auto srcNative = srcBuffer->GetNativeResource().Get();
 		const auto dstNative = dstBuffer->GetNativeResource().Get();
 
-		const auto srcNativeAddress = srcBuffer->GetNativeGPUAddress();
-		const auto dstNativeAddress = dstBuffer->GetNativeGPUAddress();
+		const auto srcNativeAddressWithOffset = srcBuffer->GetNativeGPUAddressWithRequiredOffset();
+		const auto dstNativeAddressWithOffset = dstBuffer->GetNativeGPUAddressWithRequiredOffset();
 
-		assert(srcNativeAddress >= srcNative->GetGPUVirtualAddress());
-		assert(dstNativeAddress >= dstNative->GetGPUVirtualAddress());
+		assert(srcNativeAddressWithOffset >= srcNative->GetGPUVirtualAddress());
+		assert(dstNativeAddressWithOffset >= dstNative->GetGPUVirtualAddress());
 
 		_specificStreamContext->PopulateCommandsInList()->CopyBufferRegion(
 			dstBuffer->GetNativeResource().Get(),
-			static_cast<std::uint64_t>(tc->dstByteOffset) + static_cast<std::uint64_t>(dstNativeAddress - dstNative->GetGPUVirtualAddress()),
+			static_cast<std::uint64_t>(tc->dstByteOffset) + static_cast<std::uint64_t>(dstNativeAddressWithOffset - dstNative->GetGPUVirtualAddress()),
 			srcBuffer->GetNativeResource().Get(),
-			static_cast<std::uint64_t>(tc->srcByteOffset) + static_cast<std::uint64_t>(srcNativeAddress - srcNative->GetGPUVirtualAddress()),
+			static_cast<std::uint64_t>(tc->srcByteOffset) + static_cast<std::uint64_t>(srcNativeAddressWithOffset - srcNative->GetGPUVirtualAddress()),
 			tc->byteLength);
 		
 	}

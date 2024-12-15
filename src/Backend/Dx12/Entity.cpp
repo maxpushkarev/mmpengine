@@ -36,7 +36,7 @@ namespace MMPEngine::Backend::Dx12
 		return _nativeResource;
 	}
 
-	D3D12_GPU_VIRTUAL_ADDRESS ResourceEntity::GetNativeGPUAddress() const
+	D3D12_GPU_VIRTUAL_ADDRESS ResourceEntity::GetNativeGPUAddressWithRequiredOffset() const
 	{
 		return _nativeResource->GetGPUVirtualAddress() + static_cast<D3D12_GPU_VIRTUAL_ADDRESS>(_offsetInsideResource);
 	}
