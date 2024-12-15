@@ -98,6 +98,9 @@ namespace MMPEngine::Backend::Dx12
 
 	void Math::Rotation(Core::Matrix4x4& res, const Core::Quaternion& rotation) const
 	{
+		const auto rotationLoaded = DirectX::XMLoadFloat4(reinterpret_cast<const DirectX::XMFLOAT4*>(&rotation));
+		const auto mat = DirectX::XMMatrixRotationQuaternion(rotationLoaded);
+		DirectX::XMStoreFloat4x4(reinterpret_cast<DirectX::XMFLOAT4X4*>(&res), DirectX::XMMatrixTranspose(mat));
 	}
 
 

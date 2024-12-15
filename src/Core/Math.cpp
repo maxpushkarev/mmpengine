@@ -91,6 +91,22 @@ namespace MMPEngine::Core
 
 	void Math::Rotation(Core::Matrix4x4& res, const Core::Quaternion& rotation) const
 	{
+		Quaternion q = rotation;
+		Normalize(q);
+
+		res = kMatrix4x4Identity;
+
+		res.m[0][0] = 1.0f - 2.0f * q.y * q.y - 2.0f * q.z * q.z;
+		res.m[0][1] = 2.0f * q.x * q.y - 2.0f * q.w * q.z;
+		res.m[0][2] = 2.0f * q.x * q.z + 2.0f * q.w * q.y;
+
+		res.m[1][0] = 2.0f * q.x * q.y + 2.0f * q.w * q.z;
+		res.m[1][1] = 1.0f - 2.0f * q.x * q.x - 2.0f * q.z * q.z;
+		res.m[1][2] = 2.0f * q.y * q.z - 2.0f * q.w * q.x;
+
+		res.m[2][0] = 2.0f * q.x * q.z - 2.0f * q.w * q.y;
+		res.m[2][1] = 2.0f * q.y * q.z + 2.0f * q.w * q.x;
+		res.m[2][2] = 1.0f - 2.0f * q.x * q.x - 2.0f * q.y * q.y;
 	}
 
 	void Math::Multiply(Matrix4x4& res, const Matrix4x4& m1, const Matrix4x4& m2) const
