@@ -245,6 +245,14 @@ namespace MMPEngine::Core::Tests
 		this->_mathImpl->Multiply(identity1, m, res1);
 
 		ASSERT_EQ(Core::Math::kMatrix4x4Identity, identity1);
+
+		Core::Matrix4x4 res2 {};
+		this->_default->Inverse(res2, m);
+
+		Core::Matrix4x4 identity2 {};
+		this->_default->Multiply(identity2, m, res2);
+
+		ASSERT_EQ(Core::Math::kMatrix4x4Identity, identity2);
 	}
 
 	TYPED_TEST_P(MathTests, Matrix4x4_Transpose)
