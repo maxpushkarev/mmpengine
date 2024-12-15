@@ -59,7 +59,6 @@ namespace MMPEngine::Core
 	{
 	};
 
-
 	template<>
 	std::float_t Math::DeterminantInternal<Matrix4x4>(const Matrix4x4& m);
 
