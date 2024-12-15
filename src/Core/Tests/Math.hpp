@@ -116,11 +116,11 @@ namespace MMPEngine::Core::Tests
 	TYPED_TEST_P(MathTests, Matrix4x4_TRS)
 	{
 		Core::Transform t {
-			{-5.25f, 11.4f, 3.71f},
+			{-5.25f, 14.4f, -3.71f},
 			Core::Math::kQuaternionIdentity,
-			{1.5f, 1.21f, 1.069f}
+			{1.5f, 4.21f, 2.069f}
 		};
-		this->_default->RotationAroundAxis(t.rotation, {1.0f, 1.0f, 0.0f}, Core::Math::ConvertDegreesToRadians(30.0f));
+		this->_default->RotationAroundAxis(t.rotation, {1.0f, -5.39f, 2.43f}, Core::Math::ConvertDegreesToRadians(27.78f));
 
 		Core::Matrix4x4 res1 {};
 		Core::Matrix4x4 res2 {};
