@@ -117,6 +117,12 @@ IF (WIN32)
 	target_link_libraries(${dx12_test_name} PRIVATE ${dx12_name_tmp} GTest::gtest_main)
 	gtest_discover_tests(${dx12_test_name})
 
+	target_compile_definitions(${dx12_test_name} PRIVATE ${win_macro_tmp}=1)
+	target_compile_definitions(${dx12_test_name} PRIVATE ${dx12_macro_tmp}=1)
+	
+	target_compile_definitions(${core_test_name} PRIVATE ${win_macro_tmp}=1)
+	target_compile_definitions(${core_test_name} PRIVATE ${dx12_macro_tmp}=1)
+
 	#vulkan (TODO)
 
 elseif(APPLE)

@@ -1,6 +1,9 @@
 #pragma once
 #include <gtest/gtest.h>
 #include <Core/Math.hpp>
+#include <Core/Context.hpp>
+
+#include "Core/Context.hpp"
 
 namespace MMPEngine::Core::Tests
 {
@@ -21,23 +24,57 @@ namespace MMPEngine::Core::Tests
 	class MathTests : public testing::Test
 	{
 		static_assert(std::is_base_of_v<BaseMathProvider, TMathProvider>);
+	private:
+
+		class MockLogger : public Core::BaseLogger
+		{
+		public:
+			MockLogger() : Core::BaseLogger("math_test_logger")
+			{
+			}
+		protected:
+			void LogInternal(const char*) const override
+			{
+			}
+		};
+
+		class AppContext final : public Core::AppContext
+		{
+		public:
+			AppContext(std::unique_ptr<Core::Math>&& math) : Core::AppContext(Core::AppContext::Settings{}, std::move(math), std::make_unique<MockLogger>())
+			{
+			}
+		};
+
 	protected:
 
-		std::unique_ptr<Core::Math> _mathImpl;
-		std::unique_ptr<Core::DefaultMath> _default;
+		std::unique_ptr<AppContext> _appContextWithMathImpl;
+		std::unique_ptr<AppContext> _appContextWithDefaultMath;
+
+		inline const Core::Math* GetDefaultMath() const
+		{
+			return _appContextWithDefaultMath->math.get();
+		}
+
+		inline const Core::Math* GetMathImpl() const
+		{
+			return _appContextWithMathImpl->math.get();
+		}
 
 		inline void SetUp() override
 		{
 			testing::Test::SetUp();
 			TMathProvider provider {};
-			_mathImpl = provider.Make();
-			_default = std::make_unique<Core::DefaultMath>();
+
+			_appContextWithDefaultMath = std::make_unique<AppContext>(std::make_unique<Core::DefaultMath>());
+			_appContextWithMathImpl = std::make_unique<AppContext>(provider.Make());
+
 		}
 
 		inline void TearDown() override
 		{
-			_mathImpl.reset();
-			_default.reset();
+			_appContextWithDefaultMath.reset();
+			_appContextWithMathImpl.reset();
 			testing::Test::TearDown();
 		}
 	};
@@ -49,7 +86,7 @@ namespace MMPEngine::Core::Tests
 		Core::Vector3Float v1 {0.56f, -4.892f, 3.784f };
 		Core::Vector3Float v2 { -10.84f,-3.29f,0.61f };
 
-		EXPECT_EQ(this->_default->Dot(v1, v2), this->_mathImpl->Dot(v1, v2));
+		EXPECT_EQ(this->GetDefaultMath()->Dot(v1, v2), this->GetMathImpl()->Dot(v1, v2));
 	}
 
 	TYPED_TEST_P(MathTests, Vector3_Cross)
@@ -60,8 +97,8 @@ namespace MMPEngine::Core::Tests
 		Core::Vector3Float res1 {};
 		Core::Vector3Float res2 {};
 
-		this->_default->Cross(res1, v1, v2);
-		this->_mathImpl->Cross(res2, v1, v2);
+		this->GetDefaultMath()->Cross(res1, v1, v2);
+		this->GetMathImpl()->Cross(res2, v1, v2);
 
 		EXPECT_EQ(res1, res2);
 	}
@@ -72,8 +109,8 @@ namespace MMPEngine::Core::Tests
 		Core::Vector3Float res1 = v;
 		Core::Vector3Float res2 = v;
 
-		this->_default->Normalize(res1);
-		this->_mathImpl->Normalize(res2);
+		this->GetDefaultMath()->Normalize(res1);
+		this->GetMathImpl()->Normalize(res2);
 
 		EXPECT_EQ(res1, res2);
 	}
@@ -86,8 +123,8 @@ namespace MMPEngine::Core::Tests
 		Core::Vector3Float res1 {};
 		Core::Vector3Float res2 {};
 
-		this->_default->Project(res1, v1, v2);
-		this->_mathImpl->Project(res2, v1, v2);
+		this->GetDefaultMath()->Project(res1, v1, v2);
+		this->GetMathImpl()->Project(res2, v1, v2);
 
 		EXPECT_EQ(res1, res2);
 	}
@@ -96,8 +133,8 @@ namespace MMPEngine::Core::Tests
 	{
 		constexpr  Core::Vector3Float v {0.56f, -4.892f, 3.784f };
 
-		const auto res1 = this->_default->Magnitude(v);
-		const auto res2 = this->_mathImpl->Magnitude(v);
+		const auto res1 = this->GetDefaultMath()->Magnitude(v);
+		const auto res2 = this->GetMathImpl()->Magnitude(v);
 
 		EXPECT_FLOAT_EQ(res1, res2);
 
@@ -107,8 +144,8 @@ namespace MMPEngine::Core::Tests
 	{
 		constexpr Core::Vector3Float v {0.56f, -4.892f, 3.784f };
 
-		const auto res1 = this->_default->SquaredMagnitude(v);
-		const auto res2 = this->_mathImpl->SquaredMagnitude(v);
+		const auto res1 = this->GetDefaultMath()->SquaredMagnitude(v);
+		const auto res2 = this->GetMathImpl()->SquaredMagnitude(v);
 
 		EXPECT_FLOAT_EQ(res1, res2);
 	}
@@ -120,13 +157,13 @@ namespace MMPEngine::Core::Tests
 			Core::Math::kQuaternionIdentity,
 			{1.5f, 4.21f, 2.069f}
 		};
-		this->_default->RotationAroundAxis(t.rotation, {1.0f, -5.39f, 2.43f}, Core::Math::ConvertDegreesToRadians(27.78f));
+		this->GetDefaultMath()->RotationAroundAxis(t.rotation, {1.0f, -5.39f, 2.43f}, Core::Math::ConvertDegreesToRadians(27.78f));
 
 		Core::Matrix4x4 res1 {};
 		Core::Matrix4x4 res2 {};
 
-		this->_default->TRS(res1, t);
-		this->_mathImpl->TRS(res2, t);
+		this->GetDefaultMath()->TRS(res1, t);
+		this->GetMathImpl()->TRS(res2, t);
 
 		ASSERT_EQ(res1, res2);
 	}
@@ -137,8 +174,8 @@ namespace MMPEngine::Core::Tests
 		Core::Matrix4x4 res1 {};
 		Core::Matrix4x4 res2 {};
 
-		this->_default->Scale(res1, scale);
-		this->_mathImpl->Scale(res2, scale);
+		this->GetDefaultMath()->Scale(res1, scale);
+		this->GetMathImpl()->Scale(res2, scale);
 
 		ASSERT_EQ(res1, res2);
 	}
@@ -150,8 +187,8 @@ namespace MMPEngine::Core::Tests
 		Core::Matrix4x4 res1 {};
 		Core::Matrix4x4 res2 {};
 
-		this->_default->Translation(res1, translation);
-		this->_mathImpl->Translation(res2, translation);
+		this->GetDefaultMath()->Translation(res1, translation);
+		this->GetMathImpl()->Translation(res2, translation);
 
 		ASSERT_EQ(res1, res2);
 	}
@@ -159,13 +196,13 @@ namespace MMPEngine::Core::Tests
 	TYPED_TEST_P(MathTests, Matrix4x4_Rotation)
 	{
 		Core::Quaternion rotation {};
-		this->_default->RotationAroundAxis(rotation, { 1.0f, 1.0f, 0.0f }, Core::Math::ConvertDegreesToRadians(30.0f));
+		this->GetDefaultMath()->RotationAroundAxis(rotation, { 1.0f, 1.0f, 0.0f }, Core::Math::ConvertDegreesToRadians(30.0f));
 
 		Core::Matrix4x4 res1 {};
 		Core::Matrix4x4 res2 {};
 
-		this->_default->Rotation(res1, rotation);
-		this->_mathImpl->Rotation(res2, rotation);
+		this->GetDefaultMath()->Rotation(res1, rotation);
+		this->GetMathImpl()->Rotation(res2, rotation);
 
 		ASSERT_EQ(res1, res2);
 	}
@@ -193,8 +230,8 @@ namespace MMPEngine::Core::Tests
 		Core::Matrix4x4 res1 {};
 		Core::Matrix4x4 res2 {};
 
-		this->_default->Multiply(res1, m1, m2);
-		this->_mathImpl->Multiply(res2, m1, m2);
+		this->GetDefaultMath()->Multiply(res1, m1, m2);
+		this->GetMathImpl()->Multiply(res2, m1, m2);
 
 		EXPECT_EQ(res1, res2);
 	}
@@ -215,8 +252,8 @@ namespace MMPEngine::Core::Tests
 		Core::Vector3Float res1 {};
 		Core::Vector3Float res2 {};
 
-		this->_default->MultiplyMatrixAndPoint(res1, m, p);
-		this->_mathImpl->MultiplyMatrixAndPoint(res2, m, p);
+		this->GetDefaultMath()->MultiplyMatrixAndPoint(res1, m, p);
+		this->GetMathImpl()->MultiplyMatrixAndPoint(res2, m, p);
 
 		ASSERT_EQ(res1, res2);
 	}
@@ -237,8 +274,8 @@ namespace MMPEngine::Core::Tests
 		Core::Vector4Float res1 {};
 		Core::Vector4Float res2 {};
 
-		this->_default->Multiply(res1, m, v);
-		this->_mathImpl->Multiply(res2, m, v);
+		this->GetDefaultMath()->Multiply(res1, m, v);
+		this->GetMathImpl()->Multiply(res2, m, v);
 
 		ASSERT_EQ(res1, res2);
 	}
@@ -259,8 +296,8 @@ namespace MMPEngine::Core::Tests
 		Core::Vector3Float res1 {};
 		Core::Vector3Float res2 {};
 
-		this->_default->MultiplyMatrixAndVector(res1, m, v);
-		this->_mathImpl->MultiplyMatrixAndVector(res2, m, v);
+		this->GetDefaultMath()->MultiplyMatrixAndVector(res1, m, v);
+		this->GetMathImpl()->MultiplyMatrixAndVector(res2, m, v);
 
 		ASSERT_EQ(res1, res2);
 	}
@@ -276,7 +313,7 @@ namespace MMPEngine::Core::Tests
 			}
 		};
 
-		ASSERT_EQ(this->_default->Determinant(m), this->_mathImpl->Determinant(m));
+		ASSERT_EQ(this->GetDefaultMath()->Determinant(m), this->GetMathImpl()->Determinant(m));
 	}
 
 	TYPED_TEST_P(MathTests, Matrix4x4_Inverse)
@@ -291,18 +328,18 @@ namespace MMPEngine::Core::Tests
 		};
 
 		Core::Matrix4x4 res1 {};
-		this->_mathImpl->Inverse(res1, m);
+		this->GetMathImpl()->Inverse(res1, m);
 
 		Core::Matrix4x4 identity1 {};
-		this->_mathImpl->Multiply(identity1, m, res1);
+		this->GetMathImpl()->Multiply(identity1, m, res1);
 
 		ASSERT_EQ(Core::Math::kMatrix4x4Identity, identity1);
 
 		Core::Matrix4x4 res2 {};
-		this->_default->Inverse(res2, m);
+		this->GetDefaultMath()->Inverse(res2, m);
 
 		Core::Matrix4x4 identity2 {};
-		this->_default->Multiply(identity2, m, res2);
+		this->GetDefaultMath()->Multiply(identity2, m, res2);
 
 		ASSERT_EQ(Core::Math::kMatrix4x4Identity, identity2);
 	}
@@ -321,8 +358,8 @@ namespace MMPEngine::Core::Tests
 		Core::Matrix4x4 res1 {};
 		Core::Matrix4x4 res2 {};
 
-		this->_default->Transpose(res1, m);
-		this->_mathImpl->Transpose(res2, m);
+		this->GetDefaultMath()->Transpose(res1, m);
+		this->GetMathImpl()->Transpose(res2, m);
 
 		ASSERT_EQ(res1, res2);
 	}
@@ -336,8 +373,8 @@ namespace MMPEngine::Core::Tests
 		Core::Quaternion res1 {};
 		Core::Quaternion res2 {};
 
-		this->_default->RotationAroundAxis(res1, v, rad);
-		this->_mathImpl->RotationAroundAxis(res2, v, rad);
+		this->GetDefaultMath()->RotationAroundAxis(res1, v, rad);
+		this->GetMathImpl()->RotationAroundAxis(res2, v, rad);
 
 		ASSERT_EQ(res1, res2);
 	}
@@ -348,7 +385,7 @@ namespace MMPEngine::Core::Tests
 		constexpr Core::Quaternion q1 {0.1f, 0.2f, 0.3f, 0.4f};
 		constexpr Core::Quaternion q2 {0.5f, 0.6f, 0.7f, 0.8f};
 
-		ASSERT_EQ(this->_default->Dot(q1, q2), this->_mathImpl->Dot(q1, q2));
+		ASSERT_EQ(this->GetDefaultMath()->Dot(q1, q2), this->GetMathImpl()->Dot(q1, q2));
 	}
 
 	TYPED_TEST_P(MathTests, Quaternion_Inverse)
@@ -358,14 +395,14 @@ namespace MMPEngine::Core::Tests
 		Core::Quaternion res1 {};
 		Core::Quaternion res2 {};
 
-		this->_default->Inverse(res1, q);
-		this->_mathImpl->Inverse(res2, q);
+		this->GetDefaultMath()->Inverse(res1, q);
+		this->GetMathImpl()->Inverse(res2, q);
 
 		Core::Quaternion identity1 {};
 		Core::Quaternion identity2 {};
 
-		this->_default->Multiply(identity1, q, res1);
-		this->_mathImpl->Multiply(identity2, q, res2);
+		this->GetDefaultMath()->Multiply(identity1, q, res1);
+		this->GetMathImpl()->Multiply(identity2, q, res2);
 
 		EXPECT_EQ(Core::Math::kQuaternionIdentity, identity1);
 		EXPECT_EQ(Core::Math::kQuaternionIdentity, identity2);
