@@ -71,6 +71,18 @@ namespace MMPEngine::Backend::Dx12
 		DirectX::XMStoreFloat4(reinterpret_cast<DirectX::XMFLOAT4*>(&res), r);
 	}
 
+	std::float_t Math::Determinant(const Core::Matrix4x4& m) const
+	{
+		std::float_t res = 0.0f;
+
+		const auto mLoaded = DirectX::XMLoadFloat4x4(reinterpret_cast<const DirectX::XMFLOAT4X4*>(&m));
+		const auto det = DirectX::XMMatrixDeterminant(mLoaded);
+		DirectX::XMStoreFloat(&res, det);
+
+		return res;
+	}
+
+
 	void Math::Inverse(Core::Matrix4x4& res, const Core::Matrix4x4& m) const
 	{
 		const auto mLoaded = DirectX::XMLoadFloat4x4(reinterpret_cast<const DirectX::XMFLOAT4X4*>(&m));

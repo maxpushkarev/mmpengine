@@ -95,6 +95,76 @@ namespace MMPEngine::Core
 		res.m[3][3] = m1.m[3][0] * m2.m[0][3] + m1.m[3][1] * m2.m[1][3] + m1.m[3][2] * m2.m[2][3] + m1.m[3][3] * m2.m[3][3];
 	}
 
+	template<>
+	std::float_t Math::DeterminantInternal<Matrix4x4>(const Matrix4x4& m)
+	{
+		return
+			m.m[0][0] * DeterminantInternal(Matrix3x3 {
+				{
+					{m.m[1][1],m.m[1][2],m.m[1][3]},
+					{m.m[2][1],m.m[2][2],m.m[2][3]},
+					{m.m[3][1],m.m[3][2],m.m[3][3]}
+				}
+			})
+			- m.m[0][1] * DeterminantInternal(Matrix3x3{
+				{
+					{m.m[1][0],m.m[1][2],m.m[1][3]},
+					{m.m[2][0],m.m[2][2],m.m[2][3]},
+					{m.m[3][0],m.m[3][2],m.m[3][3]}
+				}
+				})
+			+ m.m[0][2] * DeterminantInternal(Matrix3x3{
+				{
+					{m.m[1][0],m.m[1][1],m.m[1][3]},
+					{m.m[2][0],m.m[2][1],m.m[2][3]},
+					{m.m[3][0],m.m[3][1],m.m[3][3]}
+				}
+				})
+			- m.m[0][3] * DeterminantInternal(Matrix3x3{
+				{
+					{m.m[1][0],m.m[1][1],m.m[1][2]},
+					{m.m[2][0],m.m[2][1],m.m[2][2]},
+					{m.m[3][0],m.m[3][1],m.m[3][2]}
+				}
+				});
+	}
+
+	template<>
+	std::float_t Math::DeterminantInternal<Matrix3x3>(const Matrix3x3& m)
+	{
+		return
+			m.m[0][0] * DeterminantInternal(Matrix2x2 {
+				{
+					{m.m[1][1],m.m[1][2]},
+					{m.m[2][1],m.m[2][2]}
+				}
+			})
+			- m.m[0][1] * DeterminantInternal(Matrix2x2{
+				{
+					{m.m[1][0],m.m[1][2]},
+					{m.m[2][0],m.m[2][2]}
+				}
+				})
+			+ m.m[0][2] * DeterminantInternal(Matrix2x2{
+				{
+					{m.m[1][0],m.m[1][1]},
+					{m.m[2][0],m.m[2][1]}
+				}
+				});
+	}
+
+	template<>
+	std::float_t Math::DeterminantInternal<Matrix2x2>(const Matrix2x2& m)
+	{
+		return m.m[0][0] * m.m[1][1] - m.m[0][1] * m.m[1][0];
+	}
+
+
+	std::float_t Math::Determinant(const Matrix4x4& m) const
+	{
+		return DeterminantInternal(m);
+	}
+
 	void Math::Inverse(Matrix4x4& res, const Matrix4x4& m) const
 	{
 	}

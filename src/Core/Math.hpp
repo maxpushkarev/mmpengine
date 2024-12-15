@@ -1,4 +1,5 @@
 #pragma once
+#include <vector>
 #include <Core/Base.hpp>
 
 namespace MMPEngine::Core
@@ -40,13 +41,34 @@ namespace MMPEngine::Core
 		virtual void MultiplyMatrixAndPoint(Core::Vector3Float& res, const Core::Matrix4x4& m, const Core::Vector3Float& p) const;
 		virtual void MultiplyMatrixAndVector(Core::Vector3Float& res, const Core::Matrix4x4& m, const Core::Vector3Float& v) const;
 		virtual void Transpose(Matrix4x4& res, const Matrix4x4& m) const;
+		virtual std::float_t Determinant(const Matrix4x4& m) const;
 		virtual void Inverse(Matrix4x4& res, const Matrix4x4& m) const;
 
 	private:
 		static constexpr auto _deg2Rad = kPi / 180.0f;
+
+		template<typename TMatrix>
+		static std::float_t DeterminantInternal(const TMatrix& m);
+
+
+		template<>
+		static std::float_t DeterminantInternal<Matrix4x4>(const Matrix4x4& m);
+
+		template<>
+		static std::float_t DeterminantInternal<Matrix3x3>(const Matrix3x3& m);
+
+		template<>
+		static std::float_t DeterminantInternal<Matrix2x2>(const Matrix2x2& m);
 	};
 
 	class DefaultMath final : public Math
 	{
 	};
+
+
+	template<typename TMatrix>
+	inline std::float_t Math::DeterminantInternal(const TMatrix& m)
+	{
+		return 0.0f;
+	}
 }

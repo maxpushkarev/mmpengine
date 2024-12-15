@@ -134,13 +134,15 @@ namespace MMPEngine::Core
 		return !operator==(rhs);
 	}
 
-	bool Matrix4x4::operator==(const Matrix4x4& rhs) const
+	inline bool MatrixEqualityCheck(std::size_t size, const std::float_t* lhs, const std::float_t* rhs)
 	{
-		for(std::size_t i = 0; i < 4; ++i)
+		for (std::size_t i = 0; i < size; ++i)
 		{
-			for(std::size_t j = 0; j < 4; ++j)
+			for (std::size_t j = 0; j < size; ++j)
 			{
-				if(std::abs(m[i][j] - rhs.m[i][j]) > Constants::kFloatEps)
+				const auto linear = i * size + j;
+
+				if (std::abs(lhs[linear] - rhs[linear]) > Constants::kFloatEps)
 				{
 					return false;
 				}
@@ -149,7 +151,32 @@ namespace MMPEngine::Core
 		return true;
 	}
 
+	bool Matrix4x4::operator==(const Matrix4x4& rhs) const
+	{
+		return MatrixEqualityCheck(4, &(m[0][0]), &(rhs.m[0][0]));
+	}
+
 	bool Matrix4x4::operator!=(const Matrix4x4& rhs) const
+	{
+		return !operator==(rhs);
+	}
+
+	bool Matrix3x3::operator==(const Matrix3x3& rhs) const
+	{
+		return MatrixEqualityCheck(3, &(m[0][0]), &(rhs.m[0][0]));
+	}
+
+	bool Matrix3x3::operator!=(const Matrix3x3& rhs) const
+	{
+		return !operator==(rhs);
+	}
+
+	bool Matrix2x2::operator==(const Matrix2x2& rhs) const
+	{
+		return MatrixEqualityCheck(2, &(m[0][0]), &(rhs.m[0][0]));
+	}
+
+	bool Matrix2x2::operator!=(const Matrix2x2& rhs) const
 	{
 		return !operator==(rhs);
 	}

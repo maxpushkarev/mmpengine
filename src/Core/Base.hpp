@@ -158,6 +158,22 @@ namespace MMPEngine::Core
 		bool operator!=(const Quaternion& rhs) const;
 	};
 
+	struct Matrix2x2 final
+	{
+		std::float_t m[2][2];
+
+		bool operator==(const Matrix2x2& rhs) const;
+		bool operator!=(const Matrix2x2& rhs) const;
+	};
+
+	struct Matrix3x3 final
+	{
+		std::float_t m[3][3];
+
+		bool operator==(const Matrix3x3& rhs) const;
+		bool operator!=(const Matrix3x3& rhs) const;
+	};
+
 	struct Matrix4x4 final
 	{
 		std::float_t m[4][4];

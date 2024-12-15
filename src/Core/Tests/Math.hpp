@@ -115,6 +115,7 @@ namespace MMPEngine::Core::Tests
 
 	TYPED_TEST_P(MathTests, Matrix4x4_TRS)
 	{
+		//TODO
 	}
 
 	TYPED_TEST_P(MathTests, Matrix4x4_Multiply)
@@ -212,6 +213,20 @@ namespace MMPEngine::Core::Tests
 		ASSERT_EQ(res1, res2);
 	}
 
+	TYPED_TEST_P(MathTests, Matrix4x4_Determinant)
+	{
+		constexpr Core::Matrix4x4 m {
+			{
+				{-1.457f, 3.333f, 0.049f, -8.24f},
+				{ -6.094f, 6.912f, -2.693f, 5.85f },
+				{ 9.42f, -0.018f, 7.12f, -4.12f },
+				{ -1.12f, 4.141f, 5.1177f, 1.0125f }
+			}
+		};
+
+		ASSERT_EQ(this->_default->Determinant(m), this->_mathImpl->Determinant(m));
+	}
+
 	TYPED_TEST_P(MathTests, Matrix4x4_Inverse)
 	{
 		constexpr Core::Matrix4x4 m {
@@ -260,6 +275,7 @@ namespace MMPEngine::Core::Tests
 		Vector3_Normalize,
 		Vector3_SquaredMagnitude,
 		Vector3_Project_On_Vector3,
+		Matrix4x4_Determinant,
 		Matrix4x4_Inverse,
 		Matrix4x4_Multiply,
 		Matrix4x4_Multiply_Point,
