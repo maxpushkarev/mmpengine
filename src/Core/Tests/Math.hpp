@@ -2,8 +2,7 @@
 #include <gtest/gtest.h>
 #include <Core/Math.hpp>
 #include <Core/Context.hpp>
-
-#include "Core/Context.hpp"
+#include <Core/Node.hpp>
 
 namespace MMPEngine::Core::Tests
 {
@@ -24,28 +23,19 @@ namespace MMPEngine::Core::Tests
 	class MathTests : public testing::Test
 	{
 		static_assert(std::is_base_of_v<BaseMathProvider, TMathProvider>);
+
 	private:
-		class AppContext final : public Core::AppContext
-		{
-		public:
-			AppContext(std::unique_ptr<Core::Math>&& math) : Core::AppContext(Core::AppContext::Settings{}, std::move(math), nullptr)
-			{
-			}
-		};
-
+		std::unique_ptr<Core::Math> _mathImpl;
+		std::unique_ptr<Core::Math> _defaultMath;
 	protected:
-
-		std::unique_ptr<AppContext> _appContextWithMathImpl;
-		std::unique_ptr<AppContext> _appContextWithDefaultMath;
-
 		inline const Core::Math* GetDefaultMath() const
 		{
-			return _appContextWithDefaultMath->math.get();
+			return _defaultMath.get();
 		}
 
 		inline const Core::Math* GetMathImpl() const
 		{
-			return _appContextWithMathImpl->math.get();
+			return _mathImpl.get();
 		}
 
 		inline void SetUp() override
@@ -53,15 +43,15 @@ namespace MMPEngine::Core::Tests
 			testing::Test::SetUp();
 			TMathProvider provider {};
 
-			_appContextWithDefaultMath = std::make_unique<AppContext>(std::make_unique<Core::DefaultMath>());
-			_appContextWithMathImpl = std::make_unique<AppContext>(provider.Make());
+			_defaultMath = std::make_unique<Core::DefaultMath>();
+			_mathImpl = provider.Make();
 
 		}
 
 		inline void TearDown() override
 		{
-			_appContextWithDefaultMath.reset();
-			_appContextWithMathImpl.reset();
+			_defaultMath.reset();
+			_mathImpl.reset();
 			testing::Test::TearDown();
 		}
 	};
@@ -398,6 +388,53 @@ namespace MMPEngine::Core::Tests
 
 	TYPED_TEST_P(MathTests, Node_LocalToWorld)
 	{
+		Core::Transform t1 {
+			{-5.25f, 14.4f, -3.71f},
+				Core::Math::kQuaternionIdentity,
+			{ 1.5f, 4.21f, 2.069f }
+		};
+		this->GetDefaultMath()->RotationAroundAxis(t1.rotation, { 1.0f, -5.39f, 2.43f }, Core::Math::ConvertDegreesToRadians(27.78f));
+
+		Core::Transform t2 {
+			{0.25f, 1.44f, -37.18f},
+				Core::Math::kQuaternionIdentity,
+			{ 8.5f, 1.21f, 2.069f }
+		};
+		this->GetDefaultMath()->RotationAroundAxis(t2.rotation, { -3.4f, -2.2f, 0.1f }, Core::Math::ConvertDegreesToRadians(-35.5f));
+
+		Core::Transform t3 {
+			{3.81f, -9.2f, 4.69f},
+				Core::Math::kQuaternionIdentity,
+			{ 0.23f, 1.85f, 3.98f }
+		};
+		this->GetDefaultMath()->RotationAroundAxis(t3.rotation, { -3.4f, -2.2f, 0.1f }, Core::Math::ConvertDegreesToRadians(100.34f));
+
+		const auto node1 = std::make_shared<Node>();
+		const auto node2 = std::make_shared<Node>();
+		const auto node3 = std::make_shared<Node>();
+
+
+		node1->AddChild(node2);
+		node2->AddChild(node3);
+
+		node1->localTransform = t1;
+		node2->localTransform = t2;
+		node3->localTransform = t3;
+
+		Core::Matrix4x4 res1 {};
+		Core::Matrix4x4 res2 {};
+
+		this->GetDefaultMath()->FetchLocalToWorldSpaceMatrix(res1, node1);
+		this->GetMathImpl()->FetchLocalToWorldSpaceMatrix(res2, node1);
+		ASSERT_EQ(res1, res2);
+
+		this->GetDefaultMath()->FetchLocalToWorldSpaceMatrix(res1, node2);
+		this->GetMathImpl()->FetchLocalToWorldSpaceMatrix(res2, node2);
+		ASSERT_EQ(res1, res2);
+
+		this->GetDefaultMath()->FetchLocalToWorldSpaceMatrix(res1, node3);
+		this->GetMathImpl()->FetchLocalToWorldSpaceMatrix(res2, node3);
+		ASSERT_EQ(res1, res2);
 	}
 
 

@@ -2,15 +2,14 @@
 #include <memory>
 #include <unordered_set>
 #include <Core/Base.hpp>
-#include <Core/Context.hpp>
 
 namespace MMPEngine::Core
 {
 	class Node final : public std::enable_shared_from_this<Node>
 	{
 	public:
-		Node(const std::shared_ptr<AppContext>& appContext);
-		Node(const std::shared_ptr<AppContext>& appContext, std::string_view);
+		Node();
+		Node(std::string_view);
 		Node(const Node&);
 		Node(Node&&) noexcept = delete;
 		Node& operator=(const Node&) = delete;
@@ -25,7 +24,6 @@ namespace MMPEngine::Core
 
 		std::shared_ptr<Node> FindNodeInSubtree(std::string_view) const;
 	private:
-		std::shared_ptr<AppContext> _appContext;
 		std::string _name;
 		std::shared_ptr<Node> _parent;
 		std::unordered_set<std::shared_ptr<Node>> _children;

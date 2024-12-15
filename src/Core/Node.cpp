@@ -5,8 +5,7 @@
 
 namespace MMPEngine::Core
 {
-	Node::Node(const std::shared_ptr<AppContext>& appContext) :
-		_appContext(appContext),
+	Node::Node() :
 		_parent(nullptr),
 		localTransform{ {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f, 1.0f}, {1.0f, 1.0f, 1.0f} }
 	{
@@ -14,8 +13,7 @@ namespace MMPEngine::Core
 		_name = "Node" + std::to_string(++counter);
 	}
 
-	Node::Node(const std::shared_ptr<AppContext>& appContext, std::string_view name) :
-		_appContext(appContext),
+	Node::Node(std::string_view name) :
 		_name({ name.cbegin(), name.cend() }),
 		_parent(nullptr),
 		localTransform{ {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f, 1.0f}, {1.0f, 1.0f, 1.0f} }
@@ -24,7 +22,6 @@ namespace MMPEngine::Core
 
 	Node::Node(const Node& origin) :
 		enable_shared_from_this(origin),
-		_appContext(origin._appContext),
 		_name({ origin.GetName().cbegin(), origin.GetName().cend() })
 	{
 		CloneSubtree(&origin, this);
@@ -141,7 +138,7 @@ namespace MMPEngine::Core
 
 		for (const auto& originChild : origin->GetChildren())
 		{
-			const auto targetChild = std::make_shared<Node>(origin->_appContext, originChild->GetName());
+			const auto targetChild = std::make_shared<Node>(originChild->GetName());
 			CloneSubtree(originChild.get(), targetChild.get());
 			target->AddChild(targetChild);
 		}
