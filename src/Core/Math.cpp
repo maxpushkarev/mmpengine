@@ -1,4 +1,5 @@
 #include <Core/Math.hpp>
+#include <cassert>
 
 namespace MMPEngine::Core
 {
@@ -167,6 +168,52 @@ namespace MMPEngine::Core
 
 	void Math::Inverse(Matrix4x4& res, const Matrix4x4& m) const
 	{
+		const auto det = Determinant(m);
+		assert(std::abs(det) >= _minDetAbs);
+		const auto invDet = 1.0f / det;
+
+		Matrix4x4 t {};
+		Transpose(t, m);
+
+		for(std::size_t i = 0; i < 4; ++i)
+		{
+			for(std::size_t j = 0; j < 4; ++j)
+			{
+				const std::float_t sign = ((i + j) % 2 == 0) ? 1.0f : -1.0f;
+				Matrix3x3 tmp {};
+
+				std::size_t tmpRow = 0;
+				std::size_t tmpCol = 0;
+
+				for(std::size_t tmpI = 0; tmpI < 4; ++tmpI)
+				{
+					if(tmpI == i)
+					{
+						continue;
+					}
+					
+					for(std::size_t tmpJ = 0; tmpJ < 4; ++tmpJ)
+					{
+						if(tmpJ == j)
+						{
+							continue;
+						}
+
+						tmp.m[tmpRow][tmpCol] = t.m[tmpI][tmpJ];
+						++tmpCol;
+					}
+
+					++tmpRow;
+					tmpCol = 0;
+				}
+
+				assert(tmpRow == 3);
+				assert(tmpCol == 0);
+
+				const auto cofactor = sign * DeterminantInternal(tmp);
+				res.m[i][j] = invDet * cofactor;
+			}
+		}
 	}
 
 	void Math::Transpose(Matrix4x4& res, const Matrix4x4& m) const

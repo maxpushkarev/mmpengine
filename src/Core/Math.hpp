@@ -46,6 +46,7 @@ namespace MMPEngine::Core
 
 	private:
 		static constexpr auto _deg2Rad = kPi / 180.0f;
+		static constexpr auto _minDetAbs = 0.000001f;
 
 		template<typename TMatrix>
 		static std::float_t DeterminantInternal(const TMatrix& m);
