@@ -47,9 +47,17 @@ namespace MMPEngine::Core
 		virtual std::float_t Determinant(const Matrix4x4& m) const;
 		virtual void Inverse(Matrix4x4& res, const Matrix4x4& m) const;
 
+		virtual void Normalize(Quaternion& q) const;
+		virtual void Inverse(Quaternion& res, const Quaternion& q) const;
+		virtual void Multiply(Quaternion& res, const Quaternion& q1, const Quaternion& q2) const;
+		virtual std::float_t Dot(const Quaternion& q1, const Quaternion& q2) const;
+		virtual void RotationAroundAxis(Quaternion& res, const Vector3Float& v, std::float_t rad) const;
+
 	private:
 		static constexpr auto _deg2Rad = kPi / 180.0f;
-		static constexpr auto _minDetAbs = 0.000001f;
+		static constexpr auto _minValidationFloat = 0.000001f;
+
+		static void ConjugateInPlace(Quaternion& q);
 
 		template<typename TMatrix>
 		std::float_t DeterminantInternal(const TMatrix& m) const;

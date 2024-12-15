@@ -116,4 +116,39 @@ namespace MMPEngine::Backend::Dx12
 		const auto r = DirectX::XMVector3Transform(vLoaded, DirectX::XMLoadFloat3x3(&tmp));
 		DirectX::XMStoreFloat3(reinterpret_cast<DirectX::XMFLOAT3*>(&res), r);
 	}
+
+	void Math::RotationAroundAxis(Core::Quaternion& res, const Core::Vector3Float& v, std::float_t rad) const
+	{
+		const auto nrm = DirectX::XMVector3Normalize(
+			DirectX::XMLoadFloat3(reinterpret_cast<const DirectX::XMFLOAT3*>(&v))
+		);
+		const auto q = DirectX::XMQuaternionRotationNormal(nrm, rad);
+		DirectX::XMStoreFloat4(reinterpret_cast<DirectX::XMFLOAT4*>(&res), q);
+	}
+
+	std::float_t Math::Dot(const Core::Quaternion& q1, const Core::Quaternion& q2) const
+	{
+		const auto q1Loaded = DirectX::XMLoadFloat4(reinterpret_cast<const DirectX::XMFLOAT4*>(&q1));
+		const auto q2Loaded = DirectX::XMLoadFloat4(reinterpret_cast<const DirectX::XMFLOAT4*>(&q2));
+
+		std::float_t res = 0.0f;
+		const auto dot = DirectX::XMQuaternionDot(q1Loaded, q2Loaded);
+		DirectX::XMStoreFloat(&res, dot);
+
+		return res;
+	}
+
+	void Math::Normalize(Core::Quaternion& q) const
+	{
+		const auto unorm = DirectX::XMLoadFloat4(reinterpret_cast<const DirectX::XMFLOAT4*>(&q));
+		const auto norm = DirectX::XMQuaternionNormalize(unorm);
+		DirectX::XMStoreFloat4(reinterpret_cast<DirectX::XMFLOAT4*>(&q), norm);
+	}
+
+	void Math::Inverse(Core::Quaternion& res, const Core::Quaternion& q) const
+	{
+		const auto qLoaded = DirectX::XMLoadFloat4(reinterpret_cast<const DirectX::XMFLOAT4*>(&q));
+		const auto inv = DirectX::XMQuaternionInverse(qLoaded);
+		DirectX::XMStoreFloat4(reinterpret_cast<DirectX::XMFLOAT4*>(&res), inv);
+	}
 }

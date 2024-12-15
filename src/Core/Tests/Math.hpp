@@ -275,6 +275,51 @@ namespace MMPEngine::Core::Tests
 		ASSERT_EQ(res1, res2);
 	}
 
+
+	TYPED_TEST_P(MathTests, Quaternion_RotateAroundAxis)
+	{
+		constexpr Core::Vector3Float v {1.0f, 1.0f, -1.0f};
+		const auto rad = Core::Math::ConvertDegreesToRadians(30);
+
+		Core::Quaternion res1 {};
+		Core::Quaternion res2 {};
+
+		this->_default->RotationAroundAxis(res1, v, rad);
+		this->_mathImpl->RotationAroundAxis(res2, v, rad);
+
+		ASSERT_EQ(res1, res2);
+	}
+
+
+	TYPED_TEST_P(MathTests, Quaternion_Dot)
+	{
+		constexpr Core::Quaternion q1 {0.1f, 0.2f, 0.3f, 0.4f};
+		constexpr Core::Quaternion q2 {0.5f, 0.6f, 0.7f, 0.8f};
+
+		ASSERT_EQ(this->_default->Dot(q1, q2), this->_mathImpl->Dot(q1, q2));
+	}
+
+	TYPED_TEST_P(MathTests, Quaternion_Inverse)
+	{
+		constexpr Core::Quaternion q {0.1f, 0.2f, 0.3f, 0.4f};
+
+		Core::Quaternion res1 {};
+		Core::Quaternion res2 {};
+
+		this->_default->Inverse(res1, q);
+		this->_mathImpl->Inverse(res2, q);
+
+		Core::Quaternion identity1 {};
+		Core::Quaternion identity2 {};
+
+		this->_default->Multiply(identity1, q, res1);
+		this->_mathImpl->Multiply(identity2, q, res2);
+
+		EXPECT_EQ(Core::Math::kQuaternionIdentity, identity1);
+		EXPECT_EQ(Core::Math::kQuaternionIdentity, identity2);
+	}
+
+
 	REGISTER_TYPED_TEST_SUITE_P(
 		MathTests,
 		Vector3_Dot,
@@ -290,5 +335,8 @@ namespace MMPEngine::Core::Tests
 		Matrix4x4_Multiply_Vector3,
 		Matrix4x4_Multiply_Vector4,
 		Matrix4x4_TRS,
-		Matrix4x4_Transpose);
+		Matrix4x4_Transpose,
+		Quaternion_RotateAroundAxis,
+		Quaternion_Dot,
+		Quaternion_Inverse);
 }

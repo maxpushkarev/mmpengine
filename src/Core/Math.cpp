@@ -169,7 +169,7 @@ namespace MMPEngine::Core
 	void Math::Inverse(Matrix4x4& res, const Matrix4x4& m) const
 	{
 		const auto det = Determinant(m);
-		assert(std::abs(det) >= _minDetAbs);
+		assert(std::abs(det) >= _minValidationFloat);
 		const auto invDet = 1.0f / det;
 
 		Matrix4x4 t {};
@@ -253,5 +253,69 @@ namespace MMPEngine::Core
 		res.y = m.m[1][0] * v.x + m.m[1][1] * v.y + m.m[1][2] * v.z + m.m[1][3] * v.w;
 		res.z = m.m[2][0] * v.x + m.m[2][1] * v.y + m.m[2][2] * v.z + m.m[2][3] * v.w;
 		res.w = m.m[3][0] * v.x + m.m[3][1] * v.y + m.m[3][2] * v.z + m.m[3][3] * v.w;
+	}
+
+
+	void Math::Normalize(Quaternion& q) const
+	{
+		const auto mag = std::sqrtf(Dot(q, q));
+
+		if (mag < _minValidationFloat)
+		{
+			q = kQuaternionIdentity;
+		}
+
+		const auto invMag = 1.0f / mag;
+		q.x *= invMag;
+		q.y *= invMag;
+		q.z *= invMag;
+		q.w *= invMag;
+	}
+
+	std::float_t Math::Dot(const Quaternion& q1, const Quaternion& q2) const
+	{
+		return q1.x * q2.x + q1.y * q2.y + q1.z * q2.z + q1.w * q2.w;
+	}
+
+	void Math::RotationAroundAxis(Quaternion& res, const Vector3Float& v, std::float_t rad) const
+	{
+		Vector3Float nrm = v;
+		Normalize(nrm);
+
+		const auto sinHalf = std::sinf(rad * 0.5f);
+		const auto cosHalf = std::cosf(rad * 0.5f);
+
+		res.x = nrm.x * sinHalf;
+		res.y = nrm.y * sinHalf;
+		res.z = nrm.z * sinHalf;
+		res.w = cosHalf;
+	}
+
+	void Math::Multiply(Quaternion& res, const Quaternion& q1, const Quaternion& q2) const
+	{
+		res.x = q1.w* q2.x + q1.x * q2.w + q1.y * q2.z - q1.z * q2.y;
+		res.y = q1.w* q2.y + q1.y * q2.w + q1.z * q2.x - q1.x * q2.z;
+		res.z = q1.w* q2.z + q1.z * q2.w + q1.x * q2.y - q1.y * q2.x;
+		res.w = q1.w* q2.w - q1.x * q2.x - q1.y * q2.y - q1.z * q2.z;
+	}
+
+	void Math::Inverse(Quaternion& res, const Quaternion& q) const
+	{
+		const auto sqrMag = Dot(q, q);
+		res = q;
+		ConjugateInPlace(res);
+
+		const auto invSqrMag = 1.0f / sqrMag;
+		res.x *= invSqrMag;
+		res.y *= invSqrMag;
+		res.z *= invSqrMag;
+		res.w *= invSqrMag;
+	}
+
+	void Math::ConjugateInPlace(Quaternion& q)
+	{
+		q.x = -q.x;
+		q.y = -q.y;
+		q.z = -q.z;
 	}
 }
