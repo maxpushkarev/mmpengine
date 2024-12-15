@@ -73,6 +73,23 @@ namespace MMPEngine::Core
 	{
 	}
 
+	void Math::Scale(Core::Matrix4x4& res, const Core::Vector3Float& scale) const
+	{
+		res = kMatrix4x4Identity;
+		res.m[0][0] = scale.x;
+		res.m[1][1] = scale.y;
+		res.m[2][2] = scale.z;
+	}
+
+	void Math::Translation(Core::Matrix4x4& res, const Core::Vector3Float& translation) const
+	{
+		res = kMatrix4x4Identity;
+		res.m[0][3] = translation.x;
+		res.m[1][3] = translation.y;
+		res.m[2][3] = translation.z;
+	}
+
+
 	void Math::Multiply(Matrix4x4& res, const Matrix4x4& m1, const Matrix4x4& m2) const
 	{
 		res.m[0][0] = m1.m[0][0] * m2.m[0][0] + m1.m[0][1] * m2.m[1][0] + m1.m[0][2] * m2.m[2][0] + m1.m[0][3] * m2.m[3][0];

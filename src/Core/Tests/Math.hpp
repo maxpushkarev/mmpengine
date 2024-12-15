@@ -115,7 +115,45 @@ namespace MMPEngine::Core::Tests
 
 	TYPED_TEST_P(MathTests, Matrix4x4_TRS)
 	{
-		//TODO
+		Core::Transform t {
+			{-5.25f, 11.4f, 3.71f},
+			Core::Math::kQuaternionIdentity,
+			{1.5f, 1.21f, 1.069f}
+		};
+		this->_default->RotationAroundAxis(t.rotation, {1.0f, 1.0f, 0.0f}, Core::Math::ConvertDegreesToRadians(30.0f));
+
+		Core::Matrix4x4 res1 {};
+		Core::Matrix4x4 res2 {};
+
+		this->_default->TRS(res1, t);
+		this->_mathImpl->TRS(res2, t);
+
+		ASSERT_EQ(res1, res2);
+	}
+
+	TYPED_TEST_P(MathTests, Matrix4x4_Scale)
+	{
+		constexpr Core::Vector3Float scale = { 1.5f, 1.21f, 1.069f };
+		Core::Matrix4x4 res1 {};
+		Core::Matrix4x4 res2 {};
+
+		this->_default->Scale(res1, scale);
+		this->_mathImpl->Scale(res2, scale);
+
+		ASSERT_EQ(res1, res2);
+	}
+
+
+	TYPED_TEST_P(MathTests, Matrix4x4_Translation)
+	{
+		constexpr Core::Vector3Float translation = { -5.25f, 11.4f, 3.71f };
+		Core::Matrix4x4 res1 {};
+		Core::Matrix4x4 res2 {};
+
+		this->_default->Translation(res1, translation);
+		this->_mathImpl->Translation(res2, translation);
+
+		ASSERT_EQ(res1, res2);
 	}
 
 	TYPED_TEST_P(MathTests, Matrix4x4_Multiply)
@@ -334,6 +372,8 @@ namespace MMPEngine::Core::Tests
 		Matrix4x4_Multiply_Point,
 		Matrix4x4_Multiply_Vector3,
 		Matrix4x4_Multiply_Vector4,
+		Matrix4x4_Scale,
+		Matrix4x4_Translation,
 		Matrix4x4_TRS,
 		Matrix4x4_Transpose,
 		Quaternion_RotateAroundAxis,

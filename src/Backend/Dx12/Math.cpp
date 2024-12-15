@@ -82,6 +82,31 @@ namespace MMPEngine::Backend::Dx12
 		return res;
 	}
 
+	void Math::Scale(Core::Matrix4x4& res, const Core::Vector3Float& scale) const
+	{
+		const auto scaleLoaded = DirectX::XMLoadFloat3(reinterpret_cast<const DirectX::XMFLOAT3*>(&scale));
+		const auto mat = DirectX::XMMatrixScalingFromVector(scaleLoaded);
+		DirectX::XMStoreFloat4x4(reinterpret_cast<DirectX::XMFLOAT4X4*>(&res), DirectX::XMMatrixTranspose(mat));
+	}
+
+	void Math::Translation(Core::Matrix4x4& res, const Core::Vector3Float& translation) const
+	{
+		const auto translationLoaded = DirectX::XMLoadFloat3(reinterpret_cast<const DirectX::XMFLOAT3*>(&translation));
+		const auto mat = DirectX::XMMatrixTranslationFromVector(translationLoaded);
+		DirectX::XMStoreFloat4x4(reinterpret_cast<DirectX::XMFLOAT4X4*>(&res), DirectX::XMMatrixTranspose(mat));
+	}
+
+	void Math::TRS(Core::Matrix4x4& matrix, const Core::Transform& transform) const
+	{
+		const auto position = DirectX::XMLoadFloat3(reinterpret_cast<const DirectX::XMFLOAT3*>(&transform.position));
+		const auto scale = DirectX::XMLoadFloat3(reinterpret_cast<const DirectX::XMFLOAT3*>(&transform.scale));
+		const auto rotation = DirectX::XMLoadFloat4(reinterpret_cast<const DirectX::XMFLOAT4*>(&transform.rotation));
+		const auto orig = DirectX::XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f);
+		const auto trs = DirectX::XMMatrixTransformation(orig, orig, scale, orig, rotation, position);
+
+		DirectX::XMStoreFloat4x4(reinterpret_cast<DirectX::XMFLOAT4X4*>(&matrix), DirectX::XMMatrixTranspose(trs));
+	}
+
 
 	void Math::Inverse(Core::Matrix4x4& res, const Core::Matrix4x4& m) const
 	{
