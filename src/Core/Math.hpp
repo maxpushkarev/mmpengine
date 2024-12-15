@@ -3,6 +3,8 @@
 
 namespace MMPEngine::Core
 {
+	class Node;
+
 	class Math
 	{
 	protected:
@@ -55,6 +57,8 @@ namespace MMPEngine::Core
 		virtual void Multiply(Quaternion& res, const Quaternion& q1, const Quaternion& q2) const;
 		virtual std::float_t Dot(const Quaternion& q1, const Quaternion& q2) const;
 		virtual void RotationAroundAxis(Quaternion& res, const Vector3Float& v, std::float_t rad) const;
+
+		virtual void FetchLocalToWorldSpaceMatrix(Matrix4x4& res, const std::shared_ptr<Node>& node) const;
 
 	private:
 		static constexpr auto _deg2Rad = kPi / 180.0f;

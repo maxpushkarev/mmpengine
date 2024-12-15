@@ -1,6 +1,8 @@
 #include <Backend/Dx12/Math.hpp>
 #include <DirectXMath.h>
 
+#include "Core/Node.hpp"
+
 namespace MMPEngine::Backend::Dx12
 {
 	std::float_t Math::Dot(const Core::Vector3Float& v1, const Core::Vector3Float& v2) const
@@ -106,15 +108,17 @@ namespace MMPEngine::Backend::Dx12
 
 	void Math::TRS(Core::Matrix4x4& matrix, const Core::Transform& transform) const
 	{
+		DirectX::XMStoreFloat4x4(reinterpret_cast<DirectX::XMFLOAT4X4*>(&matrix), DirectX::XMMatrixTranspose(TRSInternalTransposed(transform)));
+	}
+
+	DirectX::XMMATRIX XM_CALLCONV Math::TRSInternalTransposed(const Core::Transform& transform)
+	{
 		const auto position = DirectX::XMLoadFloat3(reinterpret_cast<const DirectX::XMFLOAT3*>(&transform.position));
 		const auto scale = DirectX::XMLoadFloat3(reinterpret_cast<const DirectX::XMFLOAT3*>(&transform.scale));
 		const auto rotation = DirectX::XMLoadFloat4(reinterpret_cast<const DirectX::XMFLOAT4*>(&transform.rotation));
 		const auto orig = DirectX::XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f);
-		const auto trs = DirectX::XMMatrixTransformation(orig, orig, scale, orig, rotation, position);
-
-		DirectX::XMStoreFloat4x4(reinterpret_cast<DirectX::XMFLOAT4X4*>(&matrix), DirectX::XMMatrixTranspose(trs));
+		return DirectX::XMMatrixTransformation(orig, orig, scale, orig, rotation, position);
 	}
-
 
 	void Math::Inverse(Core::Matrix4x4& res, const Core::Matrix4x4& m) const
 	{
@@ -184,4 +188,19 @@ namespace MMPEngine::Backend::Dx12
 		const auto inv = DirectX::XMQuaternionInverse(qLoaded);
 		DirectX::XMStoreFloat4(reinterpret_cast<DirectX::XMFLOAT4*>(&res), inv);
 	}
+
+	void Math::FetchLocalToWorldSpaceMatrix(Core::Matrix4x4& res, const std::shared_ptr<Core::Node>& node) const
+	{
+		auto m = TRSInternalTransposed(node->localTransform);
+		auto currentNode = node->GetParent();
+
+		while (currentNode)
+		{
+			m = DirectX::XMMatrixMultiply(m, TRSInternalTransposed(currentNode->localTransform));
+			currentNode = currentNode->GetParent();
+		}
+
+		DirectX::XMStoreFloat4x4(reinterpret_cast<DirectX::XMFLOAT4X4*>(&res), DirectX::XMMatrixTranspose(m));
+	}
+
 }

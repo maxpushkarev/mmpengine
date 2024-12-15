@@ -1,5 +1,6 @@
 #pragma once
 #include <Core/Math.hpp>
+#include <DirectXMath.h>
 
 namespace MMPEngine::Backend::Dx12
 {
@@ -28,5 +29,9 @@ namespace MMPEngine::Backend::Dx12
 		std::float_t Dot(const Core::Quaternion& q1, const Core::Quaternion& q2) const override;
 		void Normalize(Core::Quaternion& q) const override;
 		void Inverse(Core::Quaternion& res, const Core::Quaternion& q) const override;
+
+		void FetchLocalToWorldSpaceMatrix(Core::Matrix4x4& res, const std::shared_ptr<Core::Node>& node) const override;
+	private:
+		static DirectX::XMMATRIX XM_CALLCONV TRSInternalTransposed(const Core::Transform& transform);
 	};
 }

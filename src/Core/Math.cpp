@@ -1,4 +1,5 @@
 #include <Core/Math.hpp>
+#include <Core/Node.hpp>
 #include <cassert>
 
 namespace MMPEngine::Core
@@ -364,5 +365,22 @@ namespace MMPEngine::Core
 		q.x = -q.x;
 		q.y = -q.y;
 		q.z = -q.z;
+	}
+
+	void Math::FetchLocalToWorldSpaceMatrix(Matrix4x4& res, const std::shared_ptr<Node>& node) const
+	{
+		TRS(res, node->localTransform);
+		auto currentNode = node->GetParent();
+
+		while (currentNode)
+		{
+			Matrix4x4 currentNodeTrs {};
+			TRS(currentNodeTrs, currentNode->localTransform);
+
+			Matrix4x4 tmp = res;
+			Multiply(res, currentNodeTrs, tmp);
+
+			currentNode = currentNode->GetParent();
+		}
 	}
 }

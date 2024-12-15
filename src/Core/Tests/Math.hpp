@@ -372,6 +372,11 @@ namespace MMPEngine::Core::Tests
 	}
 
 
+	TYPED_TEST_P(MathTests, Node_LocalToWorld)
+	{
+	}
+
+
 	REGISTER_TYPED_TEST_SUITE_P(
 		MathTests,
 		Vector3_Dot,
@@ -393,5 +398,6 @@ namespace MMPEngine::Core::Tests
 		Matrix4x4_Transpose,
 		Quaternion_RotateAroundAxis,
 		Quaternion_Dot,
-		Quaternion_Inverse);
+		Quaternion_Inverse,
+		Node_LocalToWorld);
 }
