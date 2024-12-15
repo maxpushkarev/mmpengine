@@ -25,7 +25,7 @@ namespace MMPEngine::Core
 			}
 		};
 
-		inline static std::float_t ConvertDegreesToRadians(std::float_t degrees);
+		static std::float_t ConvertDegreesToRadians(std::float_t degrees);
 
 		virtual std::float_t Dot(const Vector3Float& v1, const Vector3Float& v2) const;
 		virtual void Cross(Vector3Float& res, const Vector3Float& v1, const Vector3Float& v2) const;
