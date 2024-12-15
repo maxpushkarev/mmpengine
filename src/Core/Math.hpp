@@ -32,6 +32,7 @@ namespace MMPEngine::Core
 		virtual void Normalize(Vector3Float& v) const;
 		virtual std::float_t SquaredMagnitude(const Vector3Float& v) const;
 		virtual std::float_t Magnitude(const Vector3Float& v) const;
+		virtual void Project(Vector3Float& res, const Vector3Float& v, const Vector3Float& p) const;
 
 		virtual void TRS(Matrix4x4& matrix, const Transform& transform) const;
 		virtual void Multiply(Matrix4x4& res, const Matrix4x4& m1, const Matrix4x4& m2) const;

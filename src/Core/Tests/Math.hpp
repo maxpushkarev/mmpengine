@@ -78,6 +78,20 @@ namespace MMPEngine::Core::Tests
 		EXPECT_EQ(res1, res2);
 	}
 
+	TYPED_TEST_P(MathTests, Vector3_Project_On_Vector3)
+	{
+		Core::Vector3Float v1 {0.56f, -4.892f, 3.784f };
+		Core::Vector3Float v2 { -10.84f, -3.29f, 0.61f };
+
+		Core::Vector3Float res1 {};
+		Core::Vector3Float res2 {};
+
+		this->_default->Project(res1, v1, v2);
+		this->_mathImpl->Project(res2, v1, v2);
+
+		EXPECT_EQ(res1, res2);
+	}
+
 	TYPED_TEST_P(MathTests, Vector3_Magnitude)
 	{
 		constexpr  Core::Vector3Float v {0.56f, -4.892f, 3.784f };
@@ -245,6 +259,7 @@ namespace MMPEngine::Core::Tests
 		Vector3_Magnitude,
 		Vector3_Normalize,
 		Vector3_SquaredMagnitude,
+		Vector3_Project_On_Vector3,
 		Matrix4x4_Inverse,
 		Matrix4x4_Multiply,
 		Matrix4x4_Multiply_Point,

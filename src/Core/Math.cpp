@@ -49,6 +49,24 @@ namespace MMPEngine::Core
 		}
 	}
 
+	void Math::Project(Vector3Float& res, const Vector3Float& v, const Vector3Float& p) const
+	{
+		const auto dot = Dot(v, p);
+		const auto sqrMagnitude = SquaredMagnitude(p);
+
+		if(sqrMagnitude < Constants::kFloatEps)
+		{
+			res = {0.0f, 0.0f, 0.0f};
+			return;
+		}
+
+		const auto multiplier = dot / sqrMagnitude;
+		res = p;
+		res.x *= multiplier;
+		res.y *= multiplier;
+		res.z *= multiplier;
+	}
+
 
 	void Math::TRS(Matrix4x4& matrix, const Transform& transform) const
 	{
