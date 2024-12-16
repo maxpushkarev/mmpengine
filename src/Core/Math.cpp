@@ -562,9 +562,6 @@ namespace MMPEngine::Core
 			right.x *= t.scale.x;
 			right.y *= t.scale.y;
 			right.z *= t.scale.z;
-
-			//const auto currentRot = t.rotation;
-
 		};
 
 		auto currentNode = node;
