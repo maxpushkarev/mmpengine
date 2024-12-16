@@ -44,6 +44,7 @@ namespace MMPEngine::Core
 		virtual void Translation(Core::Matrix4x4& res, const Core::Vector3Float& translation) const;
 		virtual void Rotation(Core::Matrix4x4& res, const Core::Quaternion& rotation) const;
 		virtual void TRS(Matrix4x4& matrix, const Transform& transform) const;
+		virtual void Decompose(Transform& transform, const Matrix4x4& matrix) const;
 		virtual void Multiply(Matrix4x4& res, const Matrix4x4& m1, const Matrix4x4& m2) const;
 		virtual void Multiply(Vector4Float& res, const Matrix4x4& m, const Vector4Float& v) const;
 		virtual void MultiplyMatrixAndPoint(Core::Vector3Float& res, const Core::Matrix4x4& m, const Core::Vector3Float& p) const;
@@ -62,7 +63,7 @@ namespace MMPEngine::Core
 
 	private:
 		static constexpr auto _deg2Rad = kPi / 180.0f;
-		static constexpr auto _minValidationFloat = 0.000001f;
+		static constexpr auto _minValidationFloat = 1.0e-7f;
 
 		static void ConjugateInPlace(Quaternion& q);
 

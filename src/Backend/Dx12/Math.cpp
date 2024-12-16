@@ -1,7 +1,6 @@
 #include <Backend/Dx12/Math.hpp>
 #include <DirectXMath.h>
-
-#include "Core/Node.hpp"
+#include <Core/Node.hpp>
 
 namespace MMPEngine::Backend::Dx12
 {
@@ -110,6 +109,21 @@ namespace MMPEngine::Backend::Dx12
 	{
 		DirectX::XMStoreFloat4x4(reinterpret_cast<DirectX::XMFLOAT4X4*>(&matrix), DirectX::XMMatrixTranspose(TRSInternalTransposed(transform)));
 	}
+
+	void Math::Decompose(Core::Transform& transform, const Core::Matrix4x4& matrix) const
+	{
+		DirectX::XMVECTOR scale;
+		DirectX::XMVECTOR position;
+		DirectX::XMVECTOR rotation;
+
+		const auto mLoaded = DirectX::XMLoadFloat4x4(reinterpret_cast<const DirectX::XMFLOAT4X4*>(&matrix));
+
+		DirectX::XMMatrixDecompose(&scale, &rotation, &position, DirectX::XMMatrixTranspose(mLoaded));
+		DirectX::XMStoreFloat3(reinterpret_cast<DirectX::XMFLOAT3*>(&transform.scale), scale);
+		DirectX::XMStoreFloat3(reinterpret_cast<DirectX::XMFLOAT3*>(&transform.position), position);
+		DirectX::XMStoreFloat4(reinterpret_cast<DirectX::XMFLOAT4*>(&transform.rotation), rotation);
+	}
+
 
 	DirectX::XMMATRIX XM_CALLCONV Math::TRSInternalTransposed(const Core::Transform& transform)
 	{

@@ -49,6 +49,10 @@ namespace MMPEngine::Core
 			v.y *= f;
 			v.z *= f;
 		}
+		else
+		{
+			v = {0.0f, 0.0f, 0.0f};
+		}
 	}
 
 	void Math::Project(Vector3Float& res, const Vector3Float& v, const Vector3Float& p) const
@@ -83,6 +87,138 @@ namespace MMPEngine::Core
 		Matrix4x4 tmp {};
 		Multiply(tmp, translation, rotation);
 		Multiply(matrix, tmp, scale);
+	}
+
+	void Math::Decompose(Transform& transform, const Matrix4x4& matrix) const
+	{
+		Matrix4x4 tmp = matrix;
+
+		transform.position.x = tmp.m[0][3];
+		transform.position.y = tmp.m[1][3];
+		transform.position.z = tmp.m[2][3];
+
+		tmp.m[0][3] = 0.0f;
+		tmp.m[1][3] = 0.0f;
+		tmp.m[2][3] = 0.0f;
+		tmp.m[3][3] = 1.0f;
+
+		transform.scale.x = Magnitude(Vector3Float{ tmp.m[0][0], tmp.m[1][0], tmp.m[2][0] });
+		transform.scale.y = Magnitude(Vector3Float{ tmp.m[0][1], tmp.m[1][1], tmp.m[2][1] });
+		transform.scale.z = Magnitude(Vector3Float{ tmp.m[0][2], tmp.m[1][2], tmp.m[2][2] });
+
+		assert(std::abs(transform.scale.x) >= _minValidationFloat);
+		assert(std::abs(transform.scale.y) >= _minValidationFloat);
+		assert(std::abs(transform.scale.z) >= _minValidationFloat);
+
+		const Vector3Float invScale = {1.0f / transform.scale.x, 1.0f / transform.scale.y, 1.0f / transform.scale.z};
+
+		tmp.m[0][0] *= invScale.x;
+		tmp.m[1][0] *= invScale.x;
+		tmp.m[2][0] *= invScale.x;
+
+		tmp.m[0][1] *= invScale.y;
+		tmp.m[1][1] *= invScale.y;
+		tmp.m[2][1] *= invScale.y;
+
+		tmp.m[0][2] *= invScale.z;
+		tmp.m[1][2] *= invScale.z;
+		tmp.m[2][2] *= invScale.z;
+
+		// Shepperd's method
+		// https://ahrs.readthedocs.io/en/latest/special/Shepperd.html
+		const auto r11 = tmp.m[0][0];
+		const auto r12 = tmp.m[0][1];
+		const auto r13 = tmp.m[0][2];
+
+		const auto r21 = tmp.m[1][0];
+		const auto r22 = tmp.m[1][1];
+		const auto r23 = tmp.m[1][2];
+
+		const auto r31 = tmp.m[2][0];
+		const auto r32 = tmp.m[2][1];
+		const auto r33 = tmp.m[2][2];
+
+		const std::float_t u[]
+		{
+			r11 + r22 + r33,
+			r11,
+			r22,
+			r33
+		};
+
+		constexpr auto qMult = 0.5f;
+		auto maxIdx = std::size(u);
+
+		for(std::size_t i = 0; i < std::size(u); ++i)
+		{
+			if(maxIdx == std::size(u) || u[maxIdx] < u[i])
+			{
+				maxIdx = i;
+			}
+		}
+
+		assert(maxIdx < std::size(u));
+
+		switch (maxIdx)
+		{
+		case 0:
+			{
+				const auto f = 1.0f + r11 + r22 + r33;
+				assert(f >= _minValidationFloat);
+				const auto sqrtF = std::sqrtf(f);
+				assert(sqrtF >= _minValidationFloat);
+
+				transform.rotation.w = qMult * sqrtF;
+				transform.rotation.x = qMult * (r32 - r23) / sqrtF;
+				transform.rotation.y = qMult * (r13 - r31) / sqrtF;
+				transform.rotation.z = qMult * (r21 - r12) / sqrtF;
+				break;
+			}
+		case 1:
+			{
+				const auto f = 1.0f + r11 - r22 - r33;
+				assert(f >= _minValidationFloat);
+				const auto sqrtF = std::sqrtf(f);
+				assert(sqrtF >= _minValidationFloat);
+
+				transform.rotation.w = qMult * (r32 - r23) / sqrtF;
+				transform.rotation.x = qMult * sqrtF;
+				transform.rotation.y = qMult * (r12 + r21) / sqrtF;
+				transform.rotation.z = qMult * (r31 + r13) / sqrtF;
+				break;
+			}
+		case 2:
+			{
+				const auto f = 1.0f - r11 + r22 - r33;
+				assert(f >= _minValidationFloat);
+				const auto sqrtF = std::sqrtf(f);
+				assert(sqrtF >= _minValidationFloat);
+
+				transform.rotation.w = qMult * (r13 - r31) / sqrtF;
+				transform.rotation.x = qMult * (r12 + r21) / sqrtF;
+				transform.rotation.y = qMult * sqrtF;
+				transform.rotation.z = qMult * (r23 + r32) / sqrtF;
+				break;
+			}
+		case 3:
+			{
+				const auto f = 1.0f - r11 - r22 + r33;
+				assert(f >= _minValidationFloat);
+				const auto sqrtF = std::sqrtf(f);
+				assert(sqrtF >= _minValidationFloat);
+
+				transform.rotation.w = qMult * (r21 - r12) / sqrtF;
+				transform.rotation.x = qMult * (r31 + r13) / sqrtF;
+				transform.rotation.y = qMult * (r32 + r23) /sqrtF;
+				transform.rotation.z = qMult * sqrtF;
+				break;
+			}
+		default:
+			{
+				//impossible
+				break;
+			}
+		}
 	}
 
 	void Math::Scale(Core::Matrix4x4& res, const Core::Vector3Float& scale) const

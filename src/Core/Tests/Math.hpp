@@ -145,6 +145,31 @@ namespace MMPEngine::Core::Tests
 		ASSERT_EQ(res1, res2);
 	}
 
+	TYPED_TEST_P(MathTests, Matrix4x4_Decompose)
+	{
+		Core::Transform t {
+			{-5.25f, 14.4f, -3.71f},
+				Core::Math::kQuaternionIdentity,
+			{ 1.5f, 4.21f, 2.069f }
+		};
+		this->GetDefaultMath()->RotationAroundAxis(t.rotation, { 1.0f, -5.39f, 2.43f }, Core::Math::ConvertDegreesToRadians(27.78f));
+
+		Core::Matrix4x4 m1 {};
+		Core::Matrix4x4 m2 {};
+
+		this->GetDefaultMath()->TRS(m1, t);
+		this->GetMathImpl()->TRS(m2, t);
+
+		Core::Transform res1 {};
+		Core::Transform res2 {};
+
+		this->GetDefaultMath()->Decompose(res1, m2);
+		ASSERT_EQ(t, res1);
+
+		this->GetMathImpl()->Decompose(res2, m2);
+		ASSERT_EQ(t, res2);
+	}
+
 	TYPED_TEST_P(MathTests, Matrix4x4_Scale)
 	{
 		constexpr Core::Vector3Float scale = { 1.5f, 1.21f, 1.069f };
@@ -456,6 +481,7 @@ namespace MMPEngine::Core::Tests
 		Matrix4x4_Translation,
 		Matrix4x4_Rotation,
 		Matrix4x4_TRS,
+		Matrix4x4_Decompose,
 		Matrix4x4_Transpose,
 		Quaternion_RotateAroundAxis,
 		Quaternion_Dot,

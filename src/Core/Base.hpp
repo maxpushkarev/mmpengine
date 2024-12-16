@@ -187,6 +187,9 @@ namespace MMPEngine::Core
 		Vector3Float position = {0.0f, 0.0f, 0.0f};
 		Quaternion rotation = { 0.0f, 0.0f, 0.0f, 1.0f };
 		Vector3Float scale = {1.0f, 1.0f, 1.0f};
+
+		bool operator==(const Transform& rhs) const;
+		bool operator!=(const Transform& rhs) const;
 	};
 
 	class UnsupportedException final : public std::runtime_error

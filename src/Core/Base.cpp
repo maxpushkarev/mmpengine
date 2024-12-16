@@ -180,4 +180,14 @@ namespace MMPEngine::Core
 	{
 		return !operator==(rhs);
 	}
+
+	bool Transform::operator==(const Transform& rhs) const
+	{
+		return (position == rhs.position) && (scale == rhs.scale) && (rotation == rhs.rotation);
+	}
+
+	bool Transform::operator!=(const Transform& rhs) const
+	{
+		return !operator==(rhs);
+	}
 }
