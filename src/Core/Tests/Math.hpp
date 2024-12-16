@@ -127,6 +127,21 @@ namespace MMPEngine::Core::Tests
 		EXPECT_FLOAT_EQ(res1, res2);
 	}
 
+	TYPED_TEST_P(MathTests, Vector3_Rotate)
+	{
+		constexpr Core::Vector3Float v {0.56f, -4.892f, 3.784f };
+		Core::Quaternion rot {};
+		this->GetDefaultMath()->RotationAroundAxis(rot, { 1.0f, -5.39f, 2.43f }, Core::Math::ConvertDegreesToRadians(27.78f));
+
+		Core::Vector3Float res1 {};
+		Core::Vector3Float res2 {};
+
+		this->GetDefaultMath()->Rotate(res1, v, rot);
+		this->GetMathImpl()->Rotate(res2, v, rot);
+
+		EXPECT_EQ(res1, res2);
+	}
+
 	TYPED_TEST_P(MathTests, Matrix4x4_TRS)
 	{
 		Core::Transform t {
@@ -455,9 +470,73 @@ namespace MMPEngine::Core::Tests
 			Core::Matrix4x4 res1 {};
 			Core::Matrix4x4 res2 {};
 
-			this->GetDefaultMath()->FetchLocalToWorldSpaceMatrix(res1, node);
-			this->GetMathImpl()->FetchLocalToWorldSpaceMatrix(res2, node);
+			this->GetDefaultMath()->CalculateLocalToWorldSpaceMatrix(res1, node);
+			this->GetMathImpl()->CalculateLocalToWorldSpaceMatrix(res2, node);
 			ASSERT_EQ(res1, res2);
+		};
+
+		checkNode(node1);
+		checkNode(node2);
+		checkNode(node3);
+	}
+
+	TYPED_TEST_P(MathTests, Node_WorldTransform)
+	{
+		Core::Transform t1 {
+			{-5.25f, 14.4f, -3.71f},
+				Core::Math::kQuaternionIdentity,
+			{ 1.5f, 4.21f, 2.069f }
+		};
+		//this->GetDefaultMath()->RotationAroundAxis(t1.rotation, { 1.0f, -5.39f, 2.43f }, Core::Math::ConvertDegreesToRadians(-27.78f));
+
+		Core::Transform t2 {
+			{0.25f, 1.44f, -37.18f},
+				Core::Math::kQuaternionIdentity,
+			{ 8.5f, 1.21f, 0.34f }
+		};
+		//this->GetDefaultMath()->RotationAroundAxis(t2.rotation, { -3.4f, -2.2f, 0.1f }, Core::Math::ConvertDegreesToRadians(35.5f));
+
+		Core::Transform t3 {
+			{3.81f, -9.2f, 4.69f},
+				Core::Math::kQuaternionIdentity,
+			{ 0.23f, 1.85f, 3.98f }
+		};
+		//this->GetDefaultMath()->RotationAroundAxis(t3.rotation, { -3.4f, -2.2f, 0.1f }, Core::Math::ConvertDegreesToRadians(100.34f));
+
+		const auto node1 = std::make_shared<Node>();
+		const auto node2 = std::make_shared<Node>();
+		const auto node3 = std::make_shared<Node>();
+
+
+		node1->AddChild(node2);
+		node2->AddChild(node3);
+
+		node1->localTransform = t1;
+		node2->localTransform = t2;
+		node3->localTransform = t3;
+
+		const auto checkNode = [this](const std::shared_ptr<Node>& node)
+		{
+			Core::Transform t1 {};
+			Core::Transform t2 {};
+
+			this->GetDefaultMath()->CalculateWorldSpaceTransform(t1, node);
+			this->GetMathImpl()->CalculateWorldSpaceTransform(t2, node);
+
+			Core::Matrix4x4 localToWorld1 {};
+			Core::Matrix4x4 localToWorld2 {};
+
+			this->GetDefaultMath()->CalculateLocalToWorldSpaceMatrix(localToWorld1, node);
+			this->GetMathImpl()->CalculateLocalToWorldSpaceMatrix(localToWorld2, node);
+
+			Core::Matrix4x4 trs1 {};
+			Core::Matrix4x4 trs2 {};
+
+			this->GetDefaultMath()->TRS(trs1, t1);
+			this->GetMathImpl()->TRS(trs2, t2);
+
+			ASSERT_EQ(localToWorld1, trs1);
+			ASSERT_EQ(localToWorld2, trs2);
 		};
 
 		checkNode(node1);
@@ -472,6 +551,7 @@ namespace MMPEngine::Core::Tests
 		Vector3_Cross,
 		Vector3_Magnitude,
 		Vector3_Normalize,
+		Vector3_Rotate,
 		Vector3_SquaredMagnitude,
 		Vector3_Project_On_Vector3,
 		Matrix4x4_Determinant,
@@ -489,5 +569,6 @@ namespace MMPEngine::Core::Tests
 		Quaternion_RotateAroundAxis,
 		Quaternion_Dot,
 		Quaternion_Inverse,
-		Node_LocalToWorld);
+		Node_LocalToWorld,
+		Node_WorldTransform);
 }

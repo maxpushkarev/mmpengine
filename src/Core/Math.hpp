@@ -39,6 +39,7 @@ namespace MMPEngine::Core
 		virtual std::float_t SquaredMagnitude(const Vector3Float& v) const;
 		virtual std::float_t Magnitude(const Vector3Float& v) const;
 		virtual void Project(Vector3Float& res, const Vector3Float& v, const Vector3Float& p) const;
+		virtual void Rotate(Vector3Float& res, const Vector3Float& v, const Quaternion& r) const;
 
 		virtual void Scale(Core::Matrix4x4& res, const Core::Vector3Float& scale) const;
 		virtual void Translation(Core::Matrix4x4& res, const Core::Vector3Float& translation) const;
@@ -59,7 +60,8 @@ namespace MMPEngine::Core
 		virtual std::float_t Dot(const Quaternion& q1, const Quaternion& q2) const;
 		virtual void RotationAroundAxis(Quaternion& res, const Vector3Float& v, std::float_t rad) const;
 
-		virtual void FetchLocalToWorldSpaceMatrix(Matrix4x4& res, const std::shared_ptr<Node>& node) const;
+		virtual void CalculateLocalToWorldSpaceMatrix(Matrix4x4& res, const std::shared_ptr<const Node>& node) const;
+		virtual void CalculateWorldSpaceTransform(Transform& transform, const std::shared_ptr<const Node>& node) const;
 
 	private:
 		static constexpr auto _deg2Rad = kPi / 180.0f;

@@ -57,6 +57,16 @@ namespace MMPEngine::Backend::Dx12
 		return res;
 	}
 
+	void Math::Rotate(Core::Vector3Float& res, const Core::Vector3Float& v, const Core::Quaternion& r) const
+	{
+		const auto vLoaded = DirectX::XMLoadFloat3(reinterpret_cast<const DirectX::XMFLOAT3*>(&v));
+		const auto rLoaded = DirectX::XMLoadFloat4(reinterpret_cast<const DirectX::XMFLOAT4*>(&r));
+		const auto rotated = DirectX::XMVector3Rotate(vLoaded, rLoaded);
+		DirectX::XMStoreFloat3(reinterpret_cast<DirectX::XMFLOAT3*>(&res), rotated);
+	}
+
+
+
 	void Math::Multiply(Core::Matrix4x4& res, const Core::Matrix4x4& m1, const Core::Matrix4x4& m2) const
 	{
 		const auto m1Loaded = DirectX::XMLoadFloat4x4(reinterpret_cast<const DirectX::XMFLOAT4X4*>(&m1));
@@ -205,7 +215,7 @@ namespace MMPEngine::Backend::Dx12
 		DirectX::XMStoreFloat4(reinterpret_cast<DirectX::XMFLOAT4*>(&res), inv);
 	}
 
-	void Math::FetchLocalToWorldSpaceMatrix(Core::Matrix4x4& res, const std::shared_ptr<Core::Node>& node) const
+	void Math::CalculateLocalToWorldSpaceMatrix(Core::Matrix4x4& res, const std::shared_ptr<const Core::Node>& node) const
 	{
 		auto m = TRSInternalTransposed(node->localTransform);
 		auto currentNode = node->GetParent();

@@ -1,6 +1,7 @@
 #include <Core/Math.hpp>
 #include <Core/Node.hpp>
 #include <cassert>
+#include <stack>
 
 namespace MMPEngine::Core
 {
@@ -71,6 +72,24 @@ namespace MMPEngine::Core
 		res.x *= multiplier;
 		res.y *= multiplier;
 		res.z *= multiplier;
+	}
+
+	void Math::Rotate(Vector3Float& res, const Vector3Float& v, const Quaternion& r) const
+	{
+		Quaternion invR {};
+		Inverse(invR, r);
+
+		const Quaternion qv {v.x, v.y, v.z, 0.0f};
+
+		Quaternion tmp1 {};
+		Quaternion tmp2 {};
+
+		Multiply(tmp1, r, qv);
+		Multiply(tmp2, tmp1, invR);
+
+		res.x = tmp2.x;
+		res.y = tmp2.y;
+		res.z = tmp2.z;
 	}
 
 
@@ -503,7 +522,7 @@ namespace MMPEngine::Core
 		q.z = -q.z;
 	}
 
-	void Math::FetchLocalToWorldSpaceMatrix(Matrix4x4& res, const std::shared_ptr<Node>& node) const
+	void Math::CalculateLocalToWorldSpaceMatrix(Matrix4x4& res, const std::shared_ptr<const Node>& node) const
 	{
 		TRS(res, node->localTransform);
 		auto currentNode = node->GetParent();
@@ -518,5 +537,18 @@ namespace MMPEngine::Core
 
 			currentNode = currentNode->GetParent();
 		}
+	}
+
+	void Math::CalculateWorldSpaceTransform(Transform& transform, const std::shared_ptr<const Node>& node) const
+	{
+		//std::stack<std::shared_ptr<const Node>>
+		/*auto currentNode = node;
+		while (currentNode)
+		{
+			++nodeChainLength;
+			currentNode = currentNode->GetParent();
+		}
+
+		std::shared_ptr<Node> nodeChain[nodeChainLength];*/
 	}
 }

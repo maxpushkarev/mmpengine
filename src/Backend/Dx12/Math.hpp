@@ -12,6 +12,7 @@ namespace MMPEngine::Backend::Dx12
 		std::float_t Magnitude(const Core::Vector3Float& v) const override;
 		std::float_t SquaredMagnitude(const Core::Vector3Float& v) const override;
 		void Normalize(Core::Vector3Float& v) const override;
+		void Rotate(Core::Vector3Float& res, const Core::Vector3Float& v, const Core::Quaternion& r) const override;
 
 		void Scale(Core::Matrix4x4& res, const Core::Vector3Float& scale) const override;
 		void Translation(Core::Matrix4x4& res, const Core::Vector3Float& translation) const override;
@@ -31,7 +32,7 @@ namespace MMPEngine::Backend::Dx12
 		void Normalize(Core::Quaternion& q) const override;
 		void Inverse(Core::Quaternion& res, const Core::Quaternion& q) const override;
 
-		void FetchLocalToWorldSpaceMatrix(Core::Matrix4x4& res, const std::shared_ptr<Core::Node>& node) const override;
+		void CalculateLocalToWorldSpaceMatrix(Core::Matrix4x4& res, const std::shared_ptr<const Core::Node>& node) const override;
 	private:
 		static DirectX::XMMATRIX XM_CALLCONV TRSInternalTransposed(const Core::Transform& transform);
 	};
