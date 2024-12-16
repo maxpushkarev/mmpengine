@@ -1,6 +1,7 @@
 #include <Backend/Dx12/Math.hpp>
 #include <DirectXMath.h>
 #include <Core/Node.hpp>
+#include <cassert>
 
 namespace MMPEngine::Backend::Dx12
 {
