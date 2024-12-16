@@ -541,14 +541,91 @@ namespace MMPEngine::Core
 
 	void Math::CalculateWorldSpaceTransform(Transform& transform, const std::shared_ptr<const Node>& node) const
 	{
-		//std::stack<std::shared_ptr<const Node>>
-		/*auto currentNode = node;
+		std::stack<std::shared_ptr<const Node>> stack {};
+
+		Core::Vector3Float front = kFront;
+		Core::Vector3Float up = kUp;
+		Core::Vector3Float right = kRight;
+
+		Core::Quaternion sumRotation {kQuaternionIdentity};
+
+		const auto updateAccumulatedValues = [&front, &up, &right, &sumRotation](const Transform& t)
+		{
+			front.x *= t.scale.x;
+			front.y *= t.scale.y;
+			front.z *= t.scale.z;
+
+			up.x *= t.scale.x;
+			up.y *= t.scale.y;
+			up.z *= t.scale.z;
+
+			right.x *= t.scale.x;
+			right.y *= t.scale.y;
+			right.z *= t.scale.z;
+
+			//const auto currentRot = t.rotation;
+
+		};
+
+		auto currentNode = node;
 		while (currentNode)
 		{
-			++nodeChainLength;
+			stack.push(currentNode);
 			currentNode = currentNode->GetParent();
 		}
 
-		std::shared_ptr<Node> nodeChain[nodeChainLength];*/
+		assert(!stack.empty());
+
+		currentNode = stack.top();
+		stack.pop();
+
+		transform = currentNode->localTransform;
+		updateAccumulatedValues(currentNode->localTransform);
+
+		while (!stack.empty())
+		{
+			const auto currentTransform = stack.top()->localTransform;
+			stack.pop();
+
+			Vector4Float newPos {};
+			Vector4Float currentTransformPos {
+					currentTransform.position.x,
+					currentTransform.position.y,
+					currentTransform.position.z,
+					1.0f
+			};
+
+			Matrix4x4 mat = kMatrix4x4Identity;
+
+			mat.m[0][0] = right.x;
+			mat.m[1][0] = right.y;
+			mat.m[2][0] = right.z;
+
+			mat.m[0][1] = up.x;
+			mat.m[1][1] = up.y;
+			mat.m[2][1] = up.z;
+
+			mat.m[0][2] = front.x;
+			mat.m[1][2] = front.y;
+			mat.m[2][2] = front.z;
+
+			mat.m[0][3] = transform.position.x;
+			mat.m[1][3] = transform.position.y;
+			mat.m[2][3] = transform.position.z;
+
+			Multiply(newPos, mat, currentTransformPos);
+
+			transform.scale.x *= currentTransform.scale.x;
+			transform.scale.y *= currentTransform.scale.y;
+			transform.scale.z *= currentTransform.scale.z;
+
+			transform.position.x = newPos.x;
+			transform.position.y = newPos.y;
+			transform.position.z = newPos.z;
+
+			updateAccumulatedValues(currentTransform);
+		}
+
+		transform.rotation = sumRotation;
 	}
 }

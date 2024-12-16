@@ -31,6 +31,10 @@ namespace MMPEngine::Core
 			0.0f, 0.0f, 0.0f, 1.0f
 		};
 
+		static constexpr Vector3Float kRight = {1.0f, 0.0f, 0.0f };
+		static constexpr Vector3Float kUp = {0.0f, 1.0f, 0.0f };
+		static constexpr Vector3Float kFront = {0.0f, 0.0f, 1.0f };
+
 		static std::float_t ConvertDegreesToRadians(std::float_t degrees);
 
 		virtual std::float_t Dot(const Vector3Float& v1, const Vector3Float& v2) const;

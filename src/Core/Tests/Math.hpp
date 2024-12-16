@@ -492,14 +492,14 @@ namespace MMPEngine::Core::Tests
 		Core::Transform t2 {
 			{0.25f, 1.44f, -37.18f},
 				Core::Math::kQuaternionIdentity,
-			{ 8.5f, 1.21f, 0.34f }
+			{ 8.5f, 1.21f, 3.34f }
 		};
 		//this->GetDefaultMath()->RotationAroundAxis(t2.rotation, { -3.4f, -2.2f, 0.1f }, Core::Math::ConvertDegreesToRadians(35.5f));
 
 		Core::Transform t3 {
 			{3.81f, -9.2f, 4.69f},
 				Core::Math::kQuaternionIdentity,
-			{ 0.23f, 1.85f, 3.98f }
+			{ 0.23f, 1.85f, 7.98f }
 		};
 		//this->GetDefaultMath()->RotationAroundAxis(t3.rotation, { -3.4f, -2.2f, 0.1f }, Core::Math::ConvertDegreesToRadians(100.34f));
 
