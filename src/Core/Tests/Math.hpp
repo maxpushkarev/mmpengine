@@ -145,14 +145,14 @@ namespace MMPEngine::Core::Tests
 		ASSERT_EQ(res1, res2);
 	}
 
-	TYPED_TEST_P(MathTests, Matrix4x4_Decompose)
+	TYPED_TEST_P(MathTests, Matrix4x4_DecomposeTRS)
 	{
 		Core::Transform t {
 			{-5.25f, 14.4f, -3.71f},
 				Core::Math::kQuaternionIdentity,
 			{ 1.5f, 4.21f, 2.069f }
 		};
-		this->GetDefaultMath()->RotationAroundAxis(t.rotation, { 1.0f, -5.39f, 2.43f }, Core::Math::ConvertDegreesToRadians(27.78f));
+		this->GetDefaultMath()->RotationAroundAxis(t.rotation, { 1.0f, -5.39f, -2.43f }, Core::Math::ConvertDegreesToRadians(-127.78f));
 
 		Core::Matrix4x4 m1 {};
 		Core::Matrix4x4 m2 {};
@@ -163,11 +163,15 @@ namespace MMPEngine::Core::Tests
 		Core::Transform res1 {};
 		Core::Transform res2 {};
 
-		this->GetDefaultMath()->Decompose(res1, m2);
-		ASSERT_EQ(t, res1);
+		this->GetDefaultMath()->DecomposeTRS(res1, m2);
+		ASSERT_EQ(t.position, res1.position);
+		ASSERT_EQ(t.scale, res1.scale);
+		ASSERT_TRUE(Quaternion::AreIdentical(t.rotation, res1.rotation));
 
-		this->GetMathImpl()->Decompose(res2, m2);
-		ASSERT_EQ(t, res2);
+		this->GetMathImpl()->DecomposeTRS(res2, m2);
+		ASSERT_EQ(t.position, res2.position);
+		ASSERT_EQ(t.scale, res2.scale);
+		ASSERT_TRUE(Quaternion::AreIdentical(t.rotation, res2.rotation));
 	}
 
 	TYPED_TEST_P(MathTests, Matrix4x4_Scale)
@@ -378,7 +382,7 @@ namespace MMPEngine::Core::Tests
 		this->GetDefaultMath()->RotationAroundAxis(res1, v, rad);
 		this->GetMathImpl()->RotationAroundAxis(res2, v, rad);
 
-		ASSERT_EQ(res1, res2);
+		ASSERT_TRUE(Quaternion::AreIdentical(res1, res2));
 	}
 
 
@@ -406,8 +410,8 @@ namespace MMPEngine::Core::Tests
 		this->GetDefaultMath()->Multiply(identity1, q, res1);
 		this->GetMathImpl()->Multiply(identity2, q, res2);
 
-		EXPECT_EQ(Core::Math::kQuaternionIdentity, identity1);
-		EXPECT_EQ(Core::Math::kQuaternionIdentity, identity2);
+		ASSERT_TRUE(Quaternion::AreIdentical(Core::Math::kQuaternionIdentity, identity1));
+		ASSERT_TRUE(Quaternion::AreIdentical(Core::Math::kQuaternionIdentity, identity2));
 	}
 
 
@@ -418,14 +422,14 @@ namespace MMPEngine::Core::Tests
 				Core::Math::kQuaternionIdentity,
 			{ 1.5f, 4.21f, 2.069f }
 		};
-		this->GetDefaultMath()->RotationAroundAxis(t1.rotation, { 1.0f, -5.39f, 2.43f }, Core::Math::ConvertDegreesToRadians(27.78f));
+		this->GetDefaultMath()->RotationAroundAxis(t1.rotation, { 1.0f, -5.39f, 2.43f }, Core::Math::ConvertDegreesToRadians(-27.78f));
 
 		Core::Transform t2 {
 			{0.25f, 1.44f, -37.18f},
 				Core::Math::kQuaternionIdentity,
-			{ 8.5f, 1.21f, 2.069f }
+			{ 8.5f, 1.21f, 0.34f }
 		};
-		this->GetDefaultMath()->RotationAroundAxis(t2.rotation, { -3.4f, -2.2f, 0.1f }, Core::Math::ConvertDegreesToRadians(-35.5f));
+		this->GetDefaultMath()->RotationAroundAxis(t2.rotation, { -3.4f, -2.2f, 0.1f }, Core::Math::ConvertDegreesToRadians(35.5f));
 
 		Core::Transform t3 {
 			{3.81f, -9.2f, 4.69f},
@@ -446,20 +450,19 @@ namespace MMPEngine::Core::Tests
 		node2->localTransform = t2;
 		node3->localTransform = t3;
 
-		Core::Matrix4x4 res1 {};
-		Core::Matrix4x4 res2 {};
+		const auto checkNode = [this](const std::shared_ptr<Node>& node)
+		{
+			Core::Matrix4x4 res1 {};
+			Core::Matrix4x4 res2 {};
 
-		this->GetDefaultMath()->FetchLocalToWorldSpaceMatrix(res1, node1);
-		this->GetMathImpl()->FetchLocalToWorldSpaceMatrix(res2, node1);
-		ASSERT_EQ(res1, res2);
+			this->GetDefaultMath()->FetchLocalToWorldSpaceMatrix(res1, node);
+			this->GetMathImpl()->FetchLocalToWorldSpaceMatrix(res2, node);
+			ASSERT_EQ(res1, res2);
+		};
 
-		this->GetDefaultMath()->FetchLocalToWorldSpaceMatrix(res1, node2);
-		this->GetMathImpl()->FetchLocalToWorldSpaceMatrix(res2, node2);
-		ASSERT_EQ(res1, res2);
-
-		this->GetDefaultMath()->FetchLocalToWorldSpaceMatrix(res1, node3);
-		this->GetMathImpl()->FetchLocalToWorldSpaceMatrix(res2, node3);
-		ASSERT_EQ(res1, res2);
+		checkNode(node1);
+		checkNode(node2);
+		checkNode(node3);
 	}
 
 
@@ -481,7 +484,7 @@ namespace MMPEngine::Core::Tests
 		Matrix4x4_Translation,
 		Matrix4x4_Rotation,
 		Matrix4x4_TRS,
-		Matrix4x4_Decompose,
+		Matrix4x4_DecomposeTRS,
 		Matrix4x4_Transpose,
 		Quaternion_RotateAroundAxis,
 		Quaternion_Dot,

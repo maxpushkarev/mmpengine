@@ -121,17 +121,18 @@ namespace MMPEngine::Core
 		return !operator==(rhs);
 	}
 
-	bool Quaternion::operator==(const Quaternion& rhs) const
+	bool Quaternion::AreIdentical(const Quaternion& q1, const Quaternion& q2)
 	{
-		return std::abs(x - rhs.x) <= Constants::kFloatEps &&
-			std::abs(y - rhs.y) <= Constants::kFloatEps &&
-			std::abs(z - rhs.z) <= Constants::kFloatEps &&
-			std::abs(w - rhs.w) <= Constants::kFloatEps;
+		return std::abs(q1.x - q2.x) <= Constants::kFloatEps &&
+			std::abs(q1.y - q2.y) <= Constants::kFloatEps &&
+			std::abs(q1.z - q2.z) <= Constants::kFloatEps &&
+			std::abs(q1.w - q2.w) <= Constants::kFloatEps;
 	}
 
-	bool Quaternion::operator!=(const Quaternion& rhs) const
+
+	bool Quaternion::AreEquivalent(const Quaternion& q1, const Quaternion& q2)
 	{
-		return !operator==(rhs);
+		return AreIdentical(q1, q2) || AreIdentical(q1, {-q2.x, -q2.y, -q2.z, -q2.w});
 	}
 
 	inline bool MatrixEqualityCheck(std::size_t size, const std::float_t* lhs, const std::float_t* rhs)
@@ -177,16 +178,6 @@ namespace MMPEngine::Core
 	}
 
 	bool Matrix2x2::operator!=(const Matrix2x2& rhs) const
-	{
-		return !operator==(rhs);
-	}
-
-	bool Transform::operator==(const Transform& rhs) const
-	{
-		return (position == rhs.position) && (scale == rhs.scale) && (rotation == rhs.rotation);
-	}
-
-	bool Transform::operator!=(const Transform& rhs) const
 	{
 		return !operator==(rhs);
 	}

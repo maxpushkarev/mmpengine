@@ -89,7 +89,7 @@ namespace MMPEngine::Core
 		Multiply(matrix, tmp, scale);
 	}
 
-	void Math::Decompose(Transform& transform, const Matrix4x4& matrix) const
+	void Math::DecomposeTRS(Transform& transform, const Matrix4x4& matrix) const
 	{
 		Matrix4x4 tmp = matrix;
 

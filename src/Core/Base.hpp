@@ -154,8 +154,8 @@ namespace MMPEngine::Core
 		std::float_t z;
 		std::float_t w;
 
-		bool operator==(const Quaternion& rhs) const;
-		bool operator!=(const Quaternion& rhs) const;
+		static bool AreIdentical(const Quaternion& q1, const Quaternion& q2);
+		static bool AreEquivalent(const Quaternion& q1, const Quaternion& q2);
 	};
 
 	struct Matrix2x2 final
@@ -187,9 +187,6 @@ namespace MMPEngine::Core
 		Vector3Float position = {0.0f, 0.0f, 0.0f};
 		Quaternion rotation = { 0.0f, 0.0f, 0.0f, 1.0f };
 		Vector3Float scale = {1.0f, 1.0f, 1.0f};
-
-		bool operator==(const Transform& rhs) const;
-		bool operator!=(const Transform& rhs) const;
 	};
 
 	class UnsupportedException final : public std::runtime_error

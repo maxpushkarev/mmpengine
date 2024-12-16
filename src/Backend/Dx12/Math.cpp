@@ -110,7 +110,7 @@ namespace MMPEngine::Backend::Dx12
 		DirectX::XMStoreFloat4x4(reinterpret_cast<DirectX::XMFLOAT4X4*>(&matrix), DirectX::XMMatrixTranspose(TRSInternalTransposed(transform)));
 	}
 
-	void Math::Decompose(Core::Transform& transform, const Core::Matrix4x4& matrix) const
+	void Math::DecomposeTRS(Core::Transform& transform, const Core::Matrix4x4& matrix) const
 	{
 		DirectX::XMVECTOR scale;
 		DirectX::XMVECTOR position;
@@ -118,10 +118,11 @@ namespace MMPEngine::Backend::Dx12
 
 		const auto mLoaded = DirectX::XMLoadFloat4x4(reinterpret_cast<const DirectX::XMFLOAT4X4*>(&matrix));
 
-		DirectX::XMMatrixDecompose(&scale, &rotation, &position, DirectX::XMMatrixTranspose(mLoaded));
+		const auto status = DirectX::XMMatrixDecompose(&scale, &rotation, &position, DirectX::XMMatrixTranspose(mLoaded));
+		assert(status);
 		DirectX::XMStoreFloat3(reinterpret_cast<DirectX::XMFLOAT3*>(&transform.scale), scale);
 		DirectX::XMStoreFloat3(reinterpret_cast<DirectX::XMFLOAT3*>(&transform.position), position);
-		DirectX::XMStoreFloat4(reinterpret_cast<DirectX::XMFLOAT4*>(&transform.rotation), rotation);
+		DirectX::XMStoreFloat4(reinterpret_cast<DirectX::XMFLOAT4*>(&transform.rotation), DirectX::XMQuaternionNormalize(rotation));
 	}
 
 
