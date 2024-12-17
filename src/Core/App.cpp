@@ -65,7 +65,7 @@ namespace MMPEngine::Core
 	}
 
 	UserApp::UserApp() = default;
-	std::shared_ptr<AppContext> UserApp::GetContext() const
+	std::shared_ptr<GlobalContext> UserApp::GetContext() const
 	{
 		if(const auto root = _rootApp.lock())
 		{
@@ -91,32 +91,32 @@ namespace MMPEngine::Core
 		_rootApp = root;
 	}
 
-    AppInputController::AppInputController(const std::shared_ptr<BaseRootApp>& baseRootApp) : _appContext(baseRootApp->GetContext())
+    AppInputController::AppInputController(const std::shared_ptr<BaseRootApp>& baseRootApp) : _globalContext(baseRootApp->GetContext())
     {
     }
 
 	void AppInputController::ClearAll()
 	{
-		_appContext->input->ClearAll();
+		_globalContext->input->ClearAll();
 	}
 
 	void AppInputController::ClearInstantEvents()
 	{
-		_appContext->input->ClearInstantEvents();
+		_globalContext->input->ClearInstantEvents();
 	}
 
 	void AppInputController::UpdateMouseNormalizedPosition(const Vector2Float& pos)
 	{
-		_appContext->input->UpdateMouseNormalizedPosition(pos);
+		_globalContext->input->UpdateMouseNormalizedPosition(pos);
 	}
 
 	void AppInputController::SetButtonPressedStatus(KeyButton btn, bool status)
 	{
-		_appContext->input->SetButtonPressedStatus(btn, status);
+		_globalContext->input->SetButtonPressedStatus(btn, status);
 	}
 
 	void AppInputController::SetButtonPressedStatus(MouseButton btn, bool status)
 	{
-		_appContext->input->SetButtonPressedStatus(btn, status);
+		_globalContext->input->SetButtonPressedStatus(btn, status);
 	}
 }

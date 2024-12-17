@@ -8,7 +8,7 @@ namespace MMPEngine::Core
 	Context::Properties::Properties() = default;
 	Context::Properties::~Properties() = default;
 
-	AppContext::AppContext(const Settings& s, std::unique_ptr<Core::Math>&& m, std::unique_ptr<Core::BaseLogger>&& l) :
+	GlobalContext::GlobalContext(const Settings& s, std::unique_ptr<Core::Math>&& m, std::unique_ptr<Core::BaseLogger>&& l) :
 		settings(s)
 		,windowSize({0,0})
 #ifdef MMPENGINE_WIN

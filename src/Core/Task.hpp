@@ -74,8 +74,8 @@ namespace MMPEngine::Core
 	{
 	}
 
-	template<typename TAppContext, typename TStreamContext, typename TTaskContext>
-	class ContextHolderTask : public AppStreamContextCache<TAppContext, TStreamContext>, public ContextualTask<TTaskContext>
+	template<typename TGlobalContext, typename TStreamContext, typename TTaskContext>
+	class ContextHolderTask : public AppStreamContextCache<TGlobalContext, TStreamContext>, public ContextualTask<TTaskContext>
 	{
 	protected:
 		ContextHolderTask(const std::shared_ptr<TTaskContext>& taskContext);
@@ -84,35 +84,35 @@ namespace MMPEngine::Core
 		void OnComplete(const std::shared_ptr<BaseStream>& stream) override;
 	};
 
-	template<typename TAppContext, typename TStreamContext, typename TTaskContext>
-	inline ContextHolderTask<TAppContext, TStreamContext, TTaskContext>::ContextHolderTask(const std::shared_ptr<TTaskContext>& taskContext) : ContextualTask<TTaskContext>(taskContext)
+	template<typename TGlobalContext, typename TStreamContext, typename TTaskContext>
+	inline ContextHolderTask<TGlobalContext, TStreamContext, TTaskContext>::ContextHolderTask(const std::shared_ptr<TTaskContext>& taskContext) : ContextualTask<TTaskContext>(taskContext)
 	{
 	}
 
-	template<typename TAppContext, typename TStreamContext, typename TTaskContext>
-	inline void ContextHolderTask<TAppContext, TStreamContext, TTaskContext>::OnScheduled(const std::shared_ptr<BaseStream>& stream)
+	template<typename TGlobalContext, typename TStreamContext, typename TTaskContext>
+	inline void ContextHolderTask<TGlobalContext, TStreamContext, TTaskContext>::OnScheduled(const std::shared_ptr<BaseStream>& stream)
 	{
 		BaseTask::OnScheduled(stream);
 		this->UpdateCache(stream);
 	}
 
-	template<typename TAppContext, typename TStreamContext, typename TTaskContext>
-	inline void ContextHolderTask<TAppContext, TStreamContext, TTaskContext>::Run(const std::shared_ptr<BaseStream>& stream)
+	template<typename TGlobalContext, typename TStreamContext, typename TTaskContext>
+	inline void ContextHolderTask<TGlobalContext, TStreamContext, TTaskContext>::Run(const std::shared_ptr<BaseStream>& stream)
 	{
 		BaseTask::Run(stream);
 		this->UpdateCache(stream);
 	}
 
-	template<typename TAppContext, typename TStreamContext, typename TTaskContext>
-	inline void ContextHolderTask<TAppContext, TStreamContext, TTaskContext>::OnComplete(const std::shared_ptr<BaseStream>& stream)
+	template<typename TGlobalContext, typename TStreamContext, typename TTaskContext>
+	inline void ContextHolderTask<TGlobalContext, TStreamContext, TTaskContext>::OnComplete(const std::shared_ptr<BaseStream>& stream)
 	{
 		BaseTask::OnComplete(stream);
 		this->UpdateCache(stream);
 	}
 
 
-	template<typename TAppContext, typename TStreamContext>
-	class ContextHolderTask<TAppContext, TStreamContext, void> : public AppStreamContextCache<TAppContext, TStreamContext>, public BaseTask
+	template<typename TGlobalContext, typename TStreamContext>
+	class ContextHolderTask<TGlobalContext, TStreamContext, void> : public AppStreamContextCache<TGlobalContext, TStreamContext>, public BaseTask
 	{
 	protected:
 		void OnScheduled(const std::shared_ptr<BaseStream>& stream) override;
@@ -120,22 +120,22 @@ namespace MMPEngine::Core
 		void OnComplete(const std::shared_ptr<BaseStream>& stream) override;
 	};
 
-	template <typename TAppContext, typename TStreamContext>
-	void ContextHolderTask<TAppContext, TStreamContext, void>::OnScheduled(const std::shared_ptr<BaseStream>& stream)
+	template <typename TGlobalContext, typename TStreamContext>
+	void ContextHolderTask<TGlobalContext, TStreamContext, void>::OnScheduled(const std::shared_ptr<BaseStream>& stream)
 	{
 		BaseTask::OnScheduled(stream);
 		this->UpdateCache(stream);
 	}
 
-	template <typename TAppContext, typename TStreamContext>
-	void ContextHolderTask<TAppContext, TStreamContext, void>::Run(const std::shared_ptr<BaseStream>& stream)
+	template <typename TGlobalContext, typename TStreamContext>
+	void ContextHolderTask<TGlobalContext, TStreamContext, void>::Run(const std::shared_ptr<BaseStream>& stream)
 	{
 		BaseTask::Run(stream);
 		this->UpdateCache(stream);
 	}
 
-	template <typename TAppContext, typename TStreamContext>
-	void ContextHolderTask<TAppContext, TStreamContext, void>::OnComplete(const std::shared_ptr<BaseStream>& stream)
+	template <typename TGlobalContext, typename TStreamContext>
+	void ContextHolderTask<TGlobalContext, TStreamContext, void>::OnComplete(const std::shared_ptr<BaseStream>& stream)
 	{
 		BaseTask::OnComplete(stream);
 		this->UpdateCache(stream);

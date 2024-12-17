@@ -13,7 +13,7 @@ namespace MMPEngine::Frontend
 	{
 	protected:
 		template<typename T = TCoreMaterial>
-		Material(const std::shared_ptr<std::enable_if_t<std::is_same_v<Core::ComputeMaterial, T>, Core::AppContext>>& appContext, const std::shared_ptr<Core::ComputeShader>& computeShader);
+		Material(const std::shared_ptr<std::enable_if_t<std::is_same_v<Core::ComputeMaterial, T>, Core::GlobalContext>>& globalContext, const std::shared_ptr<Core::ComputeShader>& computeShader);
 	public:
 		std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;
 		std::shared_ptr<Core::BaseTask> CreateTaskForApply() override;
@@ -27,16 +27,16 @@ namespace MMPEngine::Frontend
 	class ComputeMaterial final : public Material<Core::ComputeMaterial>
 	{
 	public:
-		ComputeMaterial(const std::shared_ptr<Core::AppContext>& appContext, const std::shared_ptr<Core::ComputeShader>& computeShader);
+		ComputeMaterial(const std::shared_ptr<Core::GlobalContext>& globalContext, const std::shared_ptr<Core::ComputeShader>& computeShader);
 	};
 
 
 	template<typename TCoreMaterial>
 	template<typename T>
-	inline Material<TCoreMaterial>::Material(const std::shared_ptr<std::enable_if_t<std::is_same_v<Core::ComputeMaterial, T>, Core::AppContext>>& appContext, const std::shared_ptr<Core::ComputeShader>& computeShader)
+	inline Material<TCoreMaterial>::Material(const std::shared_ptr<std::enable_if_t<std::is_same_v<Core::ComputeMaterial, T>, Core::GlobalContext>>& globalContext, const std::shared_ptr<Core::ComputeShader>& computeShader)
 		: TCoreMaterial(computeShader)
 	{
-		if (appContext->settings.backend == Core::BackendType::Dx12)
+		if (globalContext->settings.backend == Core::BackendType::Dx12)
 		{
 #ifdef MMPENGINE_BACKEND_DX12
 			_impl = std::make_shared<Backend::Dx12::ComputeMaterial>(computeShader);

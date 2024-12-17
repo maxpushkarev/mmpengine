@@ -26,7 +26,7 @@ namespace MMPEngine::Core
 
 		friend std::ostream& operator<< (std::ostream& stream, State state);
 
-		BaseStream(const std::shared_ptr<AppContext>& appContext, const std::shared_ptr<StreamContext>& streamContext);
+		BaseStream(const std::shared_ptr<GlobalContext>& globalContext, const std::shared_ptr<StreamContext>& streamContext);
 		virtual ~BaseStream();
 
 		virtual void RestartInternal();
@@ -65,7 +65,7 @@ namespace MMPEngine::Core
 		void Wait();
 		void SubmitAndWait();
 
-		std::shared_ptr<AppContext> GetAppContext() const;
+		std::shared_ptr<GlobalContext> GetGlobalContext() const;
 		std::shared_ptr<StreamContext> GetStreamContext() const;
 		Executor CreateExecutor(bool waitAfterSubmit = true);
 	private:
@@ -80,7 +80,7 @@ namespace MMPEngine::Core
 		std::queue<std::shared_ptr<BaseTask>> _scheduledTasks;
 		std::queue<std::shared_ptr<BaseTask>> _finalizedTasks;
 		State _currentState = State::Start;
-		std::shared_ptr<AppContext> _appContext;
+		std::shared_ptr<GlobalContext> _globalContext;
 		std::shared_ptr<StreamContext> _streamContext;
 
 		static std::unordered_map<State, std::unordered_set<State>> _validTransitionsMap;
@@ -92,37 +92,37 @@ namespace MMPEngine::Core
 		};
 	};
 
-	template<typename TAppContext, typename TStreamContext>
+	template<typename TGlobalContext, typename TStreamContext>
 	class Stream : public Core::BaseStream
 	{
 	public:
-		Stream(const std::shared_ptr<TAppContext>& appContext, const std::shared_ptr<TStreamContext>& streamContext);
+		Stream(const std::shared_ptr<TGlobalContext>& globalContext, const std::shared_ptr<TStreamContext>& streamContext);
 	protected:
-		std::shared_ptr<TAppContext> _specificAppContext;
+		std::shared_ptr<TGlobalContext> _specificGlobalContext;
 		std::shared_ptr<TStreamContext> _specificStreamContext;
 	};
 
-	template<typename TAppContext, typename TStreamContext>
+	template<typename TGlobalContext, typename TStreamContext>
 	class AppStreamContextCache
 	{
-		static_assert(std::is_base_of_v<AppContext, TAppContext>, "TAppContext must be derived from AppContext");
+		static_assert(std::is_base_of_v<GlobalContext, TGlobalContext>, "TGlobalContext must be derived from GlobalContext");
 		static_assert(std::is_base_of_v<StreamContext, TStreamContext>, "TStreamContext must be derived from StreamContext");
 	protected:
 		void UpdateCache(const std::shared_ptr<BaseStream>& stream);
-		std::shared_ptr<TAppContext> _specificAppContext;
+		std::shared_ptr<TGlobalContext> _specificGlobalContext;
 		std::shared_ptr<TStreamContext> _specificStreamContext;
 	};
 
-	template<typename TAppContext, typename TStreamContext>
-	Stream<TAppContext, TStreamContext>::Stream(const std::shared_ptr<TAppContext>& appContext, const std::shared_ptr<TStreamContext>& streamContext)
-		: Core::BaseStream(appContext, streamContext), _specificAppContext(appContext), _specificStreamContext(streamContext)
+	template<typename TGlobalContext, typename TStreamContext>
+	Stream<TGlobalContext, TStreamContext>::Stream(const std::shared_ptr<TGlobalContext>& globalContext, const std::shared_ptr<TStreamContext>& streamContext)
+		: Core::BaseStream(globalContext, streamContext), _specificGlobalContext(globalContext), _specificStreamContext(streamContext)
 	{
 	}
 
-	template<typename TAppContext, typename TStreamContext>
-	inline void AppStreamContextCache<TAppContext, TStreamContext>::UpdateCache(const std::shared_ptr<BaseStream>& stream)
+	template<typename TGlobalContext, typename TStreamContext>
+	inline void AppStreamContextCache<TGlobalContext, TStreamContext>::UpdateCache(const std::shared_ptr<BaseStream>& stream)
 	{
-		_specificAppContext = std::static_pointer_cast<TAppContext>(stream->GetAppContext());
+		_specificGlobalContext = std::static_pointer_cast<TGlobalContext>(stream->GetGlobalContext());
 		_specificStreamContext = std::static_pointer_cast<TStreamContext>(stream->GetStreamContext());
 	}
 }

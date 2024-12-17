@@ -3,8 +3,8 @@
 
 namespace MMPEngine::Backend::Dx12
 {
-	Stream::Stream(const std::shared_ptr<AppContext>& appContext, const std::shared_ptr<StreamContext>& streamContext)
-		: Super(appContext, streamContext)
+	Stream::Stream(const std::shared_ptr<GlobalContext>& globalContext, const std::shared_ptr<StreamContext>& streamContext)
+		: Super(globalContext, streamContext)
 	{
 		_waitHandle = CreateEventEx(nullptr, nullptr, false, EVENT_ALL_ACCESS);
 		_fenceSignalValue = _specificStreamContext->_fence->GetCompletedValue();

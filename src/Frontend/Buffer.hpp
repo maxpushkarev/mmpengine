@@ -12,8 +12,8 @@ namespace MMPEngine::Frontend
 	class Buffer : public TCoreBuffer
 	{
 	protected:
-		Buffer(const std::shared_ptr<Core::AppContext>& appContext, const TSettings& settings);
-		std::shared_ptr<TCoreBuffer> CreateImpl(const std::shared_ptr<Core::AppContext>& appContext);
+		Buffer(const std::shared_ptr<Core::GlobalContext>& globalContext, const TSettings& settings);
+		std::shared_ptr<TCoreBuffer> CreateImpl(const std::shared_ptr<Core::GlobalContext>& globalContext);
 	public:
 		std::shared_ptr<Core::BaseTask> CreateCopyToBufferTask(const std::shared_ptr<Core::Buffer>& dst, std::size_t byteLength, std::size_t srcByteOffset, std::size_t dstByteOffset) const override;
 		std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;
@@ -26,7 +26,7 @@ namespace MMPEngine::Frontend
 	class UploadBuffer : public Buffer<Core::UploadBuffer>
 	{
 	public:
-		UploadBuffer(const std::shared_ptr<Core::AppContext>& appContext, const Settings& settings);
+		UploadBuffer(const std::shared_ptr<Core::GlobalContext>& globalContext, const Settings& settings);
 		std::shared_ptr<Core::ContextualTask<WriteTaskContext>> CreateWriteTask(const void* src, std::size_t byteLength, std::size_t byteOffset = 0) override;
 	};
 
@@ -34,26 +34,26 @@ namespace MMPEngine::Frontend
 	class ReadBackBuffer : public Buffer<Core::ReadBackBuffer>
 	{
 	public:
-		ReadBackBuffer(const std::shared_ptr<Core::AppContext>& appContext, const Settings& settings);
+		ReadBackBuffer(const std::shared_ptr<Core::GlobalContext>& globalContext, const Settings& settings);
 		std::shared_ptr<Core::ContextualTask<ReadTaskContext>> CreateReadTask(void* dst, std::size_t byteLength, std::size_t byteOffset = 0) override;
 	};
 
 	class ResidentBuffer : public Buffer<Core::ResidentBuffer>
 	{
 	public:
-		ResidentBuffer(const std::shared_ptr<Core::AppContext>& appContext, const Settings& settings);
+		ResidentBuffer(const std::shared_ptr<Core::GlobalContext>& globalContext, const Settings& settings);
 	};
 
 	class UnorderedAccessBuffer : public Buffer<Core::UnorderedAccessBuffer, Core::BaseUnorderedAccessBuffer::Settings>
 	{
 	public:
-		UnorderedAccessBuffer(const std::shared_ptr<Core::AppContext>& appContext, const Settings& settings);
+		UnorderedAccessBuffer(const std::shared_ptr<Core::GlobalContext>& globalContext, const Settings& settings);
 	};
 
 	class CounteredUnorderedAccessBuffer : public Buffer<Core::CounteredUnorderedAccessBuffer, Core::BaseUnorderedAccessBuffer::Settings>
 	{
 	public:
-		CounteredUnorderedAccessBuffer(const std::shared_ptr<Core::AppContext>& appContext, const Settings& settings);
+		CounteredUnorderedAccessBuffer(const std::shared_ptr<Core::GlobalContext>& globalContext, const Settings& settings);
 		std::shared_ptr<Core::BaseTask> CreateCopyCounterTask(const std::shared_ptr<Core::Buffer>& dst, std::size_t byteLength, std::size_t dstByteOffset) override;
 		std::shared_ptr<Core::BaseTask> CreateResetCounterTask() override;
 	};;
@@ -61,13 +61,13 @@ namespace MMPEngine::Frontend
 	class VertexBuffer final : public Buffer<Core::VertexBuffer, Core::InputAssemblerBuffer::Settings>
 	{
 	public:
-		VertexBuffer(const std::shared_ptr<Core::AppContext>& appContext, const Settings& settings);
+		VertexBuffer(const std::shared_ptr<Core::GlobalContext>& globalContext, const Settings& settings);
 	};
 
 	class IndexBuffer final : public Buffer<Core::IndexBuffer, Core::InputAssemblerBuffer::Settings>
 	{
 	public:
-		IndexBuffer(const std::shared_ptr<Core::AppContext>& appContext, const Settings& settings);
+		IndexBuffer(const std::shared_ptr<Core::GlobalContext>& globalContext, const Settings& settings);
 	};
 
 	class BaseStructuredBuffer
@@ -92,7 +92,7 @@ namespace MMPEngine::Frontend
 	class StructuredUploadBuffer final : public StructuredBuffer<TStruct>, public UploadBuffer
 	{
 	public:
-		StructuredUploadBuffer(const std::shared_ptr<Core::AppContext>& appContext, const BaseStructuredBuffer::Settings& settings);
+		StructuredUploadBuffer(const std::shared_ptr<Core::GlobalContext>& globalContext, const BaseStructuredBuffer::Settings& settings);
 		std::shared_ptr<Core::ContextualTask<Core::UploadBuffer::WriteTaskContext>> CreateWriteStructTask(const TStruct& item, std::size_t index);
 	};
 
@@ -101,7 +101,7 @@ namespace MMPEngine::Frontend
 	class StructuredReadBackBuffer final : public StructuredBuffer<TStruct>, public ReadBackBuffer
 	{
 	public:
-		StructuredReadBackBuffer(const std::shared_ptr<Core::AppContext>& appContext, const BaseStructuredBuffer::Settings& settings);
+		StructuredReadBackBuffer(const std::shared_ptr<Core::GlobalContext>& globalContext, const BaseStructuredBuffer::Settings& settings);
 		std::shared_ptr<Core::ContextualTask<Core::ReadBackBuffer::ReadTaskContext>> CreateReadStructTask(TStruct& item, std::size_t index);
 	};
 
@@ -109,7 +109,7 @@ namespace MMPEngine::Frontend
 	class StructuredResidentBuffer final : public StructuredBuffer<TStruct>, public ResidentBuffer
 	{
 	public:
-		StructuredResidentBuffer(const std::shared_ptr<Core::AppContext>& appContext, const BaseStructuredBuffer::Settings& settings);
+		StructuredResidentBuffer(const std::shared_ptr<Core::GlobalContext>& globalContext, const BaseStructuredBuffer::Settings& settings);
 	};
 
 
@@ -117,8 +117,8 @@ namespace MMPEngine::Frontend
 	class ConstantBuffer final : public Core::ConstantBuffer<TConstantBufferData>
 	{
 	public:
-		ConstantBuffer(const std::shared_ptr<Core::AppContext>& appContext, std::string_view name);
-		ConstantBuffer(const std::shared_ptr<Core::AppContext>& appContext);
+		ConstantBuffer(const std::shared_ptr<Core::GlobalContext>& globalContext, std::string_view name);
+		ConstantBuffer(const std::shared_ptr<Core::GlobalContext>& globalContext);
 
 		std::shared_ptr<Core::ContextualTask<Core::UploadBuffer::WriteTaskContext>> CreateWriteAsyncTask(const TConstantBufferData& data) override;
 
@@ -131,10 +131,10 @@ namespace MMPEngine::Frontend
 	};
 
 	template<class TConstantBufferData>
-	inline ConstantBuffer<TConstantBufferData>::ConstantBuffer(const std::shared_ptr<Core::AppContext>& appContext, std::string_view name) :
+	inline ConstantBuffer<TConstantBufferData>::ConstantBuffer(const std::shared_ptr<Core::GlobalContext>& globalContext, std::string_view name) :
 		Core::ConstantBuffer<TConstantBufferData>(Core::Buffer::Settings {sizeof(TConstantBufferData), std::string {name}})
 	{
-		if (appContext->settings.backend == Core::BackendType::Dx12)
+		if (globalContext->settings.backend == Core::BackendType::Dx12)
 		{
 #ifdef MMPENGINE_BACKEND_DX12
 			_impl = std::make_shared<Backend::Dx12::ConstantBuffer<TConstantBufferData>>(name);
@@ -145,10 +145,10 @@ namespace MMPEngine::Frontend
 	}
 
 	template<class TConstantBufferData>
-	inline ConstantBuffer<TConstantBufferData>::ConstantBuffer(const std::shared_ptr<Core::AppContext>& appContext) :
+	inline ConstantBuffer<TConstantBufferData>::ConstantBuffer(const std::shared_ptr<Core::GlobalContext>& globalContext) :
 		Core::ConstantBuffer<TConstantBufferData>(Core::Buffer::Settings {sizeof(TConstantBufferData), ""})
 	{
-		if (appContext->settings.backend == Core::BackendType::Dx12)
+		if (globalContext->settings.backend == Core::BackendType::Dx12)
 		{
 #ifdef MMPENGINE_BACKEND_DX12
 			_impl = std::make_shared<Backend::Dx12::ConstantBuffer<TConstantBufferData>>();
@@ -183,30 +183,30 @@ namespace MMPEngine::Frontend
 	}
 
 	template<>
-	std::shared_ptr<Core::UploadBuffer> Buffer<Core::UploadBuffer>::CreateImpl(const std::shared_ptr<Core::AppContext>& appContext);
+	std::shared_ptr<Core::UploadBuffer> Buffer<Core::UploadBuffer>::CreateImpl(const std::shared_ptr<Core::GlobalContext>& globalContext);
 	template<>
-	std::shared_ptr<Core::ResidentBuffer> Buffer<Core::ResidentBuffer>::CreateImpl(const std::shared_ptr<Core::AppContext>& appContext);
+	std::shared_ptr<Core::ResidentBuffer> Buffer<Core::ResidentBuffer>::CreateImpl(const std::shared_ptr<Core::GlobalContext>& globalContext);
 	template<>
-	std::shared_ptr<Core::ReadBackBuffer> Buffer<Core::ReadBackBuffer>::CreateImpl(const std::shared_ptr<Core::AppContext>& appContext);
+	std::shared_ptr<Core::ReadBackBuffer> Buffer<Core::ReadBackBuffer>::CreateImpl(const std::shared_ptr<Core::GlobalContext>& globalContext);
 	template<>
-	std::shared_ptr<Core::UnorderedAccessBuffer> Buffer<Core::UnorderedAccessBuffer, Core::BaseUnorderedAccessBuffer::Settings>::CreateImpl(const std::shared_ptr<Core::AppContext>& appContext);
+	std::shared_ptr<Core::UnorderedAccessBuffer> Buffer<Core::UnorderedAccessBuffer, Core::BaseUnorderedAccessBuffer::Settings>::CreateImpl(const std::shared_ptr<Core::GlobalContext>& globalContext);
 	template<>
-	std::shared_ptr<Core::CounteredUnorderedAccessBuffer> Buffer<Core::CounteredUnorderedAccessBuffer, Core::BaseUnorderedAccessBuffer::Settings>::CreateImpl(const std::shared_ptr<Core::AppContext>& appContext);
+	std::shared_ptr<Core::CounteredUnorderedAccessBuffer> Buffer<Core::CounteredUnorderedAccessBuffer, Core::BaseUnorderedAccessBuffer::Settings>::CreateImpl(const std::shared_ptr<Core::GlobalContext>& globalContext);
 	template<>
-	std::shared_ptr<Core::VertexBuffer> Buffer<Core::VertexBuffer, Core::InputAssemblerBuffer::Settings>::CreateImpl(const std::shared_ptr<Core::AppContext>& appContext);
+	std::shared_ptr<Core::VertexBuffer> Buffer<Core::VertexBuffer, Core::InputAssemblerBuffer::Settings>::CreateImpl(const std::shared_ptr<Core::GlobalContext>& globalContext);
 	template<>
-	std::shared_ptr<Core::IndexBuffer> Buffer<Core::IndexBuffer, Core::InputAssemblerBuffer::Settings>::CreateImpl(const std::shared_ptr<Core::AppContext>& appContext);
+	std::shared_ptr<Core::IndexBuffer> Buffer<Core::IndexBuffer, Core::InputAssemblerBuffer::Settings>::CreateImpl(const std::shared_ptr<Core::GlobalContext>& globalContext);
 
 	template<>
-	Buffer<Core::VertexBuffer, Core::InputAssemblerBuffer::Settings>::Buffer(const std::shared_ptr<Core::AppContext>& appContext, const Core::InputAssemblerBuffer::Settings& settings);
+	Buffer<Core::VertexBuffer, Core::InputAssemblerBuffer::Settings>::Buffer(const std::shared_ptr<Core::GlobalContext>& globalContext, const Core::InputAssemblerBuffer::Settings& settings);
 	template<>
-	Buffer<Core::IndexBuffer, Core::InputAssemblerBuffer::Settings>::Buffer(const std::shared_ptr<Core::AppContext>& appContext, const Core::InputAssemblerBuffer::Settings& settings);
+	Buffer<Core::IndexBuffer, Core::InputAssemblerBuffer::Settings>::Buffer(const std::shared_ptr<Core::GlobalContext>& globalContext, const Core::InputAssemblerBuffer::Settings& settings);
 
 	template <typename TCoreBuffer, typename TSettings>
-	Buffer<TCoreBuffer, TSettings>::Buffer(const std::shared_ptr<Core::AppContext>& appContext, const TSettings& settings)
+	Buffer<TCoreBuffer, TSettings>::Buffer(const std::shared_ptr<Core::GlobalContext>& globalContext, const TSettings& settings)
 		: TCoreBuffer(settings)
 	{
-		_impl = CreateImpl(appContext);
+		_impl = CreateImpl(globalContext);
 	}
 
 	template <typename TCoreBuffer, typename TSettings>
@@ -228,8 +228,8 @@ namespace MMPEngine::Frontend
 	}
 
 	template <typename TStruct>
-	StructuredUploadBuffer<TStruct>::StructuredUploadBuffer(const std::shared_ptr<Core::AppContext>& appContext, const BaseStructuredBuffer::Settings& settings)
-		: UploadBuffer(appContext, Core::Buffer::Settings{sizeof(TStruct)* settings.itemsCount, settings.name})
+	StructuredUploadBuffer<TStruct>::StructuredUploadBuffer(const std::shared_ptr<Core::GlobalContext>& globalContext, const BaseStructuredBuffer::Settings& settings)
+		: UploadBuffer(globalContext, Core::Buffer::Settings{sizeof(TStruct)* settings.itemsCount, settings.name})
 	{
 	}
 
@@ -240,8 +240,8 @@ namespace MMPEngine::Frontend
 	}
 
 	template <typename TStruct>
-	StructuredReadBackBuffer<TStruct>::StructuredReadBackBuffer(const std::shared_ptr<Core::AppContext>& appContext, const BaseStructuredBuffer::Settings& settings)
-		: ReadBackBuffer(appContext, Core::Buffer::Settings{sizeof(TStruct)* settings.itemsCount, settings.name})
+	StructuredReadBackBuffer<TStruct>::StructuredReadBackBuffer(const std::shared_ptr<Core::GlobalContext>& globalContext, const BaseStructuredBuffer::Settings& settings)
+		: ReadBackBuffer(globalContext, Core::Buffer::Settings{sizeof(TStruct)* settings.itemsCount, settings.name})
 	{
 	}
 
@@ -252,8 +252,8 @@ namespace MMPEngine::Frontend
 	}
 
 	template <typename TStruct>
-	StructuredResidentBuffer<TStruct>::StructuredResidentBuffer(const std::shared_ptr<Core::AppContext>& appContext, const BaseStructuredBuffer::Settings& settings)
-		: ResidentBuffer(appContext, Core::Buffer::Settings{sizeof(TStruct)* settings.itemsCount, settings.name})
+	StructuredResidentBuffer<TStruct>::StructuredResidentBuffer(const std::shared_ptr<Core::GlobalContext>& globalContext, const BaseStructuredBuffer::Settings& settings)
+		: ResidentBuffer(globalContext, Core::Buffer::Settings{sizeof(TStruct)* settings.itemsCount, settings.name})
 	{
 	}
 }

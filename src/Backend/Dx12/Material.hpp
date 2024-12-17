@@ -57,7 +57,7 @@ namespace MMPEngine::Backend::Dx12
 		
 		std::vector<std::function<void(const std::shared_ptr<StreamContext>& streamContext)>> _applyParametersCallbacks;
 
-		void UpdateRootSignatureAndSwitchTasks(const std::shared_ptr<AppContext>& appContext, const Core::BaseMaterial::Parameters& params);
+		void UpdateRootSignatureAndSwitchTasks(const std::shared_ptr<GlobalContext>& globalContext, const Core::BaseMaterial::Parameters& params);
 
 	private:
 		void SwitchParametersStates(const std::shared_ptr<Core::BaseStream>& stream);
@@ -86,7 +86,7 @@ namespace MMPEngine::Backend::Dx12
 			void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
 		};
 
-		void OnParametersUpdated(const std::shared_ptr<AppContext>& appContext, const Core::BaseMaterial::Parameters& params);
+		void OnParametersUpdated(const std::shared_ptr<GlobalContext>& globalContext, const Core::BaseMaterial::Parameters& params);
 	};
 
 	class ComputeMaterial final : public Core::ComputeMaterial, public MaterialImpl<Core::ComputeMaterial>
@@ -98,11 +98,11 @@ namespace MMPEngine::Backend::Dx12
 	};
 
 	template<class TCoreMaterial>
-	inline void MaterialImpl<TCoreMaterial>::OnParametersUpdated(const std::shared_ptr<AppContext>& appContext, const Core::BaseMaterial::Parameters& params)
+	inline void MaterialImpl<TCoreMaterial>::OnParametersUpdated(const std::shared_ptr<GlobalContext>& globalContext, const Core::BaseMaterial::Parameters& params)
 	{
 		_applyParametersCallbacks.clear();
 
-		this->UpdateRootSignatureAndSwitchTasks(appContext, params);
+		this->UpdateRootSignatureAndSwitchTasks(globalContext, params);
 
 		const auto& allParams = params.GetAll();
 
@@ -177,7 +177,7 @@ namespace MMPEngine::Backend::Dx12
 		Task<ParametersUpdatedTaskContext>::Run(stream);
 		if (const auto tc = this->GetTaskContext() ; const auto matImpl = tc->materialImplPtr)
 		{
-			matImpl->OnParametersUpdated(this->_specificAppContext, *tc->params);
+			matImpl->OnParametersUpdated(this->_specificGlobalContext, *tc->params);
 		}
 	}
 }

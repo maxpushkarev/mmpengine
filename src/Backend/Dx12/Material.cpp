@@ -19,7 +19,7 @@ namespace MMPEngine::Backend::Dx12
 		}
 	}
 
-    void Material::UpdateRootSignatureAndSwitchTasks(const std::shared_ptr<AppContext>& appContext, const Core::BaseMaterial::Parameters& params)
+    void Material::UpdateRootSignatureAndSwitchTasks(const std::shared_ptr<GlobalContext>& globalContext, const Core::BaseMaterial::Parameters& params)
     {
 		_rootSignature.Reset();
 		_switchStateTasks.clear();
@@ -116,7 +116,7 @@ namespace MMPEngine::Backend::Dx12
 
 		D3D12SerializeRootSignature(&rootSignature, D3D_ROOT_SIGNATURE_VERSION_1, &blob, &error);
 		assert(error == nullptr);
-		appContext->device->CreateRootSignature(0, blob->GetBufferPointer(), blob->GetBufferSize(), IID_PPV_ARGS(_rootSignature.GetAddressOf()));
+		globalContext->device->CreateRootSignature(0, blob->GetBufferPointer(), blob->GetBufferSize(), IID_PPV_ARGS(_rootSignature.GetAddressOf()));
 		assert(_rootSignature != nullptr);
     }
 

@@ -46,7 +46,7 @@ namespace MMPEngine::Frontend
 		std::int32_t AppContainer::RunInternal()
 		{
 			MSG msg = {};
-			const auto appContext = _app->GetContext();
+			const auto globalContext = _app->GetContext();
 			_state.previousFrameMs.reset();
 
 			const auto targetFrameMilliseconds = std::chrono::milliseconds(
@@ -65,7 +65,7 @@ namespace MMPEngine::Frontend
 					TRACKMOUSEEVENT tme;
 					tme.cbSize = sizeof(TRACKMOUSEEVENT);
 					tme.dwFlags = TME_LEAVE;
-					tme.hwndTrack = appContext->nativeWindow;
+					tme.hwndTrack = globalContext->nativeWindow;
 					TrackMouseEvent(&tme);
 
 					if(_state.prevPaused.value_or(_state.paused) != _state.paused)
@@ -93,7 +93,7 @@ namespace MMPEngine::Frontend
 
 						if (_settings.showFps)
 						{
-							SetWindowTextA(appContext->nativeWindow, Core::Text::CombineToString(_settings.windowCaption, " | FPS: ", static_cast<std::uint32_t>(std::round(1.0f / dt))).c_str());
+							SetWindowTextA(globalContext->nativeWindow, Core::Text::CombineToString(_settings.windowCaption, " | FPS: ", static_cast<std::uint32_t>(std::round(1.0f / dt))).c_str());
 						}
 
 						_app->OnUpdate(dt);
@@ -132,7 +132,7 @@ namespace MMPEngine::Frontend
 
 		void AppContainer::CreateNativeContainer()
 		{
-			const auto appContext = _app->GetContext();
+			const auto globalContext = _app->GetContext();
 			const auto className = TEXT(_platformSettings.windowClassName.c_str());
 			WNDCLASS wc;
 			wc.style = CS_HREDRAW | CS_VREDRAW;
@@ -150,15 +150,15 @@ namespace MMPEngine::Frontend
 
 			RECT rect = { 0, 0, _settings.initialWindowWidth, _settings.initialWindowHeight };
 			AdjustWindowRect(&rect, WS_OVERLAPPEDWINDOW, false);
-			appContext->windowSize.x = rect.right - rect.left;
-			appContext->windowSize.y = rect.bottom - rect.top;
+			globalContext->windowSize.x = rect.right - rect.left;
+			globalContext->windowSize.y = rect.bottom - rect.top;
 
-			appContext->nativeWindow = CreateWindow(className, TEXT(_settings.windowCaption.c_str()),
-				WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, appContext->windowSize.x, appContext->windowSize.y, nullptr, nullptr, _platformSettings.currentWindowApplicationHandle, this);
+			globalContext->nativeWindow = CreateWindow(className, TEXT(_settings.windowCaption.c_str()),
+				WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, globalContext->windowSize.x, globalContext->windowSize.y, nullptr, nullptr, _platformSettings.currentWindowApplicationHandle, this);
 
 
-			ShowWindow(appContext->nativeWindow, SW_SHOW);
-			UpdateWindow(appContext->nativeWindow);
+			ShowWindow(globalContext->nativeWindow, SW_SHOW);
+			UpdateWindow(globalContext->nativeWindow);
 
 		}
 
@@ -228,9 +228,9 @@ namespace MMPEngine::Frontend
 				return 0;
 			case WM_SIZE:
 				{
-					const auto appContext = container->_app->GetContext();
-					appContext->windowSize.x = LOWORD(lParam);
-					appContext->windowSize.y = HIWORD(lParam);
+					const auto globalContext = container->_app->GetContext();
+					globalContext->windowSize.x = LOWORD(lParam);
+					globalContext->windowSize.y = HIWORD(lParam);
 
 					if (wParam == SIZE_MINIMIZED)
 					{
@@ -308,12 +308,12 @@ namespace MMPEngine::Frontend
 				return 0;
 			case WM_MOUSEMOVE:
 				{
-					const auto appContext = container->_app->GetContext();
+					const auto globalContext = container->_app->GetContext();
 					const auto x = GET_X_LPARAM(lParam);
 					const auto y = GET_Y_LPARAM(lParam);
 					container->_inputController->UpdateMouseNormalizedPosition({
-						max(0.0f, min(static_cast<std::float_t>(x) / static_cast<std::float_t>(appContext->windowSize.x), 1.0f)),
-						max(0.0f, min(static_cast<std::float_t>(y) / static_cast<std::float_t>(appContext->windowSize.y), 1.0f))
+						max(0.0f, min(static_cast<std::float_t>(x) / static_cast<std::float_t>(globalContext->windowSize.x), 1.0f)),
+						max(0.0f, min(static_cast<std::float_t>(y) / static_cast<std::float_t>(globalContext->windowSize.y), 1.0f))
 					});
 				}
 				return 0;

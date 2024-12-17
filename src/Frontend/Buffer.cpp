@@ -7,23 +7,23 @@
 namespace MMPEngine::Frontend
 {
 	template<>
-	Buffer<Core::VertexBuffer, Core::InputAssemblerBuffer::Settings>::Buffer(const std::shared_ptr<Core::AppContext>& appContext, const Core::InputAssemblerBuffer::Settings& settings)
+	Buffer<Core::VertexBuffer, Core::InputAssemblerBuffer::Settings>::Buffer(const std::shared_ptr<Core::GlobalContext>& globalContext, const Core::InputAssemblerBuffer::Settings& settings)
 		: Core::VertexBuffer(settings)
 	{
-		_impl = CreateImpl(appContext);
+		_impl = CreateImpl(globalContext);
 	}
 
 	template<>
-	Buffer<Core::IndexBuffer, Core::InputAssemblerBuffer::Settings>::Buffer(const std::shared_ptr<Core::AppContext>& appContext, const Core::InputAssemblerBuffer::Settings& settings)
+	Buffer<Core::IndexBuffer, Core::InputAssemblerBuffer::Settings>::Buffer(const std::shared_ptr<Core::GlobalContext>& globalContext, const Core::InputAssemblerBuffer::Settings& settings)
 		: Core::IndexBuffer(settings)
 	{
-		_impl = CreateImpl(appContext);
+		_impl = CreateImpl(globalContext);
 	}
 
 	template<>
-	std::shared_ptr<Core::UploadBuffer> Buffer<Core::UploadBuffer>::CreateImpl(const std::shared_ptr<Core::AppContext>& appContext)
+	std::shared_ptr<Core::UploadBuffer> Buffer<Core::UploadBuffer>::CreateImpl(const std::shared_ptr<Core::GlobalContext>& globalContext)
 	{
-		if (appContext->settings.backend == Core::BackendType::Dx12)
+		if (globalContext->settings.backend == Core::BackendType::Dx12)
 		{
 #ifdef MMPENGINE_BACKEND_DX12
 			return std::make_shared<Backend::Dx12::UploadBuffer>(this->_settings);
@@ -36,9 +36,9 @@ namespace MMPEngine::Frontend
 	}
 
 	template<>
-	std::shared_ptr<Core::ResidentBuffer> Buffer<Core::ResidentBuffer>::CreateImpl(const std::shared_ptr<Core::AppContext>& appContext)
+	std::shared_ptr<Core::ResidentBuffer> Buffer<Core::ResidentBuffer>::CreateImpl(const std::shared_ptr<Core::GlobalContext>& globalContext)
 	{
-		if (appContext->settings.backend == Core::BackendType::Dx12)
+		if (globalContext->settings.backend == Core::BackendType::Dx12)
 		{
 #ifdef MMPENGINE_BACKEND_DX12
 			return std::make_shared<Backend::Dx12::ResidentBuffer>(this->_settings);
@@ -51,9 +51,9 @@ namespace MMPEngine::Frontend
 	}
 
 	template<>
-	std::shared_ptr<Core::UnorderedAccessBuffer> Buffer<Core::UnorderedAccessBuffer, Core::BaseUnorderedAccessBuffer::Settings>::CreateImpl(const std::shared_ptr<Core::AppContext>& appContext)
+	std::shared_ptr<Core::UnorderedAccessBuffer> Buffer<Core::UnorderedAccessBuffer, Core::BaseUnorderedAccessBuffer::Settings>::CreateImpl(const std::shared_ptr<Core::GlobalContext>& globalContext)
 	{
-		if (appContext->settings.backend == Core::BackendType::Dx12)
+		if (globalContext->settings.backend == Core::BackendType::Dx12)
 		{
 #ifdef MMPENGINE_BACKEND_DX12
 			return std::make_shared<Backend::Dx12::UnorderedAccessBuffer>(this->_uaSettings);
@@ -66,9 +66,9 @@ namespace MMPEngine::Frontend
 	}
 
 	template<>
-	std::shared_ptr<Core::CounteredUnorderedAccessBuffer> Buffer<Core::CounteredUnorderedAccessBuffer, Core::BaseUnorderedAccessBuffer::Settings>::CreateImpl(const std::shared_ptr<Core::AppContext>& appContext)
+	std::shared_ptr<Core::CounteredUnorderedAccessBuffer> Buffer<Core::CounteredUnorderedAccessBuffer, Core::BaseUnorderedAccessBuffer::Settings>::CreateImpl(const std::shared_ptr<Core::GlobalContext>& globalContext)
 	{
-		if (appContext->settings.backend == Core::BackendType::Dx12)
+		if (globalContext->settings.backend == Core::BackendType::Dx12)
 		{
 #ifdef MMPENGINE_BACKEND_DX12
 			return std::make_shared<Backend::Dx12::CounteredUnorderedAccessBuffer>(this->_uaSettings);
@@ -81,9 +81,9 @@ namespace MMPEngine::Frontend
 	}
 
 	template<>
-	std::shared_ptr<Core::ReadBackBuffer> Buffer<Core::ReadBackBuffer>::CreateImpl(const std::shared_ptr<Core::AppContext>& appContext)
+	std::shared_ptr<Core::ReadBackBuffer> Buffer<Core::ReadBackBuffer>::CreateImpl(const std::shared_ptr<Core::GlobalContext>& globalContext)
 	{
-		if (appContext->settings.backend == Core::BackendType::Dx12)
+		if (globalContext->settings.backend == Core::BackendType::Dx12)
 		{
 #ifdef MMPENGINE_BACKEND_DX12
 			return std::make_shared<Backend::Dx12::ReadBackBuffer>(this->_settings);
@@ -96,11 +96,11 @@ namespace MMPEngine::Frontend
 	}
 
 	template<>
-	std::shared_ptr<Core::VertexBuffer> Buffer<Core::VertexBuffer, Core::InputAssemblerBuffer::Settings>::CreateImpl(const std::shared_ptr<Core::AppContext>& appContext)
+	std::shared_ptr<Core::VertexBuffer> Buffer<Core::VertexBuffer, Core::InputAssemblerBuffer::Settings>::CreateImpl(const std::shared_ptr<Core::GlobalContext>& globalContext)
 	{
 		const Core::InputAssemblerBuffer::Settings settings = {this->_ia, this->_settings};
 
-		if (appContext->settings.backend == Core::BackendType::Dx12)
+		if (globalContext->settings.backend == Core::BackendType::Dx12)
 		{
 #ifdef MMPENGINE_BACKEND_DX12
 			return std::make_shared<Backend::Dx12::VertexBuffer>(settings);
@@ -113,11 +113,11 @@ namespace MMPEngine::Frontend
 	}
 
 	template<>
-	std::shared_ptr<Core::IndexBuffer> Buffer<Core::IndexBuffer, Core::InputAssemblerBuffer::Settings>::CreateImpl(const std::shared_ptr<Core::AppContext>& appContext)
+	std::shared_ptr<Core::IndexBuffer> Buffer<Core::IndexBuffer, Core::InputAssemblerBuffer::Settings>::CreateImpl(const std::shared_ptr<Core::GlobalContext>& globalContext)
 	{
 		const Core::InputAssemblerBuffer::Settings settings = { this->_ia, this->_settings };
 
-		if (appContext->settings.backend == Core::BackendType::Dx12)
+		if (globalContext->settings.backend == Core::BackendType::Dx12)
 		{
 #ifdef MMPENGINE_BACKEND_DX12
 			return std::make_shared<Backend::Dx12::IndexBuffer>(settings);
@@ -129,7 +129,7 @@ namespace MMPEngine::Frontend
 		return nullptr;
 	}
 
-	UploadBuffer::UploadBuffer(const std::shared_ptr<Core::AppContext>& appContext, const Settings& settings) : Buffer(appContext, settings)
+	UploadBuffer::UploadBuffer(const std::shared_ptr<Core::GlobalContext>& globalContext, const Settings& settings) : Buffer(globalContext, settings)
 	{
 	}
 
@@ -138,7 +138,7 @@ namespace MMPEngine::Frontend
 		return _impl->CreateWriteTask(src, byteLength, byteOffset);
 	}
 
-	ReadBackBuffer::ReadBackBuffer(const std::shared_ptr<Core::AppContext>& appContext, const Settings& settings) : Buffer(appContext, settings)
+	ReadBackBuffer::ReadBackBuffer(const std::shared_ptr<Core::GlobalContext>& globalContext, const Settings& settings) : Buffer(globalContext, settings)
 	{
 	}
 
@@ -147,15 +147,15 @@ namespace MMPEngine::Frontend
 		return _impl->CreateReadTask(dst, byteLength, byteOffset);
 	}
 
-	ResidentBuffer::ResidentBuffer(const std::shared_ptr<Core::AppContext>& appContext, const Settings& settings) : Buffer(appContext, settings)
+	ResidentBuffer::ResidentBuffer(const std::shared_ptr<Core::GlobalContext>& globalContext, const Settings& settings) : Buffer(globalContext, settings)
 	{
 	}
 
-	UnorderedAccessBuffer::UnorderedAccessBuffer(const std::shared_ptr<Core::AppContext>& appContext, const Settings& settings) : Buffer(appContext, settings)
+	UnorderedAccessBuffer::UnorderedAccessBuffer(const std::shared_ptr<Core::GlobalContext>& globalContext, const Settings& settings) : Buffer(globalContext, settings)
 	{
 	}
 
-	CounteredUnorderedAccessBuffer::CounteredUnorderedAccessBuffer(const std::shared_ptr<Core::AppContext>& appContext, const Settings& settings) : Buffer(appContext, settings)
+	CounteredUnorderedAccessBuffer::CounteredUnorderedAccessBuffer(const std::shared_ptr<Core::GlobalContext>& globalContext, const Settings& settings) : Buffer(globalContext, settings)
 	{
 	}
 
@@ -169,11 +169,11 @@ namespace MMPEngine::Frontend
 		return _impl->CreateCopyCounterTask(dst, byteLength, dstByteOffset);
 	}
 
-	VertexBuffer::VertexBuffer(const std::shared_ptr<Core::AppContext>& appContext, const Settings& settings) : Buffer(appContext, settings)
+	VertexBuffer::VertexBuffer(const std::shared_ptr<Core::GlobalContext>& globalContext, const Settings& settings) : Buffer(globalContext, settings)
 	{
 	}
 
-	IndexBuffer::IndexBuffer(const std::shared_ptr<Core::AppContext>& appContext, const Settings& settings) : Buffer(appContext, settings)
+	IndexBuffer::IndexBuffer(const std::shared_ptr<Core::GlobalContext>& globalContext, const Settings& settings) : Buffer(globalContext, settings)
 	{
 	}
 }

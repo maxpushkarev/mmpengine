@@ -188,7 +188,7 @@ namespace MMPEngine::Backend::Dx12
 
 		const auto tc = GetTaskContext();
 		const auto sc = _specificStreamContext;
-		const auto ac = _specificAppContext;
+		const auto ac = _specificGlobalContext;
 		const auto entity = tc->entity;
 
 		if (sc && ac && entity)
@@ -285,7 +285,7 @@ namespace MMPEngine::Backend::Dx12
 	{
 		const auto tc = GetTaskContext();
 		const auto sc = _specificStreamContext;
-		const auto ac = _specificAppContext;
+		const auto ac = _specificGlobalContext;
 		const auto entity = tc->entity;
 
 		if (tc && sc && ac && entity)
@@ -400,7 +400,7 @@ namespace MMPEngine::Backend::Dx12
 		Task::OnScheduled(stream);
 
 		const auto bindDescHeapsCtx = std::make_shared<BindDescriptorHeapsTaskContext>();
-		bindDescHeapsCtx->FillDescriptors(_specificAppContext);
+		bindDescHeapsCtx->FillDescriptors(_specificGlobalContext);
 
 		stream->Schedule(GetTaskContext()->entity->CreateSwitchStateTask(D3D12_RESOURCE_STATE_UNORDERED_ACCESS));
 		stream->Schedule(std::make_shared<BindDescriptorHeapsTask>(bindDescHeapsCtx));

@@ -17,7 +17,7 @@ namespace MMPEngine::Core
 		void SetButtonPressedStatus(MouseButton, bool) override;
 		void UpdateMouseNormalizedPosition(const Vector2Float&) override;
 	private:
-		std::shared_ptr<AppContext> _appContext;
+		std::shared_ptr<GlobalContext> _globalContext;
 	};
 
 	class App : public std::enable_shared_from_this<App>
@@ -37,7 +37,7 @@ namespace MMPEngine::Core
 		virtual void OnResume();
 		virtual void OnUpdate(std::float_t dt);
 		virtual void OnRender();
-		virtual std::shared_ptr<AppContext> GetContext() const = 0;
+		virtual std::shared_ptr<GlobalContext> GetContext() const = 0;
 		virtual std::shared_ptr<BaseStream> GetDefaultStream() const = 0;
 	};
 
@@ -60,7 +60,7 @@ namespace MMPEngine::Core
 		friend class BaseRootApp;
 	public:
 		UserApp();
-		std::shared_ptr<AppContext> GetContext() const override;
+		std::shared_ptr<GlobalContext> GetContext() const override;
 		std::shared_ptr<BaseStream> GetDefaultStream() const override;
 	private:
 		void JoinToRootApp(const std::shared_ptr<BaseRootApp>& root);
@@ -70,7 +70,7 @@ namespace MMPEngine::Core
 	template<typename TRootContext>
 	class RootApp : public BaseRootApp
 	{
-		static_assert(std::is_base_of_v<AppContext, TRootContext>, "TRootContext must be inherited from Core::AppContext");
+		static_assert(std::is_base_of_v<GlobalContext, TRootContext>, "TRootContext must be inherited from Core::GlobalContext");
 	protected:
 		RootApp(const std::shared_ptr<TRootContext>& context);
 	public:
@@ -81,7 +81,7 @@ namespace MMPEngine::Core
 	protected:
 		~RootApp() override;
 	public:
-		std::shared_ptr<AppContext> GetContext() const override;
+		std::shared_ptr<GlobalContext> GetContext() const override;
 		std::shared_ptr<BaseStream> GetDefaultStream() const override;
 	protected:
 		std::shared_ptr<TRootContext> _rootContext;
@@ -100,7 +100,7 @@ namespace MMPEngine::Core
 	}
 
 	template<typename TRootContext>
-	inline std::shared_ptr<AppContext> RootApp<TRootContext>::GetContext() const
+	inline std::shared_ptr<GlobalContext> RootApp<TRootContext>::GetContext() const
 	{
 		return _rootContext;
 	}

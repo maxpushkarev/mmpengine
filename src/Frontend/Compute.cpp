@@ -6,9 +6,9 @@
 
 namespace MMPEngine::Frontend
 {
-	DirectComputeJob::DirectComputeJob(const std::shared_ptr<Core::AppContext>& appContext, const std::shared_ptr<Core::ComputeMaterial>& material) : Core::DirectComputeJob(material)
+	DirectComputeJob::DirectComputeJob(const std::shared_ptr<Core::GlobalContext>& globalContext, const std::shared_ptr<Core::ComputeMaterial>& material) : Core::DirectComputeJob(material)
 	{
-		if (appContext->settings.backend == Core::BackendType::Dx12)
+		if (globalContext->settings.backend == Core::BackendType::Dx12)
 		{
 #ifdef MMPENGINE_BACKEND_DX12
 			_impl = std::make_shared<Backend::Dx12::DirectComputeJob>(material);

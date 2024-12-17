@@ -7,8 +7,8 @@
 
 namespace MMPEngine::Core
 {
-	BaseStream::BaseStream(const std::shared_ptr<AppContext>& appContext, const std::shared_ptr<StreamContext>& streamContext)
-		: _appContext(appContext), _streamContext(streamContext)
+	BaseStream::BaseStream(const std::shared_ptr<GlobalContext>& globalContext, const std::shared_ptr<StreamContext>& streamContext)
+		: _globalContext(globalContext), _streamContext(streamContext)
 	{
 	}
 
@@ -129,9 +129,9 @@ namespace MMPEngine::Core
 		Wait();
 	}
 
-	std::shared_ptr<AppContext> BaseStream::GetAppContext() const
+	std::shared_ptr<GlobalContext> BaseStream::GetGlobalContext() const
 	{
-		return _appContext;
+		return _globalContext;
 	}
 
 	std::shared_ptr<StreamContext> BaseStream::GetStreamContext() const

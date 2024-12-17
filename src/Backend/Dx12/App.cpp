@@ -6,8 +6,8 @@
 
 namespace MMPEngine::Backend::Dx12
 {
-	RootApp::RootApp(const std::shared_ptr<AppContext>& context)
-		: Core::RootApp<AppContext>(context)
+	RootApp::RootApp(const std::shared_ptr<GlobalContext>& context)
+		: Core::RootApp<GlobalContext>(context)
 	{
 	}
 
@@ -94,6 +94,6 @@ namespace MMPEngine::Backend::Dx12
 
 		_defaultStream = std::make_shared<Stream>(_rootContext, streamContext);
 
-		Core::RootApp<AppContext>::Initialize();
+		Core::RootApp<GlobalContext>::Initialize();
 	}
 }

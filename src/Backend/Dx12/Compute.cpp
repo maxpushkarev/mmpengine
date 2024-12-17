@@ -18,7 +18,7 @@ namespace MMPEngine::Backend::Dx12
 	{
 		Task::Run(stream);
 
-		const auto ac = _specificAppContext;
+		const auto ac = _specificGlobalContext;
 		assert(ac);
 
 		const auto job = GetTaskContext()->job;
@@ -67,7 +67,7 @@ namespace MMPEngine::Backend::Dx12
 	{
 		Task::OnScheduled(stream);
 
-		_setDescriptorHeaps->GetTaskContext()->FillDescriptors(_specificAppContext);
+		_setDescriptorHeaps->GetTaskContext()->FillDescriptors(_specificGlobalContext);
 		stream->Schedule(_setDescriptorHeaps);
 		stream->Schedule(_setPipelineState);
 		stream->Schedule(_applyMaterial);

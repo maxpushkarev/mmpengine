@@ -4,12 +4,12 @@
 
 namespace MMPEngine::Backend::Dx12
 {
-	class Stream : public Core::Stream<AppContext, StreamContext>
+	class Stream : public Core::Stream<GlobalContext, StreamContext>
 	{
 	private:
-		using Super = Core::Stream<AppContext, StreamContext>;
+		using Super = Core::Stream<GlobalContext, StreamContext>;
 	public:
-		Stream(const std::shared_ptr<AppContext>& appContext, const std::shared_ptr<StreamContext>& streamContext);
+		Stream(const std::shared_ptr<GlobalContext>& globalContext, const std::shared_ptr<StreamContext>& streamContext);
 		Stream(const Stream&) = delete;
 		Stream(Stream&&) noexcept = delete;
 		Stream& operator=(const Stream&) = delete;

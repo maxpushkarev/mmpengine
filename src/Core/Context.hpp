@@ -39,7 +39,7 @@ namespace MMPEngine::Core
 typedef HWND NativeWindow;
 #endif
 
-	class AppContext : public Context
+	class GlobalContext : public Context
 	{
 	public:
 		struct Settings final
@@ -48,7 +48,7 @@ typedef HWND NativeWindow;
 			BackendType backend;
 		};
 	protected:
-		AppContext(const Settings&, std::unique_ptr<Core::Math>&&, std::unique_ptr<Core::BaseLogger>&&);
+		GlobalContext(const Settings&, std::unique_ptr<Core::Math>&&, std::unique_ptr<Core::BaseLogger>&&);
 	public:
 		const Settings settings;
 		Vector2Uint windowSize;

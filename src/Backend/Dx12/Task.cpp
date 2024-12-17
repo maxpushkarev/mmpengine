@@ -4,7 +4,7 @@ namespace MMPEngine::Backend::Dx12
 {
 	Task<void>::Task() = default;
 
-	void BindDescriptorHeapsTaskContext::FillDescriptors(const std::shared_ptr<AppContext>& ac)
+	void BindDescriptorHeapsTaskContext::FillDescriptors(const std::shared_ptr<GlobalContext>& ac)
 	{
 		descriptorHeaps.clear();
 		descriptorHeaps.push_back(ac->cbvSrvUavShaderVisibleHeap);
