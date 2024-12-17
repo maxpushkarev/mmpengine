@@ -485,28 +485,27 @@ namespace MMPEngine::Core::Tests
 		Core::Transform t1 {
 			{-5.25f, 14.4f, -3.71f},
 				Core::Math::kQuaternionIdentity,
-			{ 1.5f, 4.21f, 2.069f }
+			{ 1.12f, 2.6f, 4.91f }
 		};
-		//this->GetDefaultMath()->RotationAroundAxis(t1.rotation, { 1.0f, -5.39f, 2.43f }, Core::Math::ConvertDegreesToRadians(-27.78f));
+		this->GetDefaultMath()->RotationAroundAxis(t1.rotation, { 1.0f, -2.6f, 11.2f }, Core::Math::ConvertDegreesToRadians(30.0f));
 
 		Core::Transform t2 {
 			{0.25f, 1.44f, -37.18f},
 				Core::Math::kQuaternionIdentity,
 			{ 8.5f, 1.21f, 3.34f }
 		};
-		//this->GetDefaultMath()->RotationAroundAxis(t2.rotation, { -3.4f, -2.2f, 0.1f }, Core::Math::ConvertDegreesToRadians(35.5f));
+		this->GetDefaultMath()->RotationAroundAxis(t2.rotation, { -4.13f, 1.0f, 0.0f }, Core::Math::ConvertDegreesToRadians(45.0f));
 
 		Core::Transform t3 {
 			{3.81f, -9.2f, 4.69f},
 				Core::Math::kQuaternionIdentity,
 			{ 0.23f, 1.85f, 7.98f }
 		};
-		//this->GetDefaultMath()->RotationAroundAxis(t3.rotation, { -3.4f, -2.2f, 0.1f }, Core::Math::ConvertDegreesToRadians(100.34f));
+		this->GetDefaultMath()->RotationAroundAxis(t3.rotation, { -5.0f, 2.78f, -1.0f }, Core::Math::ConvertDegreesToRadians(60.0f));
 
 		const auto node1 = std::make_shared<Node>();
 		const auto node2 = std::make_shared<Node>();
 		const auto node3 = std::make_shared<Node>();
-
 
 		node1->AddChild(node2);
 		node2->AddChild(node3);
@@ -515,33 +514,52 @@ namespace MMPEngine::Core::Tests
 		node2->localTransform = t2;
 		node3->localTransform = t3;
 
-		const auto checkNode = [this](const std::shared_ptr<Node>& node)
+		const auto testNode = [this](const std::shared_ptr<Node>& node, bool checkScalingAsIdentity)
 		{
-			Core::Transform t1 {};
-			Core::Transform t2 {};
+			const auto kernel = [&node](const Core::Math* math, bool checkScalingAsIdentity)
+			{
+				Core::Transform t {};
+				Core::Matrix4x4 s {};
+				math->CalculateWorldSpaceTransform(t.position, t.rotation, s, node);
 
-			this->GetDefaultMath()->CalculateWorldSpaceTransform(t1, node);
-			this->GetMathImpl()->CalculateWorldSpaceTransform(t2, node);
+				if(checkScalingAsIdentity)
+				{
+					ASSERT_EQ(Core::Math::kMatrix4x4Identity, s);
+				}
 
-			Core::Matrix4x4 localToWorld1 {};
-			Core::Matrix4x4 localToWorld2 {};
+				Core::Matrix4x4 localToWorld {};
+				math->CalculateLocalToWorldSpaceMatrix(localToWorld, node);
 
-			this->GetDefaultMath()->CalculateLocalToWorldSpaceMatrix(localToWorld1, node);
-			this->GetMathImpl()->CalculateLocalToWorldSpaceMatrix(localToWorld2, node);
+				Core::Matrix4x4 translation {};
+				math->Translation(translation, t.position);
 
-			Core::Matrix4x4 trs1 {};
-			Core::Matrix4x4 trs2 {};
+				Core::Matrix4x4 rotation {};
+				math->Rotation(rotation, t.rotation);
 
-			this->GetDefaultMath()->TRS(trs1, t1);
-			this->GetMathImpl()->TRS(trs2, t2);
+				Core::Matrix4x4 tmp {};
+				Core::Matrix4x4 actualTrs {};
 
-			ASSERT_EQ(localToWorld1, trs1);
-			ASSERT_EQ(localToWorld2, trs2);
+				math->Multiply(tmp, translation, rotation);
+				math->Multiply(actualTrs, tmp, s);
+
+				ASSERT_EQ(localToWorld, actualTrs);
+			};
+
+			kernel(this->GetDefaultMath(), checkScalingAsIdentity);
+			kernel(this->GetMathImpl(), checkScalingAsIdentity);
 		};
 
-		checkNode(node1);
-		checkNode(node2);
-		checkNode(node3);
+		testNode(node1, false);
+		testNode(node2, false);
+		testNode(node3, false);
+
+		node1->localTransform.scale = {1.0f, 1.0f, 1.0f };
+		node2->localTransform.scale = {1.0f, 1.0f, 1.0f };
+		node3->localTransform.scale = {1.0f, 1.0f, 1.0f };
+
+		testNode(node1, true);
+		testNode(node2, true);
+		testNode(node3, true);
 	}
 
 

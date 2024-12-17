@@ -11,7 +11,7 @@ namespace MMPEngine::Core
 	class Constants final
 	{
 	public:
-		static constexpr auto kFloatEps = 0.0001f;	
+		static constexpr auto kFloatSensitivity = 0.0001f;
 	};
 
 	class IInitializationTaskSource

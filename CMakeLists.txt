@@ -34,6 +34,7 @@ enable_testing()
 
 set_property(GLOBAL PROPERTY MMPENGINE_CORE_NAME "mmpengine.core")
 set_property(GLOBAL PROPERTY MMPENGINE_FRONTEND_NAME "mmpengine.frontend")
+set_property(GLOBAL PROPERTY MMPENGINE_FEATURE_NAME "mmpengine.feature")
 
 set_property(GLOBAL PROPERTY MMPENGINE_BACKEND_DX12_NAME "mmpengine.backend.dx12")
 set_property(GLOBAL PROPERTY MMPENGINE_BACKEND_VULKAN_NAME "mmpengine.backend.vulkan")
@@ -83,14 +84,17 @@ endfunction()
 
 get_property(core_name_tmp GLOBAL PROPERTY MMPENGINE_CORE_NAME)
 get_property(frontend_name_tmp GLOBAL PROPERTY MMPENGINE_FRONTEND_NAME)
+get_property(feature_name_tmp GLOBAL PROPERTY MMPENGINE_FEATURE_NAME)
 
 mmpengine_create_proj(${core_name_tmp} src/Core)
 mmpengine_create_proj(${frontend_name_tmp} src/Frontend)
+mmpengine_create_proj(${feature_name_tmp} src/Feature)
 
 SET(core_test_name ${core_name_tmp}.tests)
 mmpengine_create_test_proj(${core_test_name} src/Core/Tests)
 
-target_link_libraries(${frontend_name_tmp} PRIVATE ${core_name_tmp} assimp nlohmann_json::nlohmann_json)
+target_link_libraries(${frontend_name_tmp} PRIVATE ${core_name_tmp} nlohmann_json::nlohmann_json)
+target_link_libraries(${feature_name_tmp} PRIVATE ${core_name_tmp} ${frontend_name_tmp} assimp)
 target_link_libraries(${core_test_name} PRIVATE ${core_name_tmp} GTest::gtest_main)
 
 include(GoogleTest)
@@ -101,6 +105,7 @@ IF (WIN32)
 	get_property(win_macro_tmp GLOBAL PROPERTY MMPENGINE_WIN_MACRO)
 	target_compile_definitions(${core_name_tmp} PRIVATE ${win_macro_tmp}=1)
 	target_compile_definitions(${frontend_name_tmp} PRIVATE ${win_macro_tmp}=1)
+	target_compile_definitions(${feature_name_tmp} PRIVATE ${win_macro_tmp}=1)
 
 	#Dx12
 	get_property(dx12_name_tmp GLOBAL PROPERTY MMPENGINE_BACKEND_DX12_NAME)
@@ -111,6 +116,8 @@ IF (WIN32)
 	target_link_libraries(${dx12_name_tmp} PRIVATE D3D12.lib dxgi.lib dxguid.lib ${core_name_tmp})
 	target_link_libraries(${frontend_name_tmp} PRIVATE ${dx12_name_tmp})
 	target_compile_definitions(${frontend_name_tmp} PRIVATE ${dx12_macro_tmp}=1)
+	target_link_libraries(${feature_name_tmp} PRIVATE ${dx12_name_tmp})
+	target_compile_definitions(${feature_name_tmp} PRIVATE ${dx12_macro_tmp}=1)
 
 	SET(dx12_test_name ${dx12_name_tmp}.tests)
 	mmpengine_create_test_proj(${dx12_test_name} src/Backend/Dx12/Tests)
@@ -130,6 +137,7 @@ elseif(APPLE)
 	get_property(macosx_macro_tmp GLOBAL PROPERTY MMPENGINE_MACOSX_MACRO)
 	target_compile_definitions(${core_name_tmp} PRIVATE ${macosx_macro_tmp}=1)
 	target_compile_definitions(${frontend_name_tmp} PRIVATE ${macosx_macro_tmp}=1)
+	target_compile_definitions(${feature_name_tmp} PRIVATE ${macosx_macro_tmp}=1)
 
 	#metal (TODO)
 

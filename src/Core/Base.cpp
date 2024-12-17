@@ -19,15 +19,15 @@ namespace MMPEngine::Core
 
 	bool Vector2Float::operator==(const Vector2Float& rhs) const
 	{
-		return std::abs(x - rhs.x) <= Constants::kFloatEps &&
-				std::abs(y - rhs.y) <= Constants::kFloatEps;
+		return std::abs(x - rhs.x) <= Constants::kFloatSensitivity &&
+				std::abs(y - rhs.y) <= Constants::kFloatSensitivity;
 	}
 
 	bool Vector3Float::operator==(const Vector3Float& rhs) const
 	{
-		return std::abs(x - rhs.x) <= Constants::kFloatEps &&
-			std::abs(y - rhs.y) <= Constants::kFloatEps &&
-			std::abs(z - rhs.z) <= Constants::kFloatEps;
+		return std::abs(x - rhs.x) <= Constants::kFloatSensitivity &&
+			std::abs(y - rhs.y) <= Constants::kFloatSensitivity &&
+			std::abs(z - rhs.z) <= Constants::kFloatSensitivity;
 	}
 
 	bool Vector3Float::operator!=(const Vector3Float& rhs) const
@@ -37,10 +37,10 @@ namespace MMPEngine::Core
 
 	bool Vector4Float::operator==(const Vector4Float& rhs) const
 	{
-		return std::abs(x - rhs.x) <= Constants::kFloatEps &&
-			std::abs(y - rhs.y) <= Constants::kFloatEps &&
-			std::abs(z - rhs.z) <= Constants::kFloatEps &&
-			std::abs(w - rhs.w) <= Constants::kFloatEps;
+		return std::abs(x - rhs.x) <= Constants::kFloatSensitivity &&
+			std::abs(y - rhs.y) <= Constants::kFloatSensitivity &&
+			std::abs(z - rhs.z) <= Constants::kFloatSensitivity &&
+			std::abs(w - rhs.w) <= Constants::kFloatSensitivity;
 	}
 
 	bool Vector4Float::operator!=(const Vector4Float& rhs) const
@@ -123,10 +123,10 @@ namespace MMPEngine::Core
 
 	bool Quaternion::AreIdentical(const Quaternion& q1, const Quaternion& q2)
 	{
-		return std::abs(q1.x - q2.x) <= Constants::kFloatEps &&
-			std::abs(q1.y - q2.y) <= Constants::kFloatEps &&
-			std::abs(q1.z - q2.z) <= Constants::kFloatEps &&
-			std::abs(q1.w - q2.w) <= Constants::kFloatEps;
+		return std::abs(q1.x - q2.x) <= Constants::kFloatSensitivity &&
+			std::abs(q1.y - q2.y) <= Constants::kFloatSensitivity &&
+			std::abs(q1.z - q2.z) <= Constants::kFloatSensitivity &&
+			std::abs(q1.w - q2.w) <= Constants::kFloatSensitivity;
 	}
 
 
@@ -143,7 +143,7 @@ namespace MMPEngine::Core
 			{
 				const auto linear = i * size + j;
 
-				if (std::abs(lhs[linear] - rhs[linear]) > Constants::kFloatEps)
+				if (std::abs(lhs[linear] - rhs[linear]) > Constants::kFloatSensitivity)
 				{
 					return false;
 				}

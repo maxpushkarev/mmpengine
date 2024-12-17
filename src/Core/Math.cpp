@@ -43,7 +43,7 @@ namespace MMPEngine::Core
 	{
 		const auto m = Magnitude(v);
 
-		if(m >= Constants::kFloatEps)
+		if(m >= Constants::kFloatSensitivity)
 		{
 			const auto f = 1.0f / m;
 			v.x *= f;
@@ -61,7 +61,7 @@ namespace MMPEngine::Core
 		const auto dot = Dot(v, p);
 		const auto sqrMagnitude = SquaredMagnitude(p);
 
-		if(sqrMagnitude < Constants::kFloatEps)
+		if(sqrMagnitude < Constants::kFloatSensitivity)
 		{
 			res = {0.0f, 0.0f, 0.0f};
 			return;
@@ -539,90 +539,58 @@ namespace MMPEngine::Core
 		}
 	}
 
-	void Math::CalculateWorldSpaceTransform(Transform& transform, const std::shared_ptr<const Node>& node) const
+	void Math::CalculateWorldSpaceTransform(Vector3Float& position, Quaternion& rotation, Matrix4x4& scale, const std::shared_ptr<const Node>& node) const
 	{
-		std::stack<std::shared_ptr<const Node>> stack {};
+		Matrix4x4 trs {};
+		CalculateLocalToWorldSpaceMatrix(trs, node);
 
-		Core::Vector3Float front = kFront;
-		Core::Vector3Float up = kUp;
-		Core::Vector3Float right = kRight;
+		position.x = trs.m[0][3];
+		position.y = trs.m[1][3];
+		position.z = trs.m[2][3];
 
-		Core::Quaternion sumRotation {kQuaternionIdentity};
+		Matrix4x4 t {};
+		Translation(t, position);
 
-		const auto updateAccumulatedValues = [&front, &up, &right, &sumRotation](const Transform& t)
-		{
-			front.x *= t.scale.x;
-			front.y *= t.scale.y;
-			front.z *= t.scale.z;
+		Matrix4x4 invT {};
+		Inverse(invT, t);
 
-			up.x *= t.scale.x;
-			up.y *= t.scale.y;
-			up.z *= t.scale.z;
+		Matrix4x4 rs {};
+		Multiply(rs, invT, trs);
 
-			right.x *= t.scale.x;
-			right.y *= t.scale.y;
-			right.z *= t.scale.z;
-		};
+		rotation = kQuaternionIdentity;
 
 		auto currentNode = node;
-		while (currentNode)
+		std::stack<Quaternion> rotationChain {};
+
+		while(currentNode)
 		{
-			stack.push(currentNode);
+			rotationChain.push(currentNode->localTransform.rotation);
 			currentNode = currentNode->GetParent();
 		}
 
-		assert(!stack.empty());
-
-		currentNode = stack.top();
-		stack.pop();
-
-		transform = currentNode->localTransform;
-		updateAccumulatedValues(currentNode->localTransform);
-
-		while (!stack.empty())
+		while(!rotationChain.empty())
 		{
-			const auto currentTransform = stack.top()->localTransform;
-			stack.pop();
+			auto currentRot = rotationChain.top();
 
-			Vector4Float newPos {};
-			Vector4Float currentTransformPos {
-					currentTransform.position.x,
-					currentTransform.position.y,
-					currentTransform.position.z,
-					1.0f
-			};
+			Vector3Float rotationDirSin {};
+			Rotate(rotationDirSin,Vector3Float { currentRot.x, currentRot.y, currentRot.z }, rotation);
 
-			Matrix4x4 mat = kMatrix4x4Identity;
+			currentRot.x = rotationDirSin.x;
+			currentRot.y = rotationDirSin.y;
+			currentRot.z = rotationDirSin.z;
 
-			mat.m[0][0] = right.x;
-			mat.m[1][0] = right.y;
-			mat.m[2][0] = right.z;
+			Quaternion acc = rotation;
+			Multiply(rotation, currentRot, acc);
 
-			mat.m[0][1] = up.x;
-			mat.m[1][1] = up.y;
-			mat.m[2][1] = up.z;
-
-			mat.m[0][2] = front.x;
-			mat.m[1][2] = front.y;
-			mat.m[2][2] = front.z;
-
-			mat.m[0][3] = transform.position.x;
-			mat.m[1][3] = transform.position.y;
-			mat.m[2][3] = transform.position.z;
-
-			Multiply(newPos, mat, currentTransformPos);
-
-			transform.scale.x *= currentTransform.scale.x;
-			transform.scale.y *= currentTransform.scale.y;
-			transform.scale.z *= currentTransform.scale.z;
-
-			transform.position.x = newPos.x;
-			transform.position.y = newPos.y;
-			transform.position.z = newPos.z;
-
-			updateAccumulatedValues(currentTransform);
+			rotationChain.pop();
 		}
 
-		transform.rotation = sumRotation;
+		Matrix4x4 r {};
+		Rotation(r, rotation);
+
+		Matrix4x4 invR {};
+		Inverse(invR, r);
+
+		Multiply(scale, invR, rs);
 	}
 }

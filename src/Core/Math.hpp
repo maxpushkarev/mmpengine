@@ -65,7 +65,7 @@ namespace MMPEngine::Core
 		virtual void RotationAroundAxis(Quaternion& res, const Vector3Float& v, std::float_t rad) const;
 
 		virtual void CalculateLocalToWorldSpaceMatrix(Matrix4x4& res, const std::shared_ptr<const Node>& node) const;
-		virtual void CalculateWorldSpaceTransform(Transform& transform, const std::shared_ptr<const Node>& node) const;
+		virtual void CalculateWorldSpaceTransform(Vector3Float& position, Quaternion& rotation, Matrix4x4& scale, const std::shared_ptr<const Node>& node) const;
 
 	private:
 		static constexpr auto _deg2Rad = kPi / 180.0f;
