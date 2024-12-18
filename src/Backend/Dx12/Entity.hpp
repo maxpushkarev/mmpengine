@@ -33,7 +33,7 @@ namespace MMPEngine::Backend::Dx12
 		class SwitchStateTaskContext final : public Core::EntityTaskContext<ResourceEntity>
 		{
 		public:
-			D3D12_RESOURCE_STATES nextStateMask;
+			D3D12_RESOURCE_STATES nextStateMask = D3D12_RESOURCE_STATE_COMMON;
 		};
 		class SwitchStateTask final : public Task<SwitchStateTaskContext>
 		{

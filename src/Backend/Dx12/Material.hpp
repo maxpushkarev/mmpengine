@@ -76,7 +76,7 @@ namespace MMPEngine::Backend::Dx12
 		{
 		public:
 			std::shared_ptr<MaterialImpl> materialImplPtr;
-			const Core::BaseMaterial::Parameters* params;
+			const Core::BaseMaterial::Parameters* params = nullptr;
 		};
 
 		class ParametersUpdatedTask : public Task<ParametersUpdatedTaskContext>
