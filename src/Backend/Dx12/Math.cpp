@@ -222,12 +222,6 @@ namespace MMPEngine::Backend::Dx12
 		DirectX::XMStoreFloat4(reinterpret_cast<DirectX::XMFLOAT4*>(&res), q);
 	}
 
-	void Math::ToEuler(Core::Vector3Float& res, const Core::Quaternion& q) const
-	{
-		
-	}
-
-
 	void Math::CalculateLocalToWorldSpaceMatrix(Core::Matrix4x4& res, const std::shared_ptr<const Core::Node>& node) const
 	{
 		auto m = TRSInternalTransposed(node->localTransform);

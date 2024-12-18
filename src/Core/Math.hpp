@@ -64,7 +64,6 @@ namespace MMPEngine::Core
 		virtual std::float_t Dot(const Quaternion& q1, const Quaternion& q2) const;
 		virtual void RotationAroundAxis(Quaternion& res, const Vector3Float& v, std::float_t rad) const;
 		virtual void RotationFromEuler(Quaternion& res, const Vector3Float& eulerAngles) const;
-		virtual void ToEuler(Vector3Float& res, const Quaternion& q) const;
 
 		virtual void CalculateLocalToWorldSpaceMatrix(Matrix4x4& res, const std::shared_ptr<const Node>& node) const;
 		virtual void CalculateWorldSpaceTransform(Vector3Float& position, Quaternion& rotation, Matrix4x4& scale, const std::shared_ptr<const Node>& node) const;

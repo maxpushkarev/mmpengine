@@ -32,7 +32,6 @@ namespace MMPEngine::Backend::Dx12
 		void Normalize(Core::Quaternion& q) const override;
 		void Inverse(Core::Quaternion& res, const Core::Quaternion& q) const override;
 		void RotationFromEuler(Core::Quaternion& res, const Core::Vector3Float& eulerAngles) const override;
-		void ToEuler(Core::Vector3Float& res, const Core::Quaternion& q) const override;
 
 		void CalculateLocalToWorldSpaceMatrix(Core::Matrix4x4& res, const std::shared_ptr<const Core::Node>& node) const override;
 	private:

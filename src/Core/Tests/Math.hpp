@@ -432,11 +432,11 @@ namespace MMPEngine::Core::Tests
 		ASSERT_TRUE(Core::Quaternion::AreEquivalent(expectedY, actualY));
 		ASSERT_TRUE(Core::Quaternion::AreEquivalent(expectedZ, actualZ));
 
-		for(std::size_t x = 0; x <= 360; x+=5)
+		for(std::int32_t x = -180; x <= 180; x+=5)
 		{
-			for (std::size_t y = 0; y <= 360; y += 5)
+			for (std::int32_t y = -180; y <= 180; y += 5)
 			{
-				for (std::size_t z = 0; z <= 360; z += 5)
+				for (std::int32_t z = -180; z <= 180; z += 5)
 				{
 					const Core::Vector3Float customEulerAngles {
 						Core::Math::ConvertDegreesToRadians(static_cast<std::float_t>(x)),
@@ -454,10 +454,6 @@ namespace MMPEngine::Core::Tests
 				}
 			}
 		}
-	}
-
-	TYPED_TEST_P(MathTests, Quaternion_ToEuler)
-	{
 	}
 
 	TYPED_TEST_P(MathTests, Quaternion_Dot)
@@ -647,7 +643,6 @@ namespace MMPEngine::Core::Tests
 		Quaternion_Dot,
 		Quaternion_Inverse,
 		Quaternion_FromEuler,
-		Quaternion_ToEuler,
 		Node_LocalToWorld,
 		Node_WorldTransform);
 }

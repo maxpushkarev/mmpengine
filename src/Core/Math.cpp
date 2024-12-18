@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <Core/Math.hpp>
 #include <Core/Node.hpp>
 #include <cassert>
@@ -515,12 +516,6 @@ namespace MMPEngine::Core
 		res.z = c1 * c2 * s3 - s1 * s2 * c3;
 		res.w = c1 * c2 * c3 + s1 * s2 * s3;
 	}
-
-	void Math::ToEuler(Vector3Float& res, const Quaternion& q) const
-	{
-		
-	}
-
 
 	void Math::Multiply(Quaternion& res, const Quaternion& q1, const Quaternion& q2) const
 	{
