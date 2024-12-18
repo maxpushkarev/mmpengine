@@ -290,8 +290,8 @@ namespace MMPEngine::Backend::Dx12
 
 		if (tc && sc && ac && entity)
 		{
-			entity->_shaderVisibleHandle = ac->cbvSrvUavShaderVisibleHeap->Allocate();
-			entity->_shaderInVisibleHandle = ac->cbvSrvUavShaderInVisibleHeap->Allocate();
+			entity->_shaderVisibleHandle = ac->cbvSrvUavShaderVisibleDescPool->Allocate();
+			entity->_shaderInVisibleHandle = ac->cbvSrvUavShaderInVisibleDescPool->Allocate();
 
 			D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc;
 
@@ -399,11 +399,11 @@ namespace MMPEngine::Backend::Dx12
 	{
 		Task::OnScheduled(stream);
 
-		const auto bindDescHeapsCtx = std::make_shared<BindDescriptorHeapsTaskContext>();
+		const auto bindDescHeapsCtx = std::make_shared<BindDescriptorPoolsTaskContext>();
 		bindDescHeapsCtx->FillDescriptors(_specificGlobalContext);
 
 		stream->Schedule(GetTaskContext()->entity->CreateSwitchStateTask(D3D12_RESOURCE_STATE_UNORDERED_ACCESS));
-		stream->Schedule(std::make_shared<BindDescriptorHeapsTask>(bindDescHeapsCtx));
+		stream->Schedule(std::make_shared<BindDescriptorPoolsTask>(bindDescHeapsCtx));
 		stream->Schedule(std::make_shared<Impl>(GetTaskContext()));
 	}
 

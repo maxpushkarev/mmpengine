@@ -18,17 +18,17 @@ namespace MMPEngine::Backend::Dx12
 		Task();
 	};
 
-	class BindDescriptorHeapsTaskContext : public Core::TaskContext
+	class BindDescriptorPoolsTaskContext : public Core::TaskContext
 	{
 	public:
 		std::vector<std::shared_ptr<Dx12::BaseDescriptorHeap>> descriptorHeaps;
 		void FillDescriptors(const std::shared_ptr<GlobalContext>& ac);
 	};
 
-	class BindDescriptorHeapsTask : public Task<BindDescriptorHeapsTaskContext>
+	class BindDescriptorPoolsTask : public Task<BindDescriptorPoolsTaskContext>
 	{
 	public:
-		BindDescriptorHeapsTask(const std::shared_ptr<BindDescriptorHeapsTaskContext>& ctx);
+		BindDescriptorPoolsTask(const std::shared_ptr<BindDescriptorPoolsTaskContext>& ctx);
 		void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
 	private:
 		std::vector<ID3D12DescriptorHeap*> _nativeHeaps;

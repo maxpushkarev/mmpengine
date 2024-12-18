@@ -217,10 +217,10 @@ namespace MMPEngine::Feature
 			assert(_rootContext->device != nullptr);
 
 
-			_rootContext->rtvHeap = std::make_shared<Backend::Dx12::RTVDescriptorHeap>(_rootContext->device, Core::BaseItemHeap::Settings{});
-			_rootContext->dsvHeap = std::make_shared<Backend::Dx12::DSVDescriptorHeap>(_rootContext->device, Core::BaseItemHeap::Settings{});
-			_rootContext->cbvSrvUavShaderInVisibleHeap = std::make_shared<Backend::Dx12::CBVSRVUAVDescriptorHeap>(_rootContext->device, Core::BaseItemHeap::Settings{}, D3D12_DESCRIPTOR_HEAP_FLAG_NONE);
-			_rootContext->cbvSrvUavShaderVisibleHeap = std::make_shared<Backend::Dx12::CBVSRVUAVDescriptorHeap>(_rootContext->device, Core::BaseItemHeap::Settings{}, D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE);
+			_rootContext->rtvDescPool = std::make_shared<Backend::Dx12::RTVDescriptorPool>(_rootContext->device, Core::Pool::Settings{});
+			_rootContext->dsvDescPool = std::make_shared<Backend::Dx12::DSVDescriptorPool>(_rootContext->device, Core::Pool::Settings{});
+			_rootContext->cbvSrvUavShaderInVisibleDescPool = std::make_shared<Backend::Dx12::CBVSRVUAVDescriptorPool>(_rootContext->device, Core::Pool::Settings{}, D3D12_DESCRIPTOR_HEAP_FLAG_NONE);
+			_rootContext->cbvSrvUavShaderVisibleDescPool = std::make_shared<Backend::Dx12::CBVSRVUAVDescriptorPool>(_rootContext->device, Core::Pool::Settings{}, D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE);
 
 			Microsoft::WRL::ComPtr<ID3D12Fence> fence;
 			Microsoft::WRL::ComPtr<ID3D12CommandAllocator> allocator;

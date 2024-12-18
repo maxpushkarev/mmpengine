@@ -2,7 +2,7 @@
 #include <d3d12.h>
 #include <dxgi.h>
 #include <Core/Context.hpp>
-#include <Backend/Dx12/Heap.hpp>
+#include <Backend/Dx12/Pool.hpp>
 #include <wrl/client.h>
 
 namespace MMPEngine::Backend::Dx12
@@ -15,10 +15,10 @@ namespace MMPEngine::Backend::Dx12
 		Microsoft::WRL::ComPtr<ID3D12Device> device;
 		Microsoft::WRL::ComPtr<IDXGIFactory> factory;
 
-		std::shared_ptr<RTVDescriptorHeap> rtvHeap;
-		std::shared_ptr<DSVDescriptorHeap> dsvHeap;
-		std::shared_ptr<CBVSRVUAVDescriptorHeap> cbvSrvUavShaderVisibleHeap;
-		std::shared_ptr<CBVSRVUAVDescriptorHeap> cbvSrvUavShaderInVisibleHeap;
+		std::shared_ptr<RTVDescriptorPool> rtvDescPool;
+		std::shared_ptr<DSVDescriptorPool> dsvDescPool;
+		std::shared_ptr<CBVSRVUAVDescriptorPool> cbvSrvUavShaderVisibleDescPool;
+		std::shared_ptr<CBVSRVUAVDescriptorPool> cbvSrvUavShaderInVisibleDescPool;
 	};
 
 	class Stream;

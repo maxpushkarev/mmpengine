@@ -60,7 +60,7 @@ namespace MMPEngine::Backend::Dx12
 		_applyMaterial = ctx->job->_material->CreateTaskForApply();
 		_setPipelineState = std::make_shared<SetPipelineState>(ctx);
 		_dispatch = std::make_shared<Dispatch>(ctx);
-		_setDescriptorHeaps = std::make_shared<BindDescriptorHeapsTask>(std::make_shared<BindDescriptorHeapsTaskContext>());
+		_setDescriptorHeaps = std::make_shared<BindDescriptorPoolsTask>(std::make_shared<BindDescriptorPoolsTaskContext>());
 	}
 
 	void DirectComputeJob::ExecutionTask::OnScheduled(const std::shared_ptr<Core::BaseStream>& stream)

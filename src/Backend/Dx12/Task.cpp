@@ -4,19 +4,19 @@ namespace MMPEngine::Backend::Dx12
 {
 	Task<void>::Task() = default;
 
-	void BindDescriptorHeapsTaskContext::FillDescriptors(const std::shared_ptr<GlobalContext>& ac)
+	void BindDescriptorPoolsTaskContext::FillDescriptors(const std::shared_ptr<GlobalContext>& ac)
 	{
 		descriptorHeaps.clear();
-		descriptorHeaps.push_back(ac->cbvSrvUavShaderVisibleHeap);
-		descriptorHeaps.push_back(ac->dsvHeap);
-		descriptorHeaps.push_back(ac->rtvHeap);
+		descriptorHeaps.push_back(ac->cbvSrvUavShaderVisibleDescPool);
+		descriptorHeaps.push_back(ac->dsvDescPool);
+		descriptorHeaps.push_back(ac->rtvDescPool);
 	}
 
-	BindDescriptorHeapsTask::BindDescriptorHeapsTask(const std::shared_ptr<BindDescriptorHeapsTaskContext>& ctx) : Task(ctx)
+	BindDescriptorPoolsTask::BindDescriptorPoolsTask(const std::shared_ptr<BindDescriptorPoolsTaskContext>& ctx) : Task(ctx)
 	{
 	}
 
-	void BindDescriptorHeapsTask::Run(const std::shared_ptr<Core::BaseStream>& stream)
+	void BindDescriptorPoolsTask::Run(const std::shared_ptr<Core::BaseStream>& stream)
 	{
 		Task::Run(stream);
 		_nativeHeaps.clear();

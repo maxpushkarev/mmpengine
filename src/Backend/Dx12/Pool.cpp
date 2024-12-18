@@ -2,20 +2,20 @@
 #include <cassert>
 #include <iterator>
 #include <stdexcept>
-#include <Backend/Dx12/Heap.hpp>
+#include <Backend/Dx12/Pool.hpp>
 #include <Backend/Dx12/d3dx12.h>
 
 namespace MMPEngine::Backend::Dx12
 {
 	BaseDescriptorHeap::BaseDescriptorHeap(const Microsoft::WRL::ComPtr<ID3D12Device>& device, const Settings& settings)
-		: Core::BaseItemHeap(settings.base),
+		: Core::Pool(settings.base),
 		_nativeSettings(settings.native),
 		_device(device)
 	{
 		_incrementSize = device->GetDescriptorHandleIncrementSize(_nativeSettings.type);
 	}
 
-	std::unique_ptr<Core::BaseItemHeap::Block> BaseDescriptorHeap::InstantiateBlock(std::uint32_t size)
+	std::unique_ptr<Core::Pool::Block> BaseDescriptorHeap::InstantiateBlock(std::uint32_t size)
 	{
 		ResetCache();
 		return std::make_unique<Block>(size, _device, _nativeSettings);
@@ -98,7 +98,7 @@ namespace MMPEngine::Backend::Dx12
 	}
 
 	BaseDescriptorHeap::Handle::Handle(const std::shared_ptr<BaseDescriptorHeap>& descHeap, const Entry& entry)
-		: Core::BaseItemHeap::Handle(descHeap, entry), _descHeap(descHeap), _heapFlags(descHeap->_nativeSettings.flags)
+		: Core::Pool::Handle(descHeap, entry), _descHeap(descHeap), _heapFlags(descHeap->_nativeSettings.flags)
 	{
 		if (_entry.has_value())
 		{
@@ -113,7 +113,7 @@ namespace MMPEngine::Backend::Dx12
 		}
 	}
 
-	BaseDescriptorHeap::Block::Block(std::uint32_t size, const Microsoft::WRL::ComPtr<ID3D12Device>& device, const NativeSettings& nativeSettings) : Core::BaseItemHeap::Block(size)
+	BaseDescriptorHeap::Block::Block(std::uint32_t size, const Microsoft::WRL::ComPtr<ID3D12Device>& device, const NativeSettings& nativeSettings) : Core::Pool::Block(size)
 	{
 		D3D12_DESCRIPTOR_HEAP_DESC heapDesc {};
 		heapDesc.NumDescriptors = size;
@@ -124,18 +124,18 @@ namespace MMPEngine::Backend::Dx12
 		device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&native));
 	}
 
-	RTVDescriptorHeap::RTVDescriptorHeap(const Microsoft::WRL::ComPtr<ID3D12Device>& device, const Core::BaseItemHeap::Settings& baseSettings)
-		: DescriptorHeap(device, baseSettings, D3D12_DESCRIPTOR_HEAP_FLAG_NONE)
+	RTVDescriptorPool::RTVDescriptorPool(const Microsoft::WRL::ComPtr<ID3D12Device>& device, const Core::Pool::Settings& baseSettings)
+		: DescriptorPool(device, baseSettings, D3D12_DESCRIPTOR_HEAP_FLAG_NONE)
 	{
 	}
 
-	DSVDescriptorHeap::DSVDescriptorHeap(const Microsoft::WRL::ComPtr<ID3D12Device>& device, const Core::BaseItemHeap::Settings& baseSettings)
-		: DescriptorHeap(device, baseSettings, D3D12_DESCRIPTOR_HEAP_FLAG_NONE)
+	DSVDescriptorPool::DSVDescriptorPool(const Microsoft::WRL::ComPtr<ID3D12Device>& device, const Core::Pool::Settings& baseSettings)
+		: DescriptorPool(device, baseSettings, D3D12_DESCRIPTOR_HEAP_FLAG_NONE)
 	{
 	}
 
-	CBVSRVUAVDescriptorHeap::CBVSRVUAVDescriptorHeap(const Microsoft::WRL::ComPtr<ID3D12Device>& device, const Core::BaseItemHeap::Settings& baseSettings, D3D12_DESCRIPTOR_HEAP_FLAGS flags)
-		: DescriptorHeap(device, baseSettings, flags)
+	CBVSRVUAVDescriptorPool::CBVSRVUAVDescriptorPool(const Microsoft::WRL::ComPtr<ID3D12Device>& device, const Core::Pool::Settings& baseSettings, D3D12_DESCRIPTOR_HEAP_FLAGS flags)
+		: DescriptorPool(device, baseSettings, flags)
 	{
 	}
 }

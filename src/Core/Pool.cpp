@@ -1,20 +1,20 @@
 #include <stdexcept>
-#include <Core/Heap.hpp>
+#include <Core/Pool.hpp>
 
 namespace MMPEngine::Core
 {
-	BaseItemHeap::BaseItemHeap(const Settings& settings) : _settings(settings)
+	Pool::Pool(const Settings& settings) : _settings(settings)
 	{
 	}
-	BaseItemHeap::~BaseItemHeap() = default;
+	Pool::~Pool() = default;
 
-	BaseItemHeap::Entry BaseItemHeap::AllocateEntry()
+	Pool::Entry Pool::AllocateEntry()
 	{
 		auto newBlockCapacity = _settings.initialCapacity;
 
 		for(std::size_t blockIndex = 0; blockIndex < _blocks.size(); ++blockIndex)
 		{
-			const auto slot = _blocks[blockIndex]->TryAllocate();
+			const auto slot = _blocks[blockIndex]->TryAllocateSlot();
 			if(slot.has_value())
 			{
 				return {static_cast<std::uint32_t>(blockIndex), slot.value()};
@@ -24,28 +24,28 @@ namespace MMPEngine::Core
 		}
 
 		_blocks.emplace_back(InstantiateBlock(newBlockCapacity));
-		return {static_cast<std::uint32_t>(_blocks.size() - 1), _blocks.back()->TryAllocate().value()};
+		return {static_cast<std::uint32_t>(_blocks.size() - 1), _blocks.back()->TryAllocateSlot().value()};
 	}
 
-	void BaseItemHeap::ReleaseEntry(const Entry& entry)
+	void Pool::ReleaseEntry(const Entry& entry)
 	{
 		_blocks.at(entry.blockIndex)->Release(entry.slotIndexInBlock);
 	}
 
-	BaseItemHeap::Handle::Handle() = default;
+	Pool::Handle::Handle() = default;
 
-	BaseItemHeap::Handle::Handle(const std::shared_ptr<BaseItemHeap>& heap, const Entry& entry) : _entry(entry), _heap(heap)
+	Pool::Handle::Handle(const std::shared_ptr<Pool>& heap, const Entry& entry) : _entry(entry), _heap(heap)
 	{
 	}
 
-	BaseItemHeap::Handle::Handle(Handle&& movableHandle) noexcept
+	Pool::Handle::Handle(Handle&& movableHandle) noexcept
 		: _entry{ movableHandle._entry }, _heap{ std::move(movableHandle._heap) }
 	{
 		movableHandle._heap.reset();
 		movableHandle._entry = std::nullopt;
 	}
 
-	BaseItemHeap::Handle& BaseItemHeap::Handle::operator=(Handle&& movableHandle) noexcept
+	Pool::Handle& Pool::Handle::operator=(Handle&& movableHandle) noexcept
 	{
 		if (this != &movableHandle)
 		{
@@ -58,7 +58,7 @@ namespace MMPEngine::Core
 		return *this;
 	}
 
-	BaseItemHeap::Handle::~Handle()
+	Pool::Handle::~Handle()
 	{
 		if(_entry.has_value())
 		{
@@ -69,13 +69,13 @@ namespace MMPEngine::Core
 		}
 	}
 
-	BaseItemHeap::Block::Block(std::uint32_t size) : _freeSlots(static_cast<decltype(_freeSlots)::size_type>(size), true)
+	Pool::Block::Block(std::uint32_t size) : _freeSlots(static_cast<decltype(_freeSlots)::size_type>(size), true)
 	{
 	}
 
-	BaseItemHeap::Block::~Block() = default;
+	Pool::Block::~Block() = default;
 
-	std::optional<std::uint32_t> BaseItemHeap::Block::TryAllocate()
+	std::optional<std::uint32_t> Pool::Block::TryAllocateSlot()
 	{
 		const auto freeSlot = std::find_if(_freeSlots.begin(), _freeSlots.end(), [](const bool& slot)
 		{
@@ -91,7 +91,7 @@ namespace MMPEngine::Core
 		return static_cast<std::uint32_t>(std::distance(_freeSlots.begin(), freeSlot));
 	}
 
-	void BaseItemHeap::Block::Release(std::uint32_t slotIndex)
+	void Pool::Block::Release(std::uint32_t slotIndex)
 	{
 		if (_freeSlots.at(slotIndex))
 		{

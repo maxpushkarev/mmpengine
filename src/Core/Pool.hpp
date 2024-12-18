@@ -5,7 +5,7 @@
 
 namespace MMPEngine::Core
 {
-	class BaseItemHeap : public std::enable_shared_from_this<BaseItemHeap>
+	class Pool : public std::enable_shared_from_this<Pool>
 	{
 	protected:
 		struct Entry final
@@ -22,7 +22,7 @@ namespace MMPEngine::Core
 			Block& operator=(const Block&) = delete;
 			Block& operator=(Block&&) noexcept = delete;
 			virtual ~Block();
-			virtual std::optional<std::uint32_t> TryAllocate();
+			virtual std::optional<std::uint32_t> TryAllocateSlot();
 			virtual void Release(std::uint32_t slotIndex);
 		protected:
 			std::vector<bool> _freeSlots;
@@ -37,7 +37,7 @@ namespace MMPEngine::Core
 		{
 		protected:
 			Handle();
-			Handle(const std::shared_ptr<BaseItemHeap>& heap, const Entry& entry);
+			Handle(const std::shared_ptr<Pool>& heap, const Entry& entry);
 		public:
 			Handle(const Handle&) = delete;
 			Handle(Handle&& movableHandle) noexcept;
@@ -46,20 +46,20 @@ namespace MMPEngine::Core
 			virtual ~Handle();
 		protected:
 			std::optional<Entry> _entry;
-			std::weak_ptr<BaseItemHeap> _heap;
+			std::weak_ptr<Pool> _heap;
 		};
 	protected:
-		BaseItemHeap(const Settings& settings);
-		virtual ~BaseItemHeap();
+		Pool(const Settings& settings);
+		virtual ~Pool();
 		virtual Entry AllocateEntry();
 		virtual std::unique_ptr<Block> InstantiateBlock(std::uint32_t size) = 0;
 		virtual void ReleaseEntry(const Entry& entry);
 
 	public:
-		BaseItemHeap(const BaseItemHeap&) = delete;
-		BaseItemHeap(BaseItemHeap&&) noexcept = delete;
-		BaseItemHeap& operator=(const BaseItemHeap&) = delete;
-		BaseItemHeap& operator=(BaseItemHeap&&) noexcept = delete;
+		Pool(const Pool&) = delete;
+		Pool(Pool&&) noexcept = delete;
+		Pool& operator=(const Pool&) = delete;
+		Pool& operator=(Pool&&) noexcept = delete;
 	protected:
 		Settings _settings;
 		std::vector<std::unique_ptr<Block>> _blocks;

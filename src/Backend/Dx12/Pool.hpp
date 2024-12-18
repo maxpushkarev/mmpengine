@@ -1,11 +1,11 @@
 #pragma once
 #include <d3d12.h>
 #include <wrl/client.h>
-#include <Core/Heap.hpp>
+#include <Core/Pool.hpp>
 
 namespace MMPEngine::Backend::Dx12
 {
-	class BaseDescriptorHeap : public Core::BaseItemHeap
+	class BaseDescriptorHeap : public Core::Pool
 	{
 	protected:
 		struct NativeSettings final
@@ -15,16 +15,16 @@ namespace MMPEngine::Backend::Dx12
 		};
 		struct Settings final
 		{
-			Core::BaseItemHeap::Settings base;
+			Core::Pool::Settings base;
 			NativeSettings native;
 		};
 
 		BaseDescriptorHeap(const Microsoft::WRL::ComPtr<ID3D12Device>& device, const Settings& settings);
-		std::unique_ptr<Core::BaseItemHeap::Block> InstantiateBlock(std::uint32_t size) override;
+		std::unique_ptr<Core::Pool::Block> InstantiateBlock(std::uint32_t size) override;
 		D3D12_CPU_DESCRIPTOR_HANDLE GetNativeCPUDescriptorHandle(const Entry& entry) const;
 		D3D12_GPU_DESCRIPTOR_HANDLE GetNativeGPUDescriptorHandle(const Entry& entry) const;
 
-		class Block final : public Core::BaseItemHeap::Block
+		class Block final : public Core::Pool::Block
 		{
 		public:
 			Block(std::uint32_t size, const Microsoft::WRL::ComPtr<ID3D12Device>& device, const NativeSettings& nativeSettings);
@@ -34,7 +34,7 @@ namespace MMPEngine::Backend::Dx12
 		Microsoft::WRL::ComPtr<ID3D12Device> _device;
 		std::uint32_t _incrementSize;
 	public:
-		class Handle final : public Core::BaseItemHeap::Handle
+		class Handle final : public Core::Pool::Handle
 		{
 			friend class BaseDescriptorHeap;
 		public:
@@ -58,40 +58,40 @@ namespace MMPEngine::Backend::Dx12
 	};
 
 	template<D3D12_DESCRIPTOR_HEAP_TYPE TDescriptorHeapType>
-	class DescriptorHeap : public BaseDescriptorHeap
+	class DescriptorPool : public BaseDescriptorHeap
 	{
 	protected:
-		DescriptorHeap(const Microsoft::WRL::ComPtr<ID3D12Device>& device, const Core::BaseItemHeap::Settings& baseSettings, D3D12_DESCRIPTOR_HEAP_FLAGS flags);
+		DescriptorPool(const Microsoft::WRL::ComPtr<ID3D12Device>& device, const Core::Pool::Settings& baseSettings, D3D12_DESCRIPTOR_HEAP_FLAGS flags);
 	};
 
 	template<D3D12_DESCRIPTOR_HEAP_TYPE TDescriptorHeapType>
-	inline DescriptorHeap<TDescriptorHeapType>::DescriptorHeap(const Microsoft::WRL::ComPtr<ID3D12Device>& device, const Core::BaseItemHeap::Settings& baseSettings, D3D12_DESCRIPTOR_HEAP_FLAGS flags)
+	inline DescriptorPool<TDescriptorHeapType>::DescriptorPool(const Microsoft::WRL::ComPtr<ID3D12Device>& device, const Core::Pool::Settings& baseSettings, D3D12_DESCRIPTOR_HEAP_FLAGS flags)
 		: BaseDescriptorHeap(device, {baseSettings, {TDescriptorHeapType, flags}})
 	{
 	}
 
-	class RTVDescriptorHeap final : public DescriptorHeap<D3D12_DESCRIPTOR_HEAP_TYPE_RTV>
+	class RTVDescriptorPool final : public DescriptorPool<D3D12_DESCRIPTOR_HEAP_TYPE_RTV>
 	{
 	public:
-		RTVDescriptorHeap(
+		RTVDescriptorPool(
 			const Microsoft::WRL::ComPtr<ID3D12Device>& device, 
-			const Core::BaseItemHeap::Settings& baseSettings);
+			const Core::Pool::Settings& baseSettings);
 	};
 
-	class DSVDescriptorHeap final : public DescriptorHeap<D3D12_DESCRIPTOR_HEAP_TYPE_DSV>
+	class DSVDescriptorPool final : public DescriptorPool<D3D12_DESCRIPTOR_HEAP_TYPE_DSV>
 	{
 	public:
-		DSVDescriptorHeap(
+		DSVDescriptorPool(
 			const Microsoft::WRL::ComPtr<ID3D12Device>& device,
-			const Core::BaseItemHeap::Settings& baseSettings);
+			const Core::Pool::Settings& baseSettings);
 	};
 
-	class CBVSRVUAVDescriptorHeap final : public DescriptorHeap<D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV>
+	class CBVSRVUAVDescriptorPool final : public DescriptorPool<D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV>
 	{
 	public:
-		CBVSRVUAVDescriptorHeap(
+		CBVSRVUAVDescriptorPool(
 			const Microsoft::WRL::ComPtr<ID3D12Device>& device,
-			const Core::BaseItemHeap::Settings& baseSettings,
+			const Core::Pool::Settings& baseSettings,
 			D3D12_DESCRIPTOR_HEAP_FLAGS flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE);
 	};
 }
