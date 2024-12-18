@@ -596,7 +596,7 @@ namespace MMPEngine::Backend::Dx12
 		Task::Run(stream);
 		if (const auto tc = GetTaskContext() ; const auto entity = tc->uploadBuffer)
 		{
-			std::memcpy((static_cast<char*>(GetMappedPtr(entity)) + tc->byteOffset), tc->src, tc->byteLength);
+			std::memcpy((static_cast<char*>(GetMappedPtr(entity)) + static_cast<std::size_t>(entity->GetNativeGPUAddressWithRequiredOffset() - entity->GetNativeResource()->GetGPUVirtualAddress()) + tc->byteOffset), tc->src, tc->byteLength);
 		}
 	}
 
@@ -628,7 +628,7 @@ namespace MMPEngine::Backend::Dx12
 
 		if (const auto tc = GetTaskContext() ; const auto entity = tc->readBackBuffer)
 		{
-			std::memcpy(tc->dst, (static_cast<char*>(GetMappedPtr(entity)) + tc->byteOffset), tc->byteLength);
+			std::memcpy(tc->dst, (static_cast<char*>(GetMappedPtr(entity)) + static_cast<std::size_t>(entity->GetNativeGPUAddressWithRequiredOffset() - entity->GetNativeResource()->GetGPUVirtualAddress()) + tc->byteOffset), tc->byteLength);
 		}
 	}
 }
