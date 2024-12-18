@@ -400,6 +400,65 @@ namespace MMPEngine::Core::Tests
 		ASSERT_TRUE(Quaternion::AreIdentical(res1, res2));
 	}
 
+	TYPED_TEST_P(MathTests, Quaternion_FromEuler)
+	{
+		const auto singleAngle = Core::Math::ConvertDegreesToRadians(30.0f);
+
+		Core::Quaternion expectedX;
+		Core::Quaternion expectedY;
+		Core::Quaternion expectedZ;
+
+		this->GetDefaultMath()->RotationAroundAxis(expectedX, Core::Vector3Float {1.0f, 0.0f, 0.0f }, singleAngle);
+		this->GetDefaultMath()->RotationAroundAxis(expectedY, Core::Vector3Float{ 0.0f, 1.0f, 0.0f }, singleAngle);
+		this->GetDefaultMath()->RotationAroundAxis(expectedZ, Core::Vector3Float{ 0.0f, 0.0f, 1.0f }, singleAngle);
+
+		Core::Quaternion actualX;
+		Core::Quaternion actualY;
+		Core::Quaternion actualZ;
+
+		this->GetMathImpl()->RotationFromEuler(actualX, Core::Vector3Float{ singleAngle, 0.0f, 0.0f });
+		this->GetMathImpl()->RotationFromEuler(actualY, Core::Vector3Float{ 0.0f, singleAngle, 0.0f });
+		this->GetMathImpl()->RotationFromEuler(actualZ, Core::Vector3Float{ 0.0f, 0.0f, singleAngle });
+
+		ASSERT_TRUE(Core::Quaternion::AreEquivalent(expectedX, actualX));
+		ASSERT_TRUE(Core::Quaternion::AreEquivalent(expectedY, actualY));
+		ASSERT_TRUE(Core::Quaternion::AreEquivalent(expectedZ, actualZ));
+
+		this->GetDefaultMath()->RotationFromEuler(actualX, Core::Vector3Float{ singleAngle, 0.0f, 0.0f });
+		this->GetDefaultMath()->RotationFromEuler(actualY, Core::Vector3Float{ 0.0f, singleAngle, 0.0f });
+		this->GetDefaultMath()->RotationFromEuler(actualZ, Core::Vector3Float{ 0.0f, 0.0f, singleAngle });
+
+		ASSERT_TRUE(Core::Quaternion::AreEquivalent(expectedX, actualX));
+		ASSERT_TRUE(Core::Quaternion::AreEquivalent(expectedY, actualY));
+		ASSERT_TRUE(Core::Quaternion::AreEquivalent(expectedZ, actualZ));
+
+		for(std::size_t x = 0; x <= 360; x+=5)
+		{
+			for (std::size_t y = 0; y <= 360; y += 5)
+			{
+				for (std::size_t z = 0; z <= 360; z += 5)
+				{
+					const Core::Vector3Float customEulerAngles {
+						Core::Math::ConvertDegreesToRadians(static_cast<std::float_t>(x)),
+							Core::Math::ConvertDegreesToRadians(static_cast<std::float_t>(y)),
+							Core::Math::ConvertDegreesToRadians(static_cast<std::float_t>(z)),
+					};
+
+					Core::Quaternion q1 {};
+					Core::Quaternion q2 {};
+
+					this->GetDefaultMath()->RotationFromEuler(q1, customEulerAngles);
+					this->GetMathImpl()->RotationFromEuler(q2, customEulerAngles);
+
+					ASSERT_TRUE(Core::Quaternion::AreEquivalent(q1, q2));
+				}
+			}
+		}
+	}
+
+	TYPED_TEST_P(MathTests, Quaternion_ToEuler)
+	{
+	}
 
 	TYPED_TEST_P(MathTests, Quaternion_Dot)
 	{
@@ -587,6 +646,8 @@ namespace MMPEngine::Core::Tests
 		Quaternion_RotateAroundAxis,
 		Quaternion_Dot,
 		Quaternion_Inverse,
+		Quaternion_FromEuler,
+		Quaternion_ToEuler,
 		Node_LocalToWorld,
 		Node_WorldTransform);
 }

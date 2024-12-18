@@ -494,6 +494,34 @@ namespace MMPEngine::Core
 		res.w = cosHalf;
 	}
 
+	void Math::RotationFromEuler(Quaternion& res, const Vector3Float& eulerAngles) const
+	{
+		//ORDER: Z -> X -> Y;
+
+		const auto x = eulerAngles.x * 0.5f;
+		const auto y = eulerAngles.y * 0.5f;
+		const auto z = eulerAngles.z * 0.5f;
+
+		const auto c1 = std::cosf(x);
+		const auto c2 = std::cosf(y);
+		const auto c3 = std::cosf(z);
+
+		const auto s1 = std::sinf(x);
+		const auto s2 = std::sinf(y);
+		const auto s3 = std::sinf(z);
+
+		res.x = s1 * c2 * c3 + c1 * s2 * s3;
+		res.y = c1 * s2 * c3 - s1 * c2 * s3;
+		res.z = c1 * c2 * s3 - s1 * s2 * c3;
+		res.w = c1 * c2 * c3 + s1 * s2 * s3;
+	}
+
+	void Math::ToEuler(Vector3Float& res, const Quaternion& q) const
+	{
+		
+	}
+
+
 	void Math::Multiply(Quaternion& res, const Quaternion& q1, const Quaternion& q2) const
 	{
 		res.x = q1.w* q2.x + q1.x * q2.w + q1.y * q2.z - q1.z * q2.y;
