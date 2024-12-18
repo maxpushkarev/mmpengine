@@ -78,7 +78,7 @@ namespace MMPEngine::Feature
 		template<class TButton>
 		void SetButtonPressedStatusInternal(TButton, bool);
 
-		Core::Vector2Float _currentFrameMousePosition;
+		Core::Vector2Float _currentFrameMousePosition = {0.0f, 0.0f};
 
 		std::unordered_set<KeyButton> _pressedKeyButtons;
 		std::unordered_set<KeyButton> _keyDownEvents;
