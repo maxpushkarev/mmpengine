@@ -1,8 +1,6 @@
 #pragma once
 #include <memory>
 #include <Core/Base.hpp>
-#include <Core/Logger.hpp>
-#include <Core/Input.hpp>
 #include <Core/Math.hpp>
 
 #ifdef MMPENGINE_WIN
@@ -48,14 +46,12 @@ typedef HWND NativeWindow;
 			BackendType backend;
 		};
 	protected:
-		GlobalContext(const Settings&, std::unique_ptr<Core::Math>&&, std::unique_ptr<Core::BaseLogger>&&);
+		GlobalContext(const Settings&, std::unique_ptr<Core::Math>&&);
 	public:
 		const Settings settings;
 		Vector2Uint windowSize;
 		const PlatformType platform;
 		const std::unique_ptr<Math> math;
-		const std::unique_ptr<BaseLogger> logger;
-		const std::unique_ptr<Input> input;
 #ifdef MMPENGINE_WIN
 		NativeWindow nativeWindow;
 #endif
