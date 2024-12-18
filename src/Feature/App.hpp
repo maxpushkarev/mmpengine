@@ -14,7 +14,7 @@ namespace MMPEngine::Feature
 	class BaseRootApp;
 	class UserApp;
 
-	class App : public std::enable_shared_from_this<App>
+	class App
 	{
 	protected:
 		App(const std::shared_ptr<BaseLogger>& logger);
@@ -35,11 +35,11 @@ namespace MMPEngine::Feature
 		virtual std::shared_ptr<Feature::Input> GetInput() const = 0;
 		virtual std::shared_ptr<Core::BaseStream> GetDefaultStream() const = 0;
 
-		static std::shared_ptr<BaseRootApp> BuildRootApp(
+		static std::unique_ptr<BaseRootApp> BuildRootApp(
 			const Core::GlobalContext::Settings& globalContextSettings, 
-			const std::shared_ptr<UserApp>& userApp, 
+			std::unique_ptr<UserApp>&& userApp, 
 			std::unique_ptr<Core::Math>&& math, 
-			std::shared_ptr<BaseLogger> logger
+			const std::shared_ptr<BaseLogger>& logger
 		);
 
 	protected:
@@ -48,14 +48,20 @@ namespace MMPEngine::Feature
 
 	class BaseRootApp : public App
 	{
+	public:
+		BaseRootApp(const BaseRootApp&) = delete;
+		BaseRootApp(BaseRootApp&&) noexcept = delete;
+		BaseRootApp& operator=(const BaseRootApp&) = delete;
+		BaseRootApp& operator=(BaseRootApp&&) noexcept = delete;
+		~BaseRootApp() override;
 	protected:
 		BaseRootApp(const std::shared_ptr<BaseLogger>& logger);
 		void Initialize() override;
 		void OnPause() override;
 		void OnResume() override;
-		std::shared_ptr<UserApp> _userApp;
+		std::unique_ptr<UserApp> _userApp;
 	public:
-		void Attach(const std::shared_ptr<UserApp>& userApp);
+		void Attach(std::unique_ptr<UserApp>&& userApp);
 		std::shared_ptr<Feature::Input> GetInput() const override;
 	private:
 		std::shared_ptr<Input> _input;
@@ -70,8 +76,9 @@ namespace MMPEngine::Feature
 		std::shared_ptr<Core::BaseStream> GetDefaultStream() const override;
 		std::shared_ptr<Feature::Input> GetInput() const override;
 	private:
-		void JoinToRootApp(const std::shared_ptr<BaseRootApp>& root);
-		std::weak_ptr<BaseRootApp> _rootApp;
+		void JoinToRootApp(const BaseRootApp* root);
+		void UnjoinFromRootApp();
+		const BaseRootApp* _rootApp;
 	};
 
 	template<typename TRootContext>

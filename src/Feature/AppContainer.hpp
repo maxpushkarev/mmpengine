@@ -37,7 +37,7 @@ namespace MMPEngine::Feature
 			std::optional<std::chrono::milliseconds> previousFrameMs = std::nullopt;
 		};
 
-		AppContainer(Settings&& settings, const std::shared_ptr<Feature::BaseRootApp>& app);
+		AppContainer(Settings&& settings, std::unique_ptr<Feature::BaseRootApp>&& app);
 		void OnWindowChanged();
 		virtual void CreateNativeContainer() = 0;
 		virtual std::int32_t RunInternal() = 0;
@@ -59,7 +59,7 @@ namespace MMPEngine::Feature
 	protected:
 		Settings _settings;
 		State _state;
-		std::shared_ptr<Feature::App> _app;
+		std::unique_ptr<Feature::App> _app;
 	};
 
 	template<typename TPlatformAppContainerSettings>
@@ -72,14 +72,14 @@ namespace MMPEngine::Feature
 			AppContainer::Settings base;
 			TPlatformAppContainerSettings platform;
 		};
-		PlatformAppContainer(Settings&& settings, const std::shared_ptr<Feature::BaseRootApp>& app);
+		PlatformAppContainer(Settings&& settings, std::unique_ptr<Feature::BaseRootApp>&& app);
 	protected:
 		TPlatformAppContainerSettings _platformSettings;
 	};
 
 	template<typename TPlatformAppContainerSettings>
-	inline PlatformAppContainer<TPlatformAppContainerSettings>::PlatformAppContainer(Settings&& settings, const std::shared_ptr<Feature::BaseRootApp>& app)
-		: AppContainer(std::move(settings.base), app), _platformSettings(std::move(settings.platform))
+	inline PlatformAppContainer<TPlatformAppContainerSettings>::PlatformAppContainer(Settings&& settings, std::unique_ptr<Feature::BaseRootApp>&& app)
+		: AppContainer(std::move(settings.base), std::move(app)), _platformSettings(std::move(settings.platform))
 	{
 	}
 
@@ -95,7 +95,7 @@ namespace MMPEngine::Feature
 		class AppContainer : public PlatformAppContainer<AppContainerSetting>
 		{
 		public:
-			AppContainer(PlatformAppContainer::Settings&& settings, const std::shared_ptr<Feature::BaseRootApp>& app);
+			AppContainer(PlatformAppContainer::Settings&& settings, std::unique_ptr<Feature::BaseRootApp>&& app);
 		protected:
 			std::int32_t RunInternal() override;
 			void CreateNativeContainer() override;

@@ -40,11 +40,11 @@ namespace MMPEngine::Feature
 	{
 	}
 
-	std::shared_ptr<BaseRootApp> App::BuildRootApp(
+	std::unique_ptr<BaseRootApp> App::BuildRootApp(
 		const Core::GlobalContext::Settings& globalContextSettings,
-		const std::shared_ptr<UserApp>& userApp,
+		std::unique_ptr<UserApp>&& userApp,
 		std::unique_ptr<Core::Math>&& math,
-		std::shared_ptr<BaseLogger> logger
+		const std::shared_ptr<BaseLogger>& logger
 	)
 	{
 		if (globalContextSettings.backend == Core::BackendType::Dx12)
@@ -54,8 +54,8 @@ namespace MMPEngine::Feature
 			{
 				math = std::make_unique<Backend::Dx12::Math>();
 			}
-			const auto rootApp = std::make_shared<Dx12::RootApp>(std::make_shared<Backend::Dx12::GlobalContext>(globalContextSettings, std::move(math)), logger);
-			rootApp->Attach(userApp);
+			auto rootApp = std::make_unique<Dx12::RootApp>(std::make_shared<Backend::Dx12::GlobalContext>(globalContextSettings, std::move(math)), logger);
+			rootApp->Attach(std::move(userApp));
 			return rootApp;
 #else
 			throw Core::UnsupportedException("unable to create root app for DX12 backend");
@@ -75,6 +75,14 @@ namespace MMPEngine::Feature
 		if (_userApp)
 		{
 			_userApp->Initialize();
+		}
+	}
+
+	BaseRootApp::~BaseRootApp()
+	{
+		if(_userApp)
+		{
+			_userApp->UnjoinFromRootApp();
 		}
 	}
 
@@ -101,19 +109,19 @@ namespace MMPEngine::Feature
 		return _input;
 	}
 
-	void BaseRootApp::Attach(const std::shared_ptr<UserApp>& userApp)
+	void BaseRootApp::Attach(std::unique_ptr<UserApp>&& userApp)
 	{
-		_userApp = userApp;
-		_userApp->JoinToRootApp(std::dynamic_pointer_cast<BaseRootApp>(shared_from_this()));
+		_userApp = std::move(userApp);
+		_userApp->JoinToRootApp(this);
 	}
 
-	UserApp::UserApp(const std::shared_ptr<BaseLogger>& logger) : App(logger)
+	UserApp::UserApp(const std::shared_ptr<BaseLogger>& logger) : App(logger), _rootApp(nullptr)
 	{
 	}
 
 	std::shared_ptr<Core::GlobalContext> UserApp::GetContext() const
 	{
-		if (const auto root = _rootApp.lock())
+		if (const auto root = _rootApp)
 		{
 			return root->GetContext();
 		}
@@ -123,7 +131,7 @@ namespace MMPEngine::Feature
 
 	std::shared_ptr<Core::BaseStream> UserApp::GetDefaultStream() const
 	{
-		if (const auto root = _rootApp.lock())
+		if (const auto root = _rootApp)
 		{
 			return root->GetDefaultStream();
 		}
@@ -133,7 +141,7 @@ namespace MMPEngine::Feature
 
     std::shared_ptr<Feature::Input> UserApp::GetInput() const
     {
-		if (const auto root = _rootApp.lock())
+		if (const auto root = _rootApp)
 		{
 			return root->GetInput();
 		}
@@ -142,10 +150,16 @@ namespace MMPEngine::Feature
     }
 
 
-	void UserApp::JoinToRootApp(const std::shared_ptr<BaseRootApp>& root)
+	void UserApp::JoinToRootApp(const BaseRootApp* root)
 	{
 		_rootApp = root;
 	}
+
+	void UserApp::UnjoinFromRootApp()
+	{
+		_rootApp = nullptr;
+	}
+
 
 #ifdef MMPENGINE_BACKEND_DX12
 	namespace Dx12

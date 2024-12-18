@@ -28,7 +28,7 @@ namespace MMPEngine::Feature
 		_app->GetInput()->SetButtonPressedStatus(btn, status);
 	}
 
-	AppContainer::AppContainer(Settings&& settings, const std::shared_ptr<Feature::BaseRootApp>& app) : _settings(std::move(settings)), _app(app)
+	AppContainer::AppContainer(Settings&& settings, std::unique_ptr<Feature::BaseRootApp>&& app) : _settings(std::move(settings)), _app(std::move(app))
 	{
 	}
 
@@ -61,8 +61,8 @@ namespace MMPEngine::Feature
 #ifdef MMPENGINE_WIN
 	namespace Win
 	{
-		AppContainer::AppContainer(PlatformAppContainer::Settings&& settings, const std::shared_ptr<Feature::BaseRootApp>& app) :
-			PlatformAppContainer<MMPEngine::Feature::Win::AppContainerSetting>(std::move(settings), app)
+		AppContainer::AppContainer(PlatformAppContainer::Settings&& settings, std::unique_ptr<Feature::BaseRootApp>&& app) :
+			PlatformAppContainer<MMPEngine::Feature::Win::AppContainerSetting>(std::move(settings), std::move(app))
 		{
 
 		}
