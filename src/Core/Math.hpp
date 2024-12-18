@@ -67,6 +67,12 @@ namespace MMPEngine::Core
 		virtual void CalculateLocalToWorldSpaceMatrix(Matrix4x4& res, const std::shared_ptr<const Node>& node) const;
 		virtual void CalculateWorldSpaceTransform(Vector3Float& position, Quaternion& rotation, Matrix4x4& scale, const std::shared_ptr<const Node>& node) const;
 
+		template<typename TVec>
+		static void GetRow(TVec& res, std::size_t rowNumber, const Matrix4x4& matrix);
+
+		template<typename TVec>
+		static void GetColumn(TVec& res, std::size_t columnNumber, const Matrix4x4& matrix);
+
 	private:
 		static constexpr auto _deg2Rad = kPi / 180.0f;
 		static constexpr auto _minValidationFloat = 1.0e-7f;
@@ -94,5 +100,35 @@ namespace MMPEngine::Core
 	inline std::float_t Math::DeterminantInternal(const TMatrix& m) const
 	{
 		return 0.0f;
+	}
+
+	template<typename TVec>
+	void Math::GetRow(TVec& res, std::size_t rowNumber, const Matrix4x4& matrix)
+	{
+		static_assert(std::is_same_v<TVec, Vector3Float> || std::is_same_v<TVec, Vector4Float>);
+
+		res.x = matrix.m[rowNumber][0];
+		res.y = matrix.m[rowNumber][1];
+		res.z = matrix.m[rowNumber][2];
+
+		if constexpr (std::is_same_v<TVec, Vector4Float>)
+		{
+			res.w = matrix.m[rowNumber][3];
+		}
+	}
+
+	template<typename TVec>
+	void Math::GetColumn(TVec& res, std::size_t columnNumber, const Matrix4x4& matrix)
+	{
+		static_assert(std::is_same_v<TVec, Vector3Float> || std::is_same_v<TVec, Vector4Float>);
+
+		res.x = matrix.m[0][columnNumber];
+		res.y = matrix.m[1][columnNumber];
+		res.z = matrix.m[2][columnNumber];
+
+		if constexpr (std::is_same_v<TVec, Vector4Float>)
+		{
+			res.w = matrix.m[3][columnNumber];
+		}
 	}
 }
