@@ -75,15 +75,17 @@ namespace MMPEngine::Core
 
 		std::shared_ptr<BaseTask> CreateInitializationTask() override;
 		virtual std::shared_ptr<Core::BaseMaterial> GetUnderlyingMaterial();
-		std::shared_ptr<BaseTask> CreateTaskForUpdateParameters(Parameters&& parameters);
+		std::shared_ptr<BaseTask> CreateTaskForBakeParameters();
 		virtual std::shared_ptr<BaseTask> CreateTaskForApply() = 0;
-		const Parameters& GetParameters() const;
-	protected:
 
+		virtual const Parameters& GetParameters() const;
+		virtual void SetParameters(Parameters&& params);
+	protected:
 		BaseMaterial();
-		virtual std::shared_ptr<BaseTask> CreateTaskForUpdateParametersInternal() = 0;
+		virtual std::shared_ptr<BaseTask> CreateTaskForBakeParametersInternal() = 0;
 	protected:
 		Parameters _params;
+		bool _bakedParams = false;
 	};
 
 	class RenderingMaterial : public BaseMaterial

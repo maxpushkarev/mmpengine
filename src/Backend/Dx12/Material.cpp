@@ -183,7 +183,7 @@ namespace MMPEngine::Backend::Dx12
 		return std::make_shared<ApplyParametersTask>(ctx);
 	}
 
-	std::shared_ptr<Core::BaseTask> ComputeMaterial::CreateTaskForUpdateParametersInternal()
+	std::shared_ptr<Core::BaseTask> ComputeMaterial::CreateTaskForBakeParametersInternal()
 	{
 		const auto ctx = std::make_shared<ParametersUpdatedTaskContext>();
 		ctx->materialImplPtr = std::dynamic_pointer_cast<MaterialImpl<Core::ComputeMaterial>>(shared_from_this());

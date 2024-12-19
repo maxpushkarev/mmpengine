@@ -1,5 +1,6 @@
 #include <Core/Material.hpp>
 #include <cassert>
+#include <memory>
 
 namespace MMPEngine::Core
 {
@@ -105,16 +106,34 @@ namespace MMPEngine::Core
 		return BaseTask::kEmpty;
 	}
 
-	std::shared_ptr<BaseTask> BaseMaterial::CreateTaskForUpdateParameters(Parameters&& parameters)
+	std::shared_ptr<BaseTask> BaseMaterial::CreateTaskForBakeParameters()
 	{
-		_params = std::move(parameters);
-		return CreateTaskForUpdateParametersInternal();
+		const auto thisMat = shared_from_this();
+
+		if(thisMat->_bakedParams)
+		{
+			return BaseTask::kEmpty;
+		}
+
+		return std::make_shared<BatchTask>(std::initializer_list<std::shared_ptr<BaseTask>>{
+			CreateTaskForBakeParametersInternal(),
+			std::make_shared<FunctionalTask>([thisMat](const auto&)
+			{
+				thisMat->_bakedParams = true;
+			}, FunctionalTask::Handler{}, FunctionalTask::Handler{})
+		});
 	}
 
 	const BaseMaterial::Parameters& BaseMaterial::GetParameters() const
 	{
 		return _params;
 	}
+
+    void BaseMaterial::SetParameters(Parameters&& params)
+    {
+		_params = std::move(params);
+		_bakedParams = false;
+    }
 
 	RenderingMaterial::RenderingMaterial(const Settings& settings) : _settings(settings)
 	{

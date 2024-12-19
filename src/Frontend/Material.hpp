@@ -18,8 +18,10 @@ namespace MMPEngine::Frontend
 		std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;
 		std::shared_ptr<Core::BaseTask> CreateTaskForApply() override;
 		std::shared_ptr<Core::BaseMaterial> GetUnderlyingMaterial() override;
+		void SetParameters(Core::BaseMaterial::Parameters&& params) override;
+		const Core::BaseMaterial::Parameters& GetParameters() const;
 	protected:
-		std::shared_ptr<Core::BaseTask> CreateTaskForUpdateParametersInternal() override;
+		std::shared_ptr<Core::BaseTask> CreateTaskForBakeParametersInternal() override;
 		std::shared_ptr<TCoreMaterial> _impl;
 	};
 
@@ -59,14 +61,27 @@ namespace MMPEngine::Frontend
 	}
 
 	template<typename TCoreMaterial>
-	inline std::shared_ptr<Core::BaseTask> Material<TCoreMaterial>::CreateTaskForUpdateParametersInternal()
+	inline std::shared_ptr<Core::BaseTask> Material<TCoreMaterial>::CreateTaskForBakeParametersInternal()
 	{
-		return _impl->CreateTaskForUpdateParameters(std::move(this->_params));
+		return _impl->CreateTaskForBakeParameters();
 	}
 
 	template<typename TCoreMaterial>
 	inline std::shared_ptr<Core::BaseMaterial> Material<TCoreMaterial>::GetUnderlyingMaterial()
 	{
 		return _impl->GetUnderlyingMaterial();
+	}
+
+	template<typename TCoreMaterial>
+	inline void Material<TCoreMaterial>::SetParameters(Core::BaseMaterial::Parameters&& params)
+	{
+		_impl->SetParameters(std::move(params));
+		this->_bakedParams = false;
+	}
+
+	template<typename TCoreMaterial>
+	inline const Core::BaseMaterial::Parameters& Material<TCoreMaterial>::GetParameters() const
+	{
+		return _impl->GetParameters();
 	}
 }

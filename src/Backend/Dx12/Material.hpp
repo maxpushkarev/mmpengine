@@ -94,7 +94,8 @@ namespace MMPEngine::Backend::Dx12
 	public:
 		ComputeMaterial(const std::shared_ptr<Core::ComputeShader>& computeShader);
 		std::shared_ptr<Core::BaseTask> CreateTaskForApply() override;
-		std::shared_ptr<Core::BaseTask> CreateTaskForUpdateParametersInternal() override;
+	protected:
+		std::shared_ptr<Core::BaseTask> CreateTaskForBakeParametersInternal() override;
 	};
 
 	template<class TCoreMaterial>

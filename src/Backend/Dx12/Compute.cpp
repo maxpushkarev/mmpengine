@@ -104,7 +104,11 @@ namespace MMPEngine::Backend::Dx12
 	{
 		const auto ctx = std::make_shared<InitContext>();
 		ctx->job = std::dynamic_pointer_cast<DirectComputeJob>(shared_from_this());
-		return std::make_shared<InitTask>(ctx);
+
+		return std::make_shared<Core::BatchTask>(std::initializer_list<std::shared_ptr<Core::BaseTask>>{
+			this->_material->CreateTaskForBakeParameters(),
+			std::make_shared<InitTask>(ctx)
+		});
 	}
 
 	std::shared_ptr<Core::ContextualTask<Core::DirectComputeContext>> DirectComputeJob::CreateExecutionTask()
