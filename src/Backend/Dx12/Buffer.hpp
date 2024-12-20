@@ -123,11 +123,11 @@ namespace MMPEngine::Backend::Dx12
 		};
 
 	public:
-		const BaseDescriptorHeap::Handle* GetShaderInVisibleDescriptorHandle() const override;
-		const BaseDescriptorHeap::Handle* GetShaderVisibleDescriptorHandle() const override;
+		const BaseDescriptorPool::Handle* GetShaderInVisibleDescriptorHandle() const override;
+		const BaseDescriptorPool::Handle* GetShaderVisibleDescriptorHandle() const override;
 	private:
-		BaseDescriptorHeap::Handle _shaderVisibleHandle;
-		BaseDescriptorHeap::Handle _shaderInVisibleHandle;
+		BaseDescriptorPool::Handle _shaderVisibleHandle;
+		BaseDescriptorPool::Handle _shaderInVisibleHandle;
 	};
 
 	class UnorderedAccessBuffer final : public Core::UnorderedAccessBuffer, public UaBuffer

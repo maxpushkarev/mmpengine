@@ -5,7 +5,7 @@
 
 namespace MMPEngine::Backend::Dx12
 {
-	class BaseDescriptorHeap : public Core::Pool
+	class BaseDescriptorPool : public Core::Pool
 	{
 	protected:
 		struct NativeSettings final
@@ -19,7 +19,7 @@ namespace MMPEngine::Backend::Dx12
 			NativeSettings native;
 		};
 
-		BaseDescriptorHeap(const Microsoft::WRL::ComPtr<ID3D12Device>& device, const Settings& settings);
+		BaseDescriptorPool(const Microsoft::WRL::ComPtr<ID3D12Device>& device, const Settings& settings);
 		std::unique_ptr<Core::Pool::Block> InstantiateBlock(std::uint32_t size) override;
 		D3D12_CPU_DESCRIPTOR_HANDLE GetNativeCPUDescriptorHandle(const Entry& entry) const;
 		D3D12_GPU_DESCRIPTOR_HANDLE GetNativeGPUDescriptorHandle(const Entry& entry) const;
@@ -36,15 +36,15 @@ namespace MMPEngine::Backend::Dx12
 	public:
 		class Handle final : public Core::Pool::Handle
 		{
-			friend class BaseDescriptorHeap;
+			friend class BaseDescriptorPool;
 		public:
 			Handle();
 			const D3D12_CPU_DESCRIPTOR_HANDLE& GetCPUDescriptorHandle() const;
 			const D3D12_GPU_DESCRIPTOR_HANDLE& GetGPUDescriptorHandle() const;
 		protected:
-			Handle(const std::shared_ptr<BaseDescriptorHeap>& descHeap, const Entry& entry);
+			Handle(const std::shared_ptr<BaseDescriptorPool>& descHeap, const Entry& entry);
 		private:
-			std::weak_ptr<BaseDescriptorHeap> _descHeap;
+			std::weak_ptr<BaseDescriptorPool> _descHeap;
 			D3D12_CPU_DESCRIPTOR_HANDLE _cpuHandle = { 0 };
 			D3D12_GPU_DESCRIPTOR_HANDLE _gpuHandle = { 0 };
 			D3D12_DESCRIPTOR_HEAP_FLAGS _heapFlags;
@@ -58,7 +58,7 @@ namespace MMPEngine::Backend::Dx12
 	};
 
 	template<D3D12_DESCRIPTOR_HEAP_TYPE TDescriptorHeapType>
-	class DescriptorPool : public BaseDescriptorHeap
+	class DescriptorPool : public BaseDescriptorPool
 	{
 	protected:
 		DescriptorPool(const Microsoft::WRL::ComPtr<ID3D12Device>& device, const Core::Pool::Settings& baseSettings, D3D12_DESCRIPTOR_HEAP_FLAGS flags);
@@ -66,7 +66,7 @@ namespace MMPEngine::Backend::Dx12
 
 	template<D3D12_DESCRIPTOR_HEAP_TYPE TDescriptorHeapType>
 	inline DescriptorPool<TDescriptorHeapType>::DescriptorPool(const Microsoft::WRL::ComPtr<ID3D12Device>& device, const Core::Pool::Settings& baseSettings, D3D12_DESCRIPTOR_HEAP_FLAGS flags)
-		: BaseDescriptorHeap(device, {baseSettings, {TDescriptorHeapType, flags}})
+		: BaseDescriptorPool(device, {baseSettings, {TDescriptorHeapType, flags}})
 	{
 	}
 

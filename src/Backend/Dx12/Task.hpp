@@ -21,7 +21,7 @@ namespace MMPEngine::Backend::Dx12
 	class BindDescriptorPoolsTaskContext : public Core::TaskContext
 	{
 	public:
-		std::vector<std::shared_ptr<Dx12::BaseDescriptorHeap>> descriptorHeaps;
+		std::vector<std::shared_ptr<Dx12::BaseDescriptorPool>> descriptorHeaps;
 		void FillDescriptors(const std::shared_ptr<GlobalContext>& ac);
 	};
 

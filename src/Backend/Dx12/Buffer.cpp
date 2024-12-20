@@ -247,12 +247,12 @@ namespace MMPEngine::Backend::Dx12
 		}
 	}
 
-	const BaseDescriptorHeap::Handle* UaBuffer::GetShaderInVisibleDescriptorHandle() const
+	const BaseDescriptorPool::Handle* UaBuffer::GetShaderInVisibleDescriptorHandle() const
 	{
 		return &_shaderInVisibleHandle;
 	}
 
-	const BaseDescriptorHeap::Handle* UaBuffer::GetShaderVisibleDescriptorHandle() const
+	const BaseDescriptorPool::Handle* UaBuffer::GetShaderVisibleDescriptorHandle() const
 	{
 		return &_shaderVisibleHandle;
 	}

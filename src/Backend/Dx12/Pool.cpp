@@ -7,7 +7,7 @@
 
 namespace MMPEngine::Backend::Dx12
 {
-	BaseDescriptorHeap::BaseDescriptorHeap(const Microsoft::WRL::ComPtr<ID3D12Device>& device, const Settings& settings)
+	BaseDescriptorPool::BaseDescriptorPool(const Microsoft::WRL::ComPtr<ID3D12Device>& device, const Settings& settings)
 		: Core::Pool(settings.base),
 		_nativeSettings(settings.native),
 		_device(device)
@@ -15,13 +15,13 @@ namespace MMPEngine::Backend::Dx12
 		_incrementSize = device->GetDescriptorHandleIncrementSize(_nativeSettings.type);
 	}
 
-	std::unique_ptr<Core::Pool::Block> BaseDescriptorHeap::InstantiateBlock(std::uint32_t size)
+	std::unique_ptr<Core::Pool::Block> BaseDescriptorPool::InstantiateBlock(std::uint32_t size)
 	{
 		ResetCache();
 		return std::make_unique<Block>(size, _device, _nativeSettings);
 	}
 
-	D3D12_CPU_DESCRIPTOR_HANDLE BaseDescriptorHeap::GetNativeCPUDescriptorHandle(const Entry& entry) const
+	D3D12_CPU_DESCRIPTOR_HANDLE BaseDescriptorPool::GetNativeCPUDescriptorHandle(const Entry& entry) const
 	{
 		RebuildCacheIfNeed();
 
@@ -31,7 +31,7 @@ namespace MMPEngine::Backend::Dx12
 			_incrementSize);
 	}
 
-	D3D12_GPU_DESCRIPTOR_HANDLE BaseDescriptorHeap::GetNativeGPUDescriptorHandle(const Entry& entry) const
+	D3D12_GPU_DESCRIPTOR_HANDLE BaseDescriptorPool::GetNativeGPUDescriptorHandle(const Entry& entry) const
 	{
 		assert(_nativeSettings.flags & D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE);
 		RebuildCacheIfNeed();
@@ -43,12 +43,12 @@ namespace MMPEngine::Backend::Dx12
 			_incrementSize);
 	}
 
-	BaseDescriptorHeap::Handle BaseDescriptorHeap::Allocate()
+	BaseDescriptorPool::Handle BaseDescriptorPool::Allocate()
 	{
-		return {std::dynamic_pointer_cast<BaseDescriptorHeap>(shared_from_this()), AllocateEntry() };
+		return {std::dynamic_pointer_cast<BaseDescriptorPool>(shared_from_this()), AllocateEntry() };
 	}
 
-	void BaseDescriptorHeap::CollectNativeBlocks(std::vector<ID3D12DescriptorHeap*>& nativeHeaps) const
+	void BaseDescriptorPool::CollectNativeBlocks(std::vector<ID3D12DescriptorHeap*>& nativeHeaps) const
 	{
 		RebuildCacheIfNeed();
 
@@ -60,12 +60,12 @@ namespace MMPEngine::Backend::Dx12
 	}
 
 
-	void BaseDescriptorHeap::ResetCache()
+	void BaseDescriptorPool::ResetCache()
 	{
 		_nativeBlocksCache.reset();
 	}
 
-	void BaseDescriptorHeap::RebuildCacheIfNeed() const
+	void BaseDescriptorPool::RebuildCacheIfNeed() const
 	{
 		if(!_nativeBlocksCache.has_value())
 		{
@@ -84,20 +84,20 @@ namespace MMPEngine::Backend::Dx12
 		}
 	}
 
-	BaseDescriptorHeap::Handle::Handle() = default;
+	BaseDescriptorPool::Handle::Handle() = default;
 
-	const D3D12_CPU_DESCRIPTOR_HANDLE& BaseDescriptorHeap::Handle::GetCPUDescriptorHandle() const
+	const D3D12_CPU_DESCRIPTOR_HANDLE& BaseDescriptorPool::Handle::GetCPUDescriptorHandle() const
 	{
 		return _cpuHandle;
 	}
 
-	const D3D12_GPU_DESCRIPTOR_HANDLE& BaseDescriptorHeap::Handle::GetGPUDescriptorHandle() const
+	const D3D12_GPU_DESCRIPTOR_HANDLE& BaseDescriptorPool::Handle::GetGPUDescriptorHandle() const
 	{
 		assert(_heapFlags & D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE);
 		return _gpuHandle;
 	}
 
-	BaseDescriptorHeap::Handle::Handle(const std::shared_ptr<BaseDescriptorHeap>& descHeap, const Entry& entry)
+	BaseDescriptorPool::Handle::Handle(const std::shared_ptr<BaseDescriptorPool>& descHeap, const Entry& entry)
 		: Core::Pool::Handle(descHeap, entry), _descHeap(descHeap), _heapFlags(descHeap->_nativeSettings.flags)
 	{
 		if (_entry.has_value())
@@ -113,7 +113,7 @@ namespace MMPEngine::Backend::Dx12
 		}
 	}
 
-	BaseDescriptorHeap::Block::Block(std::uint32_t size, const Microsoft::WRL::ComPtr<ID3D12Device>& device, const NativeSettings& nativeSettings) : Core::Pool::Block(size)
+	BaseDescriptorPool::Block::Block(std::uint32_t size, const Microsoft::WRL::ComPtr<ID3D12Device>& device, const NativeSettings& nativeSettings) : Core::Pool::Block(size)
 	{
 		D3D12_DESCRIPTOR_HEAP_DESC heapDesc {};
 		heapDesc.NumDescriptors = size;
