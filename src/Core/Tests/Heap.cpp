@@ -119,5 +119,32 @@ namespace MMPEngine::Core::Tests
 
 	TEST_F(HeapTests, Alignment)
 	{
+		const auto h1 = std::make_unique<Heap::Handle>(_heap->Allocate({ 2, 4 }));
+		const auto h2 = std::make_unique<Heap::Handle>(_heap->Allocate({ 6, 4 }));
+		auto h3 = std::make_unique<Heap::Handle>(_heap->Allocate({ 1 }));
+		auto h4 = std::make_unique<Heap::Handle>(_heap->Allocate({ 1 }));
+
+		ASSERT_EQ(h1->GetLength(), 2);
+		ASSERT_EQ(h1->GetOffset(), 0);
+
+		ASSERT_EQ(h2->GetLength(), 6);
+		ASSERT_EQ(h2->GetOffset(), 4);
+
+		ASSERT_EQ(h3->GetLength(), 1);
+		ASSERT_EQ(h3->GetOffset(), 2);
+
+		ASSERT_EQ(h4->GetLength(), 1);
+		ASSERT_EQ(h4->GetOffset(), 3);
+
+		h3.reset();
+		h4.reset();
+
+		const auto h5 = std::make_unique<Heap::Handle>(_heap->Allocate({ 3, 2 }));
+		ASSERT_EQ(h5->GetLength(), 3);
+		ASSERT_EQ(h5->GetOffset(), 10);
+
+		const auto h6 = std::make_unique<Heap::Handle>(_heap->Allocate({ 2, 2 }));
+		ASSERT_EQ(h6->GetLength(), 2);
+		ASSERT_EQ(h6->GetOffset(), 2);
 	}
 }
