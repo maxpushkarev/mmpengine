@@ -119,12 +119,12 @@ namespace MMPEngine::Core
 			const Range left = {placeholderRange.from, allocatedRange.from - 1};
 			const Range right = {allocatedRange.to + 1, placeholderRange.to};
 
-			if(left.to > left.from)
+			if(left.to >= left.from)
 			{
 				AddRange(left);
 			}
 
-			if (right.to > right.from)
+			if (right.to >= right.from)
 			{
 				AddRange(right);
 			}
