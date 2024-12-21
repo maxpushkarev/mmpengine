@@ -72,7 +72,7 @@ namespace MMPEngine::Core
 		};
 		Settings _settings;
 		virtual Entry Allocate(const Request& request);
-		virtual std::unique_ptr<Block> InstantiateBlock(std::size_t size) = 0;
+		virtual std::unique_ptr<Block> InstantiateBlock(std::size_t size);
 		virtual void Release(const Entry& entry);
 
 		std::vector<std::unique_ptr<Block>> _blocks;

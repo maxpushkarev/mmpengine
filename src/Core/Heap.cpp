@@ -209,4 +209,9 @@ namespace MMPEngine::Core
 		_blocks.at(entry.blockIndex)->Release(entry.range);
 	}
 
+	std::unique_ptr<Heap::Block> Heap::InstantiateBlock(std::size_t size)
+	{
+		return std::make_unique<Block>(size);
+	}
+
 }
