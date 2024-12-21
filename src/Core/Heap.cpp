@@ -27,13 +27,12 @@ namespace MMPEngine::Core
 
 	Heap::Entry Heap::Allocate(const Request& request)
 	{
-		auto newBlockSize = _settings.initialSize;
+		auto newBlockSize = std::max(_settings.initialSize, request.size);
 		std::size_t blockIndex = 0;
 
 		while(true)
 		{
 			Block* blockPtr = nullptr;
-			newBlockSize = std::max(newBlockSize, request.size);
 
 			if(blockIndex == _blocks.size())
 			{
