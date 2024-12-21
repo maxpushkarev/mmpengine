@@ -72,9 +72,9 @@ namespace MMPEngine::Core
 			Block::Range range;
 		};
 		Settings _settings;
-		virtual Entry Allocate(const Request& request);
+		virtual Entry AllocateEntry(const Request& request);
 		virtual std::unique_ptr<Block> InstantiateBlock(std::size_t size);
-		virtual void Release(const Entry& entry);
+		virtual void ReleaseEntry(const Entry& entry);
 
 		class Handle
 		{

@@ -163,7 +163,7 @@ namespace MMPEngine::Core
 		AddRange(newRange);
 	}
 
-	Heap::Entry Heap::Allocate(const Request& request)
+	Heap::Entry Heap::AllocateEntry(const Request& request)
 	{
 		assert(request.size > 0);
 
@@ -204,7 +204,7 @@ namespace MMPEngine::Core
 		}
 	}
 
-	void Heap::Release(const Entry& entry)
+	void Heap::ReleaseEntry(const Entry& entry)
 	{
 		_blocks.at(entry.blockIndex)->Release(entry.range);
 	}
@@ -247,7 +247,7 @@ namespace MMPEngine::Core
 		{
 			if (const auto heapStrongRef = _heap.lock())
 			{
-				heapStrongRef->Release(_entry.value());
+				heapStrongRef->ReleaseEntry(_entry.value());
 			}
 		}
 	}
