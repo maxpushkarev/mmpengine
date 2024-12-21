@@ -28,7 +28,7 @@ namespace MMPEngine::Core
 			std::vector<bool> _freeSlots;
 		};
 	public:
-		struct Settings
+		struct Settings final
 		{
 			std::uint32_t initialCapacity = 4;
 			std::uint32_t growthFactor = 2;
