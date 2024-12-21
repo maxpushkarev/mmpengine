@@ -62,27 +62,28 @@ namespace MMPEngine::Core::Tests
 
 		ASSERT_EQ(h1->GetLength(), 2);
 		ASSERT_EQ(h1->GetOffset(), 0);
+		ASSERT_EQ(h1->GetBlockIndex(), 0);
 
 		ASSERT_EQ(h2->GetLength(), 4);
 		ASSERT_EQ(h2->GetOffset(), 2);
+		ASSERT_EQ(h2->GetBlockIndex(), 0);
 
 		ASSERT_EQ(h3->GetLength(), 8);
 		ASSERT_EQ(h3->GetOffset(), 6);
+		ASSERT_EQ(h3->GetBlockIndex(), 0);
 
 		h2.reset();
 		h2 = std::make_unique<Heap::Handle>(_heap->Allocate({ 3 }));
 
 		ASSERT_EQ(h2->GetLength(), 3);
 		ASSERT_EQ(h2->GetOffset(), 2);
+		ASSERT_EQ(h2->GetBlockIndex(), 0);
 
 		const auto h4 = std::make_unique<Heap::Handle>(_heap->Allocate({ 1 }));
 		ASSERT_EQ(h4->GetLength(), 1);
 		ASSERT_EQ(h4->GetOffset(), 5);
+		ASSERT_EQ(h4->GetBlockIndex(), 0);
 	};
-
-	TEST_F(HeapTests, NoDefragmentation)
-	{
-	}
 
 	TEST_F(HeapTests, BigAllocation)
 	{
@@ -99,5 +100,9 @@ namespace MMPEngine::Core::Tests
 		const auto h3 = std::make_unique<Heap::Handle>(_heap->Allocate({ 32 }));
 		ASSERT_EQ(1, h3->GetBlockIndex());
 		ASSERT_EQ(0, h3->GetOffset());
+	}
+
+	TEST_F(HeapTests, NoDefragmentation)
+	{
 	}
 }
