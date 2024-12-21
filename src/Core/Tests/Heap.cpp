@@ -104,5 +104,20 @@ namespace MMPEngine::Core::Tests
 
 	TEST_F(HeapTests, NoDefragmentation)
 	{
+		const auto h1 = std::make_unique<Heap::Handle>(_heap->Allocate({ 3 }));
+		auto h2 = std::make_unique<Heap::Handle>(_heap->Allocate({ 5 }));
+		auto h3 = std::make_unique<Heap::Handle>(_heap->Allocate({ 3 }));
+		const auto h4 = std::make_unique<Heap::Handle>(_heap->Allocate({ 2 }));
+
+		h2.reset();
+		h3.reset();
+
+		const auto h5 = std::make_unique<Heap::Handle>(_heap->Allocate({ 7 }));
+		ASSERT_EQ(h5->GetLength(), 7);
+		ASSERT_EQ(h5->GetOffset(), 3);
+	}
+
+	TEST_F(HeapTests, Alignment)
+	{
 	}
 }
