@@ -95,9 +95,9 @@ mmpengine_create_test_proj(${core_test_name} src/Core/Tests)
 
 target_link_libraries(${frontend_name_tmp} PRIVATE ${core_name_tmp} nlohmann_json::nlohmann_json)
 target_link_libraries(${feature_name_tmp} PRIVATE ${core_name_tmp} ${frontend_name_tmp} assimp)
-target_link_libraries(${core_test_name} PRIVATE ${core_name_tmp} GTest::gtest_main)
 
 include(GoogleTest)
+target_link_libraries(${core_test_name} PRIVATE ${core_name_tmp} GTest::gtest_main)
 gtest_discover_tests(${core_test_name})
 
 IF (WIN32)
