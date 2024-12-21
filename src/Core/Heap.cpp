@@ -36,7 +36,7 @@ namespace MMPEngine::Core
 
 	void Heap::Block::AddRange(const Range& range)
 	{
-		assert(range.to > range.from);
+		assert(range.to >= range.from);
 		assert(_freeRanges.emplace(range).second);
 		assert(_fromMap.emplace(range.from, range).second);
 		assert(_toMap.emplace(range.to, range).second);
@@ -44,7 +44,7 @@ namespace MMPEngine::Core
 
 	void Heap::Block::RemoveRange(const Range& range)
 	{
-		assert(range.to > range.from);
+		assert(range.to >= range.from);
 		assert(_freeRanges.erase(range) > 0);
 		assert(_fromMap.erase(range.from) > 0);
 		assert(_toMap.erase(range.to) > 0);
@@ -107,6 +107,9 @@ namespace MMPEngine::Core
 		if(rangePlaceholder.has_value())
 		{
 			assert(res.has_value());
+			assert(res.value().from >= rangePlaceholder.value().from && res.value().from <= rangePlaceholder.value().to);
+			assert(res.value().to >= rangePlaceholder.value().from && res.value().to <= rangePlaceholder.value().to);
+			assert(res.value().to >= res.value().from);
 
 			const auto placeholderRange = rangePlaceholder.value();
 			const auto allocatedRange = res.value();
