@@ -116,14 +116,16 @@ namespace MMPEngine::Core
 
 			RemoveRange(placeholderRange);
 
-			const Range left = {placeholderRange.from, allocatedRange.from - 1};
-			const Range right = {allocatedRange.to + 1, placeholderRange.to};
-
-			if(left.to >= left.from)
+			if(allocatedRange.from > 0)
 			{
-				AddRange(left);
+				const Range left = { placeholderRange.from, allocatedRange.from - 1 };
+				if (left.to >= left.from)
+				{
+					AddRange(left);
+				}
 			}
 
+			const Range right = { allocatedRange.to + 1, placeholderRange.to };
 			if (right.to >= right.from)
 			{
 				AddRange(right);
@@ -143,16 +145,18 @@ namespace MMPEngine::Core
 	{
 		Range newRange = range;
 
-		const auto adjacentTo = newRange.from - 1;
-		const auto adjacentFrom = newRange.to + 1;
-
-		if(_toMap.find(adjacentTo) != _toMap.cend())
+		if(newRange.from > 0)
 		{
-			const auto r = _toMap.at(adjacentTo);
-			RemoveRange(r);
-			newRange.from = r.from;
+			const auto adjacentTo = newRange.from - 1;
+			if (_toMap.find(adjacentTo) != _toMap.cend())
+			{
+				const auto r = _toMap.at(adjacentTo);
+				RemoveRange(r);
+				newRange.from = r.from;
+			}
 		}
 
+		const auto adjacentFrom = newRange.to + 1;
 		if(_fromMap.find(adjacentFrom) != _fromMap.cend())
 		{
 			const auto r = _fromMap.at(adjacentFrom);
