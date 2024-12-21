@@ -12,8 +12,8 @@ namespace MMPEngine::Core
 	public:
 		struct Request final
 		{
-			std::uint32_t size = 128;
-			std::optional<std::uint32_t> alignment = std::nullopt;
+			std::size_t size = 128;
+			std::optional<std::size_t> alignment = std::nullopt;
 		};
 	protected:
 		class Block
@@ -22,13 +22,13 @@ namespace MMPEngine::Core
 
 			struct Range final
 			{
-				std::uint32_t from;
-				std::uint32_t to;
+				std::size_t from;
+				std::size_t to;
 
-				std::uint32_t GetLength() const;
+				std::size_t GetLength() const;
 			};
 
-			Block(std::uint32_t size);
+			Block(std::size_t size);
 			Block(const Block&) = delete;
 			Block(Block&&) = delete;
 			Block& operator=(const Block&) = delete;
@@ -37,6 +37,7 @@ namespace MMPEngine::Core
 
 			std::optional<Range> TryAllocate(const Request& request);
 			void Release(const Range& range);
+			std::size_t GetSize() const;
 
 		private:
 			struct RangeComparer final
@@ -47,14 +48,15 @@ namespace MMPEngine::Core
 			void RemoveRange(const Range& range);
 
 			std::set<Range, RangeComparer> _freeRanges;
-			std::unordered_map<std::uint32_t, Range> _fromMap;
-			std::unordered_map<std::uint32_t, Range> _toMap;
+			std::unordered_map<std::size_t, Range> _fromMap;
+			std::unordered_map<std::size_t, Range> _toMap;
+			std::size_t _size;
 		};
 	public:
 		struct Settings final
 		{
-			std::uint32_t initialSize = 1024;
-			std::uint32_t growthFactor = 2;
+			std::size_t initialSize = 1024;
+			std::size_t growthFactor = 2;
 		};
 		Heap(const Settings& settings);
 		Heap(const Heap&) = delete;
@@ -65,12 +67,12 @@ namespace MMPEngine::Core
 	protected:
 		struct Entry final
 		{
-			std::uint32_t blockIndex;
+			std::size_t blockIndex;
 			Block::Range range;
 		};
 		Settings _settings;
 		virtual Entry Allocate(const Request& request);
-		virtual std::unique_ptr<Block> InstantiateBlock(std::uint32_t size) = 0;
+		virtual std::unique_ptr<Block> InstantiateBlock(std::size_t size) = 0;
 		virtual void Release(const Entry& entry);
 
 		std::vector<std::unique_ptr<Block>> _blocks;

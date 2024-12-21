@@ -9,13 +9,13 @@ namespace MMPEngine::Core
 	Heap::~Heap() = default;
 
 
-	Heap::Block::Block(std::uint32_t size)
+	Heap::Block::Block(std::size_t size)
 	{
 		AddRange({0, size - 1});
 	}
 	Heap::Block::~Block() = default;
 
-	std::uint32_t Heap::Block::Range::GetLength() const
+	std::size_t Heap::Block::Range::GetLength() const
 	{
 		assert(to >= from);
 		return to - from + 1;
@@ -130,6 +130,12 @@ namespace MMPEngine::Core
 		return res;
 	}
 
+	std::size_t Heap::Block::GetSize() const
+	{
+		return _size;
+	}
+
+
 	void Heap::Block::Release(const Range& range)
 	{
 	}
@@ -138,7 +144,6 @@ namespace MMPEngine::Core
 	{
 		assert(request.size > 0);
 
-		auto newBlockSize = std::max(_settings.initialSize, request.size);
 		std::size_t blockIndex = 0;
 
 		while(true)
@@ -147,6 +152,13 @@ namespace MMPEngine::Core
 
 			if(blockIndex == _blocks.size())
 			{
+				auto newBlockSize = std::max(_settings.initialSize, request.size);
+
+				if(!_blocks.empty())
+				{
+					newBlockSize = _blocks.back()->GetSize() * _settings.growthFactor;
+				}
+
 				_blocks.emplace_back(InstantiateBlock(newBlockSize));
 				blockPtr = _blocks.back().get();
 			}
@@ -162,10 +174,9 @@ namespace MMPEngine::Core
 				assert(!request.alignment.has_value() || ((range.value().from % request.alignment.value()) == 0));
 				assert(range.value().GetLength() == request.size);
 
-				return { static_cast<std::uint32_t>(blockIndex), range.value() };
+				return { static_cast<std::size_t>(blockIndex), range.value() };
 			}
 
-			newBlockSize *= _settings.growthFactor;
 			++ blockIndex;
 		}
 	}
