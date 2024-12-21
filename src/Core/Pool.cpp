@@ -34,14 +34,14 @@ namespace MMPEngine::Core
 
 	Pool::Handle::Handle() = default;
 
-	Pool::Handle::Handle(const std::shared_ptr<Pool>& heap, const Entry& entry) : _entry(entry), _heap(heap)
+	Pool::Handle::Handle(const std::shared_ptr<Pool>& pool, const Entry& entry) : _entry(entry), _pool(pool)
 	{
 	}
 
 	Pool::Handle::Handle(Handle&& movableHandle) noexcept
-		: _entry{ movableHandle._entry }, _heap{ std::move(movableHandle._heap) }
+		: _entry{ movableHandle._entry }, _pool{ std::move(movableHandle._pool) }
 	{
-		movableHandle._heap.reset();
+		movableHandle._pool.reset();
 		movableHandle._entry = std::nullopt;
 	}
 
@@ -49,10 +49,10 @@ namespace MMPEngine::Core
 	{
 		if (this != &movableHandle)
 		{
-			_heap = std::move(movableHandle._heap);
+			_pool = std::move(movableHandle._pool);
 			_entry = movableHandle._entry;
 
-			movableHandle._heap.reset();
+			movableHandle._pool.reset();
 			movableHandle._entry = std::nullopt;
 		}
 		return *this;
@@ -62,9 +62,9 @@ namespace MMPEngine::Core
 	{
 		if(_entry.has_value())
 		{
-			if (const auto heapStrongRef = _heap.lock())
+			if (const auto poolStrongRef = _pool.lock())
 			{
-				heapStrongRef->ReleaseEntry(_entry.value());
+				poolStrongRef->ReleaseEntry(_entry.value());
 			}
 		}
 	}

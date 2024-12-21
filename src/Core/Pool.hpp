@@ -37,7 +37,7 @@ namespace MMPEngine::Core
 		{
 		protected:
 			Handle();
-			Handle(const std::shared_ptr<Pool>& heap, const Entry& entry);
+			Handle(const std::shared_ptr<Pool>& pool, const Entry& entry);
 		public:
 			Handle(const Handle&) = delete;
 			Handle(Handle&& movableHandle) noexcept;
@@ -46,7 +46,7 @@ namespace MMPEngine::Core
 			virtual ~Handle();
 		protected:
 			std::optional<Entry> _entry;
-			std::weak_ptr<Pool> _heap;
+			std::weak_ptr<Pool> _pool;
 		};
 	protected:
 		Pool(const Settings& settings);

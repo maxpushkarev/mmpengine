@@ -64,6 +64,7 @@ namespace MMPEngine::Core
 		Heap& operator=(const Heap&) = delete;
 		Heap& operator=(Heap&&) noexcept = delete;
 		virtual ~Heap();
+
 	protected:
 		struct Entry final
 		{
@@ -74,6 +75,22 @@ namespace MMPEngine::Core
 		virtual Entry Allocate(const Request& request);
 		virtual std::unique_ptr<Block> InstantiateBlock(std::size_t size);
 		virtual void Release(const Entry& entry);
+
+		class Handle
+		{
+		protected:
+			Handle();
+			Handle(const std::shared_ptr<Heap>& heap, const Entry& entry);
+		public:
+			Handle(const Handle&) = delete;
+			Handle(Handle&& movableHandle) noexcept;
+			Handle& operator=(const Handle&) = delete;
+			Handle& operator=(Handle&& movableHandle) noexcept;
+			virtual ~Handle();
+		protected:
+			std::optional<Entry> _entry;
+			std::weak_ptr<Heap> _heap;
+		};
 
 		std::vector<std::unique_ptr<Block>> _blocks;
 	};

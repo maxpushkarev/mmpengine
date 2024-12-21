@@ -214,4 +214,42 @@ namespace MMPEngine::Core
 		return std::make_unique<Block>(size);
 	}
 
+
+	Heap::Handle::Handle() = default;
+
+	Heap::Handle::Handle(const std::shared_ptr<Heap>& pool, const Entry& entry) : _entry(entry), _heap(pool)
+	{
+	}
+
+	Heap::Handle::Handle(Handle&& movableHandle) noexcept
+		: _entry{ movableHandle._entry }, _heap{ std::move(movableHandle._heap) }
+	{
+		movableHandle._heap.reset();
+		movableHandle._entry = std::nullopt;
+	}
+
+	Heap::Handle& Heap::Handle::operator=(Handle&& movableHandle) noexcept
+	{
+		if (this != &movableHandle)
+		{
+			_heap = std::move(movableHandle._heap);
+			_entry = movableHandle._entry;
+
+			movableHandle._heap.reset();
+			movableHandle._entry = std::nullopt;
+		}
+		return *this;
+	}
+
+	Heap::Handle::~Handle()
+	{
+		if (_entry.has_value())
+		{
+			if (const auto heapStrongRef = _heap.lock())
+			{
+				heapStrongRef->Release(_entry.value());
+			}
+		}
+	}
+
 }
