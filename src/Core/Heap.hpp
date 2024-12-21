@@ -1,6 +1,7 @@
 #pragma once
 #include <memory>
 #include <optional>
+#include <set>
 #include <vector>
 
 namespace MMPEngine::Core
@@ -22,6 +23,8 @@ namespace MMPEngine::Core
 			{
 				std::uint32_t from;
 				std::uint32_t to;
+
+				std::uint32_t GetLength() const;
 			};
 
 			Block(std::uint32_t size);
@@ -33,7 +36,16 @@ namespace MMPEngine::Core
 
 			std::optional<Range> TryAllocate(const Request& request);
 			void Release(const Range& range);
-		
+
+		private:
+			struct RangeComparer final
+			{
+				bool operator()(const Range& lhs, const Range& rhs) const;
+			};
+			void AddRange(const Range& range);
+			void RemoveRange(const Range& range);
+
+			std::set<Range, RangeComparer> _freeRanges;
 		};
 	public:
 		struct Settings final
