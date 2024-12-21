@@ -138,6 +138,26 @@ namespace MMPEngine::Core
 
 	void Heap::Block::Release(const Range& range)
 	{
+		Range newRange = range;
+
+		const auto adjacentTo = newRange.from - 1;
+		const auto adjacentFrom = newRange.to + 1;
+
+		if(_toMap.find(adjacentTo) != _toMap.cend())
+		{
+			const auto r = _toMap.at(adjacentTo);
+			RemoveRange(r);
+			newRange.from = r.from;
+		}
+
+		if(_fromMap.find(adjacentFrom) != _fromMap.cend())
+		{
+			const auto r = _fromMap.at(adjacentFrom);
+			RemoveRange(r);
+			newRange.to = r.to;
+		}
+
+		AddRange(newRange);
 	}
 
 	Heap::Entry Heap::Allocate(const Request& request)
