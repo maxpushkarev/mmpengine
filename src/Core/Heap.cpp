@@ -179,7 +179,7 @@ namespace MMPEngine::Core
 
 				if(!_blocks.empty())
 				{
-					newBlockSize = _blocks.back()->GetSize() * _settings.growthFactor;
+					newBlockSize = std::max(_blocks.back()->GetSize() * _settings.growthFactor, request.size);
 				}
 
 				_blocks.emplace_back(InstantiateBlock(newBlockSize));

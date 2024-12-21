@@ -75,4 +75,6 @@ namespace MMPEngine::Core::Tests
 		ASSERT_EQ(h4->GetLength(), 1);
 		ASSERT_EQ(h4->GetOffset(), 5);
 	};
+
+
 }
