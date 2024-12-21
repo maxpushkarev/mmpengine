@@ -20,6 +20,10 @@ namespace MMPEngine::Core::Tests
 			{
 				return _entry.value().range.GetLength();
 			}
+			std::size_t GetBlockIndex() const
+			{
+				return _entry.value().blockIndex;
+			}
 		};
 		Handle Allocate(const Core::Heap::Request& request)
 		{
@@ -76,5 +80,24 @@ namespace MMPEngine::Core::Tests
 		ASSERT_EQ(h4->GetOffset(), 5);
 	};
 
+	TEST_F(HeapTests, NoDefragmentation)
+	{
+	}
 
+	TEST_F(HeapTests, BigAllocation)
+	{
+		const auto h1 = std::make_unique<Heap::Handle>(_heap->Allocate({ 2048 }));
+		auto h2 = std::make_unique<Heap::Handle>(_heap->Allocate({ 4096 }));
+
+		ASSERT_EQ(0, h1->GetBlockIndex());
+		ASSERT_EQ(1, h2->GetBlockIndex());
+
+		ASSERT_EQ(0, h1->GetOffset());
+		ASSERT_EQ(0, h2->GetOffset());
+
+		h2.reset();
+		const auto h3 = std::make_unique<Heap::Handle>(_heap->Allocate({ 32 }));
+		ASSERT_EQ(1, h3->GetBlockIndex());
+		ASSERT_EQ(0, h3->GetOffset());
+	}
 }
