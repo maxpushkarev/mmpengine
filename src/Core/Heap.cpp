@@ -37,17 +37,17 @@ namespace MMPEngine::Core
 	void Heap::Block::AddRange(const Range& range)
 	{
 		assert(range.to > range.from);
-
-		const auto addFreeRangeResult = _freeRanges.emplace(range);
-		assert(addFreeRangeResult.second);
+		assert(_freeRanges.emplace(range).second);
+		assert(_fromMap.emplace(range.from, range).second);
+		assert(_toMap.emplace(range.to, range).second);
 	}
 
 	void Heap::Block::RemoveRange(const Range& range)
 	{
 		assert(range.to > range.from);
-
-		const auto freeRangeEraseResult = _freeRanges.erase(range);
-		assert(freeRangeEraseResult > 0);
+		assert(_freeRanges.erase(range) > 0);
+		assert(_fromMap.erase(range.from) > 0);
+		assert(_toMap.erase(range.to) > 0);
 	}
 
 

@@ -2,6 +2,7 @@
 #include <memory>
 #include <optional>
 #include <set>
+#include <unordered_map>
 #include <vector>
 
 namespace MMPEngine::Core
@@ -46,6 +47,8 @@ namespace MMPEngine::Core
 			void RemoveRange(const Range& range);
 
 			std::set<Range, RangeComparer> _freeRanges;
+			std::unordered_map<std::uint32_t, Range> _fromMap;
+			std::unordered_map<std::uint32_t, Range> _toMap;
 		};
 	public:
 		struct Settings final
