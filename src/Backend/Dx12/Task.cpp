@@ -26,10 +26,13 @@ namespace MMPEngine::Backend::Dx12
 			h->CollectNativeBlocks(_nativeHeaps);
 		}
 
-		_specificStreamContext->PopulateCommandsInList()->SetDescriptorHeaps(
-			static_cast<std::uint32_t>(_nativeHeaps.size()),
-			_nativeHeaps.data()
-		);
+		if(!_nativeHeaps.empty())
+		{
+			_specificStreamContext->PopulateCommandsInList()->SetDescriptorHeaps(
+				static_cast<std::uint32_t>(_nativeHeaps.size()),
+				_nativeHeaps.data()
+			);
+		}
 	}
 
 }
