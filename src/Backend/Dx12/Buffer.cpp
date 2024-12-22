@@ -147,14 +147,6 @@ namespace MMPEngine::Backend::Dx12
 	}
 
 	Buffer::Buffer() = default;
-	Buffer::Buffer(std::string_view name) : ResourceEntity(name)
-	{
-	}
-
-
-	MappedBuffer::MappedBuffer(std::string_view name) : Buffer(name)
-	{
-	}
 
 	MappedBuffer::MappedBuffer() = default;
 
@@ -209,7 +201,7 @@ namespace MMPEngine::Backend::Dx12
 				&heapProperties,
 				D3D12_HEAP_FLAG_NONE,
 				&resourceDesc,
-				ResourceEntity::_defaultState,
+				ResourceEntity::kDefaultState,
 				nullptr,
 				IID_PPV_ARGS(&bufferResource));
 

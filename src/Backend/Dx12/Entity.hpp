@@ -26,10 +26,9 @@ namespace MMPEngine::Backend::Dx12
 	class ResourceEntity : public BaseEntity
 	{
 	protected:
-		ResourceEntity(std::string_view name);
 		ResourceEntity();
 	public:
-
+		static constexpr auto kDefaultState = D3D12_RESOURCE_STATE_COMMON;
 		class SwitchStateTaskContext final : public Core::EntityTaskContext<ResourceEntity>
 		{
 		public:
@@ -49,8 +48,12 @@ namespace MMPEngine::Backend::Dx12
 		void SetNativeResource(const Microsoft::WRL::ComPtr<ID3D12Resource>& nativeResource, std::uint32_t offsetInsideResource);
 		Microsoft::WRL::ComPtr<ID3D12Resource> _nativeResource;
 		std::uint32_t _offsetInsideResource = 0;
-		static constexpr auto _defaultState = D3D12_RESOURCE_STATE_COMMON;
-	private:
-		D3D12_RESOURCE_STATES _currentStateMask = _defaultState;
+		D3D12_RESOURCE_STATES _currentStateMask = kDefaultState;
+	};
+
+	class ResourceEntityWrapper final : public ResourceEntity, public Core::BaseEntity
+	{
+	public:
+		ResourceEntityWrapper(std::string_view name, const Microsoft::WRL::ComPtr<ID3D12Resource>& resource, D3D12_RESOURCE_STATES state);
 	};
 }

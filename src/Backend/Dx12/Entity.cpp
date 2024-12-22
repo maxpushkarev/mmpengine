@@ -9,10 +9,6 @@ namespace MMPEngine::Backend::Dx12
 
 	ResourceEntity::ResourceEntity() = default;
 
-	ResourceEntity::ResourceEntity(std::string_view name)
-	{
-	}
-
 	const BaseDescriptorPool::Handle* BaseEntity::GetShaderInVisibleDescriptorHandle() const
 	{
 		return nullptr;
@@ -68,5 +64,12 @@ namespace MMPEngine::Backend::Dx12
 				entity->_currentStateMask = tc->nextStateMask;
 			}
 		}
+	}
+
+	ResourceEntityWrapper::ResourceEntityWrapper(std::string_view name, const Microsoft::WRL::ComPtr<ID3D12Resource>& resource, D3D12_RESOURCE_STATES state)
+		: Core::BaseEntity(name)
+	{
+		SetNativeResource(resource, 0);
+		this->_currentStateMask = state;
 	}
 }

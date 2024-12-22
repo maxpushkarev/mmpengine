@@ -36,7 +36,6 @@ namespace MMPEngine::Backend::Dx12
 	class Buffer : public ResourceEntity
 	{
 	public:
-		Buffer(std::string_view name);
 		Buffer();
 
 		class InitTaskContext final : public Core::EntityTaskContext<Buffer>
@@ -68,7 +67,6 @@ namespace MMPEngine::Backend::Dx12
 		friend class MMPEngine::Backend::Dx12::Buffer::CreateBufferTask;
 
 	public:
-		MappedBuffer(std::string_view name);
 		MappedBuffer();
 		MappedBuffer(const MappedBuffer&) = delete;
 		MappedBuffer(MappedBuffer&&) noexcept = delete;
