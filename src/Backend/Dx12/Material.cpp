@@ -84,7 +84,17 @@ namespace MMPEngine::Backend::Dx12
 					case Core::BaseMaterial::Parameters::Buffer::Type::Uniform:
 						{
 							switchStateTaskContext->nextStateMask = D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE;
-							rootParameters[index].InitAsConstantBufferView(calculateBaseRegisterFn(D3D12_DESCRIPTOR_RANGE_TYPE_CBV), 0, D3D12_SHADER_VISIBILITY_ALL);
+
+							D3D12_DESCRIPTOR_RANGE range{};
+							range.NumDescriptors = 1;
+							range.OffsetInDescriptorsFromTableStart = 0;
+							range.RegisterSpace = 0;
+
+							range.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
+							range.BaseShaderRegister = calculateBaseRegisterFn(D3D12_DESCRIPTOR_RANGE_TYPE_CBV);
+
+							rootParameters[index].InitAsDescriptorTable(1, &range, D3D12_SHADER_VISIBILITY_ALL);
+
 							break;
 						}
 					case Core::BaseMaterial::Parameters::Buffer::Type::ReadonlyAccess:

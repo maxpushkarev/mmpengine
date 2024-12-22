@@ -136,7 +136,7 @@ namespace MMPEngine::Backend::Dx12
 							{
 								_applyParametersCallbacks.emplace_back([nativeBuffer, index](const auto& ctx)
 								{
-									ctx->PopulateCommandsInList()->SetComputeRootConstantBufferView(static_cast<std::uint32_t>(index), nativeBuffer->GetNativeResource()->GetGPUVirtualAddress());
+									ctx->PopulateCommandsInList()->SetComputeRootDescriptorTable(static_cast<std::uint32_t>(index), nativeBuffer->GetShaderVisibleDescriptorHandle()->GetGPUDescriptorHandle());
 								});
 								break;
 							}
