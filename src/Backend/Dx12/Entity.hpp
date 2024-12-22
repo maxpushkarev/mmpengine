@@ -49,10 +49,4 @@ namespace MMPEngine::Backend::Dx12
 		std::uint32_t _offsetInsideResource = 0;
 		D3D12_RESOURCE_STATES _currentStateMask = kDefaultState;
 	};
-
-	class ResourceEntityWrapper final : public ResourceEntity, public Core::BaseEntity
-	{
-	public:
-		ResourceEntityWrapper(std::string_view name, const Microsoft::WRL::ComPtr<ID3D12Resource>& resource, D3D12_RESOURCE_STATES state);
-	};
 }

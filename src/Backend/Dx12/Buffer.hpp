@@ -153,6 +153,10 @@ namespace MMPEngine::Backend::Dx12
 			ResetCounter(const std::shared_ptr<ResetCounterTaskContext>& ctx);
 		protected:
 			void OnScheduled(const std::shared_ptr<Core::BaseStream>& stream) override;
+		private:
+			std::shared_ptr<BindDescriptorPoolsTask> _bindDescriptorPoolsTask;
+			std::shared_ptr<Impl> _impl;
+			std::shared_ptr<Core::BaseTask> _switchStateTask;
 		};
 
 	public:
@@ -282,6 +286,7 @@ namespace MMPEngine::Backend::Dx12
 		std::shared_ptr<Core::BaseTask> CreateCopyToBufferTask(const std::shared_ptr<Core::Buffer>& dst, std::size_t byteLength, std::size_t srcByteOffset, std::size_t dstByteOffset) const override;
 		std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;
 		std::shared_ptr<Core::BaseTask> CreateSwitchStateTask(D3D12_RESOURCE_STATES nextStateMask) override;
+		const BaseDescriptorPool::Handle* GetShaderVisibleDescriptorHandle() const override;
 
 	private:
 
@@ -313,6 +318,7 @@ namespace MMPEngine::Backend::Dx12
 
 		static std::size_t GetRequiredSize();
 		ConstantBufferHeap::Handle _cbHeapHandle;
+		BaseDescriptorPool::Handle _descriptorHeapHandle;
 	};
 
 	template<class TUniformBufferData>
@@ -361,6 +367,12 @@ namespace MMPEngine::Backend::Dx12
 	}
 
 	template<class TUniformBufferData>
+	inline const BaseDescriptorPool::Handle* UniformBuffer<TUniformBufferData>::GetShaderVisibleDescriptorHandle() const
+	{
+		return &(this->_descriptorHeapHandle);
+	}
+
+	template<class TUniformBufferData>
 	inline std::size_t UniformBuffer<TUniformBufferData>::GetRequiredSize()
 	{
 		const auto res = (
@@ -406,14 +418,23 @@ namespace MMPEngine::Backend::Dx12
 						ctx->entity->GetRequiredSize(),
 						D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT
 					});
-					ctx->entity->SetNativeResource(
-						ctx->entity->_cbHeapHandle.GetUploadBlock()->GetNativeResource(), static_cast<std::uint32_t>(ctx->entity->_cbHeapHandle.GetOffset())
-					);
 				},
 				Core::FunctionalTask::Handler {},
 				Core::FunctionalTask::Handler {}
 			),
-			this->_specificGlobalContext->constantBufferEntityHeap->CreateTaskToInitializeBlocks()
+			this->_specificGlobalContext->constantBufferEntityHeap->CreateTaskToInitializeBlocks(),
+			std::make_shared<Core::FunctionalTask>(
+				Core::FunctionalTask::Handler {},
+				[ctx = this->GetTaskContext(), gc = this->_specificGlobalContext](const auto&)
+				{
+					ctx->entity->SetNativeResource(
+						ctx->entity->_cbHeapHandle.GetUploadBlock()->GetNativeResource(), static_cast<std::uint32_t>(ctx->entity->_cbHeapHandle.GetOffset())
+					);
+
+					ctx->entity->_descriptorHeapHandle = gc->cbvSrvUavShaderVisibleDescPool->Allocate();
+				},
+				Core::FunctionalTask::Handler {}
+			),
 		}));
 	}
 

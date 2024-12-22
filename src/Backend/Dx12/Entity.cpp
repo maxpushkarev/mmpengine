@@ -58,11 +58,4 @@ namespace MMPEngine::Backend::Dx12
 			}
 		}
 	}
-
-	ResourceEntityWrapper::ResourceEntityWrapper(std::string_view name, const Microsoft::WRL::ComPtr<ID3D12Resource>& resource, D3D12_RESOURCE_STATES state)
-		: Core::BaseEntity(name)
-	{
-		SetNativeResource(resource, 0);
-		this->_currentStateMask = state;
-	}
 }

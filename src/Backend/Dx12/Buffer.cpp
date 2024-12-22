@@ -399,18 +399,20 @@ namespace MMPEngine::Backend::Dx12
 
 	CounteredUnorderedAccessBuffer::ResetCounter::ResetCounter(const std::shared_ptr<ResetCounterTaskContext>& ctx) : Task<ResetCounterTaskContext>(ctx)
 	{
+		_bindDescriptorPoolsTask = std::make_shared<BindDescriptorPoolsTask>(std::make_shared<BindDescriptorPoolsTaskContext>());
+		_impl = std::make_shared<Impl>(GetTaskContext());
+		_switchStateTask = GetTaskContext()->entity->CreateSwitchStateTask(D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 	}
 
 	void CounteredUnorderedAccessBuffer::ResetCounter::OnScheduled(const std::shared_ptr<Core::BaseStream>& stream)
 	{
 		Task::OnScheduled(stream);
 
-		const auto bindDescHeapsCtx = std::make_shared<BindDescriptorPoolsTaskContext>();
-		bindDescHeapsCtx->FillDescriptors(_specificGlobalContext);
+		_bindDescriptorPoolsTask->GetTaskContext()->FillDescriptors(_specificGlobalContext);
 
-		stream->Schedule(GetTaskContext()->entity->CreateSwitchStateTask(D3D12_RESOURCE_STATE_UNORDERED_ACCESS));
-		stream->Schedule(std::make_shared<BindDescriptorPoolsTask>(bindDescHeapsCtx));
-		stream->Schedule(std::make_shared<Impl>(GetTaskContext()));
+		stream->Schedule(_switchStateTask);
+		stream->Schedule(_bindDescriptorPoolsTask);
+		stream->Schedule(_impl);
 	}
 
 
