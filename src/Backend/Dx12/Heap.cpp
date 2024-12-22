@@ -51,4 +51,35 @@ namespace MMPEngine::Backend::Dx12
 		return { shared_from_this(), entry, block->GetEntity()};
 	}
 
+	std::shared_ptr<Core::BaseTask> ConstantBufferHeap::CreateTaskToInitializeBlocks()
+	{
+		const auto ctx = std::make_shared<InitBlocksTaskContext>();
+		ctx->heap = std::dynamic_pointer_cast<ConstantBufferHeap>(shared_from_this());
+		return std::make_shared<InitBlocksTask>(ctx);
+	}
+
+
+	ConstantBufferHeap::InitBlocksTask::InitBlocksTask(const std::shared_ptr<InitBlocksTaskContext>& ctx)
+		: _ctx(ctx)
+	{
+	}
+
+	void ConstantBufferHeap::InitBlocksTask::Run(const std::shared_ptr<Core::BaseStream>& stream)
+	{
+		const auto heap = _ctx->heap;
+
+		for(const auto& b : heap->_blocks)
+		{
+			const auto castedBlock = dynamic_cast<Block*>(b.get());
+			const auto entity = castedBlock->GetEntity();
+			const auto id = entity->GetId();
+
+			if(heap->_initializedBlockIds.find(id) == heap->_initializedBlockIds.cend())
+			{
+				heap->_initializedBlockIds.emplace(id);
+				stream->Schedule(entity->CreateInitializationTask());
+			}
+		}
+	}
+
 }
