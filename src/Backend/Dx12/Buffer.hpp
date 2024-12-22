@@ -316,12 +316,12 @@ namespace MMPEngine::Backend::Dx12
 	};
 
 	template<class TUniformBufferData>
-	inline UniformBuffer<TUniformBufferData>::UniformBuffer(std::string_view name) : Core::UniformBuffer<TUniformBufferData>(Core::Buffer::Settings {GetRequiredSize(), std::string {name}})
+	inline UniformBuffer<TUniformBufferData>::UniformBuffer(std::string_view name) : Core::UniformBuffer<TUniformBufferData>(Core::Buffer::Settings {sizeof(Core::UniformBuffer<TUniformBufferData>::TData), std::string {name}})
 	{
 	}
 
 	template<class TUniformBufferData>
-	inline UniformBuffer<TUniformBufferData>::UniformBuffer() : Core::UniformBuffer<TUniformBufferData>(Core::Buffer::Settings {GetRequiredSize(), ""})
+	inline UniformBuffer<TUniformBufferData>::UniformBuffer() : Core::UniformBuffer<TUniformBufferData>(Core::Buffer::Settings {sizeof(Core::UniformBuffer<TUniformBufferData>::TData), ""})
 	{
 	}
 
@@ -406,6 +406,9 @@ namespace MMPEngine::Backend::Dx12
 						ctx->entity->GetRequiredSize(),
 						D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT
 					});
+					ctx->entity->SetNativeResource(
+						ctx->entity->_cbHeapHandle.GetUploadBlock()->GetNativeResource(), static_cast<std::uint32_t>(ctx->entity->_cbHeapHandle.GetOffset())
+					);
 				},
 				Core::FunctionalTask::Handler {},
 				Core::FunctionalTask::Handler {}
