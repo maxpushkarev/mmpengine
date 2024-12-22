@@ -112,7 +112,6 @@ namespace MMPEngine::Backend::Dx12
 		};
 
 	public:
-		const BaseDescriptorPool::Handle* GetShaderInVisibleDescriptorHandle() const override;
 		const BaseDescriptorPool::Handle* GetShaderVisibleDescriptorHandle() const override;
 
 		const BaseDescriptorPool::Handle* GetShaderInVisibleCounterDescriptorHandle() const;
@@ -120,8 +119,6 @@ namespace MMPEngine::Backend::Dx12
 
 	private:
 		BaseDescriptorPool::Handle _shaderVisibleHandle;
-		BaseDescriptorPool::Handle _shaderInVisibleHandle;
-
 		BaseDescriptorPool::Handle _shaderVisibleHandleCounter;
 		BaseDescriptorPool::Handle _shaderInVisibleHandleCounter;
 	};

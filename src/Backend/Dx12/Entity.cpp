@@ -5,14 +5,7 @@ namespace MMPEngine::Backend::Dx12
 {
 	BaseEntity::BaseEntity() = default;
 	BaseEntity::~BaseEntity() = default;
-
-
 	ResourceEntity::ResourceEntity() = default;
-
-	const BaseDescriptorPool::Handle* BaseEntity::GetShaderInVisibleDescriptorHandle() const
-	{
-		return nullptr;
-	}
 
 	const BaseDescriptorPool::Handle* BaseEntity::GetShaderVisibleDescriptorHandle() const
 	{
