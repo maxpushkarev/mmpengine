@@ -196,7 +196,6 @@ namespace MMPEngine::Backend::Dx12
 			
 			Microsoft::WRL::ComPtr<ID3D12Resource> bufferResource = nullptr;
 
-			//TODO: batch constant buffers
 			ac->device->CreateCommittedResource(
 				&heapProperties,
 				D3D12_HEAP_FLAG_NONE,

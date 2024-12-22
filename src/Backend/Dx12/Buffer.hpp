@@ -322,12 +322,12 @@ namespace MMPEngine::Backend::Dx12
 	};
 
 	template<class TUniformBufferData>
-	inline UniformBuffer<TUniformBufferData>::UniformBuffer(std::string_view name) : Core::UniformBuffer<TUniformBufferData>(Core::Buffer::Settings {sizeof(Core::UniformBuffer<TUniformBufferData>::TData), std::string {name}})
+	inline UniformBuffer<TUniformBufferData>::UniformBuffer(std::string_view name) : Core::UniformBuffer<TUniformBufferData>(Core::Buffer::Settings {GetRequiredSize(), std::string {name}})
 	{
 	}
 
 	template<class TUniformBufferData>
-	inline UniformBuffer<TUniformBufferData>::UniformBuffer() : Core::UniformBuffer<TUniformBufferData>(Core::Buffer::Settings {sizeof(Core::UniformBuffer<TUniformBufferData>::TData), ""})
+	inline UniformBuffer<TUniformBufferData>::UniformBuffer() : Core::UniformBuffer<TUniformBufferData>(Core::Buffer::Settings {GetRequiredSize(), ""})
 	{
 	}
 
@@ -432,6 +432,12 @@ namespace MMPEngine::Backend::Dx12
 					);
 
 					ctx->entity->_descriptorHeapHandle = gc->cbvSrvUavShaderVisibleDescPool->Allocate();
+
+					D3D12_CONSTANT_BUFFER_VIEW_DESC viewDesc {};
+					viewDesc.BufferLocation = ctx->entity->GetNativeResource()->GetGPUVirtualAddress() + static_cast<D3D12_GPU_VIRTUAL_ADDRESS>(ctx->entity->_cbHeapHandle.GetOffset());
+					viewDesc.SizeInBytes = static_cast<std::uint32_t>(ctx->entity->GetSettings().byteLength);
+
+					gc->device->CreateConstantBufferView(&viewDesc, ctx->entity->_descriptorHeapHandle.GetCPUDescriptorHandle());
 				},
 				Core::FunctionalTask::Handler {}
 			),
