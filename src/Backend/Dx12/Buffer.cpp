@@ -244,6 +244,16 @@ namespace MMPEngine::Backend::Dx12
 		return &_shaderInVisibleHandle;
 	}
 
+	const BaseDescriptorPool::Handle* UaBuffer::GetShaderInVisibleCounterDescriptorHandle() const
+	{
+		return &_shaderInVisibleHandleCounter;
+	}
+
+	const BaseDescriptorPool::Handle* UaBuffer::GetShaderVisibleCounterDescriptorHandle() const
+	{
+		return &_shaderVisibleHandleCounter;
+	}
+
 	const BaseDescriptorPool::Handle* UaBuffer::GetShaderVisibleDescriptorHandle() const
 	{
 		return &_shaderVisibleHandle;
@@ -253,28 +263,10 @@ namespace MMPEngine::Backend::Dx12
 	{
 	}
 
-	void UaBuffer::InitUaTask::OnScheduled(const std::shared_ptr<Core::BaseStream>& stream)
+	void UaBuffer::InitUaTask::Run(const std::shared_ptr<Core::BaseStream>& stream)
 	{
-		Task::OnScheduled(stream);
+		Task::Run(stream);
 
-		const auto initContext = std::make_shared<InitTaskContext>();
-		const auto uaSettings = GetTaskContext()->settings;
-		initContext->entity = GetTaskContext()->entity;
-		initContext->byteSize = uaSettings.elementsCount * uaSettings.stride;
-		initContext->heapType = D3D12_HEAP_TYPE_DEFAULT;
-		initContext->unorderedAccess = true;
-
-		stream->Schedule(std::make_shared<InitTask>(initContext));
-		stream->Schedule(std::make_shared<CreateUaDescriptors>(GetTaskContext()));
-	}
-
-
-	UnorderedAccessBuffer::CreateUaDescriptors::CreateUaDescriptors(const std::shared_ptr<InitUaTaskContext>& context) : Task(context)
-	{
-	}
-
-	void UnorderedAccessBuffer::CreateUaDescriptors::Run(const std::shared_ptr<Core::BaseStream>& stream)
-	{
 		const auto tc = GetTaskContext();
 		const auto sc = _specificStreamContext;
 		const auto ac = _specificGlobalContext;
@@ -282,29 +274,55 @@ namespace MMPEngine::Backend::Dx12
 
 		if (tc && sc && ac && entity)
 		{
+			const auto dataSize = tc->settings.stride * tc->settings.elementsCount;
+			constexpr auto counterAlignmentBlock = static_cast<std::size_t>(D3D12_UAV_COUNTER_PLACEMENT_ALIGNMENT);
+			auto fullSize = dataSize;
+
+			if(tc->withCounter)
+			{
+				fullSize = ((dataSize + counterAlignmentBlock - 1) / counterAlignmentBlock) * counterAlignmentBlock + sizeof(Core::CounteredUnorderedAccessBuffer::CounterValueType);
+			}
+
+
+			const auto heapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
+			auto resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(fullSize);
+			resourceDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
+			
+			Microsoft::WRL::ComPtr<ID3D12Resource> bufferResource = nullptr;
+
+			ac->device->CreateCommittedResource(
+				&heapProperties,
+				D3D12_HEAP_FLAG_NONE,
+				&resourceDesc,
+				ResourceEntity::kDefaultState,
+				nullptr,
+				IID_PPV_ARGS(&bufferResource));
+
+			assert(bufferResource);
+			entity->SetNativeResource(bufferResource, 0);
+
+
 			entity->_shaderVisibleHandle = ac->cbvSrvUavShaderVisibleDescPool->Allocate();
 			entity->_shaderInVisibleHandle = ac->cbvSrvUavShaderInVisibleDescPool->Allocate();
 
 			D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc;
 
-			uavDesc.Format = (tc->isCounter ? DXGI_FORMAT_R32_UINT : DXGI_FORMAT_UNKNOWN);
 			uavDesc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER;
 			uavDesc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_NONE;
-			uavDesc.Buffer.CounterOffsetInBytes = 0;
+			uavDesc.Buffer.CounterOffsetInBytes = tc->withCounter ? (((dataSize + counterAlignmentBlock - 1) / counterAlignmentBlock) * counterAlignmentBlock) : 0;
 			uavDesc.Buffer.FirstElement = 0;
 			uavDesc.Buffer.NumElements = static_cast<std::uint32_t>(tc->settings.elementsCount);
-			uavDesc.Buffer.StructureByteStride = tc->isCounter ? 0 : static_cast<std::uint32_t>(tc->settings.stride);
-
-			const auto bufferResource = entity->GetNativeResource().Get();
+			uavDesc.Format = DXGI_FORMAT_UNKNOWN;
+			uavDesc.Buffer.StructureByteStride = static_cast<std::uint32_t>(tc->settings.stride);
 
 			ID3D12Resource* counterResource = nullptr;
-			if (tc->counterAttachment)
+			if (tc->withCounter)
 			{
-				counterResource = tc->counterAttachment->GetNativeResource().Get();
+				counterResource = bufferResource.Get();
 			}
 
 			ac->device->CreateUnorderedAccessView(
-				bufferResource,
+				bufferResource.Get(),
 				counterResource,
 				&uavDesc,
 				entity->_shaderVisibleHandle.GetCPUDescriptorHandle()
@@ -312,13 +330,40 @@ namespace MMPEngine::Backend::Dx12
 
 
 			ac->device->CreateUnorderedAccessView(
-				bufferResource,
+				bufferResource.Get(),
 				counterResource,
 				&uavDesc,
 				entity->_shaderInVisibleHandle.GetCPUDescriptorHandle()
 			);
+
+			if(tc->withCounter)
+			{
+				entity->_shaderVisibleHandleCounter = ac->cbvSrvUavShaderVisibleDescPool->Allocate();
+				entity->_shaderInVisibleHandleCounter = ac->cbvSrvUavShaderInVisibleDescPool->Allocate();
+
+				uavDesc.Format = DXGI_FORMAT_R32_UINT;
+				uavDesc.Buffer.StructureByteStride = 0;
+				uavDesc.Buffer.NumElements = static_cast<decltype(uavDesc.Buffer.NumElements)>(fullSize / sizeof(std::uint32_t));
+				uavDesc.Buffer.CounterOffsetInBytes = 0;
+
+				ac->device->CreateUnorderedAccessView(
+					bufferResource.Get(),
+					nullptr,
+					&uavDesc,
+					entity->_shaderVisibleHandleCounter.GetCPUDescriptorHandle()
+				);
+
+
+				ac->device->CreateUnorderedAccessView(
+					bufferResource.Get(),
+					nullptr,
+					&uavDesc,
+					entity->_shaderInVisibleHandleCounter.GetCPUDescriptorHandle()
+				);
+			}
 		}
 	}
+
 
 	UnorderedAccessBuffer::UnorderedAccessBuffer(const Settings& settings) : Core::UnorderedAccessBuffer(settings)
 	{
@@ -329,8 +374,7 @@ namespace MMPEngine::Backend::Dx12
 		const auto tc = std::make_shared<InitUaTaskContext>();
 		tc->entity = std::dynamic_pointer_cast<Dx12::UaBuffer>(shared_from_this());
 		tc->settings = GetUnorderedAccessSettings();
-		tc->isCounter = false;
-		tc->counterAttachment = nullptr;
+		tc->withCounter = false;
 
 		return std::make_shared<InitUaTask>(tc);
 	}
@@ -347,43 +391,24 @@ namespace MMPEngine::Backend::Dx12
 		return std::make_shared<CopyBufferTask>(context);
 	}
 
-	CounteredUnorderedAccessBuffer::CounteredUnorderedAccessBuffer(const Settings& settings) : Core::CounteredUnorderedAccessBuffer(settings),
-		_counter(std::make_shared<UnorderedAccessBuffer>(Core::BaseUnorderedAccessBuffer::Settings {sizeof(Core::CounteredUnorderedAccessBuffer::CounterValueType), 1, ""}))
+	CounteredUnorderedAccessBuffer::CounteredUnorderedAccessBuffer(const Settings& settings) : Core::CounteredUnorderedAccessBuffer(settings)
 	{
 	}
 
 	std::shared_ptr<Core::BaseTask> CounteredUnorderedAccessBuffer::CreateInitializationTask()
 	{
-		const auto counterInitContext = std::make_shared<InitUaTaskContext>();
-		counterInitContext->entity = _counter;
-		counterInitContext->settings = _counter->GetUnorderedAccessSettings();
-		counterInitContext->isCounter = true;
-		counterInitContext->counterAttachment = nullptr;
-
-		const auto dataBufferInitContext = std::make_shared<InitUaTaskContext>();
-		dataBufferInitContext->entity = std::dynamic_pointer_cast<Dx12::UaBuffer>(shared_from_this());
-		dataBufferInitContext->settings = GetUnorderedAccessSettings();
-		dataBufferInitContext->isCounter = false;
-		dataBufferInitContext->counterAttachment = _counter;
+		const auto initContext = std::make_shared<InitUaTaskContext>();
+		initContext->entity = std::dynamic_pointer_cast<Dx12::UaBuffer>(shared_from_this());
+		initContext->settings = GetUnorderedAccessSettings();
+		initContext->withCounter = true;
 
 		return std::make_shared<Core::BatchTask>(std::initializer_list<std::shared_ptr<Core::BaseTask>>{
-			std::make_shared<InitUaTask>(counterInitContext),
-			std::make_shared<InitUaTask>(dataBufferInitContext),
+			std::make_shared<InitUaTask>(initContext),
 			CreateResetCounterTask()
 		});
 	}
 
-	std::shared_ptr<Core::BaseTask> CounteredUnorderedAccessBuffer::CreateSwitchStateTask(D3D12_RESOURCE_STATES nextStateMask)
-	{
-		return std::make_shared<Core::BatchTask>(
-			std::initializer_list<std::shared_ptr<Core::BaseTask>> {
-				this->_counter->CreateSwitchStateTask(nextStateMask),
-				ResourceEntity::CreateSwitchStateTask(nextStateMask)
-			}
-		);
-	}
-
-	CounteredUnorderedAccessBuffer::ResetCounter::ResetCounter(const std::shared_ptr<Core::EntityTaskContext<UaBuffer>>& ctx) : Task<MMPEngine::Core::EntityTaskContext<MMPEngine::Backend::Dx12::UaBuffer>>(ctx)
+	CounteredUnorderedAccessBuffer::ResetCounter::ResetCounter(const std::shared_ptr<ResetCounterTaskContext>& ctx) : Task<ResetCounterTaskContext>(ctx)
 	{
 	}
 
@@ -400,7 +425,7 @@ namespace MMPEngine::Backend::Dx12
 	}
 
 
-	CounteredUnorderedAccessBuffer::ResetCounter::Impl::Impl(const std::shared_ptr<Core::EntityTaskContext<UaBuffer>>& ctx) : Task<MMPEngine::Core::EntityTaskContext<MMPEngine::Backend::Dx12::UaBuffer>>(ctx)
+	CounteredUnorderedAccessBuffer::ResetCounter::Impl::Impl(const std::shared_ptr<ResetCounterTaskContext>& ctx) : Task<ResetCounterTaskContext>(ctx)
 	{
 	}
 
@@ -408,28 +433,48 @@ namespace MMPEngine::Backend::Dx12
 	{
 		Task::Run(stream);
 
-		const auto entity = GetTaskContext()->entity;
+		const auto tc = GetTaskContext();
+		const auto entity = tc->entity;
 		constexpr std::uint32_t clear[]{ 0,0,0,0 };
 
+		const auto dataSize = tc->settings.stride * tc->settings.elementsCount;
+		constexpr auto counterAlignmentBlock = static_cast<std::size_t>(D3D12_UAV_COUNTER_PLACEMENT_ALIGNMENT);
+		const auto fullSize = ((dataSize + counterAlignmentBlock - 1) / counterAlignmentBlock) * counterAlignmentBlock + sizeof(Core::CounteredUnorderedAccessBuffer::CounterValueType);
+
+		D3D12_RECT rect {};
+		rect.top = 0;
+		rect.bottom = 1;
+		rect.left = static_cast<decltype(rect.left)>(fullSize / sizeof(std::uint32_t)) - 1;
+		rect.right = rect.left + 1;
+		
 		_specificStreamContext->PopulateCommandsInList()->ClearUnorderedAccessViewUint(
-			entity->GetShaderVisibleDescriptorHandle()->GetGPUDescriptorHandle(),
-			entity->GetShaderInVisibleDescriptorHandle()->GetCPUDescriptorHandle(),
+			entity->GetShaderVisibleCounterDescriptorHandle()->GetGPUDescriptorHandle(),
+			entity->GetShaderInVisibleCounterDescriptorHandle()->GetCPUDescriptorHandle(),
 			entity->GetNativeResource().Get(),
 			clear,
-			0, nullptr
+			1, &rect
 		);
 	}
 
 	std::shared_ptr<Core::BaseTask> CounteredUnorderedAccessBuffer::CreateResetCounterTask()
 	{
-		const auto resetCtx = std::make_shared<Core::EntityTaskContext<UaBuffer>>();
-		resetCtx->entity = _counter;
+		const auto resetCtx = std::make_shared<ResetCounterTaskContext>();
+		resetCtx->entity = std::dynamic_pointer_cast<UaBuffer>(shared_from_this());
+		resetCtx->settings = GetUnorderedAccessSettings();
 		return std::make_shared<ResetCounter>(resetCtx);
 	}
 
 	std::shared_ptr<Core::BaseTask> CounteredUnorderedAccessBuffer::CreateCopyCounterTask(const std::shared_ptr<Core::Buffer>& dst, std::size_t byteLength, std::size_t dstByteOffset)
 	{
-		return _counter->CreateCopyToBufferTask(dst, _counter->GetSettings().byteLength, 0, dstByteOffset);
+		const auto dataSize = _uaSettings.stride * _uaSettings.elementsCount;
+		constexpr auto counterAlignmentBlock = static_cast<std::size_t>(D3D12_UAV_COUNTER_PLACEMENT_ALIGNMENT);
+
+		return CreateCopyToBufferTask(
+			dst, 
+			sizeof(Core::CounteredUnorderedAccessBuffer::CounterValueType), 
+			((dataSize + counterAlignmentBlock - 1) / counterAlignmentBlock) * counterAlignmentBlock,
+			dstByteOffset
+		);
 	}
 
 	std::shared_ptr<Core::BaseTask> CounteredUnorderedAccessBuffer::CreateCopyToBufferTask(const std::shared_ptr<Core::Buffer>& dst, std::size_t byteLength, std::size_t srcByteOffset, std::size_t dstByteOffset) const

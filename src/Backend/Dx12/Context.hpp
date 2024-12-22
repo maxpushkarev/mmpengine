@@ -20,7 +20,6 @@ namespace MMPEngine::Backend::Dx12
 		std::shared_ptr<DSVDescriptorPool> dsvDescPool;
 		std::shared_ptr<CBVSRVUAVDescriptorPool> cbvSrvUavShaderVisibleDescPool;
 		std::shared_ptr<CBVSRVUAVDescriptorPool> cbvSrvUavShaderInVisibleDescPool;
-		std::shared_ptr<ResourceEntityHeap> uavCountersHeap;
 	};
 
 	class Stream;

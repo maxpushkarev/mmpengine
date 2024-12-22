@@ -1,4 +1,5 @@
 #include <Core/Buffer.hpp>
+#include <cassert>
 
 namespace MMPEngine::Core
 {
@@ -60,6 +61,7 @@ namespace MMPEngine::Core
 
 	BaseUnorderedAccessBuffer::BaseUnorderedAccessBuffer(const Settings& settings) : Buffer(Core::Buffer::Settings {settings.stride * settings.elementsCount, settings.name}), _uaSettings(settings)
 	{
+		assert(_uaSettings.stride % sizeof(std::uint32_t) == 0);
 	}
 
 	const Core::BaseUnorderedAccessBuffer::Settings& BaseUnorderedAccessBuffer::GetUnorderedAccessSettings() const
