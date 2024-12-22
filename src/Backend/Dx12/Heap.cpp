@@ -1,9 +1,7 @@
 #include <Backend/Dx12/Heap.hpp>
 #include <Backend/Dx12/d3dx12.h>
 #include <Backend/Dx12/Entity.hpp>
-
-#include "Buffer.hpp"
-#include "Core/Buffer.hpp"
+#include <Backend/Dx12/Buffer.hpp>
 
 namespace MMPEngine::Backend::Dx12
 {
