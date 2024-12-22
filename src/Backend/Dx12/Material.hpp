@@ -119,14 +119,13 @@ namespace MMPEngine::Backend::Dx12
 					const auto bufferSettings = std::get<Core::BaseMaterial::Parameters::Buffer>(parameterEntry.settings);
 					const auto coreBuffer = std::dynamic_pointer_cast<Core::Buffer>(parameterEntry.entity);
 					assert(coreBuffer);
-
+					const auto nativeBuffer = std::dynamic_pointer_cast<Dx12::ResourceEntity>(coreBuffer->GetUnderlyingBuffer());
+					assert(nativeBuffer);
 
 					switch (bufferSettings.type)
 					{
 						case Core::BaseMaterial::Parameters::Buffer::Type::UnorderedAccess:
 							{
-								const auto nativeBuffer = std::dynamic_pointer_cast<Dx12::ResourceEntity>(coreBuffer->GetUnderlyingBuffer());
-								assert(nativeBuffer);
 								_applyParametersCallbacks.emplace_back([nativeBuffer, index](const auto& ctx)
 								{
 									ctx->PopulateCommandsInList()->SetComputeRootDescriptorTable(static_cast<std::uint32_t>(index), nativeBuffer->GetShaderVisibleDescriptorHandle()->GetGPUDescriptorHandle());
@@ -135,8 +134,6 @@ namespace MMPEngine::Backend::Dx12
 							}
 						case Core::BaseMaterial::Parameters::Buffer::Type::Uniform:
 							{
-								const auto nativeBuffer = std::dynamic_pointer_cast<Dx12::ResourceEntity>(coreBuffer->GetUnderlyingBuffer());
-								assert(nativeBuffer);
 								_applyParametersCallbacks.emplace_back([nativeBuffer, index](const auto& ctx)
 								{
 									ctx->PopulateCommandsInList()->SetComputeRootConstantBufferView(static_cast<std::uint32_t>(index), nativeBuffer->GetNativeResource()->GetGPUVirtualAddress());
@@ -145,11 +142,9 @@ namespace MMPEngine::Backend::Dx12
 							}
 						case Core::BaseMaterial::Parameters::Buffer::Type::ReadonlyAccess:
 							{
-								const auto nativeBuffer = std::dynamic_pointer_cast<Dx12::ResourceEntity>(coreBuffer->GetUnderlyingBuffer());
-								assert(nativeBuffer);
 								_applyParametersCallbacks.emplace_back([nativeBuffer, index](const auto& ctx)
 								{
-									ctx->PopulateCommandsInList()->SetComputeRootShaderResourceView(static_cast<std::uint32_t>(index), nativeBuffer->GetNativeResource()->GetGPUVirtualAddress());
+									ctx->PopulateCommandsInList()->SetComputeRootShaderResourceView(static_cast<std::uint32_t>(index), nativeBuffer->GetNativeGPUAddressWithRequiredOffset());
 								});
 								break;
 							}

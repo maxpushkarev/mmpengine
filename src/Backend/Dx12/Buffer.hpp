@@ -281,6 +281,7 @@ namespace MMPEngine::Backend::Dx12
 		UniformBuffer(std::string_view name);
 		UniformBuffer();
 		std::shared_ptr<Core::ContextualTask<Core::UploadBuffer::WriteTaskContext>> CreateWriteAsyncTask(const TUniformBufferData& data) override;
+
 		std::shared_ptr<Core::BaseTask> CreateCopyToBufferTask(const std::shared_ptr<Core::Buffer>& dst, std::size_t byteLength, std::size_t srcByteOffset, std::size_t dstByteOffset) const override;
 		std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;
 		std::shared_ptr<Core::Buffer> GetUnderlyingBuffer() override;
