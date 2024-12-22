@@ -127,22 +127,22 @@ namespace MMPEngine::Core
 		IndexBuffer(const Settings& settings);
 	};
 
-	template<class TConstantBufferData>
-	class ConstantBuffer: public Buffer
+	template<class TUniformBufferData>
+	class UniformBuffer: public Buffer
 	{
 	protected:
-		using TData = std::decay_t<TConstantBufferData>;
+		using TData = std::decay_t<TUniformBufferData>;
 		static_assert(std::is_final_v<TData>, "TData should be final");
 		static_assert(std::is_pod_v<TData>, "TData should be POD");
 
-		ConstantBuffer(const Settings& settings);
+		UniformBuffer(const Settings& settings);
 
 	public:
 		virtual std::shared_ptr<ContextualTask<Core::UploadBuffer::WriteTaskContext>> CreateWriteAsyncTask(const TData& data) = 0;
 	};
 
-	template<class TConstantBufferData>
-	inline ConstantBuffer<TConstantBufferData>::ConstantBuffer(const Settings& settings) : Buffer(settings)
+	template<class TUniformBufferData>
+	inline UniformBuffer<TUniformBufferData>::UniformBuffer(const Settings& settings) : Buffer(settings)
 	{
 	}
 }

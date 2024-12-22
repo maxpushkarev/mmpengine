@@ -131,7 +131,7 @@ namespace MMPEngine::Backend::Dx12
 								ctx->PopulateCommandsInList()->SetComputeRootDescriptorTable(static_cast<std::uint32_t>(index), nativeBuffer->GetShaderVisibleDescriptorHandle()->GetGPUDescriptorHandle());
 							});
 							break;
-						case Core::BaseMaterial::Parameters::Buffer::Type::UniformConstants:
+						case Core::BaseMaterial::Parameters::Buffer::Type::Uniform:
 							_applyParametersCallbacks.emplace_back([nativeBuffer, index](const auto& ctx)
 							{
 								ctx->PopulateCommandsInList()->SetComputeRootConstantBufferView(static_cast<std::uint32_t>(index), nativeBuffer->GetNativeGPUAddressWithRequiredOffset());

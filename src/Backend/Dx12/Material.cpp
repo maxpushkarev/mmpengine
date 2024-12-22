@@ -81,7 +81,7 @@ namespace MMPEngine::Backend::Dx12
 
 							break;
 						}
-					case Core::BaseMaterial::Parameters::Buffer::Type::UniformConstants:
+					case Core::BaseMaterial::Parameters::Buffer::Type::Uniform:
 						{
 							switchStateTaskContext->nextStateMask = D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE;
 							rootParameters[index].InitAsConstantBufferView(calculateBaseRegisterFn(D3D12_DESCRIPTOR_RANGE_TYPE_CBV), 0, D3D12_SHADER_VISIBILITY_ALL);

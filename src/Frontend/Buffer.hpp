@@ -113,71 +113,71 @@ namespace MMPEngine::Frontend
 	};
 
 
-	template<class TConstantBufferData>
-	class ConstantBuffer final : public Core::ConstantBuffer<TConstantBufferData>
+	template<class TUniformBufferData>
+	class UniformBuffer final : public Core::UniformBuffer<TUniformBufferData>
 	{
 	public:
-		ConstantBuffer(const std::shared_ptr<Core::GlobalContext>& globalContext, std::string_view name);
-		ConstantBuffer(const std::shared_ptr<Core::GlobalContext>& globalContext);
+		UniformBuffer(const std::shared_ptr<Core::GlobalContext>& globalContext, std::string_view name);
+		UniformBuffer(const std::shared_ptr<Core::GlobalContext>& globalContext);
 
-		std::shared_ptr<Core::ContextualTask<Core::UploadBuffer::WriteTaskContext>> CreateWriteAsyncTask(const TConstantBufferData& data) override;
+		std::shared_ptr<Core::ContextualTask<Core::UploadBuffer::WriteTaskContext>> CreateWriteAsyncTask(const TUniformBufferData& data) override;
 
 		std::shared_ptr<Core::BaseTask> CreateCopyToBufferTask(const std::shared_ptr<Core::Buffer>& dst, std::size_t byteLength, std::size_t srcByteOffset, std::size_t dstByteOffset) const override;
 		std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;
 		std::shared_ptr<Core::Buffer> GetUnderlyingBuffer() override;
 
 	private:
-		std::shared_ptr<Core::ConstantBuffer<TConstantBufferData>> _impl;
+		std::shared_ptr<Core::UniformBuffer<TUniformBufferData>> _impl;
 	};
 
-	template<class TConstantBufferData>
-	inline ConstantBuffer<TConstantBufferData>::ConstantBuffer(const std::shared_ptr<Core::GlobalContext>& globalContext, std::string_view name) :
-		Core::ConstantBuffer<TConstantBufferData>(Core::Buffer::Settings {sizeof(TConstantBufferData), std::string {name}})
+	template<class TUniformBufferData>
+	inline UniformBuffer<TUniformBufferData>::UniformBuffer(const std::shared_ptr<Core::GlobalContext>& globalContext, std::string_view name) :
+		Core::UniformBuffer<TUniformBufferData>(Core::Buffer::Settings {sizeof(TUniformBufferData), std::string {name}})
 	{
 		if (globalContext->settings.backend == Core::BackendType::Dx12)
 		{
 #ifdef MMPENGINE_BACKEND_DX12
-			_impl = std::make_shared<Backend::Dx12::ConstantBuffer<TConstantBufferData>>(name);
+			_impl = std::make_shared<Backend::Dx12::UniformBuffer<TUniformBufferData>>(name);
 #else
 			throw Core::UnsupportedException("unable to create constant buffer for DX12 backend");
 #endif
 		}
 	}
 
-	template<class TConstantBufferData>
-	inline ConstantBuffer<TConstantBufferData>::ConstantBuffer(const std::shared_ptr<Core::GlobalContext>& globalContext) :
-		Core::ConstantBuffer<TConstantBufferData>(Core::Buffer::Settings {sizeof(TConstantBufferData), ""})
+	template<class TUniformBufferData>
+	inline UniformBuffer<TUniformBufferData>::UniformBuffer(const std::shared_ptr<Core::GlobalContext>& globalContext) :
+		Core::UniformBuffer<TUniformBufferData>(Core::Buffer::Settings {sizeof(TUniformBufferData), ""})
 	{
 		if (globalContext->settings.backend == Core::BackendType::Dx12)
 		{
 #ifdef MMPENGINE_BACKEND_DX12
-			_impl = std::make_shared<Backend::Dx12::ConstantBuffer<TConstantBufferData>>();
+			_impl = std::make_shared<Backend::Dx12::UniformBuffer<TUniformBufferData>>();
 #else
 			throw Core::UnsupportedException("unable to create constant buffer for DX12 backend");
 #endif
 		}
 	}
 
-	template <class TConstantBufferData>
-	inline std::shared_ptr<Core::ContextualTask<Core::UploadBuffer::WriteTaskContext>> ConstantBuffer<TConstantBufferData>::CreateWriteAsyncTask(const TConstantBufferData& data)
+	template <class TUniformBufferData>
+	inline std::shared_ptr<Core::ContextualTask<Core::UploadBuffer::WriteTaskContext>> UniformBuffer<TUniformBufferData>::CreateWriteAsyncTask(const TUniformBufferData& data)
 	{
 		return _impl->CreateWriteAsyncTask(data);
 	}
 
-	template <class TConstantBufferData>
-	inline std::shared_ptr<Core::BaseTask> ConstantBuffer<TConstantBufferData>::CreateCopyToBufferTask(const std::shared_ptr<Core::Buffer>& dst, std::size_t byteLength, std::size_t srcByteOffset, std::size_t dstByteOffset) const
+	template <class TUniformBufferData>
+	inline std::shared_ptr<Core::BaseTask> UniformBuffer<TUniformBufferData>::CreateCopyToBufferTask(const std::shared_ptr<Core::Buffer>& dst, std::size_t byteLength, std::size_t srcByteOffset, std::size_t dstByteOffset) const
 	{
 		return _impl->CreateCopyToBufferTask(dst, byteLength, srcByteOffset, dstByteOffset);
 	}
 
-	template <class TConstantBufferData>
-	inline std::shared_ptr<Core::BaseTask> ConstantBuffer<TConstantBufferData>::CreateInitializationTask()
+	template <class TUniformBufferData>
+	inline std::shared_ptr<Core::BaseTask> UniformBuffer<TUniformBufferData>::CreateInitializationTask()
 	{
 		return _impl->CreateInitializationTask();
 	}
 
-	template <class TConstantBufferData>
-	inline std::shared_ptr<Core::Buffer> ConstantBuffer<TConstantBufferData>::GetUnderlyingBuffer()
+	template <class TUniformBufferData>
+	inline std::shared_ptr<Core::Buffer> UniformBuffer<TUniformBufferData>::GetUnderlyingBuffer()
 	{
 		return _impl->GetUnderlyingBuffer();
 	}

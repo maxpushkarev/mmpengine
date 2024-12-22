@@ -275,13 +275,13 @@ namespace MMPEngine::Backend::Dx12
 		std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;
 	};
 
-	template<class TConstantBufferData>
-	class ConstantBuffer final : public Core::ConstantBuffer<TConstantBufferData>
+	template<class TUniformBufferData>
+	class UniformBuffer final : public Core::UniformBuffer<TUniformBufferData>
 	{
 	public:
-		ConstantBuffer(std::string_view name);
-		ConstantBuffer();
-		std::shared_ptr<Core::ContextualTask<Core::UploadBuffer::WriteTaskContext>> CreateWriteAsyncTask(const TConstantBufferData& data) override;
+		UniformBuffer(std::string_view name);
+		UniformBuffer();
+		std::shared_ptr<Core::ContextualTask<Core::UploadBuffer::WriteTaskContext>> CreateWriteAsyncTask(const TUniformBufferData& data) override;
 
 		std::shared_ptr<Core::BaseTask> CreateCopyToBufferTask(const std::shared_ptr<Core::Buffer>& dst, std::size_t byteLength, std::size_t srcByteOffset, std::size_t dstByteOffset) const override;
 		std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;
@@ -292,44 +292,44 @@ namespace MMPEngine::Backend::Dx12
 		std::shared_ptr<UploadBuffer> _uploadBuffer;
 	};
 
-	template<class TConstantBufferData>
-	inline ConstantBuffer<TConstantBufferData>::ConstantBuffer(std::string_view name) : Core::ConstantBuffer<TConstantBufferData>(Core::Buffer::Settings {GetRequiredSize(), std::string {name}})
+	template<class TUniformBufferData>
+	inline UniformBuffer<TUniformBufferData>::UniformBuffer(std::string_view name) : Core::UniformBuffer<TUniformBufferData>(Core::Buffer::Settings {GetRequiredSize(), std::string {name}})
 	{
 		_uploadBuffer = std::make_shared<UploadBuffer>(this->_settings);
 	}
 
-	template<class TConstantBufferData>
-	inline ConstantBuffer<TConstantBufferData>::ConstantBuffer() : Core::ConstantBuffer<TConstantBufferData>(Core::Buffer::Settings {GetRequiredSize(), ""})
+	template<class TUniformBufferData>
+	inline UniformBuffer<TUniformBufferData>::UniformBuffer() : Core::UniformBuffer<TUniformBufferData>(Core::Buffer::Settings {GetRequiredSize(), ""})
 	{
 		_uploadBuffer = std::make_shared<UploadBuffer>(this->_settings);
 	}
 
-	template <class TConstantBufferData>
-	std::shared_ptr<Core::ContextualTask<Core::UploadBuffer::WriteTaskContext>> ConstantBuffer<TConstantBufferData>::CreateWriteAsyncTask(const TConstantBufferData& data)
+	template <class TUniformBufferData>
+	std::shared_ptr<Core::ContextualTask<Core::UploadBuffer::WriteTaskContext>> UniformBuffer<TUniformBufferData>::CreateWriteAsyncTask(const TUniformBufferData& data)
 	{
 		return _uploadBuffer->CreateWriteTask(std::addressof(data), sizeof(data), 0);
 	}
 
-	template<class TConstantBufferData>
-	inline std::shared_ptr<Core::BaseTask> ConstantBuffer<TConstantBufferData>::CreateCopyToBufferTask(const std::shared_ptr<Core::Buffer>& dst, std::size_t byteLength, std::size_t srcByteOffset, std::size_t dstByteOffset) const
+	template<class TUniformBufferData>
+	inline std::shared_ptr<Core::BaseTask> UniformBuffer<TUniformBufferData>::CreateCopyToBufferTask(const std::shared_ptr<Core::Buffer>& dst, std::size_t byteLength, std::size_t srcByteOffset, std::size_t dstByteOffset) const
 	{
 		return _uploadBuffer->CreateCopyToBufferTask(dst->GetUnderlyingBuffer(), byteLength, srcByteOffset, dstByteOffset);
 	}
 
-	template<class TConstantBufferData>
-	inline std::shared_ptr<Core::BaseTask> ConstantBuffer<TConstantBufferData>::CreateInitializationTask()
+	template<class TUniformBufferData>
+	inline std::shared_ptr<Core::BaseTask> UniformBuffer<TUniformBufferData>::CreateInitializationTask()
 	{
 		return _uploadBuffer->CreateInitializationTask();
 	}
 
-	template<class TConstantBufferData>
-	inline std::shared_ptr<Core::Buffer> ConstantBuffer<TConstantBufferData>::GetUnderlyingBuffer()
+	template<class TUniformBufferData>
+	inline std::shared_ptr<Core::Buffer> UniformBuffer<TUniformBufferData>::GetUnderlyingBuffer()
 	{
 		return _uploadBuffer;
 	}
 
-	template<class TConstantBufferData>
-	inline std::size_t ConstantBuffer<TConstantBufferData>::GetRequiredSize()
+	template<class TUniformBufferData>
+	inline std::size_t UniformBuffer<TUniformBufferData>::GetRequiredSize()
 	{
 		// Constant buffers must be a multiple of the minimum hardware
 		// allocation size (usually 256 bytes).  So round up to nearest
@@ -342,7 +342,7 @@ namespace MMPEngine::Backend::Dx12
 		// 0x022B & 0xff00
 		// 0x0200
 		// 512
-		return (sizeof(TConstantBufferData) + 255) & ~255;
+		return (sizeof(TUniformBufferData) + 255) & ~255;
 	}
 
 }
