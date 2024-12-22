@@ -52,7 +52,7 @@ namespace MMPEngine::Backend::Dx12
 			const auto& parameterEntry = allParams.at(i);
 			const auto index = static_cast<std::uint32_t>(i);
 
-			const auto switchStateTaskContext = std::make_shared<Dx12::ResourceEntity::SwitchStateTaskContext>();
+			auto nextStateMask = D3D12_RESOURCE_STATE_COMMON;
 
 			if (std::holds_alternative<Core::BaseMaterial::Parameters::Buffer>(parameterEntry.settings))
 			{
@@ -62,13 +62,11 @@ namespace MMPEngine::Backend::Dx12
 				const auto nativeBuffer = std::dynamic_pointer_cast<Dx12::ResourceEntity>(coreBuffer->GetUnderlyingBuffer());
 				assert(nativeBuffer);
 
-				switchStateTaskContext->entity = nativeBuffer;
-
 				switch (bufferSettings.type)
 				{
 					case Core::BaseMaterial::Parameters::Buffer::Type::UnorderedAccess:
 						{
-							switchStateTaskContext->nextStateMask = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+							nextStateMask = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
 
 							auto& range = indexToDescriptorRangeMap[index];
 							range.NumDescriptors = 1;
@@ -83,7 +81,7 @@ namespace MMPEngine::Backend::Dx12
 						break;
 					case Core::BaseMaterial::Parameters::Buffer::Type::Uniform:
 						{
-							switchStateTaskContext->nextStateMask = D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE;
+							nextStateMask = D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE;
 
 							auto& range = indexToDescriptorRangeMap[index];
 							range.NumDescriptors = 1;
@@ -99,13 +97,13 @@ namespace MMPEngine::Backend::Dx12
 						break;
 					case Core::BaseMaterial::Parameters::Buffer::Type::ReadonlyAccess:
 						{
-							switchStateTaskContext->nextStateMask = D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE;
+							nextStateMask = D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE;
 							rootParameters[index].InitAsShaderResourceView(calculateBaseRegisterFn(D3D12_DESCRIPTOR_RANGE_TYPE_SRV), 0, D3D12_SHADER_VISIBILITY_ALL);
 						}
 						break;
 				}
 
-				_switchStateTasks.emplace_back(std::make_shared<Dx12::ResourceEntity::SwitchStateTask>(switchStateTaskContext));
+				_switchStateTasks.emplace_back(nativeBuffer->CreateSwitchStateTask(nextStateMask));
 				continue;
 			}
 
