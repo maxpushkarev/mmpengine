@@ -72,21 +72,21 @@ namespace MMPEngine::Backend::Dx12
 	{
 	protected:
 
-		class ParametersUpdatedTaskContext final : public Core::TaskContext
+		class BakeParametersTaskContext final : public Core::TaskContext
 		{
 		public:
 			std::shared_ptr<MaterialImpl> materialImplPtr;
 			const Core::BaseMaterial::Parameters* params = nullptr;
 		};
 
-		class ParametersUpdatedTask : public Task<ParametersUpdatedTaskContext>
+		class BakeParametersTask : public Task<BakeParametersTaskContext>
 		{
 		public:
-			ParametersUpdatedTask(const std::shared_ptr<ParametersUpdatedTaskContext>& context);
+			BakeParametersTask(const std::shared_ptr<BakeParametersTaskContext>& context);
 			void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
 		};
 
-		void OnParametersUpdated(const std::shared_ptr<GlobalContext>& globalContext, const Core::BaseMaterial::Parameters& params);
+		void OnParametersBake(const std::shared_ptr<GlobalContext>& globalContext, const Core::BaseMaterial::Parameters& params);
 	};
 
 	class ComputeMaterial final : public Core::ComputeMaterial, public MaterialImpl<Core::ComputeMaterial>
@@ -99,7 +99,7 @@ namespace MMPEngine::Backend::Dx12
 	};
 
 	template<class TCoreMaterial>
-	inline void MaterialImpl<TCoreMaterial>::OnParametersUpdated(const std::shared_ptr<GlobalContext>& globalContext, const Core::BaseMaterial::Parameters& params)
+	inline void MaterialImpl<TCoreMaterial>::OnParametersBake(const std::shared_ptr<GlobalContext>& globalContext, const Core::BaseMaterial::Parameters& params)
 	{
 		_applyParametersCallbacks.clear();
 
@@ -167,18 +167,18 @@ namespace MMPEngine::Backend::Dx12
 	}
 
 	template<class TCoreMaterial>
-	inline MaterialImpl<TCoreMaterial>::ParametersUpdatedTask::ParametersUpdatedTask(const std::shared_ptr<ParametersUpdatedTaskContext>& context) : Task<ParametersUpdatedTaskContext>(context)
+	inline MaterialImpl<TCoreMaterial>::BakeParametersTask::BakeParametersTask(const std::shared_ptr<BakeParametersTaskContext>& context) : Task<BakeParametersTaskContext>(context)
 	{
 	}
 
 
 	template<class TCoreMaterial>
-	inline void MaterialImpl<TCoreMaterial>::ParametersUpdatedTask::Run(const std::shared_ptr<Core::BaseStream>& stream)
+	inline void MaterialImpl<TCoreMaterial>::BakeParametersTask::Run(const std::shared_ptr<Core::BaseStream>& stream)
 	{
-		Task<ParametersUpdatedTaskContext>::Run(stream);
+		Task<BakeParametersTaskContext>::Run(stream);
 		if (const auto tc = this->GetTaskContext() ; const auto matImpl = tc->materialImplPtr)
 		{
-			matImpl->OnParametersUpdated(this->_specificGlobalContext, *tc->params);
+			matImpl->OnParametersBake(this->_specificGlobalContext, *tc->params);
 		}
 	}
 }
