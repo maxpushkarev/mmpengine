@@ -43,20 +43,11 @@ namespace MMPEngine::Backend::Dx12
 		assert(srcBuffer);
 		assert(dstBuffer);
 
-		const auto srcNativeBaseAddress = srcBuffer->GetNativeResource()->GetGPUVirtualAddress();
-		const auto dstNativeBaseAddress = dstBuffer->GetNativeResource()->GetGPUVirtualAddress();
-
-		const auto srcNativeAddressWithOffset = srcBuffer->GetNativeGPUAddressWithRequiredOffset();
-		const auto dstNativeAddressWithOffset = dstBuffer->GetNativeGPUAddressWithRequiredOffset();
-
-		assert(srcNativeAddressWithOffset >= srcNativeBaseAddress);
-		assert(dstNativeAddressWithOffset >= dstNativeBaseAddress);
-
 		_specificStreamContext->PopulateCommandsInList()->CopyBufferRegion(
 			dstBuffer->GetNativeResource().Get(),
-			static_cast<std::uint64_t>(tc->dstByteOffset) + static_cast<std::uint64_t>(dstNativeAddressWithOffset - dstNativeBaseAddress),
+			static_cast<std::uint64_t>(tc->dstByteOffset),
 			srcBuffer->GetNativeResource().Get(),
-			static_cast<std::uint64_t>(tc->srcByteOffset) + static_cast<std::uint64_t>(srcNativeAddressWithOffset - srcNativeBaseAddress),
+			static_cast<std::uint64_t>(tc->srcByteOffset),
 			tc->byteLength);
 		
 	}
@@ -626,7 +617,7 @@ namespace MMPEngine::Backend::Dx12
 		Task::Run(stream);
 		if (const auto tc = GetTaskContext() ; const auto entity = tc->uploadBuffer)
 		{
-			std::memcpy((static_cast<char*>(GetMappedPtr(entity)) + static_cast<std::size_t>(entity->GetNativeGPUAddressWithRequiredOffset() - entity->GetNativeResource()->GetGPUVirtualAddress()) + tc->byteOffset), tc->src, tc->byteLength);
+			std::memcpy((static_cast<char*>(GetMappedPtr(entity)) + tc->byteOffset), tc->src, tc->byteLength);
 		}
 	}
 
@@ -658,7 +649,7 @@ namespace MMPEngine::Backend::Dx12
 
 		if (const auto tc = GetTaskContext() ; const auto entity = tc->readBackBuffer)
 		{
-			std::memcpy(tc->dst, (static_cast<char*>(GetMappedPtr(entity)) + static_cast<std::size_t>(entity->GetNativeGPUAddressWithRequiredOffset() - entity->GetNativeResource()->GetGPUVirtualAddress()) + tc->byteOffset), tc->byteLength);
+			std::memcpy(tc->dst, (static_cast<char*>(GetMappedPtr(entity)) + tc->byteOffset), tc->byteLength);
 		}
 	}
 }
