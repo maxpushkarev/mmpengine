@@ -30,6 +30,7 @@ namespace MMPEngine::Backend::Dx12
 
 		std::vector rootParameters (allParams.size(), CD3DX12_ROOT_PARAMETER{});
 		std::unordered_map<D3D12_DESCRIPTOR_RANGE_TYPE, std::uint32_t> baseRegisters {};
+		std::unordered_map<std::size_t, D3D12_DESCRIPTOR_RANGE> indexToDescriptorRangeMap {};
 
 		const auto calculateBaseRegisterFn = [&baseRegisters](D3D12_DESCRIPTOR_RANGE_TYPE type) -> auto
 		{
@@ -39,7 +40,7 @@ namespace MMPEngine::Backend::Dx12
 			}
 			else
 			{
-				baseRegisters[type]++;
+				++baseRegisters[type];
 			}
 
 			return baseRegisters[type];
@@ -69,7 +70,7 @@ namespace MMPEngine::Backend::Dx12
 						{
 							switchStateTaskContext->nextStateMask = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
 
-							D3D12_DESCRIPTOR_RANGE range{};
+							auto& range = indexToDescriptorRangeMap[index];
 							range.NumDescriptors = 1;
 							range.OffsetInDescriptorsFromTableStart = 0;
 							range.RegisterSpace = 0;
@@ -78,14 +79,13 @@ namespace MMPEngine::Backend::Dx12
 							range.BaseShaderRegister = calculateBaseRegisterFn(D3D12_DESCRIPTOR_RANGE_TYPE_UAV);
 
 							rootParameters[index].InitAsDescriptorTable(1, &range, D3D12_SHADER_VISIBILITY_ALL);
-
-							break;
 						}
+						break;
 					case Core::BaseMaterial::Parameters::Buffer::Type::Uniform:
 						{
 							switchStateTaskContext->nextStateMask = D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE;
 
-							D3D12_DESCRIPTOR_RANGE range{};
+							auto& range = indexToDescriptorRangeMap[index];
 							range.NumDescriptors = 1;
 							range.OffsetInDescriptorsFromTableStart = 0;
 							range.RegisterSpace = 0;
@@ -95,14 +95,14 @@ namespace MMPEngine::Backend::Dx12
 
 							rootParameters[index].InitAsDescriptorTable(1, &range, D3D12_SHADER_VISIBILITY_ALL);
 
-							break;
 						}
+						break;
 					case Core::BaseMaterial::Parameters::Buffer::Type::ReadonlyAccess:
 						{
 							switchStateTaskContext->nextStateMask = D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE;
 							rootParameters[index].InitAsShaderResourceView(calculateBaseRegisterFn(D3D12_DESCRIPTOR_RANGE_TYPE_SRV), 0, D3D12_SHADER_VISIBILITY_ALL);
-							break;
 						}
+						break;
 				}
 
 				_switchStateTasks.emplace_back(std::make_shared<Dx12::ResourceEntity::SwitchStateTask>(switchStateTaskContext));

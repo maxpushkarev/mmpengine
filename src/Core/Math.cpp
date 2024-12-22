@@ -192,8 +192,8 @@ namespace MMPEngine::Core
 				transform.rotation.x = qMult * (r32 - r23) / sqrtF;
 				transform.rotation.y = qMult * (r13 - r31) / sqrtF;
 				transform.rotation.z = qMult * (r21 - r12) / sqrtF;
-				break;
 			}
+			break;
 		case 1:
 			{
 				const auto f = 1.0f + r11 - r22 - r33;
@@ -205,8 +205,8 @@ namespace MMPEngine::Core
 				transform.rotation.x = qMult * sqrtF;
 				transform.rotation.y = qMult * (r12 + r21) / sqrtF;
 				transform.rotation.z = qMult * (r31 + r13) / sqrtF;
-				break;
 			}
+			break;
 		case 2:
 			{
 				const auto f = 1.0f - r11 + r22 - r33;
@@ -218,8 +218,8 @@ namespace MMPEngine::Core
 				transform.rotation.x = qMult * (r12 + r21) / sqrtF;
 				transform.rotation.y = qMult * sqrtF;
 				transform.rotation.z = qMult * (r23 + r32) / sqrtF;
-				break;
 			}
+			break;
 		case 3:
 			{
 				const auto f = 1.0f - r11 - r22 + r33;
@@ -231,13 +231,11 @@ namespace MMPEngine::Core
 				transform.rotation.x = qMult * (r31 + r13) / sqrtF;
 				transform.rotation.y = qMult * (r32 + r23) /sqrtF;
 				transform.rotation.z = qMult * sqrtF;
-				break;
 			}
+			break;
 		default:
-			{
-				//impossible
-				break;
-			}
+			//impossible
+			break;
 		}
 	}
 

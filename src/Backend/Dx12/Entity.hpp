@@ -47,6 +47,7 @@ namespace MMPEngine::Backend::Dx12
 		void SetNativeResource(const Microsoft::WRL::ComPtr<ID3D12Resource>& nativeResource, std::uint32_t offsetInsideResource);
 		Microsoft::WRL::ComPtr<ID3D12Resource> _nativeResource;
 		std::uint32_t _offsetInsideResource = 0;
+	private:
 		D3D12_RESOURCE_STATES _currentStateMask = kDefaultState;
 	};
 }
