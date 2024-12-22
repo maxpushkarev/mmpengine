@@ -2,10 +2,11 @@
 #include <d3d12.h>
 #include <Core/Heap.hpp>
 #include <wrl/client.h>
-#include <Backend/Dx12/Entity.hpp>
 
 namespace MMPEngine::Backend::Dx12
 {
+	class ResourceEntity;
+
 	class ResourceEntityHeap final : public Core::Heap
 	{
 	public:

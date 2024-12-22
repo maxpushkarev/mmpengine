@@ -3,6 +3,7 @@
 #include <dxgi.h>
 #include <Core/Context.hpp>
 #include <Backend/Dx12/Pool.hpp>
+#include <Backend/Dx12/Heap.hpp>
 #include <wrl/client.h>
 
 namespace MMPEngine::Backend::Dx12
@@ -19,6 +20,7 @@ namespace MMPEngine::Backend::Dx12
 		std::shared_ptr<DSVDescriptorPool> dsvDescPool;
 		std::shared_ptr<CBVSRVUAVDescriptorPool> cbvSrvUavShaderVisibleDescPool;
 		std::shared_ptr<CBVSRVUAVDescriptorPool> cbvSrvUavShaderInVisibleDescPool;
+		std::shared_ptr<ResourceEntityHeap> uavCountersHeap;
 	};
 
 	class Stream;
