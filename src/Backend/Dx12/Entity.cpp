@@ -9,6 +9,16 @@ namespace MMPEngine::Backend::Dx12
 
 	ResourceEntity::ResourceEntity() = default;
 
+	const BaseDescriptorPool::Handle* BaseEntity::GetShaderInVisibleDescriptorHandle() const
+	{
+		return nullptr;
+	}
+
+	const BaseDescriptorPool::Handle* BaseEntity::GetShaderVisibleDescriptorHandle() const
+	{
+		return nullptr;
+	}
+
 	std::shared_ptr<Core::BaseTask> ResourceEntity::CreateSwitchStateTask(D3D12_RESOURCE_STATES nextStateMask)
 	{
 		const auto switchTaskContext = std::make_shared<SwitchStateTaskContext>();

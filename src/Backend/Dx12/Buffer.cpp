@@ -230,6 +230,11 @@ namespace MMPEngine::Backend::Dx12
 		}
 	}
 
+	const BaseDescriptorPool::Handle* UaBuffer::GetShaderInVisibleDescriptorHandle() const
+	{
+		return &_shaderInVisibleHandle;
+	}
+
 	const BaseDescriptorPool::Handle* UaBuffer::GetShaderInVisibleCounterDescriptorHandle() const
 	{
 		return &_shaderInVisibleHandleCounter;
@@ -289,6 +294,7 @@ namespace MMPEngine::Backend::Dx12
 
 
 			entity->_shaderVisibleHandle = ac->cbvSrvUavShaderVisibleDescPool->Allocate();
+			entity->_shaderInVisibleHandle = ac->cbvSrvUavShaderInVisibleDescPool->Allocate();
 
 			D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc;
 
@@ -311,6 +317,14 @@ namespace MMPEngine::Backend::Dx12
 				counterResource,
 				&uavDesc,
 				entity->_shaderVisibleHandle.GetCPUDescriptorHandle()
+			);
+
+
+			ac->device->CreateUnorderedAccessView(
+				bufferResource.Get(),
+				counterResource,
+				&uavDesc,
+				entity->_shaderInVisibleHandle.GetCPUDescriptorHandle()
 			);
 
 			if(tc->withCounter)

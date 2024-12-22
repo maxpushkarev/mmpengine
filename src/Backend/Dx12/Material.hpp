@@ -125,11 +125,11 @@ namespace MMPEngine::Backend::Dx12
 					{
 						case Core::BaseMaterial::Parameters::Buffer::Type::UnorderedAccess:
 							{
-								const auto uaBuffer = std::dynamic_pointer_cast<Dx12::UaBuffer>(coreBuffer->GetUnderlyingBuffer());
-								assert(uaBuffer);
-								_applyParametersCallbacks.emplace_back([uaBuffer, index](const auto& ctx)
+								const auto nativeBuffer = std::dynamic_pointer_cast<Dx12::ResourceEntity>(coreBuffer->GetUnderlyingBuffer());
+								assert(nativeBuffer);
+								_applyParametersCallbacks.emplace_back([nativeBuffer, index](const auto& ctx)
 								{
-									ctx->PopulateCommandsInList()->SetComputeRootDescriptorTable(static_cast<std::uint32_t>(index), uaBuffer->GetShaderVisibleDescriptorHandle()->GetGPUDescriptorHandle());
+									ctx->PopulateCommandsInList()->SetComputeRootDescriptorTable(static_cast<std::uint32_t>(index), nativeBuffer->GetShaderVisibleDescriptorHandle()->GetGPUDescriptorHandle());
 								});
 								break;
 							}
