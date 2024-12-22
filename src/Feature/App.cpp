@@ -221,12 +221,10 @@ namespace MMPEngine::Feature
 			_rootContext->dsvDescPool = std::make_shared<Backend::Dx12::DSVDescriptorPool>(_rootContext->device, Core::Pool::Settings{});
 			_rootContext->cbvSrvUavShaderInVisibleDescPool = std::make_shared<Backend::Dx12::CBVSRVUAVDescriptorPool>(_rootContext->device, Core::Pool::Settings{}, D3D12_DESCRIPTOR_HEAP_FLAG_NONE);
 			_rootContext->cbvSrvUavShaderVisibleDescPool = std::make_shared<Backend::Dx12::CBVSRVUAVDescriptorPool>(_rootContext->device, Core::Pool::Settings{}, D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE);
-			_rootContext->constantBufferEntityHeap = std::make_shared<Backend::Dx12::ResourceEntityHeap>(
-				Backend::Dx12::ResourceEntityHeap::Settings {
-					{D3D12_RESOURCE_FLAG_NONE, D3D12_HEAP_TYPE_UPLOAD},
-					{D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT, 2}
-				},
-				_rootContext->device
+			_rootContext->constantBufferEntityHeap = std::make_shared<Backend::Dx12::ConstantBufferHeap>(
+				Core::Heap::Settings {
+					D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT, 2
+				}
 			);
 
 			Microsoft::WRL::ComPtr<ID3D12Fence> fence;
