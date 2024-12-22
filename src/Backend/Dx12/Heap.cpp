@@ -64,8 +64,10 @@ namespace MMPEngine::Backend::Dx12
 	{
 	}
 
-	void ConstantBufferHeap::InitBlocksTask::Run(const std::shared_ptr<Core::BaseStream>& stream)
+	void ConstantBufferHeap::InitBlocksTask::OnScheduled(const std::shared_ptr<Core::BaseStream>& stream)
 	{
+		Core::BaseTask::OnScheduled(stream);
+
 		const auto heap = _ctx->heap;
 
 		for(const auto& b : heap->_blocks)

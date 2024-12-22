@@ -34,7 +34,7 @@ namespace MMPEngine::Backend::Dx12
 		{
 		public:
 			InitBlocksTask(const std::shared_ptr<InitBlocksTaskContext>& ctx);
-			void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
+			void OnScheduled(const std::shared_ptr<Core::BaseStream>& stream) override;
 		private:
 			std::shared_ptr<InitBlocksTaskContext> _ctx;
 		};

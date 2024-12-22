@@ -272,7 +272,7 @@ namespace MMPEngine::Backend::Dx12
 	};
 
 	template<class TUniformBufferData>
-	class UniformBuffer final : public Core::UniformBuffer<TUniformBufferData>
+	class UniformBuffer final : public Core::UniformBuffer<TUniformBufferData>, public ResourceEntity
 	{
 	public:
 		UniformBuffer(std::string_view name);
@@ -281,7 +281,8 @@ namespace MMPEngine::Backend::Dx12
 		std::shared_ptr<Core::ContextualTask<typename Core::UniformBuffer<TUniformBufferData>::WriteTaskContext>> CreateWriteAsyncTask(const TUniformBufferData& data) override;
 		std::shared_ptr<Core::BaseTask> CreateCopyToBufferTask(const std::shared_ptr<Core::Buffer>& dst, std::size_t byteLength, std::size_t srcByteOffset, std::size_t dstByteOffset) const override;
 		std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;
-		std::shared_ptr<Core::Buffer> GetUnderlyingBuffer() override;
+		std::shared_ptr<Core::BaseTask> CreateSwitchStateTask(D3D12_RESOURCE_STATES nextStateMask) override;
+
 	private:
 
 		class WriteTaskContext final : public Core::UniformBuffer<TUniformBufferData>::WriteTaskContext
@@ -299,20 +300,29 @@ namespace MMPEngine::Backend::Dx12
 			std::shared_ptr<Core::ContextualTask<Core::UploadBuffer::WriteTaskContext>> _impl;
 		};
 
+		class InitTaskContext final : public Core::EntityTaskContext<UniformBuffer>
+		{
+		};
+
+		class InitTask final : public Task<InitTaskContext>
+		{
+		public:
+			InitTask(const std::shared_ptr<InitTaskContext>& context);
+			void OnScheduled(const std::shared_ptr<Core::BaseStream>& stream) override;
+		};
+
 		static std::size_t GetRequiredSize();
-		std::shared_ptr<UploadBuffer> _uploadBuffer;
+		ConstantBufferHeap::Handle _cbHeapHandle;
 	};
 
 	template<class TUniformBufferData>
 	inline UniformBuffer<TUniformBufferData>::UniformBuffer(std::string_view name) : Core::UniformBuffer<TUniformBufferData>(Core::Buffer::Settings {GetRequiredSize(), std::string {name}})
 	{
-		_uploadBuffer = std::make_shared<UploadBuffer>(this->_settings);
 	}
 
 	template<class TUniformBufferData>
 	inline UniformBuffer<TUniformBufferData>::UniformBuffer() : Core::UniformBuffer<TUniformBufferData>(Core::Buffer::Settings {GetRequiredSize(), ""})
 	{
-		_uploadBuffer = std::make_shared<UploadBuffer>(this->_settings);
 	}
 
 	template <class TUniformBufferData>
@@ -320,45 +330,55 @@ namespace MMPEngine::Backend::Dx12
 	{
 		const auto ctx = std::make_shared<WriteTaskContext>();
 		ctx->uniformBuffer = std::dynamic_pointer_cast<UniformBuffer>(this->shared_from_this());
-		std::memcpy(&ctx->data, &data, sizeof(data));
+		std::memcpy(std::addressof(ctx->data), std::addressof(data), sizeof(data));
 		return std::make_shared<WriteTask>(ctx);
-	}
-
-	template<class TUniformBufferData>
-	inline std::shared_ptr<Core::BaseTask> UniformBuffer<TUniformBufferData>::CreateCopyToBufferTask(const std::shared_ptr<Core::Buffer>& dst, std::size_t byteLength, std::size_t srcByteOffset, std::size_t dstByteOffset) const
-	{
-		return _uploadBuffer->CreateCopyToBufferTask(dst->GetUnderlyingBuffer(), byteLength, srcByteOffset, dstByteOffset);
 	}
 
 	template<class TUniformBufferData>
 	inline std::shared_ptr<Core::BaseTask> UniformBuffer<TUniformBufferData>::CreateInitializationTask()
 	{
-		return _uploadBuffer->CreateInitializationTask();
+		const auto ctx = std::make_shared<InitTaskContext>();
+		ctx->entity = std::dynamic_pointer_cast<UniformBuffer>(this->shared_from_this());
+		return std::make_shared<InitTask>(ctx);
 	}
 
 	template<class TUniformBufferData>
-	inline std::shared_ptr<Core::Buffer> UniformBuffer<TUniformBufferData>::GetUnderlyingBuffer()
+	std::shared_ptr<Core::BaseTask> UniformBuffer<TUniformBufferData>::CreateCopyToBufferTask(const std::shared_ptr<Core::Buffer>& dst, std::size_t byteLength, std::size_t srcByteOffset, std::size_t dstByteOffset) const
 	{
-		return _uploadBuffer;
+		const auto globalOffset = this->_cbHeapHandle.GetOffset();
+		return this->_cbHeapHandle.GetUploadBlock()->CreateCopyToBufferTask(
+			dst->GetUnderlyingBuffer(),
+			byteLength, 
+			globalOffset + srcByteOffset, 
+			dstByteOffset
+		);
+	}
+
+	template<class TUniformBufferData>
+	inline std::shared_ptr<Core::BaseTask> UniformBuffer<TUniformBufferData>::CreateSwitchStateTask(D3D12_RESOURCE_STATES nextStateMask)
+	{
+		return this->_cbHeapHandle.GetUploadBlock()->CreateSwitchStateTask(nextStateMask);
 	}
 
 	template<class TUniformBufferData>
 	inline std::size_t UniformBuffer<TUniformBufferData>::GetRequiredSize()
 	{
 		const auto res = (
-			(sizeof(TUniformBufferData) + D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT - 1) /
+			(sizeof(Core::UniformBuffer<TUniformBufferData>::TData) + D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT - 1) /
 				D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT * D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT
 		);
 		return res;
 	}
 
 	template <class TUniformBufferData>
-	UniformBuffer<TUniformBufferData>::WriteTask::WriteTask(const std::shared_ptr<WriteTaskContext>& ctx) : Task<typename Core::UniformBuffer<TUniformBufferData>::WriteTaskContext>(ctx)
+	inline UniformBuffer<TUniformBufferData>::WriteTask::WriteTask(const std::shared_ptr<WriteTaskContext>& ctx) : Task<typename Core::UniformBuffer<TUniformBufferData>::WriteTaskContext>(ctx)
 	{
-		this->_impl = ctx->uniformBuffer->_uploadBuffer->CreateWriteTask(
+		const auto offset = ctx->uniformBuffer->_cbHeapHandle.GetOffset();
+
+		this->_impl = ctx->uniformBuffer->_cbHeapHandle.GetUploadBlock()->CreateWriteTask(
 			std::addressof(this->GetTaskContext()->data),
 			sizeof(typename Core::UniformBuffer<TUniformBufferData>::TData),
-			0
+			offset
 		);
 	}
 
@@ -368,4 +388,30 @@ namespace MMPEngine::Backend::Dx12
 		Task<typename Core::UniformBuffer<TUniformBufferData>::WriteTaskContext>::OnScheduled(stream);
 		stream->Schedule(this->_impl);
 	}
+
+	template <class TUniformBufferData>
+	inline UniformBuffer<TUniformBufferData>::InitTask::InitTask(const std::shared_ptr<InitTaskContext>& context) : Task<InitTaskContext>(context)
+	{
+	}
+
+	template <class TUniformBufferData>
+	inline void UniformBuffer<TUniformBufferData>::InitTask::OnScheduled(const std::shared_ptr<Core::BaseStream>& stream)
+	{
+		Task<InitTaskContext>::OnScheduled(stream);
+		stream->Schedule(std::make_shared<Core::BatchTask>(std::initializer_list<std::shared_ptr<Core::BaseTask>>{
+			std::make_shared<Core::FunctionalTask>(
+				[ctx = this->GetTaskContext(), gc = this->_specificGlobalContext](const auto&)
+				{
+					ctx->entity->_cbHeapHandle = gc->constantBufferEntityHeap->Allocate(Core::Heap::Request {
+						ctx->entity->GetRequiredSize(),
+						D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT
+					});
+				},
+				Core::FunctionalTask::Handler {},
+				Core::FunctionalTask::Handler {}
+			),
+			this->_specificGlobalContext->constantBufferEntityHeap->CreateTaskToInitializeBlocks()
+		}));
+	}
+
 }
