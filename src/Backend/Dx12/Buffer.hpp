@@ -282,7 +282,6 @@ namespace MMPEngine::Backend::Dx12
 		std::shared_ptr<Core::BaseTask> CreateCopyToBufferTask(const std::shared_ptr<Core::Buffer>& dst, std::size_t byteLength, std::size_t srcByteOffset, std::size_t dstByteOffset) const override;
 		std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;
 		std::shared_ptr<Core::Buffer> GetUnderlyingBuffer() override;
-
 	private:
 		static std::size_t GetRequiredSize();
 		std::shared_ptr<UploadBuffer> _uploadBuffer;
@@ -333,5 +332,4 @@ namespace MMPEngine::Backend::Dx12
 		);
 		return res;
 	}
-
 }

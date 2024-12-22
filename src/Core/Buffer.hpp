@@ -136,7 +136,12 @@ namespace MMPEngine::Core
 		static_assert(std::is_pod_v<TData>, "TData should be POD");
 
 		UniformBuffer(const Settings& settings);
-
+	public:
+		class WriteTaskContext : public TaskContext
+		{
+		public:
+			TData data;
+		};
 	public:
 		virtual std::shared_ptr<ContextualTask<Core::UploadBuffer::WriteTaskContext>> CreateWriteAsyncTask(const TData& data) = 0;
 	};
