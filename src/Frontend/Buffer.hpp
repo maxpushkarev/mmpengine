@@ -120,7 +120,7 @@ namespace MMPEngine::Frontend
 		UniformBuffer(const std::shared_ptr<Core::GlobalContext>& globalContext, std::string_view name);
 		UniformBuffer(const std::shared_ptr<Core::GlobalContext>& globalContext);
 
-		std::shared_ptr<Core::ContextualTask<Core::UploadBuffer::WriteTaskContext>> CreateWriteAsyncTask(const TUniformBufferData& data) override;
+		std::shared_ptr<Core::ContextualTask<typename Core::UniformBuffer<TUniformBufferData>::WriteTaskContext>> CreateWriteAsyncTask(const TUniformBufferData& data) override;
 
 		std::shared_ptr<Core::BaseTask> CreateCopyToBufferTask(const std::shared_ptr<Core::Buffer>& dst, std::size_t byteLength, std::size_t srcByteOffset, std::size_t dstByteOffset) const override;
 		std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;
@@ -159,7 +159,7 @@ namespace MMPEngine::Frontend
 	}
 
 	template <class TUniformBufferData>
-	inline std::shared_ptr<Core::ContextualTask<Core::UploadBuffer::WriteTaskContext>> UniformBuffer<TUniformBufferData>::CreateWriteAsyncTask(const TUniformBufferData& data)
+	inline std::shared_ptr<Core::ContextualTask<typename Core::UniformBuffer<TUniformBufferData>::WriteTaskContext>> UniformBuffer<TUniformBufferData>::CreateWriteAsyncTask(const TUniformBufferData& data)
 	{
 		return _impl->CreateWriteAsyncTask(data);
 	}

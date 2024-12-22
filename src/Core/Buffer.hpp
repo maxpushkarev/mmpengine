@@ -143,7 +143,7 @@ namespace MMPEngine::Core
 			TData data;
 		};
 	public:
-		virtual std::shared_ptr<ContextualTask<Core::UploadBuffer::WriteTaskContext>> CreateWriteAsyncTask(const TData& data) = 0;
+		virtual std::shared_ptr<ContextualTask<WriteTaskContext>> CreateWriteAsyncTask(const TData& data) = 0;
 	};
 
 	template<class TUniformBufferData>

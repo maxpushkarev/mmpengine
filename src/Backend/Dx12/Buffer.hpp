@@ -278,11 +278,27 @@ namespace MMPEngine::Backend::Dx12
 		UniformBuffer(std::string_view name);
 		UniformBuffer();
 
-		std::shared_ptr<Core::ContextualTask<Core::UploadBuffer::WriteTaskContext>> CreateWriteAsyncTask(const TUniformBufferData& data) override;
+		std::shared_ptr<Core::ContextualTask<typename Core::UniformBuffer<TUniformBufferData>::WriteTaskContext>> CreateWriteAsyncTask(const TUniformBufferData& data) override;
 		std::shared_ptr<Core::BaseTask> CreateCopyToBufferTask(const std::shared_ptr<Core::Buffer>& dst, std::size_t byteLength, std::size_t srcByteOffset, std::size_t dstByteOffset) const override;
 		std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;
 		std::shared_ptr<Core::Buffer> GetUnderlyingBuffer() override;
 	private:
+
+		class WriteTaskContext final : public Core::UniformBuffer<TUniformBufferData>::WriteTaskContext
+		{
+		public:
+			std::shared_ptr<UniformBuffer> uniformBuffer;
+		};
+
+		class WriteTask final : public Task<typename Core::UniformBuffer<TUniformBufferData>::WriteTaskContext>
+		{
+		public:
+			WriteTask(const std::shared_ptr<WriteTaskContext>& ctx);
+			void OnScheduled(const std::shared_ptr<Core::BaseStream>& stream) override;
+		private:
+			std::shared_ptr<Core::ContextualTask<Core::UploadBuffer::WriteTaskContext>> _impl;
+		};
+
 		static std::size_t GetRequiredSize();
 		std::shared_ptr<UploadBuffer> _uploadBuffer;
 	};
@@ -300,9 +316,12 @@ namespace MMPEngine::Backend::Dx12
 	}
 
 	template <class TUniformBufferData>
-	std::shared_ptr<Core::ContextualTask<Core::UploadBuffer::WriteTaskContext>> UniformBuffer<TUniformBufferData>::CreateWriteAsyncTask(const TUniformBufferData& data)
+	std::shared_ptr<Core::ContextualTask<typename Core::UniformBuffer<TUniformBufferData>::WriteTaskContext>> UniformBuffer<TUniformBufferData>::CreateWriteAsyncTask(const TUniformBufferData& data)
 	{
-		return _uploadBuffer->CreateWriteTask(std::addressof(data), sizeof(data), 0);
+		const auto ctx = std::make_shared<WriteTaskContext>();
+		ctx->uniformBuffer = std::dynamic_pointer_cast<UniformBuffer>(this->shared_from_this());
+		std::memcpy(&ctx->data, &data, sizeof(data));
+		return std::make_shared<WriteTask>(ctx);
 	}
 
 	template<class TUniformBufferData>
@@ -331,5 +350,22 @@ namespace MMPEngine::Backend::Dx12
 				D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT * D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT
 		);
 		return res;
+	}
+
+	template <class TUniformBufferData>
+	UniformBuffer<TUniformBufferData>::WriteTask::WriteTask(const std::shared_ptr<WriteTaskContext>& ctx) : Task<typename Core::UniformBuffer<TUniformBufferData>::WriteTaskContext>(ctx)
+	{
+		this->_impl = ctx->uniformBuffer->_uploadBuffer->CreateWriteTask(
+			std::addressof(this->GetTaskContext()->data),
+			sizeof(typename Core::UniformBuffer<TUniformBufferData>::TData),
+			0
+		);
+	}
+
+	template<class TUniformBufferData>
+	inline void UniformBuffer<TUniformBufferData>::WriteTask::OnScheduled(const std::shared_ptr<Core::BaseStream>& stream)
+	{
+		Task<typename Core::UniformBuffer<TUniformBufferData>::WriteTaskContext>::OnScheduled(stream);
+		stream->Schedule(this->_impl);
 	}
 }
