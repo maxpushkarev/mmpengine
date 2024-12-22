@@ -9,7 +9,7 @@ namespace MMPEngine::Core
 	Heap::~Heap() = default;
 
 
-	Heap::Block::Block(std::size_t size)
+	Heap::Block::Block(std::size_t size) : _size(size)
 	{
 		AddRange({0, size - 1});
 	}
