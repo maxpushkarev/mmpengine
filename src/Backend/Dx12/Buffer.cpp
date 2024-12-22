@@ -341,10 +341,13 @@ namespace MMPEngine::Backend::Dx12
 				entity->_shaderVisibleHandleCounter = ac->cbvSrvUavShaderVisibleDescPool->Allocate();
 				entity->_shaderInVisibleHandleCounter = ac->cbvSrvUavShaderInVisibleDescPool->Allocate();
 
+				const auto r32ElementsFit = static_cast<decltype(uavDesc.Buffer.NumElements)>(fullSize  / sizeof(std::uint32_t));
+
 				uavDesc.Format = DXGI_FORMAT_R32_UINT;
 				uavDesc.Buffer.StructureByteStride = 0;
-				uavDesc.Buffer.NumElements = static_cast<decltype(uavDesc.Buffer.NumElements)>(fullSize / sizeof(std::uint32_t));
+				uavDesc.Buffer.NumElements = 1;
 				uavDesc.Buffer.CounterOffsetInBytes = 0;
+				uavDesc.Buffer.FirstElement = r32ElementsFit - 1;
 
 				ac->device->CreateUnorderedAccessView(
 					bufferResource.Get(),
@@ -436,23 +439,13 @@ namespace MMPEngine::Backend::Dx12
 		const auto tc = GetTaskContext();
 		const auto entity = tc->entity;
 		constexpr std::uint32_t clear[]{ 0,0,0,0 };
-
-		const auto dataSize = tc->settings.stride * tc->settings.elementsCount;
-		constexpr auto counterAlignmentBlock = static_cast<std::size_t>(D3D12_UAV_COUNTER_PLACEMENT_ALIGNMENT);
-		const auto fullSize = ((dataSize + counterAlignmentBlock - 1) / counterAlignmentBlock) * counterAlignmentBlock + sizeof(Core::CounteredUnorderedAccessBuffer::CounterValueType);
-
-		D3D12_RECT rect {};
-		rect.top = 0;
-		rect.bottom = 1;
-		rect.left = static_cast<decltype(rect.left)>(fullSize / sizeof(std::uint32_t)) - 1;
-		rect.right = rect.left + 1;
 		
 		_specificStreamContext->PopulateCommandsInList()->ClearUnorderedAccessViewUint(
 			entity->GetShaderVisibleCounterDescriptorHandle()->GetGPUDescriptorHandle(),
 			entity->GetShaderInVisibleCounterDescriptorHandle()->GetCPUDescriptorHandle(),
 			entity->GetNativeResource().Get(),
 			clear,
-			1, &rect
+			0, nullptr
 		);
 	}
 
