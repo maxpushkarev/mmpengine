@@ -311,9 +311,28 @@ namespace MMPEngine::Backend::Dx12
 
 		class InitTask final : public Task<InitTaskContext>
 		{
+		private:
+
+			class Alloc final : public Task<InitTaskContext>
+			{
+			public:
+				Alloc(const std::shared_ptr<InitTaskContext>& context);
+				void OnScheduled(const std::shared_ptr<Core::BaseStream>& stream) override;
+			};
+
+			class CreateDescriptors final : public Task<InitTaskContext>
+			{
+			public:
+				CreateDescriptors(const std::shared_ptr<InitTaskContext>& context);
+				void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
+			};
+
 		public:
 			InitTask(const std::shared_ptr<InitTaskContext>& context);
 			void OnScheduled(const std::shared_ptr<Core::BaseStream>& stream) override;
+		private:
+			std::shared_ptr<Core::BaseTask> _alloc;
+			std::shared_ptr<Core::BaseTask> _createDescriptors;
 		};
 
 		static std::size_t GetRequiredSize();
@@ -404,44 +423,62 @@ namespace MMPEngine::Backend::Dx12
 	template <class TUniformBufferData>
 	inline UniformBuffer<TUniformBufferData>::InitTask::InitTask(const std::shared_ptr<InitTaskContext>& context) : Task<InitTaskContext>(context)
 	{
+		_alloc = std::make_shared<Alloc>(context);
+		_createDescriptors = std::make_shared<CreateDescriptors>(context);
 	}
 
 	template <class TUniformBufferData>
 	inline void UniformBuffer<TUniformBufferData>::InitTask::OnScheduled(const std::shared_ptr<Core::BaseStream>& stream)
 	{
 		Task<InitTaskContext>::OnScheduled(stream);
-		stream->Schedule(std::make_shared<Core::BatchTask>(std::initializer_list<std::shared_ptr<Core::BaseTask>>{
-			std::make_shared<Core::FunctionalTask>(
-				[ctx = this->GetTaskContext(), gc = this->_specificGlobalContext](const auto&)
-				{
-					ctx->entity->_cbHeapHandle = gc->constantBufferEntityHeap->Allocate(Core::Heap::Request {
-						ctx->entity->GetRequiredSize(),
-						D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT
-					});
-				},
-				Core::FunctionalTask::Handler {},
-				Core::FunctionalTask::Handler {}
-			),
-			this->_specificGlobalContext->constantBufferEntityHeap->CreateTaskToInitializeBlocks(),
-			std::make_shared<Core::FunctionalTask>(
-				Core::FunctionalTask::Handler {},
-				[ctx = this->GetTaskContext(), gc = this->_specificGlobalContext](const auto&)
-				{
-					ctx->entity->SetNativeResource(
-						ctx->entity->_cbHeapHandle.GetUploadBlock()->GetNativeResource(), static_cast<std::uint32_t>(ctx->entity->_cbHeapHandle.GetOffset())
-					);
 
-					ctx->entity->_descriptorHeapHandle = gc->cbvSrvUavShaderVisibleDescPool->Allocate();
+		stream->Schedule(this->_alloc),
+		stream->Schedule(this->_specificGlobalContext->constantBufferEntityHeap->GetOrCreateTaskToInitializeBlocks());
+		stream->Schedule(this->_createDescriptors);
+	}
 
-					D3D12_CONSTANT_BUFFER_VIEW_DESC viewDesc {};
-					viewDesc.BufferLocation = ctx->entity->GetNativeResource()->GetGPUVirtualAddress() + static_cast<D3D12_GPU_VIRTUAL_ADDRESS>(ctx->entity->_cbHeapHandle.GetOffset());
-					viewDesc.SizeInBytes = static_cast<std::uint32_t>(ctx->entity->GetSettings().byteLength);
+	template <class TUniformBufferData>
+	inline UniformBuffer<TUniformBufferData>::InitTask::Alloc::Alloc(const std::shared_ptr<InitTaskContext>& context) : Task<InitTaskContext>(context)
+	{
+	}
 
-					gc->device->CreateConstantBufferView(&viewDesc, ctx->entity->_descriptorHeapHandle.GetCPUDescriptorHandle());
-				},
-				Core::FunctionalTask::Handler {}
-			),
-		}));
+	template <class TUniformBufferData>
+	inline void UniformBuffer<TUniformBufferData>::InitTask::Alloc::OnScheduled(const std::shared_ptr<Core::BaseStream>& stream)
+	{
+		Task<InitTaskContext>::OnScheduled(stream);
+
+		const auto ctx = this->GetTaskContext();
+
+		ctx->entity->_cbHeapHandle = this->_specificGlobalContext->constantBufferEntityHeap->Allocate(Core::Heap::Request {
+			ctx->entity->GetRequiredSize(),
+				D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT
+		});
+	}
+
+	template <class TUniformBufferData>
+	inline UniformBuffer<TUniformBufferData>::InitTask::CreateDescriptors::CreateDescriptors(const std::shared_ptr<InitTaskContext>& context) : Task<InitTaskContext>(context)
+	{
+	}
+
+	template <class TUniformBufferData>
+	inline void UniformBuffer<TUniformBufferData>::InitTask::CreateDescriptors::Run(const std::shared_ptr<Core::BaseStream>& stream)
+	{
+		Task<InitTaskContext>::Run(stream);
+
+		const auto tc = this->GetTaskContext();
+		const auto gc = this->_specificGlobalContext;
+
+		tc->entity->SetNativeResource(
+			tc->entity->_cbHeapHandle.GetUploadBlock()->GetNativeResource(), static_cast<std::uint32_t>(tc->entity->_cbHeapHandle.GetOffset())
+		);
+
+		tc->entity->_descriptorHeapHandle = gc->cbvSrvUavShaderVisibleDescPool->Allocate();
+
+		D3D12_CONSTANT_BUFFER_VIEW_DESC viewDesc{};
+		viewDesc.BufferLocation = tc->entity->GetNativeResource()->GetGPUVirtualAddress() + static_cast<D3D12_GPU_VIRTUAL_ADDRESS>(tc->entity->_cbHeapHandle.GetOffset());
+		viewDesc.SizeInBytes = static_cast<std::uint32_t>(tc->entity->GetSettings().byteLength);
+
+		gc->device->CreateConstantBufferView(&viewDesc, tc->entity->_descriptorHeapHandle.GetCPUDescriptorHandle());
 	}
 
 }

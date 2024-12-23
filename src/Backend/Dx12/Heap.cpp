@@ -20,11 +20,17 @@ namespace MMPEngine::Backend::Dx12
 		_upload = std::make_shared<UploadBuffer>(Core::Buffer::Settings {
 			size, "constant_buffer_block_in_heap"
 		});
+		_initTask = _upload->CreateInitializationTask();
 	}
 
 	std::shared_ptr<UploadBuffer> ConstantBufferHeap::Block::GetEntity() const
 	{
 		return _upload;
+	}
+
+	std::shared_ptr<Core::BaseTask> ConstantBufferHeap::Block::GetInitTask() const
+	{
+		return _initTask;
 	}
 
 	ConstantBufferHeap::Handle::Handle(const std::shared_ptr<Heap>& heap, const Entry& entry, const std::shared_ptr<UploadBuffer>& blockEntity)
@@ -51,11 +57,16 @@ namespace MMPEngine::Backend::Dx12
 		return { shared_from_this(), entry, block->GetEntity()};
 	}
 
-	std::shared_ptr<Core::BaseTask> ConstantBufferHeap::CreateTaskToInitializeBlocks()
+	std::shared_ptr<Core::BaseTask>& ConstantBufferHeap::GetOrCreateTaskToInitializeBlocks() const
 	{
-		const auto ctx = std::make_shared<InitBlocksTaskContext>();
-		ctx->heap = std::dynamic_pointer_cast<ConstantBufferHeap>(shared_from_this());
-		return std::make_shared<InitBlocksTask>(ctx);
+		if(!_initBlockTask)
+		{
+			const auto ctx = std::make_shared<InitBlocksTaskContext>();
+			ctx->heap = std::dynamic_pointer_cast<ConstantBufferHeap>(std::const_pointer_cast<Core::Heap>(shared_from_this()));
+			_initBlockTask = std::make_shared<InitBlocksTask>(ctx);		
+		}
+
+		return _initBlockTask;
 	}
 
 
@@ -73,13 +84,12 @@ namespace MMPEngine::Backend::Dx12
 		for(const auto& b : heap->_blocks)
 		{
 			const auto castedBlock = dynamic_cast<Block*>(b.get());
-			const auto entity = castedBlock->GetEntity();
-			const auto id = entity->GetId();
+			const auto id = castedBlock->GetEntity()->GetId();
 
 			if(heap->_initializedBlockIds.find(id) == heap->_initializedBlockIds.cend())
 			{
 				heap->_initializedBlockIds.emplace(id);
-				stream->Schedule(entity->CreateInitializationTask());
+				stream->Schedule(castedBlock->GetInitTask());
 			}
 		}
 	}
