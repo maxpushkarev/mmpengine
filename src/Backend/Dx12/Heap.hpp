@@ -20,10 +20,8 @@ namespace MMPEngine::Backend::Dx12
 		public:
 			Block(std::size_t size);
 			std::shared_ptr<UploadBuffer> GetEntity() const;
-			std::shared_ptr<Core::BaseTask> GetInitTask() const;
 		private:
 			std::shared_ptr<UploadBuffer> _upload;
-			std::shared_ptr<Core::BaseTask> _initTask;
 		};
 
 		class InitBlocksTaskContext : public Core::TaskContext
@@ -57,9 +55,8 @@ namespace MMPEngine::Backend::Dx12
 		};
 
 		Handle Allocate(const Request& request);
-		const std::shared_ptr<Core::BaseTask>& GetOrCreateTaskToInitializeBlocks() const;
+		std::shared_ptr<Core::BaseTask> CreateTaskToInitializeBlocks();
 	private:
 		std::unordered_set<std::uint64_t> _initializedBlockIds;
-		mutable std::shared_ptr<Core::BaseTask> _initBlockTask;
 	};
 }

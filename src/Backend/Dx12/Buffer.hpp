@@ -433,7 +433,7 @@ namespace MMPEngine::Backend::Dx12
 		Task<InitTaskContext>::OnScheduled(stream);
 
 		stream->Schedule(this->_alloc),
-		stream->Schedule(this->_specificGlobalContext->constantBufferEntityHeap->GetOrCreateTaskToInitializeBlocks());
+		stream->Schedule(this->_specificGlobalContext->constantBufferEntityHeap->CreateTaskToInitializeBlocks());
 		stream->Schedule(this->_createDescriptors);
 	}
 
