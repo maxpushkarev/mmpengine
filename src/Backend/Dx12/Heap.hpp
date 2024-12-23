@@ -57,7 +57,7 @@ namespace MMPEngine::Backend::Dx12
 		};
 
 		Handle Allocate(const Request& request);
-		std::shared_ptr<Core::BaseTask>& GetOrCreateTaskToInitializeBlocks() const;
+		const std::shared_ptr<Core::BaseTask>& GetOrCreateTaskToInitializeBlocks() const;
 	private:
 		std::unordered_set<std::uint64_t> _initializedBlockIds;
 		mutable std::shared_ptr<Core::BaseTask> _initBlockTask;

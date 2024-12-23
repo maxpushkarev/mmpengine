@@ -57,7 +57,7 @@ namespace MMPEngine::Backend::Dx12
 		return { shared_from_this(), entry, block->GetEntity()};
 	}
 
-	std::shared_ptr<Core::BaseTask>& ConstantBufferHeap::GetOrCreateTaskToInitializeBlocks() const
+	const std::shared_ptr<Core::BaseTask>& ConstantBufferHeap::GetOrCreateTaskToInitializeBlocks() const
 	{
 		if(!_initBlockTask)
 		{
