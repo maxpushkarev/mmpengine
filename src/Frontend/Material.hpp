@@ -14,6 +14,11 @@ namespace MMPEngine::Frontend
 	protected:
 		template<typename T = TCoreMaterial>
 		Material(const std::shared_ptr<std::enable_if_t<std::is_same_v<Core::ComputeMaterial, T>, Core::GlobalContext>>& globalContext, const std::shared_ptr<Core::ComputeShader>& computeShader);
+		template<typename T = TCoreMaterial>
+		Material(const std::shared_ptr<std::enable_if_t<std::is_same_v<Core::MeshMaterial, T>, Core::GlobalContext>>& globalContext, 
+			const Core::MeshMaterial::Settings& settings,
+			const std::shared_ptr<Core::VertexShader>& vs,
+			const std::shared_ptr<Core::PixelShader>& ps);
 	public:
 		std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;
 		std::shared_ptr<Core::BaseTask> CreateTaskForApply() override;
@@ -33,6 +38,17 @@ namespace MMPEngine::Frontend
 	};
 
 
+	class MeshMaterial final : public Material<Core::MeshMaterial>
+	{
+	public:
+		MeshMaterial(
+			const std::shared_ptr<Core::GlobalContext>& globalContext,
+			const Core::MeshMaterial::Settings& settings,
+			const std::shared_ptr<Core::VertexShader>& vs, 
+			const std::shared_ptr<Core::PixelShader>& ps
+		);
+	};
+
 	template<typename TCoreMaterial>
 	template<typename T>
 	inline Material<TCoreMaterial>::Material(const std::shared_ptr<std::enable_if_t<std::is_same_v<Core::ComputeMaterial, T>, Core::GlobalContext>>& globalContext, const std::shared_ptr<Core::ComputeShader>& computeShader)
@@ -44,6 +60,24 @@ namespace MMPEngine::Frontend
 			_impl = std::make_shared<Backend::Dx12::ComputeMaterial>(computeShader);
 #else
 			throw Core::UnsupportedException("unable to create compute material for DX12 backend");
+#endif
+		}
+	}
+
+	template<typename TCoreMaterial>
+	template<typename T>
+	inline Material<TCoreMaterial>::Material(
+		const std::shared_ptr<std::enable_if_t<std::is_same_v<Core::MeshMaterial, T>, Core::GlobalContext>>& globalContext, 
+		const Core::MeshMaterial::Settings& settings, 
+		const std::shared_ptr<Core::VertexShader>& vs, 
+		const std::shared_ptr<Core::PixelShader>& ps) : TCoreMaterial(settings, vs, ps)
+	{
+		if (globalContext->settings.backend == Core::BackendType::Dx12)
+		{
+#ifdef MMPENGINE_BACKEND_DX12
+			_impl = std::make_shared<Backend::Dx12::MeshMaterial>(settings, vs, ps);
+#else
+			throw Core::UnsupportedException("unable to create mesh material for DX12 backend");
 #endif
 		}
 	}

@@ -139,7 +139,8 @@ namespace MMPEngine::Core
 	{
 	}
 
-	MeshMaterial::MeshMaterial(const Settings& settings) : RenderingMaterial(settings)
+	MeshMaterial::MeshMaterial(const Settings& settings, const std::shared_ptr<VertexShader>& vs, const std::shared_ptr<PixelShader>& ps)
+		: RenderingMaterial(settings), _vs(vs), _ps(ps)
 	{
 	}
 

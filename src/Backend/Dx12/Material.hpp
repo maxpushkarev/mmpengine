@@ -98,6 +98,15 @@ namespace MMPEngine::Backend::Dx12
 		std::shared_ptr<Core::BaseTask> CreateTaskForBakeParametersInternal() override;
 	};
 
+	class MeshMaterial final : public Core::MeshMaterial, public MaterialImpl<Core::MeshMaterial>
+	{
+	public:
+		MeshMaterial(const Settings& settings, const std::shared_ptr<Core::VertexShader>& vs, const std::shared_ptr<Core::PixelShader>& ps);
+		std::shared_ptr<Core::BaseTask> CreateTaskForApply() override;
+	protected:
+		std::shared_ptr<Core::BaseTask> CreateTaskForBakeParametersInternal() override;
+	};
+
 	template<class TCoreMaterial>
 	inline void MaterialImpl<TCoreMaterial>::OnParametersBake(const std::shared_ptr<GlobalContext>& globalContext, const Core::BaseMaterial::Parameters& params)
 	{
@@ -160,9 +169,53 @@ namespace MMPEngine::Backend::Dx12
 
 				throw Core::UnsupportedException("unsupported dx12 entity type in material");
 			}
-			else if constexpr (std::is_base_of_v<Core::RenderingMaterial, TCoreMaterial>)
+			else if constexpr (std::is_base_of_v<Core::MeshMaterial, TCoreMaterial>)
 			{
-				//TODO: populate graphics commands
+				if (std::holds_alternative<Core::BaseMaterial::Parameters::Buffer>(parameterEntry.settings))
+				{
+					const auto bufferSettings = std::get<Core::BaseMaterial::Parameters::Buffer>(parameterEntry.settings);
+					const auto coreBuffer = std::dynamic_pointer_cast<Core::Buffer>(parameterEntry.entity);
+					assert(coreBuffer);
+					const auto nativeBuffer = std::dynamic_pointer_cast<Dx12::ResourceEntity>(coreBuffer->GetUnderlyingBuffer());
+					assert(nativeBuffer);
+
+					switch (bufferSettings.type)
+					{
+					case Core::BaseMaterial::Parameters::Buffer::Type::UnorderedAccess:
+					{
+						_applyParametersCallbacks.emplace_back([nativeBuffer, index](const auto& ctx)
+							{
+								ctx->PopulateCommandsInList()->SetGraphicsRootDescriptorTable(static_cast<std::uint32_t>(index), nativeBuffer->GetShaderVisibleDescriptorHandle()->GetGPUDescriptorHandle());
+							});
+					}
+					break;
+					case Core::BaseMaterial::Parameters::Buffer::Type::Uniform:
+					{
+						_applyParametersCallbacks.emplace_back([nativeBuffer, index](const auto& ctx)
+							{
+								ctx->PopulateCommandsInList()->SetGraphicsRootDescriptorTable(static_cast<std::uint32_t>(index), nativeBuffer->GetShaderVisibleDescriptorHandle()->GetGPUDescriptorHandle());
+							});
+					}
+					break;
+					case Core::BaseMaterial::Parameters::Buffer::Type::ReadonlyAccess:
+					{
+						_applyParametersCallbacks.emplace_back([nativeBuffer, index](const auto& ctx)
+							{
+								ctx->PopulateCommandsInList()->SetGraphicsRootShaderResourceView(static_cast<std::uint32_t>(index), nativeBuffer->GetNativeGPUAddressWithRequiredOffset());
+							});
+					}
+					break;
+					}
+
+					continue;
+				}
+
+				if (std::holds_alternative<Core::BaseMaterial::Parameters::Texture>(parameterEntry.settings))
+				{
+					continue;
+				}
+
+				throw Core::UnsupportedException("unsupported dx12 entity type in material");
 			}
 			else
 			{

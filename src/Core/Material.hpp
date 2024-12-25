@@ -102,7 +102,9 @@ namespace MMPEngine::Core
 	class MeshMaterial : public RenderingMaterial
 	{
 	protected:
-		MeshMaterial(const Settings& settings);
+		MeshMaterial(const Settings& settings, const std::shared_ptr<VertexShader>& vs, const std::shared_ptr<PixelShader>& ps);
+		std::shared_ptr<VertexShader> _vs;
+		std::shared_ptr<PixelShader> _ps;
 	};
 
 	class ComputeMaterial : public BaseMaterial

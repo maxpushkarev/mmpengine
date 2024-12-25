@@ -199,4 +199,25 @@ namespace MMPEngine::Backend::Dx12
 		return std::make_shared<BakeParametersTask>(ctx);
 	}
 
+
+	MeshMaterial::MeshMaterial(const Settings& settings, const std::shared_ptr<Core::VertexShader>& vs, const std::shared_ptr<Core::PixelShader>& ps)
+		: Core::MeshMaterial(settings, vs, ps)
+	{
+	}
+
+	std::shared_ptr<Core::BaseTask> MeshMaterial::CreateTaskForApply()
+	{
+		const auto ctx = std::make_shared<ApplyMaterialTaskContext>();
+		ctx->materialPtr = std::dynamic_pointer_cast<MaterialImpl<Core::MeshMaterial>>(shared_from_this());
+		return std::make_shared<ApplyParametersTask>(ctx);
+	}
+
+	std::shared_ptr<Core::BaseTask> MeshMaterial::CreateTaskForBakeParametersInternal()
+	{
+		const auto ctx = std::make_shared<BakeParametersTaskContext>();
+		ctx->materialImplPtr = std::dynamic_pointer_cast<MaterialImpl<Core::MeshMaterial>>(shared_from_this());
+		ctx->params = &_params;
+		return std::make_shared<BakeParametersTask>(ctx);
+	}
+
 }
