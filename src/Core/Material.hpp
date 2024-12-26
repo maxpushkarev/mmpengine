@@ -93,6 +93,32 @@ namespace MMPEngine::Core
 	public:
 		struct Settings
 		{
+			enum class FillMode : std::uint8_t
+			{
+				Solid,
+				WireFrame
+			};
+
+			enum class DepthFunc : std::uint8_t
+			{
+				LessEqual,
+				GreaterEqual,
+				Greater,
+				Less,
+				Always,
+				Never
+			};
+
+			enum class DepthWrite
+			{
+				On,
+				Off
+			};
+
+			FillMode fillMode = FillMode::Solid;
+			DepthWrite depthWrite = DepthWrite::On;
+			DepthFunc depthFunc = DepthFunc::LessEqual;
+
 		};
 	protected:
 		RenderingMaterial(const Settings& settings);
