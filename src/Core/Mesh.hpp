@@ -35,6 +35,7 @@ namespace MMPEngine::Core
 		{
 			std::shared_ptr<VertexBuffer> ptr;
 			VertexBufferPrototype::Settings settings;
+			VertexBufferPrototype::Format format;
 			std::size_t stride;
 			std::size_t elementsCount;
 		};
@@ -43,6 +44,7 @@ namespace MMPEngine::Core
 		{
 			std::shared_ptr<IndexBuffer> ptr;
 			IndexBufferPrototype::Settings settings;
+			IndexBufferPrototype::Format format;
 			std::size_t stride;
 			std::size_t elementsCount;
 		};

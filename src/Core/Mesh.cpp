@@ -3,7 +3,7 @@
 
 namespace MMPEngine::Core
 {
-	Mesh::Mesh(GeometryPrototype&& proto) : _proto(std::move(proto))
+	Mesh::Mesh(GeometryPrototype&& proto) : _proto(std::move(proto)), _indexBufferInfo {}
 	{
 	}
 
@@ -24,17 +24,20 @@ namespace MMPEngine::Core
 			semanticBuffers.push_back(VertexBufferInfo{
 				vertexBuffer,
 	{vbProto->GetVBSettings(), vbProto->GetSettings()},
+				vbProto->GetFormat(),
 				vbProto->GetStride(),
 				vbProto->GetElementsCount()
 			});
 		}
 
-		const auto indexBuffer = mesh->CreateIndexBuffer(mesh->_proto.indexBuffer.get());
+		const auto& ibProto = mesh->_proto.indexBuffer;
+		const auto indexBuffer = mesh->CreateIndexBuffer(ibProto.get());
 		mesh->_indexBufferInfo = IndexBufferInfo {
 			indexBuffer,
-			mesh->_proto.indexBuffer->GetSettings(),
-			mesh->_proto.indexBuffer->GetStride(),
-			mesh->_proto.indexBuffer->GetElementsCount()
+			ibProto->GetSettings(),
+			ibProto->GetFormat(),
+			ibProto->GetStride(),
+			ibProto->GetElementsCount()
 		};
 	}
 
