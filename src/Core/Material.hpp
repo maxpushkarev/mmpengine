@@ -115,10 +115,57 @@ namespace MMPEngine::Core
 				Off
 			};
 
+			enum class AlphaToCoverage
+			{
+				On,
+				Off
+			};
+
+
+			struct Blend
+			{
+				static constexpr std::size_t kMaxRenderTargets = 8;
+
+				enum class Op
+				{
+					None,
+					Add,
+					Sub,
+					RevSub,
+					Min,
+					Max
+				};
+
+				enum class Factor
+				{
+					One,
+					Zero,
+					SrcColor,
+					SrcAlpha,
+					DstColor,
+					DstAlpha,
+					OneMinusSrcAlpha,
+					OneMinusSrcColor,
+					OneMinusDstAlpha,
+					OneMinusDstColor,
+				};
+
+				struct Target final
+				{
+					Factor src = Factor::One;
+					Op op = Op::None;
+					Factor dst = Factor::One;
+				};
+
+				bool independentBlend = false;
+				Target targets[kMaxRenderTargets];
+			};
+
 			FillMode fillMode = FillMode::Solid;
 			DepthWrite depthWrite = DepthWrite::On;
 			DepthFunc depthFunc = DepthFunc::LessEqual;
-
+			AlphaToCoverage alphaToCoverage = AlphaToCoverage::Off;
+			Blend blend;
 		};
 	protected:
 		RenderingMaterial(const Settings& settings);
