@@ -4,6 +4,17 @@
 
 namespace MMPEngine::Core
 {
+	bool RenderingMaterial::Settings::Blend::Target::operator==(const Target& rhs) const
+	{
+		return src == rhs.src && dst == rhs.dst && op == rhs.op;
+	}
+
+	bool RenderingMaterial::Settings::Blend::Target::operator!=(const Target& rhs) const
+	{
+		return !operator==(rhs);
+	}
+
+
 	BaseMaterial::Parameters::Parameters()
 	{
 		Build();

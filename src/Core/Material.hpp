@@ -155,9 +155,11 @@ namespace MMPEngine::Core
 					Factor src = Factor::One;
 					Op op = Op::None;
 					Factor dst = Factor::One;
+					
+					bool operator==(const Target& rhs) const;
+					bool operator!=(const Target& rhs) const;
 				};
 
-				bool independentBlend = false;
 				Target targets[kMaxRenderTargets];
 			};
 
