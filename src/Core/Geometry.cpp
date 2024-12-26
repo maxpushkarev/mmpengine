@@ -11,6 +11,11 @@ namespace MMPEngine::Core
 	BaseGeometryBufferPrototype& BaseGeometryBufferPrototype::operator=(BaseGeometryBufferPrototype&&) noexcept = default;
 
 
+	std::size_t BaseGeometryBufferPrototype::GetByteLength() const
+	{
+		return GetElementsCount() * GetStride();
+	}
+
 	const BaseGeometryBufferPrototype::Settings& BaseGeometryBufferPrototype::GetSettings() const
 	{
 		return _settings;
@@ -35,11 +40,6 @@ namespace MMPEngine::Core
 	VertexBufferPrototype::Format VertexBufferPrototypeFloat1::GetFormat() const
 	{
 		return Format::Float1;
-	}
-
-	std::size_t VertexBufferPrototypeFloat1::GetByteLength() const
-	{
-		return GeometryBufferPrototype::GetByteLength();
 	}
 
 	const void* VertexBufferPrototypeFloat1::GetDataPtr() const
@@ -69,11 +69,6 @@ namespace MMPEngine::Core
 		return Format::Float2;
 	}
 
-	std::size_t VertexBufferPrototypeFloat2::GetByteLength() const
-	{
-		return GeometryBufferPrototype::GetByteLength();
-	}
-
 	const void* VertexBufferPrototypeFloat2::GetDataPtr() const
 	{
 		return GeometryBufferPrototype::GetDataPtr();
@@ -99,11 +94,6 @@ namespace MMPEngine::Core
 	VertexBufferPrototype::Format VertexBufferPrototypeFloat3::GetFormat() const
 	{
 		return Format::Float3;
-	}
-
-	std::size_t VertexBufferPrototypeFloat3::GetByteLength() const
-	{
-		return GeometryBufferPrototype::GetByteLength();
 	}
 
 	const void* VertexBufferPrototypeFloat3::GetDataPtr() const
@@ -133,11 +123,6 @@ namespace MMPEngine::Core
 		return Format::Float4;
 	}
 
-	std::size_t VertexBufferPrototypeFloat4::GetByteLength() const
-	{
-		return GeometryBufferPrototype::GetByteLength();
-	}
-
 	const void* VertexBufferPrototypeFloat4::GetDataPtr() const
 	{
 		return GeometryBufferPrototype::GetDataPtr();
@@ -163,11 +148,6 @@ namespace MMPEngine::Core
 	VertexBufferPrototype::Format VertexBufferPrototypeUint4::GetFormat() const
 	{
 		return Format::Uint4;
-	}
-
-	std::size_t VertexBufferPrototypeUint4::GetByteLength() const
-	{
-		return GeometryBufferPrototype::GetByteLength();
 	}
 
 	const void* VertexBufferPrototypeUint4::GetDataPtr() const
@@ -197,11 +177,6 @@ namespace MMPEngine::Core
 		return Format::Uint16;
 	}
 
-	std::size_t IndexBufferPrototype16::GetByteLength() const
-	{
-		return GeometryBufferPrototype::GetByteLength();
-	}
-
 	const void* IndexBufferPrototype16::GetDataPtr() const
 	{
 		return GeometryBufferPrototype::GetDataPtr();
@@ -227,11 +202,6 @@ namespace MMPEngine::Core
 	IndexBufferPrototype::Format IndexBufferPrototype32::GetFormat() const
 	{
 		return Format::Uint32;
-	}
-
-	std::size_t IndexBufferPrototype32::GetByteLength() const
-	{
-		return GeometryBufferPrototype::GetByteLength();
 	}
 
 	const void* IndexBufferPrototype32::GetDataPtr() const

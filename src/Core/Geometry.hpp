@@ -12,7 +12,7 @@ namespace MMPEngine::Core
 			//TODO: support some flags for vert/index buffers: unordered access, raw access...
 		};
 		virtual std::size_t GetStride() const = 0;
-		virtual std::size_t GetByteLength() const = 0;
+		std::size_t GetByteLength() const;
 		virtual const void* GetDataPtr() const = 0;
 		virtual std::size_t GetElementsCount() const = 0;
 		const Settings& GetSettings() const;
@@ -42,7 +42,6 @@ namespace MMPEngine::Core
 
 		const void* GetDataPtr() const override;
 		std::size_t GetStride() const override;
-		std::size_t GetByteLength() const override;
 		std::size_t GetElementsCount() const override;
 
 		std::vector<TElement> data;
@@ -106,7 +105,6 @@ namespace MMPEngine::Core
 		IndexBufferPrototype16(const Settings& s);
 		Format GetFormat() const override;
 
-		std::size_t GetByteLength() const override;
 		const void* GetDataPtr() const override;
 		std::size_t GetElementsCount() const override;
 		std::size_t GetStride() const override;
@@ -118,7 +116,6 @@ namespace MMPEngine::Core
 		IndexBufferPrototype32(const Settings& s);
 		Format GetFormat() const override;
 
-		std::size_t GetByteLength() const override;
 		const void* GetDataPtr() const override;
 		std::size_t GetElementsCount() const override;
 		std::size_t GetStride() const override;
@@ -130,7 +127,6 @@ namespace MMPEngine::Core
 		explicit VertexBufferPrototypeFloat1(const Settings& settings);
 		Format GetFormat() const override;
 
-		std::size_t GetByteLength() const override;
 		const void* GetDataPtr() const override;
 		std::size_t GetElementsCount() const override;
 		std::size_t GetStride() const override;
@@ -142,7 +138,6 @@ namespace MMPEngine::Core
 		explicit VertexBufferPrototypeFloat2(const Settings& settings);
 		Format GetFormat() const override;
 
-		std::size_t GetByteLength() const override;
 		const void* GetDataPtr() const override;
 		std::size_t GetElementsCount() const override;
 		std::size_t GetStride() const override;
@@ -154,7 +149,6 @@ namespace MMPEngine::Core
 		explicit VertexBufferPrototypeFloat3(const Settings& settings);
 		Format GetFormat() const override;
 
-		std::size_t GetByteLength() const override;
 		const void* GetDataPtr() const override;
 		std::size_t GetElementsCount() const override;
 		std::size_t GetStride() const override;
@@ -166,7 +160,6 @@ namespace MMPEngine::Core
 		explicit VertexBufferPrototypeFloat4(const Settings& settings);
 		Format GetFormat() const override;
 
-		std::size_t GetByteLength() const override;
 		const void* GetDataPtr() const override;
 		std::size_t GetElementsCount() const override;
 		std::size_t GetStride() const override;
@@ -178,7 +171,6 @@ namespace MMPEngine::Core
 		explicit VertexBufferPrototypeUint4(const Settings& settings);
 		Format GetFormat() const override;
 
-		std::size_t GetByteLength() const override;
 		const void* GetDataPtr() const override;
 		std::size_t GetElementsCount() const override;
 		std::size_t GetStride() const override;
@@ -230,12 +222,6 @@ namespace MMPEngine::Core
 	inline std::size_t GeometryBufferPrototype<TElement>::GetStride() const
 	{
 		return sizeof(TElement);
-	}
-
-	template<class TElement>
-	inline std::size_t GeometryBufferPrototype<TElement>::GetByteLength() const
-	{
-		return GetStride() * data.size();
 	}
 
 	template<class TElement>
