@@ -20,7 +20,7 @@ namespace MMPEngine::Core
 		{
 		public:
 			CreateBuffers(const std::shared_ptr<InitTaskContext>& ctx);
-			void Run(const std::shared_ptr<BaseStream>& stream) override;
+			void OnScheduled(const std::shared_ptr<BaseStream>& stream) override;
 		};
 	public:
 		Mesh(GeometryPrototype&& proto);

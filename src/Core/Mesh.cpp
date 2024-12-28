@@ -11,9 +11,9 @@ namespace MMPEngine::Core
 	{
 	}
 
-	void Mesh::CreateBuffers::Run(const std::shared_ptr<BaseStream>& stream)
+	void Mesh::CreateBuffers::OnScheduled(const std::shared_ptr<BaseStream>& stream)
 	{
-		ContextualTask::Run(stream);
+		ContextualTask::OnScheduled(stream);
 		const auto mesh = GetTaskContext()->mesh;
 
 		for(const auto& vbProto : mesh->_proto.vertexBuffers)
@@ -62,12 +62,12 @@ namespace MMPEngine::Core
 
 						stream->Schedule(ctx->mesh->_indexBufferInfo.ptr->CreateInitializationTask());
 					},
+					FunctionalTask::Handler {},
 					[ctx](const auto&)
 					{
 						GeometryPrototype empty{};
 						std::swap(ctx->mesh->_proto, empty);
-					},
-					FunctionalTask::Handler {}
+					}
 			),
 			CreateInternalInitializationTask()
 		});
