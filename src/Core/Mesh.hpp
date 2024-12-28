@@ -1,5 +1,5 @@
 #pragma once
-#include <Core/Entity.hpp>
+#include <Core/Base.hpp>
 #include <Core/Geometry.hpp>
 #include <Core/Context.hpp>
 #include <Core/Task.hpp>
@@ -7,7 +7,7 @@
 
 namespace MMPEngine::Core
 {
-	class Mesh : public BaseEntity
+	class Mesh : public IInitializationTaskSource, public std::enable_shared_from_this<Mesh>
 	{
 	private:
 		class InitTaskContext final : public TaskContext
@@ -24,7 +24,6 @@ namespace MMPEngine::Core
 		};
 	public:
 		Mesh(GeometryPrototype&& proto);
-		Mesh(std::string_view name, GeometryPrototype&& proto);
 		std::shared_ptr<BaseTask> CreateInitializationTask() override;
 		const std::vector<GeometryPrototype::Subset>& GetSubsets() const;
 	protected:

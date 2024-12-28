@@ -6,7 +6,6 @@ namespace MMPEngine::Frontend
 	class Mesh final : public Core::Mesh
 	{
 	public:
-		Mesh(const std::shared_ptr<Core::GlobalContext>& globalContext, std::string_view name, Core::GeometryPrototype&& proto);
 		Mesh(const std::shared_ptr<Core::GlobalContext>& globalContext, Core::GeometryPrototype&& proto);
 		std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;
 	protected:
