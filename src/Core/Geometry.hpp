@@ -186,9 +186,15 @@ namespace MMPEngine::Core
 			std::uint32_t baseVertex = 0;
 		};
 
+		enum class Topology : std::uint8_t
+		{
+			Triangles
+		};
+
 		std::vector<std::unique_ptr<VertexBufferPrototype>> vertexBuffers;
 		std::unique_ptr<IndexBufferPrototype> indexBuffer;
 		std::vector<Subset> subsets;
+		Topology topology = Topology::Triangles;
 
 		GeometryPrototype();
 		~GeometryPrototype();

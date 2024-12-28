@@ -25,6 +25,7 @@ namespace MMPEngine::Core
 	public:
 		Mesh(GeometryPrototype&& proto);
 		std::shared_ptr<BaseTask> CreateInitializationTask() override;
+		const std::vector<GeometryPrototype::Subset>& GetSubsets() const;
 	protected:
 		virtual std::shared_ptr<BaseTask> CreateInternalInitializationTask() = 0;
 		virtual std::shared_ptr<VertexBuffer> CreateVertexBuffer(const VertexBufferPrototype* vbPrototype) = 0;
@@ -52,6 +53,8 @@ namespace MMPEngine::Core
 		GeometryPrototype _proto;
 		std::unordered_map<VertexBufferPrototype::Semantics, std::vector<VertexBufferInfo>> _vertexBufferInfos;
 		IndexBufferInfo _indexBufferInfo;
+		GeometryPrototype::Topology _topology;
+		std::vector<GeometryPrototype::Subset> _subsets;
 
 	public:
 		const VertexBufferInfo& GetVertexBufferInfo(VertexBufferPrototype::Semantics semantics, std::size_t semanticIndex) const;

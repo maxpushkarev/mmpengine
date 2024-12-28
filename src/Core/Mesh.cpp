@@ -52,6 +52,9 @@ namespace MMPEngine::Core
 			std::make_shared<FunctionalTask>(
 					[ctx](const auto& stream)
 					{
+						ctx->mesh->_topology = ctx->mesh->_proto.topology;
+						ctx->mesh->_subsets = ctx->mesh->_proto.subsets;
+
 						for(const auto& vbInfos : ctx->mesh->_vertexBufferInfos)
 						{
 							for(const auto& vbInfo : vbInfos.second)
@@ -76,6 +79,11 @@ namespace MMPEngine::Core
 				}
 			)
 		});
+	}
+
+	const std::vector<GeometryPrototype::Subset>& Mesh::GetSubsets() const
+	{
+		return _subsets;
 	}
 
 	const Mesh::VertexBufferInfo& Mesh::GetVertexBufferInfo(VertexBufferPrototype::Semantics semantics, std::size_t semanticIndex) const
