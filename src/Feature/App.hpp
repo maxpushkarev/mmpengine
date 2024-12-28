@@ -57,8 +57,11 @@ namespace MMPEngine::Feature
 	protected:
 		BaseRootApp(const std::shared_ptr<BaseLogger>& logger);
 		void Initialize() override;
+		void OnNativeWindowUpdated() override;
 		void OnPause() override;
 		void OnResume() override;
+		void OnUpdate(std::float_t dt) override;
+		void OnRender() override;
 		std::unique_ptr<UserApp> _userApp;
 	public:
 		void Attach(std::unique_ptr<UserApp>&& userApp);

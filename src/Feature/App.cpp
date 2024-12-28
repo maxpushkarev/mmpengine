@@ -78,6 +78,15 @@ namespace MMPEngine::Feature
 		}
 	}
 
+	void BaseRootApp::OnNativeWindowUpdated()
+	{
+		App::OnNativeWindowUpdated();
+		if (_userApp)
+		{
+			_userApp->OnNativeWindowUpdated();
+		}
+	}
+
 	BaseRootApp::~BaseRootApp()
 	{
 		if(_userApp)
@@ -101,6 +110,24 @@ namespace MMPEngine::Feature
 		if (_userApp)
 		{
 			_userApp->OnResume();
+		}
+	}
+
+	void BaseRootApp::OnUpdate(std::float_t dt)
+	{
+		App::OnUpdate(dt);
+		if(_userApp)
+		{
+			_userApp->OnUpdate(dt);
+		}
+	}
+
+	void BaseRootApp::OnRender()
+	{
+		App::OnRender();
+		if (_userApp)
+		{
+			_userApp->OnRender();
 		}
 	}
 
