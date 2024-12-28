@@ -3,7 +3,11 @@
 
 namespace MMPEngine::Core
 {
-	Mesh::Mesh(GeometryPrototype&& proto) : _proto(std::move(proto)), _indexBufferInfo {}, _topology(GeometryPrototype::Topology::Triangles)
+	Mesh::Mesh(GeometryPrototype&& proto) : Mesh("", std::move(proto))
+	{
+	}
+
+	Mesh::Mesh(std::string_view name, GeometryPrototype&& proto) : BaseEntity(name), _proto(std::move(proto)), _indexBufferInfo{}, _topology(GeometryPrototype::Topology::Triangles)
 	{
 	}
 
@@ -45,7 +49,7 @@ namespace MMPEngine::Core
 	std::shared_ptr<BaseTask> Mesh::CreateInitializationTask()
 	{
 		const auto ctx = std::make_shared<InitTaskContext>();
-		ctx->mesh = shared_from_this();
+		ctx->mesh = std::dynamic_pointer_cast<Mesh>(shared_from_this());
 
 		return std::make_shared<BatchTask>(std::initializer_list<std::shared_ptr<BaseTask>>{
 			std::make_shared<CreateBuffers>(ctx),

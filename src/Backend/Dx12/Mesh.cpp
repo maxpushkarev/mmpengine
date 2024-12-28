@@ -1,24 +1,29 @@
 #include <cassert>
 #include <Backend/Dx12/Mesh.hpp>
 #include <Backend/Dx12/Buffer.hpp>
+#include <Core/Text.hpp>
 
 namespace MMPEngine::Backend::Dx12
 {
-	Mesh::Mesh(Core::GeometryPrototype&& proto) : Core::Mesh(std::move(proto)), _indexBufferView {}
+	Mesh::Mesh(Core::GeometryPrototype&& proto) : Mesh("", std::move(proto))
+	{
+	}
+
+	Mesh::Mesh(std::string_view name, Core::GeometryPrototype&& proto) : Core::Mesh(name, std::move(proto)), _indexBufferView{}
 	{
 	}
 
 	std::shared_ptr<Core::VertexBuffer> Mesh::CreateVertexBuffer(const Core::VertexBufferPrototype* vbPrototype)
 	{
 		return std::make_shared<VertexBuffer>(Core::InputAssemblerBuffer::Settings {
-		{vbPrototype->GetDataPtr()}, {vbPrototype->GetByteLength()}
+		{vbPrototype->GetDataPtr()}, {vbPrototype->GetByteLength(), Core::Text::CombineToString(GetName(), "_vb_", GetSemanticsName(vbPrototype->GetVBSettings().semantics))}
 		});
 	}
 
 	std::shared_ptr<Core::IndexBuffer> Mesh::CreateIndexBuffer(const Core::IndexBufferPrototype* ibPrototype)
 	{
 		return std::make_shared<IndexBuffer>(Core::InputAssemblerBuffer::Settings {
-			{ibPrototype->GetDataPtr()}, { ibPrototype->GetByteLength() }
+			{ibPrototype->GetDataPtr()}, { ibPrototype->GetByteLength(), Core::Text::CombineToString(GetName(), "_ib") }
 		});
 	}
 

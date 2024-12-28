@@ -24,6 +24,7 @@ namespace MMPEngine::Backend::Dx12
 
 	public:
 		Mesh(Core::GeometryPrototype&& proto);
+		Mesh(std::string_view name, Core::GeometryPrototype&& proto);
 		const std::vector<D3D12_INPUT_ELEMENT_DESC>& GetVertexInputLayout() const;
 		const std::vector<D3D12_VERTEX_BUFFER_VIEW>& GetVertexBufferViews() const;
 		const D3D12_INDEX_BUFFER_VIEW& GetIndexBufferView() const;
