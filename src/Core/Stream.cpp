@@ -73,7 +73,7 @@ namespace MMPEngine::Core
 
 	void BaseStream::Submit()
 	{
-		if (_currentState == State::Start || _currentState == State::Complete)
+		if (_currentState == State::Complete)
 		{
 			return;
 		}
