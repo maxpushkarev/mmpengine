@@ -99,20 +99,63 @@ namespace MMPEngine::Core
 				WireFrame
 			};
 
-			enum class DepthFunc : std::uint8_t
+			enum class Comparision : std::uint8_t
 			{
 				LessEqual,
 				GreaterEqual,
 				Greater,
 				Less,
+				Equal,
+				NotEqual,
 				Always,
 				Never
 			};
 
-			enum class DepthWrite
+			struct Depth final
 			{
-				On,
-				Off
+				enum class Write : std::uint8_t
+				{
+					On,
+					Off
+				};
+
+				enum class Test : std::uint8_t
+				{
+					On,
+					Off
+				};
+
+				Test test = Test::On;
+				Write write = Write::On;
+				Comparision comparision = Comparision::LessEqual;
+			};
+
+			struct Stencil final
+			{
+				enum class Op : std::uint8_t
+				{
+					Keep,
+					Zero,
+					Replace,
+					IncrementAndSaturate,
+					DecrementAndSaturate,
+					Invert,
+					IncrementAndWrap,
+					DecrementAndWrap
+				};
+
+				struct Face final
+				{
+					Comparision comparision = Comparision::Always;
+					Op stencilFail = Op::Keep;
+					Op stencilPass = Op::Keep;
+					Op depthFail = Op::Keep;
+				};
+
+				std::uint8_t readMask = (std::numeric_limits<std::uint8_t>::max)();
+				std::uint8_t writeMask = (std::numeric_limits<std::uint8_t>::max)();
+				Face front {};
+				Face back {};
 			};
 
 			enum class AlphaToCoverage
@@ -120,7 +163,6 @@ namespace MMPEngine::Core
 				On,
 				Off
 			};
-
 
 			struct Blend
 			{
@@ -164,8 +206,8 @@ namespace MMPEngine::Core
 			};
 
 			FillMode fillMode = FillMode::Solid;
-			DepthWrite depthWrite = DepthWrite::On;
-			DepthFunc depthFunc = DepthFunc::LessEqual;
+			Depth depth = {};
+			std::optional<Stencil> stencil = std::nullopt;
 			AlphaToCoverage alphaToCoverage = AlphaToCoverage::Off;
 			Blend blend;
 		};
