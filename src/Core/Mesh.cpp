@@ -77,4 +77,15 @@ namespace MMPEngine::Core
 			)
 		});
 	}
+
+	const Mesh::VertexBufferInfo& Mesh::GetVertexBufferInfo(VertexBufferPrototype::Semantics semantics, std::size_t semanticIndex) const
+	{
+		return _vertexBufferInfos.at(semantics).at(semanticIndex);
+	}
+
+	const Mesh::IndexBufferInfo& Mesh::GetIndexBufferInfo() const
+	{
+		return _indexBufferInfo;
+	}
+
 }

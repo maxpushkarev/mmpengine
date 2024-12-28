@@ -52,5 +52,9 @@ namespace MMPEngine::Core
 		GeometryPrototype _proto;
 		std::unordered_map<VertexBufferPrototype::Semantics, std::vector<VertexBufferInfo>> _vertexBufferInfos;
 		IndexBufferInfo _indexBufferInfo;
+
+	public:
+		const VertexBufferInfo& GetVertexBufferInfo(VertexBufferPrototype::Semantics semantics, std::size_t semanticIndex) const;
+		const IndexBufferInfo& GetIndexBufferInfo() const;
 	};
 }

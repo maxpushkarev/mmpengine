@@ -1,15 +1,37 @@
 #pragma once
+#include <d3d12.h>
 #include <Core/Mesh.hpp>
+#include <Backend/Dx12/Task.hpp>
 
 namespace MMPEngine::Backend::Dx12
 {
 	class Mesh final : public Core::Mesh
 	{
+	private:
+
+		class InitTaskContext final : public Core::TaskContext
+		{
+		public:
+			std::shared_ptr<Mesh> mesh;
+		};
+
+		class InitTask final : public Task<InitTaskContext>
+		{
+		public:
+			InitTask(const std::shared_ptr<InitTaskContext>& ctx);
+			void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
+		};
+
 	public:
 		Mesh(Core::GeometryPrototype&& proto);
+		const std::vector<D3D12_INPUT_ELEMENT_DESC>& GetVertexInputLayout() const;
+		const std::vector<D3D12_VERTEX_BUFFER_VIEW>& GetVertexBufferViews() const;
 	protected:
 		std::shared_ptr<Core::BaseTask> CreateInternalInitializationTask() override;
 		std::shared_ptr<Core::VertexBuffer> CreateVertexBuffer(const Core::VertexBufferPrototype* vbPrototype) override;
 		std::shared_ptr<Core::IndexBuffer> CreateIndexBuffer(const Core::IndexBufferPrototype* ibPrototype) override;
+	private:
+		std::vector<D3D12_INPUT_ELEMENT_DESC> _vertexInputLayout;
+		std::vector<D3D12_VERTEX_BUFFER_VIEW> _vertexBufferViews;
 	};
 }
