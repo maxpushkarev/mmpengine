@@ -225,16 +225,6 @@ namespace MMPEngine::Backend::Dx12
 		if(const auto tc = GetTaskContext() ; const auto entity = tc->entity)
 		{
 			stream->Schedule(std::make_shared<CreateBufferTask>(tc));
-
-			if (tc->heapType == D3D12_HEAP_TYPE_UPLOAD)
-			{
-				stream->Schedule(entity->CreateSwitchStateTask(D3D12_RESOURCE_STATE_GENERIC_READ));
-			}
-
-			if (tc->heapType == D3D12_HEAP_TYPE_READBACK)
-			{
-				stream->Schedule(entity->CreateSwitchStateTask(D3D12_RESOURCE_STATE_COPY_DEST));
-			}
 		}
 	}
 
@@ -566,7 +556,6 @@ namespace MMPEngine::Backend::Dx12
 			stream->Schedule(Core::StreamBarrierTask::kInstance);
 			stream->Schedule(entity->_upload->CreateWriteTask(entity->_ia.rawData, entity->_upload->GetSettings().byteLength, 0));
 			stream->Schedule(entity->_upload->CopyToBuffer(entity->_resident));
-			stream->Schedule(entity->_resident->CreateSwitchStateTask(D3D12_RESOURCE_STATE_GENERIC_READ));
 		}
 	}
 
