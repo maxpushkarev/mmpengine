@@ -3,7 +3,7 @@
 
 namespace MMPEngine::Core
 {
-	Mesh::Mesh(GeometryPrototype&& proto) : _proto(std::move(proto)), _indexBufferInfo {}
+	Mesh::Mesh(GeometryPrototype&& proto) : _proto(std::move(proto)), _indexBufferInfo {}, _topology(GeometryPrototype::Topology::Triangles)
 	{
 	}
 
