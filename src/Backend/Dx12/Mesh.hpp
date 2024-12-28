@@ -32,6 +32,9 @@ namespace MMPEngine::Backend::Dx12
 		std::shared_ptr<Core::VertexBuffer> CreateVertexBuffer(const Core::VertexBufferPrototype* vbPrototype) override;
 		std::shared_ptr<Core::IndexBuffer> CreateIndexBuffer(const Core::IndexBufferPrototype* ibPrototype) override;
 	private:
+		static const char* GetSemanticsName(Core::VertexBufferPrototype::Semantics semantics);
+		static DXGI_FORMAT GetVertexBufferFormat(Core::VertexBufferPrototype::Format format);
+
 		std::vector<D3D12_INPUT_ELEMENT_DESC> _vertexInputLayout;
 		std::vector<D3D12_VERTEX_BUFFER_VIEW> _vertexBufferViews;
 		D3D12_INDEX_BUFFER_VIEW _indexBufferView;
