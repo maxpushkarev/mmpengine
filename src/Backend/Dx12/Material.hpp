@@ -215,6 +215,19 @@ namespace MMPEngine::Backend::Dx12
 					continue;
 				}
 
+				if (std::holds_alternative<Core::BaseMaterial::Parameters::StencilRef>(parameterEntry.settings))
+				{
+					const auto stencilRef = std::dynamic_pointer_cast<Core::StencilRef>(parameterEntry.entity);
+					assert(stencilRef);
+
+					_applyParametersCallbacks.emplace_back([stencilRef](const auto& ctx)
+					{
+						ctx->PopulateCommandsInList()->OMSetStencilRef(static_cast<std::uint32_t>(stencilRef->value));
+					});
+
+					continue;
+				}
+
 				throw Core::UnsupportedException("unsupported dx12 entity type in material");
 			}
 			else

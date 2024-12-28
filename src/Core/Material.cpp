@@ -4,6 +4,11 @@
 
 namespace MMPEngine::Core
 {
+	StencilRef::StencilRef() = default;
+	StencilRef::StencilRef(std::string_view name) : BaseEntity(name)
+	{
+	}
+
 	bool RenderingMaterial::Settings::Blend::Target::operator==(const Target& rhs) const
 	{
 		return src == rhs.src && dst == rhs.dst && op == rhs.op;

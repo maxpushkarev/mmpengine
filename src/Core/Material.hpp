@@ -7,6 +7,14 @@
 
 namespace MMPEngine::Core
 {
+	class StencilRef final : public Core::BaseEntity
+	{
+	public:
+		StencilRef(std::string_view name);
+		StencilRef();
+		std::uint8_t value = std::numeric_limits<std::uint8_t>::lowest();
+	};
+
 	class BaseMaterial : public IInitializationTaskSource, public std::enable_shared_from_this<BaseMaterial>
 	{
 	public:
@@ -37,12 +45,15 @@ namespace MMPEngine::Core
 				Type type;
 			};
 
+			struct StencilRef final
+			{
+			};
 
 			struct Entry final
 			{
 				std::string name;
 				std::shared_ptr<BaseEntity> entity;
-				std::variant<Buffer,Texture> settings;
+				std::variant<Buffer,Texture,StencilRef> settings;
 			};
 
 			struct EntryView final
