@@ -96,4 +96,7 @@ namespace MMPEngine::Core
 		return _indexBufferInfo;
 	}
 
+	Mesh::Renderer::Renderer(const std::shared_ptr<Mesh>& mesh, const std::shared_ptr<Node>& node) : _mesh(mesh), _node(node)
+	{
+	}
 }

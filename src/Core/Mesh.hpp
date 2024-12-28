@@ -59,5 +59,28 @@ namespace MMPEngine::Core
 	public:
 		const VertexBufferInfo& GetVertexBufferInfo(VertexBufferPrototype::Semantics semantics, std::size_t semanticIndex) const;
 		const IndexBufferInfo& GetIndexBufferInfo() const;
+
+		struct RendererData final
+		{
+			Matrix4x4 localToWorldMatrix;
+			Matrix4x4 localToWorldMatrixIT;
+		};
+
+		class Renderer : public IInitializationTaskSource, public IUpdatableDataHolder<RendererData>
+		{
+		public:
+			Renderer(const std::shared_ptr<Mesh>& mesh, const std::shared_ptr<Node>& node);
+			//void SetData(const RendererData& data) override;
+			//const RendererData& GetData() const override;
+			//void UpdateData() override;
+			//std::shared_ptr<BaseTask> CreateInitializationTask() override;
+			//std::shared_ptr<BaseTask> CreateTaskToApplyData() override;
+		protected:
+			virtual std::shared_ptr<UniformBuffer<RendererData>> CreateUniformBuffer() = 0;
+		private:
+			std::shared_ptr<Mesh> _mesh;
+			std::shared_ptr<Node> _node;
+			std::shared_ptr<UniformBuffer<RendererData>> _uniformBuffer;
+		};
 	};
 }
