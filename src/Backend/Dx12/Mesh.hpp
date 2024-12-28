@@ -26,6 +26,7 @@ namespace MMPEngine::Backend::Dx12
 		Mesh(Core::GeometryPrototype&& proto);
 		const std::vector<D3D12_INPUT_ELEMENT_DESC>& GetVertexInputLayout() const;
 		const std::vector<D3D12_VERTEX_BUFFER_VIEW>& GetVertexBufferViews() const;
+		const D3D12_INDEX_BUFFER_VIEW& GetIndexBufferView() const;
 	protected:
 		std::shared_ptr<Core::BaseTask> CreateInternalInitializationTask() override;
 		std::shared_ptr<Core::VertexBuffer> CreateVertexBuffer(const Core::VertexBufferPrototype* vbPrototype) override;
@@ -33,5 +34,7 @@ namespace MMPEngine::Backend::Dx12
 	private:
 		std::vector<D3D12_INPUT_ELEMENT_DESC> _vertexInputLayout;
 		std::vector<D3D12_VERTEX_BUFFER_VIEW> _vertexBufferViews;
+		D3D12_INDEX_BUFFER_VIEW _indexBufferView;
+
 	};
 }
