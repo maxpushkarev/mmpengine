@@ -63,13 +63,18 @@ namespace MMPEngine::Core
 						stream->Schedule(ctx->mesh->_indexBufferInfo.ptr->CreateInitializationTask());
 					},
 					FunctionalTask::Handler {},
-					[ctx](const auto&)
-					{
-						GeometryPrototype empty{};
-						std::swap(ctx->mesh->_proto, empty);
-					}
+					FunctionalTask::Handler {}
 			),
-			CreateInternalInitializationTask()
+			CreateInternalInitializationTask(),
+			std::make_shared<FunctionalTask>(
+				FunctionalTask::Handler {},
+				FunctionalTask::Handler {},
+				[ctx](const auto&)
+				{
+					GeometryPrototype empty{};
+					std::swap(ctx->mesh->_proto, empty);
+				}
+			)
 		});
 	}
 }
