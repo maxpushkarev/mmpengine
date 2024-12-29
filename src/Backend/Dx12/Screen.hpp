@@ -9,6 +9,6 @@ namespace MMPEngine::Backend::Dx12
 		Screen(const Settings& settings);
 		std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;
 		std::shared_ptr<Core::BaseTask> CreateTaskToUpdate() override;
-		std::shared_ptr<Core::BaseTask> CreateSyncTask() override;
+		std::shared_ptr<Core::BaseTask> CreateTaskToSwapBuffer() override;
 	};
 }

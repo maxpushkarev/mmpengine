@@ -12,6 +12,7 @@ namespace MMPEngine::Core
 	class BaseStream : public std::enable_shared_from_this<BaseStream>
 	{
 		friend class StreamBarrierTask;
+		friend class StreamFlushTask;
 
 	protected:
 

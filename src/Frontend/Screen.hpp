@@ -9,7 +9,7 @@ namespace MMPEngine::Frontend
 		Screen(const std::shared_ptr<Core::GlobalContext>& globalContext, const Settings& settings);
 		std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;
 		std::shared_ptr<Core::BaseTask> CreateTaskToUpdate() override;
-		std::shared_ptr<Core::BaseTask> CreateSyncTask() override;
+		std::shared_ptr<Core::BaseTask> CreateTaskToSwapBuffer() override;
 	private:
 		std::shared_ptr<Core::Screen> _impl;
 	};

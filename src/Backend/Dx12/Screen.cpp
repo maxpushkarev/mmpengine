@@ -16,7 +16,7 @@ namespace MMPEngine::Backend::Dx12
 		return Core::BaseTask::kEmpty;
 	}
 
-	std::shared_ptr<Core::BaseTask> Screen::CreateSyncTask()
+	std::shared_ptr<Core::BaseTask> Screen::CreateTaskToSwapBuffer()
 	{
 		return Core::BaseTask::kEmpty;
 	}

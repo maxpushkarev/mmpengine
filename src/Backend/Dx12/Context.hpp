@@ -39,8 +39,6 @@ namespace MMPEngine::Backend::Dx12
 		Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>& PopulateCommandsInList();
 	private:
 
-		bool _populatedCommands = false;
-
 		Microsoft::WRL::ComPtr<ID3D12CommandQueue> _cmdQueue;
 		Microsoft::WRL::ComPtr<ID3D12CommandAllocator> _cmdAllocator;
 		Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> _cmdList;

@@ -13,7 +13,7 @@ namespace MMPEngine::Core
 			bool gammaCorrection = true;
 		};
 		virtual std::shared_ptr<BaseTask> CreateTaskToUpdate() = 0;
-		virtual std::shared_ptr<BaseTask> CreateSyncTask() = 0;
+		virtual std::shared_ptr<BaseTask> CreateTaskToSwapBuffer() = 0;
 	protected:
 		Screen(const Settings& settings);
 		Settings _settings;

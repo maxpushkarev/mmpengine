@@ -47,6 +47,14 @@ namespace MMPEngine::Core
 		static std::shared_ptr<StreamBarrierTask> kInstance;
 	};
 
+	class StreamFlushTask final : public BaseTask
+	{
+	protected:
+		void Run(const std::shared_ptr<BaseStream>& stream) override;
+	public:
+		static std::shared_ptr<StreamFlushTask> kInstance;
+	};
+
 	class FunctionalTask final : public BaseTask
 	{
 	public:

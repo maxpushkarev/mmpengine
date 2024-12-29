@@ -30,6 +30,16 @@ namespace MMPEngine::Core
 
 	std::shared_ptr<StreamBarrierTask> StreamBarrierTask::kInstance = std::make_shared<StreamBarrierTask>();
 
+	void StreamFlushTask::Run(const std::shared_ptr<BaseStream>& stream)
+	{
+		BaseTask::Run(stream);
+
+		stream->SubmitInternal();
+		stream->RestartInternal();
+	}
+
+	std::shared_ptr<StreamFlushTask> StreamFlushTask::kInstance = std::make_shared<StreamFlushTask>();
+
 	void BatchTask::OnScheduled(const std::shared_ptr<BaseStream>& stream)
 	{
 		BaseTask::OnScheduled(stream);
