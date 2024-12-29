@@ -36,6 +36,7 @@ namespace MMPEngine::Core
 		struct Settings final
 		{
 			Vector2Uint size{ 0,0 };
+			bool gammaCorrection = true;
 		};
 	protected:
 		ScreenTargetTexture(const Settings& settings);
