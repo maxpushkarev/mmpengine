@@ -418,6 +418,13 @@ namespace MMPEngine::Core
 		}
 	}
 
+    void Math::InverseTranspose(Matrix4x4& res, const Matrix4x4& m) const
+    {
+		Matrix4x4 inv {};
+		Inverse(inv, m);
+		Transpose(res, inv);
+    }
+
 	void Math::Transpose(Matrix4x4& res, const Matrix4x4& m) const
 	{
 		for(std::size_t i = 0; i < 4; ++i)

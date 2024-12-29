@@ -385,6 +385,26 @@ namespace MMPEngine::Core::Tests
 		ASSERT_EQ(res1, res2);
 	}
 
+	TYPED_TEST_P(MathTests, Matrix4x4_InverseTranspose)
+	{
+		constexpr Core::Matrix4x4 m {
+			{
+				{-1.457f, 3.333f, 0.049f, -8.24f},
+				{ -6.094f, 6.912f, -2.693f, 5.85f },
+				{ 9.42f, -0.018f, 7.12f, -4.12f },
+				{ -1.12f, 4.141f, 5.1177f, 1.0125f }
+			}
+		};
+
+		Core::Matrix4x4 res1 {};
+		Core::Matrix4x4 res2 {};
+
+		this->GetDefaultMath()->InverseTranspose(res1, m);
+		this->GetMathImpl()->InverseTranspose(res2, m);
+
+		ASSERT_EQ(res1, res2);
+	}
+
 
 	TYPED_TEST_P(MathTests, Quaternion_RotateAroundAxis)
 	{
@@ -639,6 +659,7 @@ namespace MMPEngine::Core::Tests
 		Matrix4x4_TRS,
 		Matrix4x4_DecomposeTRS,
 		Matrix4x4_Transpose,
+		Matrix4x4_InverseTranspose,
 		Quaternion_RotateAroundAxis,
 		Quaternion_Dot,
 		Quaternion_Inverse,

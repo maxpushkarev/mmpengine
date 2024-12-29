@@ -24,6 +24,7 @@ namespace MMPEngine::Backend::Dx12
 		std::float_t Determinant(const Core::Matrix4x4& m) const override;
 		void Inverse(Core::Matrix4x4& res, const Core::Matrix4x4& m) const override;
 		void Transpose(Core::Matrix4x4& res, const Core::Matrix4x4& m) const override;
+		void InverseTranspose(Core::Matrix4x4& res, const Core::Matrix4x4& m) const override;
 		void MultiplyMatrixAndPoint(Core::Vector3Float& res, const Core::Matrix4x4& m, const Core::Vector3Float& p) const override;
 		void MultiplyMatrixAndVector(Core::Vector3Float& res, const Core::Matrix4x4& m, const Core::Vector3Float& v) const override;
 

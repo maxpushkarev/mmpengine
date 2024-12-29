@@ -57,6 +57,7 @@ namespace MMPEngine::Core
 		virtual void Transpose(Matrix4x4& res, const Matrix4x4& m) const;
 		virtual std::float_t Determinant(const Matrix4x4& m) const;
 		virtual void Inverse(Matrix4x4& res, const Matrix4x4& m) const;
+		virtual void InverseTranspose(Matrix4x4& res, const Matrix4x4& m) const;
 
 		virtual void Normalize(Quaternion& q) const;
 		virtual void Inverse(Quaternion& res, const Quaternion& q) const;

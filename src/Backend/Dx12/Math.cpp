@@ -160,6 +160,13 @@ namespace MMPEngine::Backend::Dx12
 		DirectX::XMStoreFloat4x4(reinterpret_cast<DirectX::XMFLOAT4X4*>(&res), transposed);
 	}
 
+	void Math::InverseTranspose(Core::Matrix4x4& res, const Core::Matrix4x4& m) const
+	{
+		const auto mLoaded = DirectX::XMLoadFloat4x4(reinterpret_cast<const DirectX::XMFLOAT4X4*>(&m));
+		const auto inv = DirectX::XMMatrixInverse(nullptr, mLoaded);
+		DirectX::XMStoreFloat4x4(reinterpret_cast<DirectX::XMFLOAT4X4*>(&res), DirectX::XMMatrixTranspose(inv));
+	}
+
 	void Math::MultiplyMatrixAndPoint(Core::Vector3Float& res, const Core::Matrix4x4& m, const Core::Vector3Float& p) const
 	{
 		const auto pLoaded = DirectX::XMLoadFloat3(reinterpret_cast<const DirectX::XMFLOAT3*>(&p));
