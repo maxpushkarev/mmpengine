@@ -13,16 +13,18 @@ namespace MMPEngine::Core
 	{
 		friend class StreamBarrierTask;
 
-	protected:
-
+	public:
 		enum class State : std::uint8_t
 		{
+			Initial,
 			Start,
 			Scheduling,
 			Execution,
 			Sync,
 			Complete
 		};
+		State GetCurrentState() const;
+	protected:
 
 		friend std::ostream& operator<< (std::ostream& stream, State state);
 
@@ -79,7 +81,7 @@ namespace MMPEngine::Core
 
 		std::queue<std::shared_ptr<BaseTask>> _scheduledTasks;
 		std::queue<std::shared_ptr<BaseTask>> _finalizedTasks;
-		State _currentState = State::Start;
+		State _currentState = State::Initial;
 		std::shared_ptr<GlobalContext> _globalContext;
 		std::shared_ptr<StreamContext> _streamContext;
 

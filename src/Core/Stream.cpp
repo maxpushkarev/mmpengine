@@ -14,8 +14,15 @@ namespace MMPEngine::Core
 
 	BaseStream::~BaseStream() = default;
 
+	BaseStream::State BaseStream::GetCurrentState() const
+	{
+		return _currentState;
+	}
+
+
 	std::unordered_map<BaseStream::State, std::unordered_set<BaseStream::State>> BaseStream::_validTransitionsMap {
-		{ State::Start, {State::Start, State::Scheduling, State::Execution, State::Sync}},
+		{ State::Initial, {State::Start}},
+		{ State::Start, {State::Scheduling, State::Execution, State::Sync}},
 		{ State::Scheduling, {State::Scheduling, State::Execution} },
 		{ State::Execution, {State::Sync, State::Start}},
 		{ State::Sync, { State::Complete } },
@@ -56,6 +63,11 @@ namespace MMPEngine::Core
 
     void BaseStream::Restart()
     {
+		if (_currentState == State::Start)
+		{
+			return;
+		}
+
 		assert(_finalizedTasks.empty());
 		assert(_scheduledTasks.empty());
 
