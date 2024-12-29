@@ -140,7 +140,7 @@ namespace MMPEngine::Backend::Dx12
 	}
 
 
-	Mesh::Renderer::Renderer(const std::shared_ptr<Core::Mesh>& mesh, const std::shared_ptr<Core::Node>& node) : Core::Mesh::Renderer(mesh, node)
+	Mesh::Renderer::Renderer(const Settings& settings, const std::shared_ptr<Core::Mesh>& mesh, const std::shared_ptr<Core::Node>& node) : Core::Mesh::Renderer(settings, mesh, node)
 	{
 	}
 

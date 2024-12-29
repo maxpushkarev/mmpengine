@@ -33,7 +33,7 @@ namespace MMPEngine::Backend::Dx12
 		class Renderer final : public Core::Mesh::Renderer
 		{
 		public:
-			Renderer(const std::shared_ptr<Core::Mesh>& mesh, const std::shared_ptr<Core::Node>& node);
+			Renderer(const Settings& settings, const std::shared_ptr<Core::Mesh>& mesh, const std::shared_ptr<Core::Node>& node);
 		protected:
 			std::shared_ptr<Core::UniformBuffer<RendererData>> CreateUniformBuffer() override;
 		};

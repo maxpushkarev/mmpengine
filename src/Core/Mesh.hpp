@@ -70,6 +70,20 @@ namespace MMPEngine::Core
 		class Renderer : public IInitializationTaskSource, public std::enable_shared_from_this<Renderer>
 		{
 		public:
+			struct Settings final
+			{
+				struct Static final
+				{
+					bool manageUniformData = true;
+				};
+				struct Dynamic final
+				{
+					std::size_t instancesCount = 1;
+				};
+
+				Static staticData {};
+				Dynamic dynamicData {};
+			};
 			class UpdateDataTaskContext : public TaskContext
 			{
 			public:
@@ -105,7 +119,7 @@ namespace MMPEngine::Core
 
 			void FillData(const std::shared_ptr<GlobalContext>& globalContext, RendererData& data) const;
 		public:
-			Renderer(const std::shared_ptr<Mesh>& mesh, const std::shared_ptr<Node>& node);
+			Renderer(const Settings& settings, const std::shared_ptr<Mesh>& mesh, const std::shared_ptr<Node>& node);
 			std::shared_ptr<BaseTask> CreateInitializationTask() override;
 			virtual std::shared_ptr<Mesh> GetMesh() const;
 			virtual std::shared_ptr<Node> GetNode() const;
@@ -113,6 +127,7 @@ namespace MMPEngine::Core
 			virtual std::shared_ptr<ContextualTask<UpdateDataTaskContext>> CreateTaskToUpdateAndWriteUniformData();
 		protected:
 			virtual std::shared_ptr<UniformBuffer<RendererData>> CreateUniformBuffer() = 0;
+			Settings _settings;
 		private:
 			std::shared_ptr<Mesh> _mesh;
 			std::shared_ptr<Node> _node;

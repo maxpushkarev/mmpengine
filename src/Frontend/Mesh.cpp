@@ -39,13 +39,13 @@ namespace MMPEngine::Frontend
 		throw std::logic_error("impossible exception");
 	}
 
-	Mesh::Renderer::Renderer(const std::shared_ptr<Core::GlobalContext>& globalContext, const std::shared_ptr<Mesh>& mesh, const std::shared_ptr<Core::Node>& node)
-		: Core::Mesh::Renderer(nullptr, nullptr)
+	Mesh::Renderer::Renderer(const std::shared_ptr<Core::GlobalContext>& globalContext, const Settings& settings, const std::shared_ptr<Mesh>& mesh, const std::shared_ptr<Core::Node>& node)
+		: Core::Mesh::Renderer(settings, nullptr, nullptr)
 	{
 		if (globalContext->settings.backend == Core::BackendType::Dx12)
 		{
 #ifdef MMPENGINE_BACKEND_DX12
-			_impl = std::make_shared<Backend::Dx12::Mesh::Renderer>(mesh, node);
+			_impl = std::make_shared<Backend::Dx12::Mesh::Renderer>(settings, mesh, node);
 #else
 			throw Core::UnsupportedException("unable to create mesh renderer for DX12 backend");
 #endif

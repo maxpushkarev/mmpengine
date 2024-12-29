@@ -96,7 +96,7 @@ namespace MMPEngine::Core
 		return _indexBufferInfo;
 	}
 
-	Mesh::Renderer::Renderer(const std::shared_ptr<Mesh>& mesh, const std::shared_ptr<Node>& node) : _mesh(mesh), _node(node)
+	Mesh::Renderer::Renderer(const Settings& settings, const std::shared_ptr<Mesh>& mesh, const std::shared_ptr<Node>& node) : _settings(settings), _mesh(mesh), _node(node)
 	{
 	}
 
@@ -110,9 +110,12 @@ namespace MMPEngine::Core
 				FunctionalTask::Handler {},
 				[ctx](const auto& stream)
 				{
-					RendererData data {};
-					ctx->renderer->FillData(stream->GetGlobalContext(), data);
-					ctx->renderer->_uniformBufferWriteTask = ctx->renderer->_uniformBuffer->CreateWriteAsyncTask(data);
+					if(ctx->renderer->_settings.staticData.manageUniformData)
+					{
+						RendererData data{};
+						ctx->renderer->FillData(stream->GetGlobalContext(), data);
+						ctx->renderer->_uniformBufferWriteTask = ctx->renderer->_uniformBuffer->CreateWriteAsyncTask(data);
+					}
 				},
 				FunctionalTask::Handler {}
 			)
@@ -128,8 +131,12 @@ namespace MMPEngine::Core
 		ContextualTask::OnScheduled(stream);
 
 		const auto renderer = GetTaskContext()->renderer;
-		renderer->_uniformBuffer = renderer->CreateUniformBuffer();
-		stream->Schedule(renderer->_uniformBuffer->CreateInitializationTask());
+
+		if(renderer->_settings.staticData.manageUniformData)
+		{
+			renderer->_uniformBuffer = renderer->CreateUniformBuffer();
+			stream->Schedule(renderer->_uniformBuffer->CreateInitializationTask());
+		}
 	}
 
 	std::shared_ptr<Mesh> Mesh::Renderer::GetMesh() const
@@ -170,16 +177,19 @@ namespace MMPEngine::Core
 		ContextualTask::OnScheduled(stream);
 		const auto ctx = _internalContext;
 
-		if(ctx->precomputed.has_value())
+		if(ctx->renderer->_settings.staticData.manageUniformData)
 		{
-			ctx->renderer->_uniformBufferWriteTask->GetTaskContext()->data = ctx->precomputed.value();
-		}
-		else
-		{
-			ctx->renderer->FillData(stream->GetGlobalContext(), ctx->renderer->_uniformBufferWriteTask->GetTaskContext()->data);
-		}
+			if (ctx->precomputed.has_value())
+			{
+				ctx->renderer->_uniformBufferWriteTask->GetTaskContext()->data = ctx->precomputed.value();
+			}
+			else
+			{
+				ctx->renderer->FillData(stream->GetGlobalContext(), ctx->renderer->_uniformBufferWriteTask->GetTaskContext()->data);
+			}
 
-		stream->Schedule(ctx->renderer->_uniformBufferWriteTask);
+			stream->Schedule(ctx->renderer->_uniformBufferWriteTask);
+		}
 	}
 
 }
