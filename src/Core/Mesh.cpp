@@ -99,4 +99,40 @@ namespace MMPEngine::Core
 	Mesh::Renderer::Renderer(const std::shared_ptr<Mesh>& mesh, const std::shared_ptr<Node>& node) : _mesh(mesh), _node(node)
 	{
 	}
+
+	std::shared_ptr<BaseTask> Mesh::Renderer::CreateInitializationTask()
+	{
+		const auto ctx = std::make_shared<InitTaskContext>();
+		ctx->renderer = shared_from_this();
+		return std::make_shared<IniTask>(ctx);
+	}
+
+	Mesh::Renderer::IniTask::IniTask(const std::shared_ptr<InitTaskContext>& ctx) : ContextualTask<MMPEngine::Core::Mesh::Renderer::InitTaskContext>(ctx)
+	{
+	}
+
+	void Mesh::Renderer::IniTask::OnScheduled(const std::shared_ptr<BaseStream>& stream)
+	{
+		ContextualTask::OnScheduled(stream);
+
+		const auto renderer = GetTaskContext()->renderer;
+		renderer->_uniformBuffer = renderer->CreateUniformBuffer();
+		stream->Schedule(renderer->_uniformBuffer->CreateInitializationTask());
+	}
+
+	std::shared_ptr<Mesh> Mesh::Renderer::GetMesh() const
+	{
+		return _mesh;
+	}
+
+	std::shared_ptr<Node> Mesh::Renderer::GetNode() const
+	{
+		return _node;
+	}
+
+	std::shared_ptr<BaseEntity> Mesh::Renderer::GetUniformDataEntity() const
+	{
+		return _uniformBuffer;
+	}
+
 }

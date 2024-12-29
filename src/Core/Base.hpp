@@ -28,29 +28,6 @@ namespace MMPEngine::Core
 		virtual std::shared_ptr<BaseTask> CreateInitializationTask() = 0;
 	};
 
-	class IBaseUpdatableDataHolder
-	{
-	public:
-		IBaseUpdatableDataHolder();
-		virtual ~IBaseUpdatableDataHolder();
-
-		IBaseUpdatableDataHolder(const IBaseUpdatableDataHolder&) = delete;
-		IBaseUpdatableDataHolder(IBaseUpdatableDataHolder&&) noexcept = delete;
-		IBaseUpdatableDataHolder& operator=(const IBaseUpdatableDataHolder&) = delete;
-		IBaseUpdatableDataHolder& operator=(IBaseUpdatableDataHolder&&) noexcept = delete;
-
-		virtual void UpdateData() = 0;
-		virtual std::shared_ptr<BaseTask> CreateTaskToApplyData() = 0;
-	};
-
-	template<typename TData>
-	class IUpdatableDataHolder : public IBaseUpdatableDataHolder
-	{
-	public:
-		virtual const TData& GetData() const = 0;
-		virtual void SetData(const TData& data) = 0;
-	};
-
 	class INamed
 	{
 	public:

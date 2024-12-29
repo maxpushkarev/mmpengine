@@ -12,10 +12,6 @@ namespace MMPEngine::Core
     INamed::INamed() = default;
 	INamed::~INamed() = default;
 
-	IBaseUpdatableDataHolder::IBaseUpdatableDataHolder() = default;
-	IBaseUpdatableDataHolder::~IBaseUpdatableDataHolder() = default;
-
-
 	bool Vector2Float::operator!=(const Vector2Float& rhs) const
 	{
 		return !operator==(rhs);

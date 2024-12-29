@@ -2,6 +2,8 @@
 #include <d3d12.h>
 #include <Core/Mesh.hpp>
 #include <Backend/Dx12/Task.hpp>
+#include <Core/Node.hpp>
+#include <Core/Mesh.hpp>
 
 namespace MMPEngine::Backend::Dx12
 {
@@ -27,6 +29,16 @@ namespace MMPEngine::Backend::Dx12
 		const std::vector<D3D12_INPUT_ELEMENT_DESC>& GetVertexInputLayout() const;
 		const std::vector<D3D12_VERTEX_BUFFER_VIEW>& GetVertexBufferViews() const;
 		const D3D12_INDEX_BUFFER_VIEW& GetIndexBufferView() const;
+
+		class Renderer final : public Core::Mesh::Renderer
+		{
+		public:
+			Renderer(const std::shared_ptr<Core::Mesh>& mesh, const std::shared_ptr<Core::Node>& node);
+		protected:
+			std::shared_ptr<Core::UniformBuffer<RendererData>> CreateUniformBuffer() override;
+		};
+
+
 	protected:
 		std::shared_ptr<Core::BaseTask> CreateInternalInitializationTask() override;
 		std::shared_ptr<Core::VertexBuffer> CreateVertexBuffer(const Core::VertexBufferPrototype* vbPrototype) override;

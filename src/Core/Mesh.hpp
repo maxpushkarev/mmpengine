@@ -66,15 +66,26 @@ namespace MMPEngine::Core
 			Matrix4x4 localToWorldMatrixIT;
 		};
 
-		class Renderer : public IInitializationTaskSource, public IUpdatableDataHolder<RendererData>
+		class Renderer : public IInitializationTaskSource, public std::enable_shared_from_this<Renderer>
 		{
+		private:
+			class InitTaskContext final : public TaskContext
+			{
+			public:
+				std::shared_ptr<Renderer> renderer;
+			};
+			class IniTask final : public ContextualTask<InitTaskContext>
+			{
+			public:
+				IniTask(const std::shared_ptr<InitTaskContext>& ctx);
+				void OnScheduled(const std::shared_ptr<BaseStream>& stream) override;
+			};
 		public:
 			Renderer(const std::shared_ptr<Mesh>& mesh, const std::shared_ptr<Node>& node);
-			//void SetData(const RendererData& data) override;
-			//const RendererData& GetData() const override;
-			//void UpdateData() override;
-			//std::shared_ptr<BaseTask> CreateInitializationTask() override;
-			//std::shared_ptr<BaseTask> CreateTaskToApplyData() override;
+			std::shared_ptr<BaseTask> CreateInitializationTask() override;
+			virtual std::shared_ptr<Mesh> GetMesh() const;
+			virtual std::shared_ptr<Node> GetNode() const;
+			virtual std::shared_ptr<BaseEntity> GetUniformDataEntity() const;
 		protected:
 			virtual std::shared_ptr<UniformBuffer<RendererData>> CreateUniformBuffer() = 0;
 		private:
