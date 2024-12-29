@@ -170,6 +170,9 @@ namespace MMPEngine::Core
 	{
 		switch (state)
 		{
+			case BaseStream::State::Initial:
+				stream << "Initial";
+				break;
 			case BaseStream::State::Sync:
 				stream << "Sync";
 				break;
