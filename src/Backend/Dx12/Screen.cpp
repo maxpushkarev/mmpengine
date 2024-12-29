@@ -20,4 +20,10 @@ namespace MMPEngine::Backend::Dx12
 	{
 		return Core::BaseTask::kEmpty;
 	}
+
+	std::shared_ptr<Core::TargetTexture> Screen::GetBackBuffer(std::uint32_t index) const
+	{
+		return nullptr;
+	}
+
 }

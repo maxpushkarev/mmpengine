@@ -14,9 +14,13 @@ namespace MMPEngine::Core
 		};
 		virtual std::shared_ptr<BaseTask> CreateTaskToUpdate() = 0;
 		virtual std::shared_ptr<BaseTask> CreateTaskToSwapBuffer() = 0;
+		virtual std::shared_ptr<TargetTexture> GetBackBuffer(std::uint32_t index) const = 0;
+		std::shared_ptr<TargetTexture> GetBackBuffer() const;
 		const Settings& GetSettings() const;
+		virtual std::uint32_t GetCurrentBackBufferIndex() const;
 	protected:
 		Screen(const Settings& settings);
 		Settings _settings;
+		std::uint32_t _currentBackBufferIndex = 0;
 	};
 }

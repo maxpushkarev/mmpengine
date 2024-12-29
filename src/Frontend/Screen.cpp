@@ -33,4 +33,14 @@ namespace MMPEngine::Frontend
 		return _impl->CreateTaskToSwapBuffer();
 	}
 
+	std::shared_ptr<Core::TargetTexture> Screen::GetBackBuffer(std::uint32_t index) const
+	{
+		return _impl->GetBackBuffer(index);
+	}
+
+	std::uint32_t Screen::GetCurrentBackBufferIndex() const
+	{
+		return _impl->GetCurrentBackBufferIndex();
+	}
+
 }
