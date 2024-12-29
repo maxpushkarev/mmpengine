@@ -30,19 +30,6 @@ namespace MMPEngine::Core
 		TargetTexture(const std::string& name);
 	};
 
-	class ScreenTargetTexture : public TargetTexture
-	{
-	public:
-		struct Settings final
-		{
-			Vector2Uint size{ 0,0 };
-			bool gammaCorrection = true;
-		};
-	protected:
-		ScreenTargetTexture(const Settings& settings);
-		Settings _settings;
-	};
-
 	class ColorTargetTexture : public TargetTexture
 	{
 	public:

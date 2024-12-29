@@ -10,10 +10,6 @@ namespace MMPEngine::Core
 	{
 	}
 
-	ScreenTargetTexture::ScreenTargetTexture(const Settings& settings) : TargetTexture("screen_target_texture"), _settings(settings)
-	{
-	}
-
 	ColorTargetTexture::ColorTargetTexture(const Settings& settings) : TargetTexture(settings.base.name), _settings(settings)
 	{
 	}
