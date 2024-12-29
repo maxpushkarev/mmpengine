@@ -104,14 +104,26 @@ namespace MMPEngine::Core
 	{
 		const auto ctx = std::make_shared<InitTaskContext>();
 		ctx->renderer = shared_from_this();
-		return std::make_shared<IniTask>(ctx);
+		return std::make_shared<Core::BatchTask>(std::initializer_list<std::shared_ptr<Core::BaseTask>>{
+			std::make_shared<InitTask>(ctx),
+			std::make_shared<FunctionalTask>(
+				FunctionalTask::Handler {},
+				[ctx](const auto& stream)
+				{
+					RendererData data {};
+					ctx->renderer->FillData(stream->GetGlobalContext(), data);
+					ctx->renderer->_uniformBufferWriteTask = ctx->renderer->_uniformBuffer->CreateWriteAsyncTask(data);
+				},
+				FunctionalTask::Handler {}
+			)
+		});
 	}
 
-	Mesh::Renderer::IniTask::IniTask(const std::shared_ptr<InitTaskContext>& ctx) : ContextualTask<MMPEngine::Core::Mesh::Renderer::InitTaskContext>(ctx)
+	Mesh::Renderer::InitTask::InitTask(const std::shared_ptr<InitTaskContext>& ctx) : ContextualTask<MMPEngine::Core::Mesh::Renderer::InitTaskContext>(ctx)
 	{
 	}
 
-	void Mesh::Renderer::IniTask::OnScheduled(const std::shared_ptr<BaseStream>& stream)
+	void Mesh::Renderer::InitTask::OnScheduled(const std::shared_ptr<BaseStream>& stream)
 	{
 		ContextualTask::OnScheduled(stream);
 
@@ -133,6 +145,10 @@ namespace MMPEngine::Core
 	std::shared_ptr<BaseEntity> Mesh::Renderer::GetUniformDataEntity() const
 	{
 		return _uniformBuffer;
+	}
+
+	void Mesh::Renderer::FillData(const std::shared_ptr<GlobalContext>& globalContext, RendererData& data) const
+	{
 	}
 
 }

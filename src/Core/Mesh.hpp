@@ -74,12 +74,13 @@ namespace MMPEngine::Core
 			public:
 				std::shared_ptr<Renderer> renderer;
 			};
-			class IniTask final : public ContextualTask<InitTaskContext>
+			class InitTask final : public ContextualTask<InitTaskContext>
 			{
 			public:
-				IniTask(const std::shared_ptr<InitTaskContext>& ctx);
+				InitTask(const std::shared_ptr<InitTaskContext>& ctx);
 				void OnScheduled(const std::shared_ptr<BaseStream>& stream) override;
 			};
+			void FillData(const std::shared_ptr<GlobalContext>& globalContext, RendererData& data) const;
 		public:
 			Renderer(const std::shared_ptr<Mesh>& mesh, const std::shared_ptr<Node>& node);
 			std::shared_ptr<BaseTask> CreateInitializationTask() override;
@@ -92,6 +93,7 @@ namespace MMPEngine::Core
 			std::shared_ptr<Mesh> _mesh;
 			std::shared_ptr<Node> _node;
 			std::shared_ptr<UniformBuffer<RendererData>> _uniformBuffer;
+			std::shared_ptr<ContextualTask<UniformBuffer<RendererData>::WriteTaskContext>> _uniformBufferWriteTask;
 		};
 	};
 }
