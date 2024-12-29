@@ -149,6 +149,8 @@ namespace MMPEngine::Core
 
 	void Mesh::Renderer::FillData(const std::shared_ptr<GlobalContext>& globalContext, RendererData& data) const
 	{
+		globalContext->math->CalculateLocalToWorldSpaceMatrix(data.localToWorldMatrix, GetNode());
+		globalContext->math->InverseTranspose(data.localToWorldMatrixIT, data.localToWorldMatrix);
 	}
 
 	std::shared_ptr<ContextualTask<Mesh::Renderer::UpdateDataTaskContext>> Mesh::Renderer::CreateTaskToUpdateAndWriteUniformData()
