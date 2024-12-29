@@ -13,7 +13,8 @@ namespace MMPEngine::Core
 	{
 		friend class StreamBarrierTask;
 
-	public:
+	protected:
+
 		enum class State : std::uint8_t
 		{
 			Initial,
@@ -23,8 +24,6 @@ namespace MMPEngine::Core
 			Sync,
 			Complete
 		};
-		State GetCurrentState() const;
-	protected:
 
 		friend std::ostream& operator<< (std::ostream& stream, State state);
 

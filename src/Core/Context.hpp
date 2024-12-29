@@ -50,6 +50,7 @@ typedef HWND NativeWindow;
 	public:
 		const Settings settings;
 		Vector2Uint windowSize;
+		std::uint32_t screenRefreshRate;
 		const PlatformType platform;
 		const std::unique_ptr<Math> math;
 #ifdef MMPENGINE_WIN

@@ -39,6 +39,7 @@ namespace MMPEngine::Feature
 			return;
 		}
 
+		_app->GetContext()->screenRefreshRate = GetCurrentScreenRefreshRate();
 		_app->OnNativeWindowUpdated();
 	}
 
@@ -52,6 +53,7 @@ namespace MMPEngine::Feature
 	std::int32_t AppContainer::Run()
 	{
 		CreateNativeContainer();
+		_app->GetContext()->screenRefreshRate = GetCurrentScreenRefreshRate();
 		_app->Initialize();
 		_state.appInitialized = true;
 		_app->OnNativeWindowUpdated();
@@ -151,6 +153,21 @@ namespace MMPEngine::Feature
 			_app->OnPause();
 			_app.reset();
 			return static_cast<std::int32_t>(msg.wParam);
+		}
+
+		std::uint32_t AppContainer::GetCurrentScreenRefreshRate() const
+		{
+			const auto globalContext = _app->GetContext();
+			const auto currentWindowMonitor = MonitorFromWindow(globalContext->nativeWindow, MONITOR_DEFAULTTONEAREST);
+
+			MONITORINFOEX monitorInfo {};
+			monitorInfo.cbSize = sizeof(MONITORINFOEX);
+
+			DEVMODEA currentDisplaySettings {};
+			GetMonitorInfo(currentWindowMonitor, &monitorInfo);
+			EnumDisplaySettings(monitorInfo.szDevice, ENUM_CURRENT_SETTINGS, &currentDisplaySettings);
+
+			return static_cast<std::uint32_t>(currentDisplaySettings.dmDisplayFrequency);
 		}
 
 

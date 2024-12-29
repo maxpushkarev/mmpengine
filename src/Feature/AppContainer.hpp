@@ -40,6 +40,7 @@ namespace MMPEngine::Feature
 		AppContainer(Settings&& settings, std::unique_ptr<Feature::BaseRootApp>&& app);
 		void OnWindowChanged();
 		virtual void CreateNativeContainer() = 0;
+		virtual std::uint32_t GetCurrentScreenRefreshRate() const = 0;
 		virtual std::int32_t RunInternal() = 0;
 		static std::chrono::milliseconds NowMs();
 
@@ -99,6 +100,7 @@ namespace MMPEngine::Feature
 		protected:
 			std::int32_t RunInternal() override;
 			void CreateNativeContainer() override;
+			std::uint32_t GetCurrentScreenRefreshRate() const override;
 		private:
 			static std::unordered_map<WPARAM, Feature::KeyButton> _keyMap;
 			static LRESULT CALLBACK MainWndProc(HWND, UINT, WPARAM, LPARAM);
