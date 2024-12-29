@@ -2,4 +2,7 @@
 
 namespace MMPEngine::Core
 {
+	Screen::Screen(const Settings& settings) : _settings(settings)
+	{
+	}
 }

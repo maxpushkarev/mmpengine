@@ -8,9 +8,12 @@ namespace MMPEngine::Core
 	public:
 		struct Settings final
 		{
+			std::uint32_t vSync = 1;
+			std::uint32_t buffersCount = 2;
 			bool gammaCorrection = true;
 		};
 		virtual std::shared_ptr<BaseTask> CreateTaskToUpdate() = 0;
+		virtual std::shared_ptr<BaseTask> CreateSyncTask() = 0;
 	protected:
 		Screen(const Settings& settings);
 		Settings _settings;
