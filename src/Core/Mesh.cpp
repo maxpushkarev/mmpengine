@@ -151,4 +151,33 @@ namespace MMPEngine::Core
 	{
 	}
 
+	std::shared_ptr<ContextualTask<Mesh::Renderer::UpdateDataTaskContext>> Mesh::Renderer::CreateTaskToUpdateAndWriteUniformData()
+	{
+		const auto ctx = std::make_shared<InternalUpdateDataTaskContext>();
+		ctx->renderer = shared_from_this();
+		return std::make_shared<InternalUpdateDataTask>(ctx);
+	}
+
+
+	Mesh::Renderer::InternalUpdateDataTask::InternalUpdateDataTask(const std::shared_ptr<InternalUpdateDataTaskContext>& ctx) : ContextualTask(ctx), _internalContext(ctx)
+	{
+	}
+
+	void Mesh::Renderer::InternalUpdateDataTask::OnScheduled(const std::shared_ptr<BaseStream>& stream)
+	{
+		ContextualTask::OnScheduled(stream);
+		const auto ctx = _internalContext;
+
+		if(ctx->precomputed.has_value())
+		{
+			ctx->renderer->_uniformBufferWriteTask->GetTaskContext()->data = ctx->precomputed.value();
+		}
+		else
+		{
+			ctx->renderer->FillData(stream->GetGlobalContext(), ctx->renderer->_uniformBufferWriteTask->GetTaskContext()->data);
+		}
+
+		stream->Schedule(ctx->renderer->_uniformBufferWriteTask);
+	}
+
 }

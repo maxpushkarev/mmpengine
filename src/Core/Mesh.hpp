@@ -1,4 +1,5 @@
 #pragma once
+#include <optional>
 #include <Core/Base.hpp>
 #include <Core/Geometry.hpp>
 #include <Core/Context.hpp>
@@ -68,6 +69,12 @@ namespace MMPEngine::Core
 
 		class Renderer : public IInitializationTaskSource, public std::enable_shared_from_this<Renderer>
 		{
+		public:
+			class UpdateDataTaskContext : public TaskContext
+			{
+			public:
+				std::optional<RendererData> precomputed = std::nullopt;
+			};
 		private:
 			class InitTaskContext final : public TaskContext
 			{
@@ -80,6 +87,22 @@ namespace MMPEngine::Core
 				InitTask(const std::shared_ptr<InitTaskContext>& ctx);
 				void OnScheduled(const std::shared_ptr<BaseStream>& stream) override;
 			};
+
+			class InternalUpdateDataTaskContext final : public UpdateDataTaskContext
+			{
+			public:
+				std::shared_ptr<Renderer> renderer;
+			};
+
+			class InternalUpdateDataTask final : public ContextualTask<UpdateDataTaskContext>
+			{
+			public:
+				InternalUpdateDataTask(const std::shared_ptr<InternalUpdateDataTaskContext>& ctx);
+				void OnScheduled(const std::shared_ptr<BaseStream>& stream) override;
+			private:
+				std::shared_ptr<InternalUpdateDataTaskContext> _internalContext;
+			};
+
 			void FillData(const std::shared_ptr<GlobalContext>& globalContext, RendererData& data) const;
 		public:
 			Renderer(const std::shared_ptr<Mesh>& mesh, const std::shared_ptr<Node>& node);
@@ -87,6 +110,7 @@ namespace MMPEngine::Core
 			virtual std::shared_ptr<Mesh> GetMesh() const;
 			virtual std::shared_ptr<Node> GetNode() const;
 			virtual std::shared_ptr<BaseEntity> GetUniformDataEntity() const;
+			virtual std::shared_ptr<ContextualTask<UpdateDataTaskContext>> CreateTaskToUpdateAndWriteUniformData();
 		protected:
 			virtual std::shared_ptr<UniformBuffer<RendererData>> CreateUniformBuffer() = 0;
 		private:

@@ -77,4 +77,9 @@ namespace MMPEngine::Frontend
 		return _impl->GetUniformDataEntity();
 	}
 
+	std::shared_ptr<Core::ContextualTask<Mesh::Renderer::UpdateDataTaskContext>> Mesh::Renderer::CreateTaskToUpdateAndWriteUniformData()
+	{
+		return _impl->CreateTaskToUpdateAndWriteUniformData();
+	}
+
 }
