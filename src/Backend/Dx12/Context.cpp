@@ -17,6 +17,7 @@ namespace MMPEngine::Backend::Dx12
 
 	Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>& StreamContext::PopulateCommandsInList()
 	{
+		_commandsPopulated = true;
 		return _cmdList;
 	}
 
