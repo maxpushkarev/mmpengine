@@ -7,6 +7,9 @@ namespace MMPEngine::Core
 	{
 	protected:
 		BaseTexture(const std::string& name);
+	public:
+		std::shared_ptr<BaseTexture> GetUnderlyingTexture() const;
+		virtual std::shared_ptr<BaseTexture> GetUnderlyingTexture();
 	};
 
 	class TargetTexture : public BaseTexture
