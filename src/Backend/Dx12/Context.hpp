@@ -37,6 +37,7 @@ namespace MMPEngine::Backend::Dx12
 			const Microsoft::WRL::ComPtr<ID3D12Fence>& fence);
 
 		Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>& PopulateCommandsInList();
+		Microsoft::WRL::ComPtr<ID3D12CommandQueue> GetQueue() const;
 	private:
 
 		Microsoft::WRL::ComPtr<ID3D12CommandQueue> _cmdQueue;

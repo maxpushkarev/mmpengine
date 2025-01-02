@@ -21,4 +21,10 @@ namespace MMPEngine::Backend::Dx12
 		return _cmdList;
 	}
 
+	Microsoft::WRL::ComPtr<ID3D12CommandQueue> StreamContext::GetQueue() const
+	{
+		return _cmdQueue;
+	}
+
+
 }

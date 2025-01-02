@@ -7,10 +7,25 @@ namespace MMPEngine::Backend::Dx12
 	class Screen final : public Core::Screen
 	{
 	private:
-		class BackBuffer final : public Core::TargetTexture, public ResourceEntity
+
+		class Buffer final : public Core::BaseEntity, public ResourceEntity
 		{
 		public:
-			BackBuffer(const std::string& name);
+			Buffer();
+			void SetUp(const Microsoft::WRL::ComPtr<ID3D12Resource>& nativeResource, BaseDescriptorPool::Handle&& rtvHandle);
+		private:
+			BaseDescriptorPool::Handle _rtvHandle;
+		};
+
+		class BackBuffer final : public Core::ColorTargetTexture, public ResourceEntity
+		{
+		public:
+			BackBuffer(const Settings& settings, std::vector<std::shared_ptr<Buffer>>&& buffers);
+			void Swap();
+			std::shared_ptr<ResourceEntity> GetCurrentBackBuffer() const;
+		private:
+			std::size_t _currentBackBufferIndex = 0;
+			std::vector<std::shared_ptr<Buffer>> _buffers;
 		};
 
 		class ScreenTaskContext final : public Core::EntityTaskContext<Screen>
@@ -46,8 +61,9 @@ namespace MMPEngine::Backend::Dx12
 		std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;
 		std::shared_ptr<Core::BaseTask> CreateTaskToUpdate() override;
 		std::shared_ptr<Core::BaseTask> CreateTaskToSwapBuffer() override;
-		std::shared_ptr<Core::TargetTexture> GetBackBuffer() const override;
+		std::shared_ptr<Core::ColorTargetTexture> GetBackBuffer() const override;
 	private:
 		std::shared_ptr<BackBuffer> _backBuffer;
+		Microsoft::WRL::ComPtr<IDXGISwapChain> _swapChain;
 	};
 }

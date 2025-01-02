@@ -33,7 +33,7 @@ namespace MMPEngine::Frontend
 		return _impl->CreateTaskToSwapBuffer();
 	}
 
-	std::shared_ptr<Core::TargetTexture> Screen::GetBackBuffer() const
+	std::shared_ptr<Core::ColorTargetTexture> Screen::GetBackBuffer() const
 	{
 		return _impl->GetBackBuffer();
 	}

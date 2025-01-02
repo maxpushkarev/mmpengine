@@ -49,6 +49,7 @@ namespace MMPEngine::Core
 			};
 
 			Format format = Format::R8G8B8A8_Float_01;
+			std::optional<Vector4Float> clearColor = std::nullopt;
 			TargetTexture::Settings base;
 		};
 	protected:

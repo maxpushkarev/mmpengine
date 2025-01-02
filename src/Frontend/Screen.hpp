@@ -10,7 +10,7 @@ namespace MMPEngine::Frontend
 		std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;
 		std::shared_ptr<Core::BaseTask> CreateTaskToUpdate() override;
 		std::shared_ptr<Core::BaseTask> CreateTaskToSwapBuffer() override;
-		std::shared_ptr<Core::TargetTexture> GetBackBuffer() const override;
+		std::shared_ptr<Core::ColorTargetTexture> GetBackBuffer() const override;
 	private:
 		std::shared_ptr<Core::Screen> _impl;
 	};
