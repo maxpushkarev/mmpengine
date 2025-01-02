@@ -3,7 +3,7 @@
 
 namespace MMPEngine::Core
 {
-	class Screen : public IInitializationTaskSource
+	class Screen : public IInitializationTaskSource, public std::enable_shared_from_this<Screen>
 	{
 	public:
 		struct Settings final
