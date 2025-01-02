@@ -23,7 +23,13 @@ namespace MMPEngine::Backend::Dx12
 
 	std::shared_ptr<Core::BaseTask> Screen::CreateTaskToSwapBuffer()
 	{
-		return Core::BaseTask::kEmpty;
+		const auto ctx = std::make_shared<ScreenTaskContext>();
+		ctx->entity = std::dynamic_pointer_cast<Screen>(shared_from_this());
+
+		return std::make_shared<Core::BatchTask>(std::initializer_list<std::shared_ptr<Core::BaseTask>> {
+			Core::StreamFlushTask::kInstance,
+			std::make_shared<PresentTask>(ctx)
+		});
 	}
 
 	std::shared_ptr<Core::TargetTexture> Screen::GetBackBuffer() const

@@ -11,6 +11,7 @@ namespace MMPEngine::Core
 			std::uint32_t vSync = 1;
 			std::uint32_t buffersCount = 2;
 			bool gammaCorrection = true;
+			std::optional<Vector4Float> clearColor = std::nullopt;
 		};
 		virtual std::shared_ptr<BaseTask> CreateTaskToUpdate() = 0;
 		virtual std::shared_ptr<BaseTask> CreateTaskToSwapBuffer() = 0;
