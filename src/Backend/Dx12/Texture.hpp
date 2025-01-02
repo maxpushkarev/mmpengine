@@ -20,5 +20,8 @@ namespace MMPEngine::Backend::Dx12
 	public:
 		DepthStencilTargetTexture(const Settings& settings);
 		std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;
+	private:
+		DXGI_FORMAT GetResourceFormat() const;
+		DXGI_FORMAT GetDSVFormat() const;
 	};
 }

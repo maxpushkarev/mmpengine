@@ -1,4 +1,5 @@
 #pragma once
+#include <optional>
 #include <Core/Entity.hpp>
 
 namespace MMPEngine::Core
@@ -19,10 +20,10 @@ namespace MMPEngine::Core
 		{
 			enum class Antialiasing : std::uint8_t
 			{
-				MSAA_0,
-				MSAA_2,
-				MSAA_4,
-				MSAA_8
+				MSAA_0 = 0,
+				MSAA_2 = 2,
+				MSAA_4 = 4,
+				MSAA_8 = 8
 			};
 
 			Antialiasing antialiasing = Antialiasing::MSAA_0;
@@ -69,6 +70,7 @@ namespace MMPEngine::Core
 			};
 
 			Format format = Format::Depth24_Stencil8;
+			std::optional<std::tuple<std::float_t, std::uint8_t>> clearValue = std::nullopt;
 			TargetTexture::Settings base;
 		};
 	protected:
