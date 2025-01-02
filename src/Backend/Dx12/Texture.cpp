@@ -44,6 +44,12 @@ namespace MMPEngine::Backend::Dx12
 		}
 	}
 
+	const BaseDescriptorPool::Handle* DepthStencilTargetTexture::GetShaderVisibleDescriptorHandle() const
+	{
+		return &_dsvHandle;
+	}
+
+
 	DepthStencilTargetTexture::InitTask::InitTask(const std::shared_ptr<InitTaskContext>& ctx) : Task(ctx)
 	{
 	}
@@ -92,6 +98,15 @@ namespace MMPEngine::Backend::Dx12
 			IID_PPV_ARGS(nativeResource.GetAddressOf()));
 
 		dsTex->SetNativeResource(nativeResource, 0);
+
+		D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc;
+		dsvDesc.Flags = D3D12_DSV_FLAG_NONE;
+		dsvDesc.ViewDimension = depthStencilDesc.SampleDesc.Count == 1 ? D3D12_DSV_DIMENSION_TEXTURE2D : D3D12_DSV_DIMENSION_TEXTURE2DMS;
+		dsvDesc.Format = dsTex->GetDSVFormat();
+		dsvDesc.Texture2D.MipSlice = 0;
+
+		dsTex->_dsvHandle = gc->dsvDescPool->Allocate();
+		gc->device->CreateDepthStencilView(dsTex->GetNativeResource().Get(), &dsvDesc, dsTex->_dsvHandle.GetCPUDescriptorHandle());
 	}
 
 }
