@@ -1,6 +1,8 @@
 #include <Backend/Dx12/Screen.hpp>
 #include <Core/Texture.hpp>
 
+#include "Entity.hpp"
+
 namespace MMPEngine::Backend::Dx12
 {
 	Screen::Screen(const Settings& settings) : Core::Screen(settings)
@@ -11,18 +13,8 @@ namespace MMPEngine::Backend::Dx12
 	{
 		const auto ctx = std::make_shared<ScreenTaskContext>();
 		ctx->entity = std::dynamic_pointer_cast<Screen>(shared_from_this());
+
 		return std::make_shared<InitTask>(ctx);
-	}
-
-	std::shared_ptr<Core::BaseTask> Screen::CreateTaskToUpdate()
-	{
-		const auto ctx = std::make_shared<ScreenTaskContext>();
-		ctx->entity = std::dynamic_pointer_cast<Screen>(shared_from_this());
-
-		return std::make_shared<Core::BatchTask>(std::initializer_list<std::shared_ptr<Core::BaseTask>> {
-			Core::StreamBarrierTask::kInstance,
-			std::make_shared<UpdateTask>(ctx)
-		});
 	}
 
 	std::shared_ptr<Core::BaseTask> Screen::CreateTaskToSwapBuffer()
@@ -31,6 +23,7 @@ namespace MMPEngine::Backend::Dx12
 		ctx->entity = std::dynamic_pointer_cast<Screen>(shared_from_this());
 
 		return std::make_shared<Core::BatchTask>(std::initializer_list<std::shared_ptr<Core::BaseTask>> {
+			ctx->entity->_backBuffer->CreateSwitchStateTask(D3D12_RESOURCE_STATE_PRESENT),
 			Core::StreamFlushTask::kInstance,
 			std::make_shared<PresentTask>(ctx)
 		});
@@ -65,6 +58,40 @@ namespace MMPEngine::Backend::Dx12
 		return _buffers[_currentBackBufferIndex];
 	}
 
+	Microsoft::WRL::ComPtr<ID3D12Resource> Screen::BackBuffer::GetNativeResource() const
+	{
+		return GetCurrentBackBuffer()->GetNativeResource();
+	}
+
+	D3D12_GPU_VIRTUAL_ADDRESS Screen::BackBuffer::GetNativeGPUAddressWithRequiredOffset() const
+	{
+		return GetCurrentBackBuffer()->GetNativeGPUAddressWithRequiredOffset();
+	}
+
+	std::shared_ptr<Core::BaseTask> Screen::BackBuffer::CreateSwitchStateTask(D3D12_RESOURCE_STATES nextStateMask)
+	{
+		const auto ctx = std::make_shared<SwitchStateTaskContext>();
+		ctx->newStateMask = nextStateMask;
+		ctx->entity = std::dynamic_pointer_cast<BackBuffer>(shared_from_this());
+		return std::make_shared<SwitchStateTask>(ctx);
+	}
+
+	Screen::BackBuffer::SwitchStateTask::SwitchStateTask(const std::shared_ptr<SwitchStateTaskContext>& ctx) : Task(ctx)
+	{
+		for(const auto& b : ctx->entity->_buffers)
+		{
+			const auto c = std::make_shared<ResourceEntity::SwitchStateTaskContext>();
+			c->entity = b;
+			c->nextStateMask = ctx->newStateMask;
+			_internalTasks.push_back(std::make_shared<ResourceEntity::SwitchStateTask>(c));
+		}
+	}
+
+	void Screen::BackBuffer::SwitchStateTask::Run(const std::shared_ptr<Core::BaseStream>& stream)
+	{
+		Task::Run(stream);
+		_internalTasks.at(GetTaskContext()->entity->_currentBackBufferIndex)->Run(stream);
+	}
 
 	Screen::InitTask::InitTask(const std::shared_ptr<ScreenTaskContext>& ctx) : Task(ctx)
 	{
@@ -96,16 +123,7 @@ namespace MMPEngine::Backend::Dx12
 			_specificStreamContext->GetQueue().Get(),
 			&swapChainDescription,
 			screen->_swapChain.GetAddressOf());
-	}
 
-	Screen::UpdateTask::UpdateTask(const std::shared_ptr<ScreenTaskContext>& ctx) : Task(ctx)
-	{
-	}
-
-	void Screen::UpdateTask::Run(const std::shared_ptr<Core::BaseStream>& stream)
-	{
-		Task::Run(stream);
-		const auto screen = GetTaskContext()->entity;
 
 		screen->_swapChain->ResizeBuffers(
 			screen->_settings.buffersCount,
@@ -121,7 +139,7 @@ namespace MMPEngine::Backend::Dx12
 			buffers[i] = std::make_shared<Buffer>();
 			Microsoft::WRL::ComPtr<ID3D12Resource> nativeResource {};
 			screen->_swapChain->GetBuffer(i, IID_PPV_ARGS(nativeResource.GetAddressOf()));
-			
+
 			auto rtvHandle = _specificGlobalContext->rtvDescPool->Allocate();
 
 			D3D12_RENDER_TARGET_VIEW_DESC rtvDesc;
@@ -136,10 +154,9 @@ namespace MMPEngine::Backend::Dx12
 
 		screen->_backBuffer = std::make_shared<BackBuffer>(Core::ColorTargetTexture::Settings {
 			Core::ColorTargetTexture::Settings::Format::R8G8B8A8_Float_01,
-			screen->_settings.clearColor,
-			{Core::TargetTexture::Settings::Antialiasing::MSAA_0, _specificGlobalContext->windowSize, "Screen::BackBuffer"}
+				screen->_settings.clearColor,
+			{ Core::TargetTexture::Settings::Antialiasing::MSAA_0, _specificGlobalContext->windowSize, "Screen::BackBuffer" }
 		}, std::move(buffers));
-
 	}
 
 	Screen::PresentTask::PresentTask(const std::shared_ptr<ScreenTaskContext>& ctx) : Task(ctx)
@@ -151,8 +168,8 @@ namespace MMPEngine::Backend::Dx12
 		Task::Run(stream);
 
 		const auto screen = GetTaskContext()->entity;
-
-
+		_specificStreamContext->PopulateCommandsInList();
+		screen->_swapChain->Present(screen->_settings.vSync, 0);
 		screen->_backBuffer->Swap();
 	}
 

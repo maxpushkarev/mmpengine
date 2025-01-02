@@ -13,7 +13,6 @@ namespace MMPEngine::Core
 			bool gammaCorrection = true;
 			std::optional<Vector4Float> clearColor = std::nullopt;
 		};
-		virtual std::shared_ptr<BaseTask> CreateTaskToUpdate() = 0;
 		virtual std::shared_ptr<BaseTask> CreateTaskToSwapBuffer() = 0;
 		virtual std::shared_ptr<ColorTargetTexture> GetBackBuffer() const = 0;
 		const Settings& GetSettings() const;

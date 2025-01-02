@@ -8,7 +8,6 @@ namespace MMPEngine::Frontend
 	public:
 		Screen(const std::shared_ptr<Core::GlobalContext>& globalContext, const Settings& settings);
 		std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;
-		std::shared_ptr<Core::BaseTask> CreateTaskToUpdate() override;
 		std::shared_ptr<Core::BaseTask> CreateTaskToSwapBuffer() override;
 		std::shared_ptr<Core::ColorTargetTexture> GetBackBuffer() const override;
 	private:

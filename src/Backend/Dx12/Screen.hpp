@@ -17,12 +17,36 @@ namespace MMPEngine::Backend::Dx12
 			BaseDescriptorPool::Handle _rtvHandle;
 		};
 
-		class BackBuffer final : public Core::ColorTargetTexture, public ResourceEntity
+		class BackBuffer final : public Core::ColorTargetTexture, public BaseEntity
 		{
+		private:
+			class BackBufferContext : public Core::EntityTaskContext<BackBuffer>
+			{
+			};
+
+			class SwitchStateTaskContext final : public BackBufferContext
+			{
+			public:
+				D3D12_RESOURCE_STATES newStateMask;
+			};
+
+			class SwitchStateTask final : public Task<SwitchStateTaskContext>
+			{
+			public:
+				SwitchStateTask(const std::shared_ptr<SwitchStateTaskContext>& ctx);
+			protected:
+				void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
+			private:
+				std::vector<std::shared_ptr<ResourceEntity::SwitchStateTask>> _internalTasks;
+			};
+
 		public:
 			BackBuffer(const Settings& settings, std::vector<std::shared_ptr<Buffer>>&& buffers);
 			void Swap();
 			std::shared_ptr<ResourceEntity> GetCurrentBackBuffer() const;
+			std::shared_ptr<Core::BaseTask> CreateSwitchStateTask(D3D12_RESOURCE_STATES nextStateMask) override;
+			D3D12_GPU_VIRTUAL_ADDRESS GetNativeGPUAddressWithRequiredOffset() const override;
+			Microsoft::WRL::ComPtr<ID3D12Resource> GetNativeResource() const override;
 		private:
 			std::size_t _currentBackBufferIndex = 0;
 			std::vector<std::shared_ptr<Buffer>> _buffers;
@@ -40,14 +64,6 @@ namespace MMPEngine::Backend::Dx12
 			void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
 		};
 
-		class UpdateTask final : public Task<ScreenTaskContext>
-		{
-		public:
-			UpdateTask(const std::shared_ptr<ScreenTaskContext>& ctx);
-		protected:
-			void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
-		};
-
 		class PresentTask final : public Task<ScreenTaskContext>
 		{
 		public:
@@ -59,7 +75,6 @@ namespace MMPEngine::Backend::Dx12
 	public:
 		Screen(const Settings& settings);
 		std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;
-		std::shared_ptr<Core::BaseTask> CreateTaskToUpdate() override;
 		std::shared_ptr<Core::BaseTask> CreateTaskToSwapBuffer() override;
 		std::shared_ptr<Core::ColorTargetTexture> GetBackBuffer() const override;
 	private:

@@ -23,11 +23,6 @@ namespace MMPEngine::Frontend
 		return _impl->CreateInitializationTask();
 	}
 
-	std::shared_ptr<Core::BaseTask> Screen::CreateTaskToUpdate()
-	{
-		return _impl->CreateTaskToUpdate();
-	}
-
 	std::shared_ptr<Core::BaseTask> Screen::CreateTaskToSwapBuffer()
 	{
 		return _impl->CreateTaskToSwapBuffer();
