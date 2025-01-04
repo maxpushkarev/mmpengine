@@ -121,8 +121,8 @@ namespace MMPEngine::Core
 		public:
 			Renderer(const Settings& settings, const std::shared_ptr<Mesh>& mesh, const std::shared_ptr<Node>& node);
 			std::shared_ptr<BaseTask> CreateInitializationTask() override;
-			virtual std::shared_ptr<Mesh> GetMesh() const;
-			virtual std::shared_ptr<Node> GetNode() const;
+			virtual std::shared_ptr<const Mesh> GetMesh() const;
+			virtual std::shared_ptr<const Node> GetNode() const;
 			virtual std::shared_ptr<BaseEntity> GetUniformDataEntity() const;
 			virtual std::shared_ptr<ContextualTask<UpdateDataTaskContext>> CreateTaskToUpdateAndWriteUniformData();
 		protected:

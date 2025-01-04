@@ -17,7 +17,7 @@ namespace MMPEngine::Frontend
 		std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;
 		std::shared_ptr<Core::ContextualTask<Core::Camera::UpdateDataTaskContext>> CreateTaskToUpdateUniformData() override;
 		std::shared_ptr<Core::BaseEntity> GetUniformDataEntity() const override;
-		std::shared_ptr<Core::Node> GetNode() const override;
+		std::shared_ptr<const Core::Node> GetNode() const override;
 	protected:
 		std::shared_ptr<TCoreCamera> _impl;
 
@@ -77,7 +77,7 @@ namespace MMPEngine::Frontend
 	}
 
 	template <typename TCoreCamera>
-	std::shared_ptr<Core::Node> Camera<TCoreCamera>::GetNode() const
+	std::shared_ptr<const Core::Node> Camera<TCoreCamera>::GetNode() const
 	{
 		return _impl->GetNode();
 	}

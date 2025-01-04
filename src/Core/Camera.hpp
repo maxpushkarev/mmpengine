@@ -23,7 +23,6 @@ namespace MMPEngine::Core
 			Matrix4x4 projMatrix;
 			Vector4Float worldPosition;
 		};
-	protected:
 
 		class UpdateDataTaskContext : public TaskContext
 		{
@@ -50,7 +49,7 @@ namespace MMPEngine::Core
 
 	public:
 		virtual std::shared_ptr<BaseEntity> GetUniformDataEntity() const;
-		virtual std::shared_ptr<Node> GetNode() const;
+		virtual std::shared_ptr<const Node> GetNode() const;
 		virtual std::shared_ptr<ContextualTask<UpdateDataTaskContext>> CreateTaskToUpdateUniformData();
 	protected:
 		Camera(const Settings& settings, const std::shared_ptr<Node>& node);

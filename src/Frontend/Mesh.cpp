@@ -62,12 +62,12 @@ namespace MMPEngine::Frontend
 		return _impl->CreateInitializationTask();
 	}
 
-	std::shared_ptr<Core::Mesh> Mesh::Renderer::GetMesh() const
+	std::shared_ptr<const Core::Mesh> Mesh::Renderer::GetMesh() const
 	{
 		return _impl->GetMesh();
 	}
 
-	std::shared_ptr<Core::Node> Mesh::Renderer::GetNode() const
+	std::shared_ptr<const Core::Node> Mesh::Renderer::GetNode() const
 	{
 		return _impl->GetNode();
 	}

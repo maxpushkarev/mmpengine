@@ -1,4 +1,3 @@
-#include "Camera.hpp"
 #include <Core/Camera.hpp>
 
 namespace MMPEngine::Core
@@ -7,7 +6,7 @@ namespace MMPEngine::Core
 	{
 	}
 
-	std::shared_ptr<Node> Camera::GetNode() const
+	std::shared_ptr<const Node> Camera::GetNode() const
 	{
 		return _node;
 	}
