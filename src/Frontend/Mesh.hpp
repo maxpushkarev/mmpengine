@@ -12,7 +12,7 @@ namespace MMPEngine::Frontend
 		class Renderer final : public Core::Mesh::Renderer
 		{
 		public:
-			Renderer(const std::shared_ptr<Core::GlobalContext>& globalContext, const Settings& settings, const std::shared_ptr<Mesh>& mesh, const std::shared_ptr<Core::Node>& node);
+			Renderer(const std::shared_ptr<Core::GlobalContext>& globalContext, const Settings& settings, const std::shared_ptr<Core::Mesh>& mesh, const std::shared_ptr<Core::Node>& node);
 			std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;
 			std::shared_ptr<const Core::Node> GetNode() const override;
 			std::shared_ptr<const Core::Mesh> GetMesh() const override;

@@ -39,7 +39,7 @@ namespace MMPEngine::Frontend
 		throw std::logic_error("impossible exception");
 	}
 
-	Mesh::Renderer::Renderer(const std::shared_ptr<Core::GlobalContext>& globalContext, const Settings& settings, const std::shared_ptr<Mesh>& mesh, const std::shared_ptr<Core::Node>& node)
+	Mesh::Renderer::Renderer(const std::shared_ptr<Core::GlobalContext>& globalContext, const Settings& settings, const std::shared_ptr<Core::Mesh>& mesh, const std::shared_ptr<Core::Node>& node)
 		: Core::Mesh::Renderer(settings, nullptr, nullptr)
 	{
 		if (globalContext->settings.backend == Core::BackendType::Dx12)
