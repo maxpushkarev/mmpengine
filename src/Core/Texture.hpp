@@ -52,6 +52,7 @@ namespace MMPEngine::Core
 			std::optional<Vector4Float> clearColor = std::nullopt;
 			TargetTexture::Settings base;
 		};
+		const Settings& GetSettings() const;
 	protected:
 		ColorTargetTexture(const Settings& settings);
 	protected:
@@ -74,6 +75,7 @@ namespace MMPEngine::Core
 			std::optional<std::tuple<std::float_t, std::uint8_t>> clearValue = std::nullopt;
 			TargetTexture::Settings base;
 		};
+		const Settings& GetSettings() const;
 	protected:
 		DepthStencilTargetTexture(const Settings& settings);
 	protected:

@@ -22,8 +22,18 @@ namespace MMPEngine::Core
 	{
 	}
 
-	ColorTargetTexture::ColorTargetTexture(const Settings& settings) : TargetTexture(settings.base.name), _settings(settings)
+    const ColorTargetTexture::Settings& ColorTargetTexture::GetSettings() const
+    {
+        return _settings;
+    }
+
+    ColorTargetTexture::ColorTargetTexture(const Settings& settings) : TargetTexture(settings.base.name), _settings(settings)
 	{
+	}
+
+	const DepthStencilTargetTexture::Settings& DepthStencilTargetTexture::GetSettings() const
+	{
+		return _settings;
 	}
 
 	DepthStencilTargetTexture::DepthStencilTargetTexture(const Settings& settings) : TargetTexture(settings.base.name), _settings(settings)

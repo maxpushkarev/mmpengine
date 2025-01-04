@@ -16,7 +16,7 @@ namespace MMPEngine::Core
 			template<typename TargetTexture>
 			struct Entry final
 			{
-				std::shared_ptr<TargetTexture> target;
+				std::shared_ptr<TargetTexture> tex;
 				bool clear = true;
 			};
 

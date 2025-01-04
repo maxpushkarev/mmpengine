@@ -73,13 +73,13 @@ namespace MMPEngine::Backend::Dx12
 	{
 		FillNonProjectionData(globalContext, _node, data);
 
-		/*const auto size = GetRenderTargetSize();
+		const auto size = _target.color.front().tex->GetSettings().base.size;
 		const auto aspect = static_cast<std::float_t>(size.x) / static_cast<std::float_t>(size.y);
 
-		const auto nearPlane = _cameraSettings.nearPlane;
-		const auto farPlane = _cameraSettings.farPlane;
-		const auto proj = DirectX::XMMatrixPerspectiveFovLH(_cameraSettings.fovAngleRadians, aspect, nearPlane, farPlane);
-		XMStoreFloat4x4(&projectionMatrix, proj);*/
+		const auto nearPlane = _baseSettings.nearPlane;
+		const auto farPlane = _baseSettings.farPlane;
+		const auto proj = DirectX::XMMatrixPerspectiveFovLH(_perspectiveSettings.fov, aspect, nearPlane, farPlane);
+		XMStoreFloat4x4(reinterpret_cast<DirectX::XMFLOAT4X4*>(&data.projMatrix), DirectX::XMMatrixTranspose(proj));
 	}
 
 	std::shared_ptr<Core::UniformBuffer<Core::Camera::Data>>& PerspectiveCamera::GetUniformBufferRef()

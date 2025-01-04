@@ -1,9 +1,21 @@
 #include <Core/Camera.hpp>
+#include <cassert>
+#include <Core/Material.hpp>
 
 namespace MMPEngine::Core
 {
-	Camera::Camera(const Settings& settings, const std::shared_ptr<Node>& node, const Target& target) : BaseEntity(settings.name), _baseSettings(settings), _node(node), _target(target)
+	Camera::Camera(const Settings& settings, const std::shared_ptr<Node>& node, const Target& target) : BaseEntity(settings.name), _target(target), _baseSettings(settings), _node(node)
 	{
+		assert(!_target.color.empty());
+		assert(_target.color.size() <= Core::MeshMaterial::Settings::Blend::kMaxRenderTargets);
+
+		const auto& firstColorTarget = *_target.color.cbegin();
+		assert(std::all_of(_target.color.cbegin(), _target.color.cend(), [&firstColorTarget](const auto& t)
+		{
+			return t.tex->GetSettings().base.antialiasing == firstColorTarget.tex->GetSettings().base.antialiasing;
+		}));
+
+		assert(firstColorTarget.tex->GetSettings().base.antialiasing == _target.depthStencil.tex->GetSettings().base.antialiasing);
 	}
 
 	std::shared_ptr<const Node> Camera::GetNode() const
