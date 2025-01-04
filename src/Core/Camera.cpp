@@ -40,7 +40,7 @@ namespace MMPEngine::Core
 		}
 		else
 		{
-			camera->FillData(camera->_uniformDataWriteTask->GetTaskContext()->data);
+			camera->FillData(stream->GetGlobalContext(), camera->_uniformDataWriteTask->GetTaskContext()->data);
 		}
 
 		stream->Schedule(camera->_uniformDataWriteTask);

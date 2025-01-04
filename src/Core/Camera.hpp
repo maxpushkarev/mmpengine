@@ -2,6 +2,7 @@
 #include <Core/Entity.hpp>
 #include <Core/Material.hpp>
 #include <Core/Buffer.hpp>
+#include <Core/Node.hpp>
 
 namespace MMPEngine::Core
 {
@@ -53,7 +54,7 @@ namespace MMPEngine::Core
 		virtual std::shared_ptr<ContextualTask<UpdateDataTaskContext>> CreateTaskToUpdateUniformData();
 	protected:
 		Camera(const Settings& settings, const std::shared_ptr<Node>& node);
-		virtual void FillData(Data& data) = 0;
+		virtual void FillData(const std::shared_ptr<Core::GlobalContext>& globalContext, Data& data) = 0;
 	protected:
 		Settings _baseSettings;
 		std::shared_ptr<Node> _node;
