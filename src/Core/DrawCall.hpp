@@ -8,7 +8,7 @@ namespace MMPEngine::Core
 	class Camera::DrawCallsJob : public Job<void>
 	{
 	protected:
-		class SingleDrawCallJob : public Job<void>
+		class Iteration : public Job<void>
 		{
 		};
 	public:
@@ -19,11 +19,12 @@ namespace MMPEngine::Core
 		};
 		DrawCallsJob(const std::shared_ptr<Camera>& camera, std::vector<Item>&& items);
 		std::shared_ptr<BaseTask> CreateInitializationTask() override;
-		//std::shared_ptr<BaseTask> CreateExecutionTask() override;
+		std::shared_ptr<BaseTask> CreateExecutionTask() override;
 	protected:
-		virtual std::shared_ptr<SingleDrawCallJob> BuildSingleDrawCall(const Item& item) const = 0;
+		virtual std::shared_ptr<BaseTask> CreateTaskForIterationsStart() = 0;
+		virtual std::shared_ptr<Iteration> BuildIteration(const Item& item) const = 0;
 		std::shared_ptr<Camera> _camera;
 		std::vector<Item> _items;
-		std::vector<std::shared_ptr<SingleDrawCallJob>> _singleDrawCalls;
+		std::vector<std::shared_ptr<Iteration>> _iterations;
 	};
 }

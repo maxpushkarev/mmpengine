@@ -12,12 +12,12 @@ namespace MMPEngine::Core
 		return std::make_shared<FunctionalTask>(
 			[thisJob](const auto& stream)
 			{
-				thisJob->_singleDrawCalls.clear();
+				thisJob->_iterations.clear();
 
 				for(const auto& item : thisJob->_items)
 				{
-					thisJob->_singleDrawCalls.push_back(thisJob->BuildSingleDrawCall(item));
-					stream->Schedule(thisJob->_singleDrawCalls.back()->CreateInitializationTask());
+					thisJob->_iterations.push_back(thisJob->BuildIteration(item));
+					stream->Schedule(thisJob->_iterations.back()->CreateInitializationTask());
 				}
 
 				thisJob->_items.clear();
@@ -26,5 +26,21 @@ namespace MMPEngine::Core
 			FunctionalTask::Handler {}
 		);
 	}
+
+	std::shared_ptr<BaseTask> Camera::DrawCallsJob::CreateExecutionTask()
+	{
+		std::vector<std::shared_ptr<BaseTask>> iterationExecutionTasks {};
+		iterationExecutionTasks.reserve(_iterations.size());
+		std::transform(_iterations.cbegin(), _iterations.cend(), std::back_inserter(iterationExecutionTasks), [](const auto& i)
+		{
+			return i->CreateExecutionTask();
+		});
+
+		return std::make_shared<BatchTask>(std::initializer_list<std::shared_ptr<BaseTask>>{
+			CreateTaskForIterationsStart(),
+			std::make_shared<BatchTask>(std::move(iterationExecutionTasks))
+		});
+	}
+
 
 }
