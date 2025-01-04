@@ -1,3 +1,4 @@
+#include "Camera.hpp"
 #include <Core/Camera.hpp>
 
 namespace MMPEngine::Core
@@ -16,7 +17,7 @@ namespace MMPEngine::Core
 		return _uniformDataBuffer;
 	}
 
-	std::shared_ptr<ContextualTask<Camera::UpdateDataTaskContext>> Camera::CreateTaskToUpdateUniformData()
+    std::shared_ptr<ContextualTask<Camera::UpdateDataTaskContext>> Camera::CreateTaskToUpdateUniformData()
 	{
 		const auto ctx = std::make_shared<InternalUpdateDataTaskContext>();
 		ctx->camera = std::dynamic_pointer_cast<Camera>(shared_from_this());

@@ -25,13 +25,15 @@ namespace MMPEngine::Core
 			Matrix4x4 projMatrix;
 			Vector4Float worldPosition;
 		};
-	private:
+	protected:
 
 		class UpdateDataTaskContext : public TaskContext
 		{
 		public:
 			std::optional<Data> precomputed = std::nullopt;
 		};
+
+	private:
 
 		class InternalUpdateDataTaskContext final : public UpdateDataTaskContext
 		{
