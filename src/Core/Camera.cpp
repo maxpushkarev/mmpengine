@@ -23,6 +23,11 @@ namespace MMPEngine::Core
 		return _node;
 	}
 
+	const Camera::Target& Camera::GetTarget() const
+	{
+		return _target;
+	}
+
 	std::shared_ptr<BaseEntity> Camera::GetUniformDataEntity() const
 	{
 		return _uniformDataBuffer;

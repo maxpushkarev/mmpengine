@@ -63,6 +63,7 @@ namespace MMPEngine::Core
 
 	public:
 		std::shared_ptr<const Node> GetNode() const;
+		const Target& GetTarget() const;
 		virtual std::shared_ptr<BaseEntity> GetUniformDataEntity() const;
 		virtual std::shared_ptr<ContextualTask<UpdateDataTaskContext>> CreateTaskToUpdateUniformData();
 	protected:
