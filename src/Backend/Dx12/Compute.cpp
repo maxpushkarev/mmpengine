@@ -1,11 +1,7 @@
 #include <Backend/Dx12/Compute.hpp>
-#include <Backend/Dx12/Material.hpp>
+#include <Core/Material.hpp>
 #include <cassert>
 #include <Backend/Dx12/d3dx12.h>
-
-#include "Job.hpp"
-#include "Job.hpp"
-#include "Job.hpp"
 
 namespace MMPEngine::Backend::Dx12
 {
@@ -16,7 +12,6 @@ namespace MMPEngine::Backend::Dx12
 	DirectComputeJob::InitTask::InitTask(const std::shared_ptr<InitContext>& ctx) : Task(ctx)
 	{
 	}
-
 
 	void DirectComputeJob::InitTask::Run(const std::shared_ptr<Core::BaseStream>& stream)
 	{
@@ -32,10 +27,6 @@ namespace MMPEngine::Backend::Dx12
 
 		const auto cs = job->_material->GetShader();
 		assert(cs);
-
-		const auto material = std::dynamic_pointer_cast<Dx12::ComputeMaterial>(job->_material->GetUnderlyingMaterial());
-		assert(material);
-		assert(job->_rootSignature);
 
 		D3D12_COMPUTE_PIPELINE_STATE_DESC psoDesc = {};
 

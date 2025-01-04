@@ -114,10 +114,7 @@ namespace MMPEngine::Core
 	{
 	}
 
-    std::shared_ptr<Core::BaseMaterial> BaseMaterial::GetUnderlyingMaterial()
-    {
-        return shared_from_this();
-    }
+	BaseMaterial::~BaseMaterial() = default;
 
 	const BaseMaterial::Parameters& BaseMaterial::GetParameters() const
 	{

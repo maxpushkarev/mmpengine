@@ -16,9 +16,16 @@ namespace MMPEngine::Core
 		std::uint8_t value = std::numeric_limits<std::uint8_t>::lowest();
 	};
 
-	class BaseMaterial : public IInitializationTaskSource, public std::enable_shared_from_this<BaseMaterial>
+	class BaseMaterial : public std::enable_shared_from_this<BaseMaterial>
 	{
 	public:
+
+		BaseMaterial(const BaseMaterial&) = delete;
+		BaseMaterial(BaseMaterial&&) noexcept = delete;
+
+		BaseMaterial& operator=(const BaseMaterial&) = delete;
+		BaseMaterial& operator=(BaseMaterial&&) noexcept = delete;
+
 		class Parameters final
 		{
 		public:
@@ -85,12 +92,10 @@ namespace MMPEngine::Core
 			std::unordered_map<std::string_view, EntryView> _viewMap;
 		};
 
-		virtual std::shared_ptr<Core::BaseMaterial> GetUnderlyingMaterial();
-		virtual std::shared_ptr<BaseTask> CreateTaskForApply() = 0;
-
-		virtual const Parameters& GetParameters() const;
+		const Parameters& GetParameters() const;
 	protected:
 		BaseMaterial(Parameters&& params);
+		virtual ~BaseMaterial();
 	protected:
 		Parameters _params;
 	};
@@ -223,20 +228,19 @@ namespace MMPEngine::Core
 		Settings _settings;
 	};
 
-	class MeshMaterial : public RenderingMaterial
+	class MeshMaterial final : public RenderingMaterial
 	{
-	protected:
+	public:
 		MeshMaterial(const Settings& settings, Parameters&& params, const std::shared_ptr<VertexShader>& vs, const std::shared_ptr<PixelShader>& ps);
 		std::shared_ptr<VertexShader> _vs;
 		std::shared_ptr<PixelShader> _ps;
 	};
 
-	class ComputeMaterial : public BaseMaterial
+	class ComputeMaterial final : public BaseMaterial
 	{
-	protected:
+	public:
 		ComputeMaterial(Parameters&& params, const std::shared_ptr<ComputeShader>& computeShader);
 		std::shared_ptr<ComputeShader> _shader;
-	public:
 		const std::shared_ptr<ComputeShader>& GetShader() const;
 	};
 }
