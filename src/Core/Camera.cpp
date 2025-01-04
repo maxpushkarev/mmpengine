@@ -12,10 +12,10 @@ namespace MMPEngine::Core
 		const auto& firstColorTarget = *_target.color.cbegin();
 		assert(std::all_of(_target.color.cbegin(), _target.color.cend(), [&firstColorTarget](const auto& t)
 		{
-			return t.tex->GetSettings().base.antialiasing == firstColorTarget.tex->GetSettings().base.antialiasing;
+			return (t.tex->GetSettings().base.antialiasing == firstColorTarget.tex->GetSettings().base.antialiasing) && (t.tex->GetSettings().base.size == firstColorTarget.tex->GetSettings().base.size);
 		}));
 
-		assert(firstColorTarget.tex->GetSettings().base.antialiasing == _target.depthStencil.tex->GetSettings().base.antialiasing);
+		assert((firstColorTarget.tex->GetSettings().base.antialiasing == _target.depthStencil.tex->GetSettings().base.antialiasing) && (firstColorTarget.tex->GetSettings().base.size == _target.depthStencil.tex->GetSettings().base.size));
 	}
 
 	std::shared_ptr<const Node> Camera::GetNode() const
