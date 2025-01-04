@@ -62,7 +62,7 @@ namespace MMPEngine::Core
 		const IndexBufferInfo& GetIndexBufferInfo() const;
 
 
-		class Renderer : public IInitializationTaskSource, public std::enable_shared_from_this<Renderer>
+		class Renderer : public IInitializationTaskSource, public IGeometryRenderer, public std::enable_shared_from_this<Renderer>
 		{
 		public:
 			struct Data final

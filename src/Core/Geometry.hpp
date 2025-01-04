@@ -204,6 +204,18 @@ namespace MMPEngine::Core
 		GeometryPrototype& operator=(GeometryPrototype&&) noexcept;
 	};
 
+	class IGeometryRenderer
+	{
+	public:
+		IGeometryRenderer(const IGeometryRenderer&) = delete;
+		IGeometryRenderer(IGeometryRenderer&&) noexcept = delete;
+		IGeometryRenderer& operator=(const IGeometryRenderer&) = delete;
+		IGeometryRenderer& operator=(IGeometryRenderer&&) noexcept = delete;
+	protected:
+		IGeometryRenderer();
+		virtual ~IGeometryRenderer();
+	};
+
 	template<class TElement>
 	inline GeometryBufferPrototype<TElement>::GeometryBufferPrototype(const Settings& s) : BaseGeometryBufferPrototype(s)
 	{

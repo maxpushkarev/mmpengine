@@ -223,4 +223,9 @@ namespace MMPEngine::Core
 	GeometryPrototype::~GeometryPrototype() = default;
 	GeometryPrototype::GeometryPrototype(GeometryPrototype&&) noexcept = default;
 	GeometryPrototype& GeometryPrototype::operator=(GeometryPrototype&&) noexcept = default;
+
+	IGeometryRenderer::IGeometryRenderer() = default;
+	IGeometryRenderer::~IGeometryRenderer() = default;
+
+
 }
