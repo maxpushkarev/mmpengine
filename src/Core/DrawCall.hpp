@@ -18,9 +18,12 @@ namespace MMPEngine::Core
 			std::shared_ptr<BaseMaterial> material;
 		};
 		DrawCallsJob(const std::shared_ptr<Camera>& camera, std::vector<Item>&& items);
+		std::shared_ptr<BaseTask> CreateInitializationTask() override;
+		//std::shared_ptr<BaseTask> CreateExecutionTask() override;
 	protected:
-
+		virtual std::shared_ptr<SingleDrawCallJob> BuildSingleDrawCall(const Item& item) const = 0;
 		std::shared_ptr<Camera> _camera;
 		std::vector<Item> _items;
+		std::vector<std::shared_ptr<SingleDrawCallJob>> _singleDrawCalls;
 	};
 }
