@@ -14,8 +14,6 @@ namespace MMPEngine::Core
 		{
 			std::float_t nearPlane = 0.1f;
 			std::float_t farPlane = 100.0f;
-			bool clearDepthStencil = true;
-			std::array<bool, RenderingMaterial::Settings::Blend::kMaxRenderTargets> clearColor {};
 			std::string name {};
 		};
 
