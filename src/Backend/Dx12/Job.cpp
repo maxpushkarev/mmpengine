@@ -46,7 +46,7 @@ namespace MMPEngine::Backend::Dx12
 			if (std::holds_alternative<Core::BaseMaterial::Parameters::Buffer>(parameterEntry.settings))
 			{
 				const auto bufferSettings = std::get<Core::BaseMaterial::Parameters::Buffer>(parameterEntry.settings);
-				const auto coreBuffer = std::dynamic_pointer_cast<Core::Buffer>(parameterEntry.entity);
+				const auto coreBuffer = std::dynamic_pointer_cast<const Core::Buffer>(parameterEntry.entity);
 				assert(coreBuffer);
 				const auto nativeBuffer = std::dynamic_pointer_cast<Dx12::ResourceEntity>(coreBuffer->GetUnderlyingBuffer());
 				assert(nativeBuffer);

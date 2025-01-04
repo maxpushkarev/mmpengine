@@ -60,7 +60,7 @@ namespace MMPEngine::Core
 			struct Entry final
 			{
 				std::string name;
-				std::shared_ptr<BaseEntity> entity;
+				std::shared_ptr<const BaseEntity> entity;
 				std::variant<Buffer,Texture,StencilRef> settings;
 			};
 
