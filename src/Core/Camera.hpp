@@ -11,6 +11,8 @@ namespace MMPEngine::Core
 	{
 	public:
 
+		class DrawCallsJob;
+
 		struct Target final
 		{
 			template<typename TargetTexture>
