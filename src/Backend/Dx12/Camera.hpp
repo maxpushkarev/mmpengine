@@ -7,6 +7,9 @@ namespace MMPEngine::Backend::Dx12
 	class Camera
 	{
 	public:
+
+		class DrawCallsJob;
+
 		Camera(const Camera&) = delete;
 		Camera(Camera&&) noexcept = delete;
 		Camera& operator=(const Camera&) = delete;

@@ -7,11 +7,17 @@
 
 namespace MMPEngine::Frontend
 {
+	class Camera
+	{
+	public:
+		class DrawCallsJob;
+	};
+
 	template<typename TCoreCamera>
-	class Camera : public TCoreCamera
+	class CameraWrapper : public TCoreCamera
 	{
 	protected:
-		Camera(const std::shared_ptr<Core::GlobalContext>& globalContext, const typename TCoreCamera::Settings& settings, const std::shared_ptr<Core::Node>& node, const Core::Camera::Target& target);
+		CameraWrapper(const std::shared_ptr<Core::GlobalContext>& globalContext, const typename TCoreCamera::Settings& settings, const std::shared_ptr<Core::Node>& node, const Core::Camera::Target& target);
 		void FillData(const std::shared_ptr<Core::GlobalContext>& globalContext, Core::Camera::Data& data) override;
 	public:
 		std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;
@@ -22,20 +28,20 @@ namespace MMPEngine::Frontend
 
 	};
 
-	class PerspectiveCamera final : public Camera<Core::PerspectiveCamera>
+	class PerspectiveCamera final : public CameraWrapper<Core::PerspectiveCamera>
 	{
 	public:
 		PerspectiveCamera(const std::shared_ptr<Core::GlobalContext>& globalContext, const Settings& settings, const std::shared_ptr<Core::Node>& node, const Target& target);
 	};
 
-	class OrthographicCamera final : public Camera<Core::OrthographicCamera>
+	class OrthographicCamera final : public CameraWrapper<Core::OrthographicCamera>
 	{
 	public:
 		OrthographicCamera(const std::shared_ptr<Core::GlobalContext>& globalContext, const Settings& settings, const std::shared_ptr<Core::Node>& node, const Target& target);
 	};
 
 	template<typename TCoreCamera>
-	Camera<TCoreCamera>::Camera(const std::shared_ptr<Core::GlobalContext>& globalContext, const typename TCoreCamera::Settings& settings, const std::shared_ptr<Core::Node>& node, const Core::Camera::Target& target)
+	CameraWrapper<TCoreCamera>::CameraWrapper(const std::shared_ptr<Core::GlobalContext>& globalContext, const typename TCoreCamera::Settings& settings, const std::shared_ptr<Core::Node>& node, const Core::Camera::Target& target)
 		: TCoreCamera(settings, node, target)
 	{
 		if constexpr (std::is_same_v<TCoreCamera, Core::PerspectiveCamera>)
@@ -64,25 +70,25 @@ namespace MMPEngine::Frontend
 	}
 
 	template <typename TCoreCamera>
-	void Camera<TCoreCamera>::FillData(const std::shared_ptr<Core::GlobalContext>& globalContext, Core::Camera::Data& data)
+	void CameraWrapper<TCoreCamera>::FillData(const std::shared_ptr<Core::GlobalContext>& globalContext, Core::Camera::Data& data)
 	{
 		throw std::logic_error{"Impossible"};
 	}
 
 	template <typename TCoreCamera>
-	std::shared_ptr<Core::BaseTask> Camera<TCoreCamera>::CreateInitializationTask()
+	std::shared_ptr<Core::BaseTask> CameraWrapper<TCoreCamera>::CreateInitializationTask()
 	{
 		return _impl->CreateInitializationTask();
 	}
 
 	template <typename TCoreCamera>
-	std::shared_ptr<Core::BaseEntity> Camera<TCoreCamera>::GetUniformDataEntity() const
+	std::shared_ptr<Core::BaseEntity> CameraWrapper<TCoreCamera>::GetUniformDataEntity() const
 	{
 		return _impl->GetUniformDataEntity();
 	}
 
 	template <typename TCoreCamera>
-	std::shared_ptr<Core::ContextualTask<Core::Camera::UpdateDataTaskContext>> Camera<TCoreCamera>::CreateTaskToUpdateUniformData()
+	std::shared_ptr<Core::ContextualTask<Core::Camera::UpdateDataTaskContext>> CameraWrapper<TCoreCamera>::CreateTaskToUpdateUniformData()
 	{
 		return _impl->CreateTaskToUpdateUniformData();
 	}
