@@ -1,6 +1,7 @@
 #pragma once
 #include <optional>
 #include <variant>
+#include <array>
 #include <Core/Base.hpp>
 #include <Core/Entity.hpp>
 #include <Core/Shader.hpp>
@@ -213,7 +214,7 @@ namespace MMPEngine::Core
 					bool operator!=(const Target& rhs) const;
 				};
 
-				Target targets[kMaxRenderTargets];
+				std::array<Target, kMaxRenderTargets> targets;
 			};
 
 			FillMode fillMode = FillMode::Solid;

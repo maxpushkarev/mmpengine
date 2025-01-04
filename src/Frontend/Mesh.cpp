@@ -52,7 +52,7 @@ namespace MMPEngine::Frontend
 		}
 	}
 
-	std::shared_ptr<Core::UniformBuffer<Mesh::RendererData>> Mesh::Renderer::CreateUniformBuffer()
+	std::shared_ptr<Core::UniformBuffer<Mesh::Renderer::Data>> Mesh::Renderer::CreateUniformBuffer()
 	{
 		throw std::logic_error("impossible exception");
 	}

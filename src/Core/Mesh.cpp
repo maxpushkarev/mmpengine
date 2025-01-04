@@ -112,7 +112,7 @@ namespace MMPEngine::Core
 				{
 					if(ctx->renderer->_settings.staticData.manageUniformData)
 					{
-						RendererData data{};
+						Data data{};
 						ctx->renderer->FillData(stream->GetGlobalContext(), data);
 						ctx->renderer->_uniformBufferWriteTask = ctx->renderer->_uniformBuffer->CreateWriteAsyncTask(data);
 					}
@@ -154,7 +154,7 @@ namespace MMPEngine::Core
 		return _uniformBuffer;
 	}
 
-	void Mesh::Renderer::FillData(const std::shared_ptr<GlobalContext>& globalContext, RendererData& data) const
+	void Mesh::Renderer::FillData(const std::shared_ptr<GlobalContext>& globalContext, Data& data) const
 	{
 		globalContext->math->CalculateLocalToWorldSpaceMatrix(data.localToWorldMatrix, GetNode());
 		globalContext->math->InverseTranspose(data.localToWorldMatrixIT, data.localToWorldMatrix);

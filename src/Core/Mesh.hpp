@@ -61,15 +61,15 @@ namespace MMPEngine::Core
 		const VertexBufferInfo& GetVertexBufferInfo(VertexBufferPrototype::Semantics semantics, std::size_t semanticIndex) const;
 		const IndexBufferInfo& GetIndexBufferInfo() const;
 
-		struct RendererData final
-		{
-			Matrix4x4 localToWorldMatrix;
-			Matrix4x4 localToWorldMatrixIT;
-		};
 
 		class Renderer : public IInitializationTaskSource, public std::enable_shared_from_this<Renderer>
 		{
 		public:
+			struct Data final
+			{
+				Matrix4x4 localToWorldMatrix;
+				Matrix4x4 localToWorldMatrixIT;
+			};
 			struct Settings final
 			{
 				struct Static final
@@ -87,7 +87,7 @@ namespace MMPEngine::Core
 			class UpdateDataTaskContext : public TaskContext
 			{
 			public:
-				std::optional<RendererData> precomputed = std::nullopt;
+				std::optional<Data> precomputed = std::nullopt;
 			};
 		private:
 			class InitTaskContext final : public TaskContext
@@ -117,7 +117,7 @@ namespace MMPEngine::Core
 				std::shared_ptr<InternalUpdateDataTaskContext> _internalContext;
 			};
 
-			void FillData(const std::shared_ptr<GlobalContext>& globalContext, RendererData& data) const;
+			void FillData(const std::shared_ptr<GlobalContext>& globalContext, Data& data) const;
 		public:
 			Renderer(const Settings& settings, const std::shared_ptr<Mesh>& mesh, const std::shared_ptr<Node>& node);
 			std::shared_ptr<BaseTask> CreateInitializationTask() override;
@@ -126,13 +126,13 @@ namespace MMPEngine::Core
 			virtual std::shared_ptr<BaseEntity> GetUniformDataEntity() const;
 			virtual std::shared_ptr<ContextualTask<UpdateDataTaskContext>> CreateTaskToUpdateAndWriteUniformData();
 		protected:
-			virtual std::shared_ptr<UniformBuffer<RendererData>> CreateUniformBuffer() = 0;
+			virtual std::shared_ptr<UniformBuffer<Data>> CreateUniformBuffer() = 0;
 			Settings _settings;
 		private:
 			std::shared_ptr<Mesh> _mesh;
 			std::shared_ptr<Node> _node;
-			std::shared_ptr<UniformBuffer<RendererData>> _uniformBuffer;
-			std::shared_ptr<ContextualTask<UniformBuffer<RendererData>::WriteTaskContext>> _uniformBufferWriteTask;
+			std::shared_ptr<UniformBuffer<Data>> _uniformBuffer;
+			std::shared_ptr<ContextualTask<UniformBuffer<Data>::WriteTaskContext>> _uniformBufferWriteTask;
 		};
 	};
 }

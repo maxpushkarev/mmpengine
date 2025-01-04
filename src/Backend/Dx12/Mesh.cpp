@@ -144,9 +144,9 @@ namespace MMPEngine::Backend::Dx12
 	{
 	}
 
-	std::shared_ptr<Core::UniformBuffer<Mesh::RendererData>> Mesh::Renderer::CreateUniformBuffer()
+	std::shared_ptr<Core::UniformBuffer<Core::Mesh::Renderer::Data>> Mesh::Renderer::CreateUniformBuffer()
 	{
-		return std::make_shared<UniformBuffer<Core::Mesh::RendererData>>();
+		return std::make_shared<UniformBuffer<Core::Mesh::Renderer::Data>>();
 	}
 
 }
