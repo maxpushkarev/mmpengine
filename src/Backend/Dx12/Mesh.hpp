@@ -3,7 +3,6 @@
 #include <Core/Mesh.hpp>
 #include <Backend/Dx12/Task.hpp>
 #include <Core/Node.hpp>
-#include <Core/Mesh.hpp>
 
 namespace MMPEngine::Backend::Dx12
 {
