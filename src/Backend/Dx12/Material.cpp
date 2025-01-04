@@ -180,7 +180,7 @@ namespace MMPEngine::Backend::Dx12
 		}
 	}
 
-	ComputeMaterial::ComputeMaterial(const std::shared_ptr<Core::ComputeShader>& computeShader) : Core::ComputeMaterial(computeShader)
+	ComputeMaterial::ComputeMaterial(Parameters&& params, const std::shared_ptr<Core::ComputeShader>& computeShader) : Core::ComputeMaterial(std::move(params), computeShader)
 	{
 	}
 
@@ -191,7 +191,7 @@ namespace MMPEngine::Backend::Dx12
 		return std::make_shared<ApplyParametersTask>(ctx);
 	}
 
-	std::shared_ptr<Core::BaseTask> ComputeMaterial::CreateTaskForBakeParametersInternal()
+	std::shared_ptr<Core::BaseTask> ComputeMaterial::CreateInitializationTask()
 	{
 		const auto ctx = std::make_shared<BakeParametersTaskContext>();
 		ctx->materialImplPtr = std::dynamic_pointer_cast<MaterialImpl<Core::ComputeMaterial>>(shared_from_this());
@@ -200,8 +200,8 @@ namespace MMPEngine::Backend::Dx12
 	}
 
 
-	MeshMaterial::MeshMaterial(const Settings& settings, const std::shared_ptr<Core::VertexShader>& vs, const std::shared_ptr<Core::PixelShader>& ps)
-		: Core::MeshMaterial(settings, vs, ps)
+	MeshMaterial::MeshMaterial(const Settings& settings, Parameters&& params, const std::shared_ptr<Core::VertexShader>& vs, const std::shared_ptr<Core::PixelShader>& ps)
+		: Core::MeshMaterial(settings, std::move(params), vs, ps)
 	{
 	}
 
@@ -212,7 +212,7 @@ namespace MMPEngine::Backend::Dx12
 		return std::make_shared<ApplyParametersTask>(ctx);
 	}
 
-	std::shared_ptr<Core::BaseTask> MeshMaterial::CreateTaskForBakeParametersInternal()
+	std::shared_ptr<Core::BaseTask> MeshMaterial::CreateInitializationTask()
 	{
 		const auto ctx = std::make_shared<BakeParametersTaskContext>();
 		ctx->materialImplPtr = std::dynamic_pointer_cast<MaterialImpl<Core::MeshMaterial>>(shared_from_this());

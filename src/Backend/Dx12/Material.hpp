@@ -92,19 +92,19 @@ namespace MMPEngine::Backend::Dx12
 	class ComputeMaterial final : public Core::ComputeMaterial, public MaterialImpl<Core::ComputeMaterial>
 	{
 	public:
-		ComputeMaterial(const std::shared_ptr<Core::ComputeShader>& computeShader);
+		ComputeMaterial(Parameters&& params, const std::shared_ptr<Core::ComputeShader>& computeShader);
 		std::shared_ptr<Core::BaseTask> CreateTaskForApply() override;
 	protected:
-		std::shared_ptr<Core::BaseTask> CreateTaskForBakeParametersInternal() override;
+		std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;
 	};
 
 	class MeshMaterial final : public Core::MeshMaterial, public MaterialImpl<Core::MeshMaterial>
 	{
 	public:
-		MeshMaterial(const Settings& settings, const std::shared_ptr<Core::VertexShader>& vs, const std::shared_ptr<Core::PixelShader>& ps);
+		MeshMaterial(const Settings& settings, Parameters&& params, const std::shared_ptr<Core::VertexShader>& vs, const std::shared_ptr<Core::PixelShader>& ps);
 		std::shared_ptr<Core::BaseTask> CreateTaskForApply() override;
 	protected:
-		std::shared_ptr<Core::BaseTask> CreateTaskForBakeParametersInternal() override;
+		std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;
 	};
 
 	template<class TCoreMaterial>

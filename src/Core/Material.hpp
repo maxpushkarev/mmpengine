@@ -85,19 +85,14 @@ namespace MMPEngine::Core
 			std::unordered_map<std::string_view, EntryView> _viewMap;
 		};
 
-		std::shared_ptr<BaseTask> CreateInitializationTask() override;
 		virtual std::shared_ptr<Core::BaseMaterial> GetUnderlyingMaterial();
-		std::shared_ptr<BaseTask> CreateTaskForBakeParameters();
 		virtual std::shared_ptr<BaseTask> CreateTaskForApply() = 0;
 
 		virtual const Parameters& GetParameters() const;
-		virtual void SetParameters(Parameters&& params);
 	protected:
-		BaseMaterial();
-		virtual std::shared_ptr<BaseTask> CreateTaskForBakeParametersInternal() = 0;
+		BaseMaterial(Parameters&& params);
 	protected:
 		Parameters _params;
-		bool _bakedParams = false;
 	};
 
 	class RenderingMaterial : public BaseMaterial
@@ -224,14 +219,14 @@ namespace MMPEngine::Core
 			Blend blend;
 		};
 	protected:
-		RenderingMaterial(const Settings& settings);
+		RenderingMaterial(const Settings& settings, Parameters&& params);
 		Settings _settings;
 	};
 
 	class MeshMaterial : public RenderingMaterial
 	{
 	protected:
-		MeshMaterial(const Settings& settings, const std::shared_ptr<VertexShader>& vs, const std::shared_ptr<PixelShader>& ps);
+		MeshMaterial(const Settings& settings, Parameters&& params, const std::shared_ptr<VertexShader>& vs, const std::shared_ptr<PixelShader>& ps);
 		std::shared_ptr<VertexShader> _vs;
 		std::shared_ptr<PixelShader> _ps;
 	};
@@ -239,7 +234,7 @@ namespace MMPEngine::Core
 	class ComputeMaterial : public BaseMaterial
 	{
 	protected:
-		ComputeMaterial(const std::shared_ptr<ComputeShader>& computeShader);
+		ComputeMaterial(Parameters&& params, const std::shared_ptr<ComputeShader>& computeShader);
 		std::shared_ptr<ComputeShader> _shader;
 	public:
 		const std::shared_ptr<ComputeShader>& GetShader() const;

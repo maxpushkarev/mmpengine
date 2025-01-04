@@ -110,57 +110,30 @@ namespace MMPEngine::Core
 		}
 	}
 
-	BaseMaterial::BaseMaterial() = default;
+	BaseMaterial::BaseMaterial(Parameters&& params) : _params(std::move(params))
+	{
+	}
 
     std::shared_ptr<Core::BaseMaterial> BaseMaterial::GetUnderlyingMaterial()
     {
         return shared_from_this();
     }
 
-	std::shared_ptr<BaseTask> BaseMaterial::CreateInitializationTask()
-	{
-		return BaseTask::kEmpty;
-	}
-
-	std::shared_ptr<BaseTask> BaseMaterial::CreateTaskForBakeParameters()
-	{
-		const auto thisMat = shared_from_this();
-
-		if(thisMat->_bakedParams)
-		{
-			return BaseTask::kEmpty;
-		}
-
-		return std::make_shared<BatchTask>(std::initializer_list<std::shared_ptr<BaseTask>>{
-			CreateTaskForBakeParametersInternal(),
-			std::make_shared<FunctionalTask>([thisMat](const auto&)
-			{
-				thisMat->_bakedParams = true;
-			}, FunctionalTask::Handler{}, FunctionalTask::Handler{})
-		});
-	}
-
 	const BaseMaterial::Parameters& BaseMaterial::GetParameters() const
 	{
 		return _params;
 	}
 
-    void BaseMaterial::SetParameters(Parameters&& params)
-    {
-		_params = std::move(params);
-		_bakedParams = false;
-    }
-
-	RenderingMaterial::RenderingMaterial(const Settings& settings) : _settings(settings)
+	RenderingMaterial::RenderingMaterial(const Settings& settings, Parameters&& params) : BaseMaterial(std::move(params)), _settings(settings)
 	{
 	}
 
-	MeshMaterial::MeshMaterial(const Settings& settings, const std::shared_ptr<VertexShader>& vs, const std::shared_ptr<PixelShader>& ps)
-		: RenderingMaterial(settings), _vs(vs), _ps(ps)
+	MeshMaterial::MeshMaterial(const Settings& settings, Parameters&& params, const std::shared_ptr<VertexShader>& vs, const std::shared_ptr<PixelShader>& ps)
+		: RenderingMaterial(settings, std::move(params)), _vs(vs), _ps(ps)
 	{
 	}
 
-	ComputeMaterial::ComputeMaterial(const std::shared_ptr<ComputeShader>& computeShader) : _shader(computeShader)
+	ComputeMaterial::ComputeMaterial(Parameters&& params, const std::shared_ptr<ComputeShader>& computeShader) : BaseMaterial(std::move(params)), _shader(computeShader)
 	{
 	}
 
