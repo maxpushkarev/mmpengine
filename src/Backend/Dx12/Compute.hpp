@@ -5,7 +5,7 @@
 
 namespace MMPEngine::Backend::Dx12
 {
-	class DirectComputeJob final : public Core::DirectComputeJob, public Dx12::Job
+	class DirectComputeJob final : public Core::DirectComputeJob, public Dx12::Job<Core::ComputeMaterial>
 	{
 	private:
 		class InitContext final : public Core::TaskContext

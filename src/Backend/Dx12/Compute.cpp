@@ -3,6 +3,10 @@
 #include <cassert>
 #include <Backend/Dx12/d3dx12.h>
 
+#include "Job.hpp"
+#include "Job.hpp"
+#include "Job.hpp"
+
 namespace MMPEngine::Backend::Dx12
 {
 	DirectComputeJob::DirectComputeJob(const std::shared_ptr<Core::ComputeMaterial>& material) : Core::DirectComputeJob(material)
@@ -23,13 +27,14 @@ namespace MMPEngine::Backend::Dx12
 
 		const auto job = GetTaskContext()->job;
 		assert(job);
+
+		job->BakeMaterialParameters(_specificGlobalContext, job->_material->GetParameters());
+
 		const auto cs = job->_material->GetShader();
 		assert(cs);
 
 		const auto material = std::dynamic_pointer_cast<Dx12::ComputeMaterial>(job->_material->GetUnderlyingMaterial());
 		assert(material);
-
-		job->_rootSignature = material->GetRootSignature();
 		assert(job->_rootSignature);
 
 		D3D12_COMPUTE_PIPELINE_STATE_DESC psoDesc = {};
@@ -57,7 +62,10 @@ namespace MMPEngine::Backend::Dx12
 
 	DirectComputeJob::ExecutionTask::ExecutionTask(const std::shared_ptr<ExecutionContext>& ctx) : Task(ctx), _executionContext(ctx)
 	{
-		_applyMaterial = ctx->job->_material->CreateTaskForApply();
+		const auto applyParamsCtx = std::make_shared<ApplyParametersTaskContext>();
+		applyParamsCtx->job = std::dynamic_pointer_cast<Dx12::BaseJob>(ctx->job);
+
+		_applyMaterial = std::make_shared<ApplyParametersTask>(applyParamsCtx);
 		_setPipelineState = std::make_shared<SetPipelineState>(ctx);
 		_dispatch = std::make_shared<Dispatch>(ctx);
 		_setDescriptorHeaps = std::make_shared<BindDescriptorPoolsTask>(std::make_shared<BindDescriptorPoolsTaskContext>());
