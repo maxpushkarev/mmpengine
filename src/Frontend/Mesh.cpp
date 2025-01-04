@@ -40,7 +40,7 @@ namespace MMPEngine::Frontend
 	}
 
 	Mesh::Renderer::Renderer(const std::shared_ptr<Core::GlobalContext>& globalContext, const Settings& settings, const std::shared_ptr<Core::Mesh>& mesh, const std::shared_ptr<Core::Node>& node)
-		: Core::Mesh::Renderer(settings, nullptr, nullptr)
+		: Core::Mesh::Renderer(settings, mesh, node)
 	{
 		if (globalContext->settings.backend == Core::BackendType::Dx12)
 		{
@@ -60,16 +60,6 @@ namespace MMPEngine::Frontend
 	std::shared_ptr<Core::BaseTask> Mesh::Renderer::CreateInitializationTask()
 	{
 		return _impl->CreateInitializationTask();
-	}
-
-	std::shared_ptr<const Core::Mesh> Mesh::Renderer::GetMesh() const
-	{
-		return _impl->GetMesh();
-	}
-
-	std::shared_ptr<const Core::Node> Mesh::Renderer::GetNode() const
-	{
-		return _impl->GetNode();
 	}
 
 	std::shared_ptr<Core::BaseEntity> Mesh::Renderer::GetUniformDataEntity() const

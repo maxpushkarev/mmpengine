@@ -58,7 +58,7 @@ namespace MMPEngine::Backend::Dx12
 		));
 	}
 
-	PerspectiveCamera::PerspectiveCamera(const Settings& settings, const std::shared_ptr<Core::Node>& node) : Core::PerspectiveCamera(settings, node)
+	PerspectiveCamera::PerspectiveCamera(const Settings& settings, const std::shared_ptr<Core::Node>& node, const Target& target) : Core::PerspectiveCamera(settings, node, target)
 	{
 	}
 
@@ -97,7 +97,7 @@ namespace MMPEngine::Backend::Dx12
 		FillData(globalContext, data);
 	}
 
-	OrthographicCamera::OrthographicCamera(const Settings& settings, const std::shared_ptr<Core::Node>& node) : Core::OrthographicCamera(settings, node)
+	OrthographicCamera::OrthographicCamera(const Settings& settings, const std::shared_ptr<Core::Node>& node, const Target& target) : Core::OrthographicCamera(settings, node, target)
 	{
 	}
 

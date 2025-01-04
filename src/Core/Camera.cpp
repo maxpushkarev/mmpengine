@@ -2,7 +2,7 @@
 
 namespace MMPEngine::Core
 {
-	Camera::Camera(const Settings& settings, const std::shared_ptr<Node>& node) : BaseEntity(settings.name), _baseSettings(settings), _node(node)
+	Camera::Camera(const Settings& settings, const std::shared_ptr<Node>& node, const Target& target) : BaseEntity(settings.name), _baseSettings(settings), _node(node), _target(target)
 	{
 	}
 
@@ -47,11 +47,11 @@ namespace MMPEngine::Core
 	}
 
 
-	PerspectiveCamera::PerspectiveCamera(const Settings& settings, const std::shared_ptr<Node>& node) : Camera(settings.base, node), _perspectiveSettings(settings.perspective)
+	PerspectiveCamera::PerspectiveCamera(const Settings& settings, const std::shared_ptr<Node>& node, const Target& target) : Camera(settings.base, node, target), _perspectiveSettings(settings.perspective)
 	{
 	}
 
-	OrthographicCamera::OrthographicCamera(const Settings& settings, const std::shared_ptr<Node>& node) : Camera(settings.base, node), _orthographicSettings(settings.orthographic)
+	OrthographicCamera::OrthographicCamera(const Settings& settings, const std::shared_ptr<Node>& node, const Target& target) : Camera(settings.base, node, target), _orthographicSettings(settings.orthographic)
 	{
 	}
 }

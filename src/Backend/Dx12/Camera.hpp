@@ -36,7 +36,7 @@ namespace MMPEngine::Backend::Dx12
 	class PerspectiveCamera final : public Core::PerspectiveCamera, public Camera
 	{
 	public:
-		PerspectiveCamera(const Settings& settings, const std::shared_ptr<Core::Node>& node);
+		PerspectiveCamera(const Settings& settings, const std::shared_ptr<Core::Node>& node, const Target& target);
 		std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;
 	protected:
 		void FillData(const std::shared_ptr<Core::GlobalContext>& globalContext, Data& data) override;
@@ -48,7 +48,7 @@ namespace MMPEngine::Backend::Dx12
 	class OrthographicCamera final : public Core::OrthographicCamera, public Camera
 	{
 	public:
-		OrthographicCamera(const Settings& settings, const std::shared_ptr<Core::Node>& node);
+		OrthographicCamera(const Settings& settings, const std::shared_ptr<Core::Node>& node, const Target& target);
 		std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;
 	protected:
 		void FillData(const std::shared_ptr<Core::GlobalContext>& globalContext, Data& data) override;

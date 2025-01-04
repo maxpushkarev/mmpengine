@@ -3,12 +3,26 @@
 #include <Core/Material.hpp>
 #include <Core/Buffer.hpp>
 #include <Core/Node.hpp>
+#include <Core/Texture.hpp>
 
 namespace MMPEngine::Core
 {
 	class Camera : public BaseEntity
 	{
 	public:
+
+		struct Target final
+		{
+			template<typename TargetTexture>
+			struct Entry final
+			{
+				std::shared_ptr<TargetTexture> target;
+				bool clear = true;
+			};
+
+			std::vector<Entry<ColorTargetTexture>> color;
+			Entry<DepthStencilTargetTexture> depthStencil;
+		};
 
 		struct Settings final
 		{
@@ -48,13 +62,14 @@ namespace MMPEngine::Core
 		};
 
 	public:
+		std::shared_ptr<const Node> GetNode() const;
 		virtual std::shared_ptr<BaseEntity> GetUniformDataEntity() const;
-		virtual std::shared_ptr<const Node> GetNode() const;
 		virtual std::shared_ptr<ContextualTask<UpdateDataTaskContext>> CreateTaskToUpdateUniformData();
 	protected:
-		Camera(const Settings& settings, const std::shared_ptr<Node>& node);
+		Camera(const Settings& settings, const std::shared_ptr<Node>& node, const Target& target);
 		virtual void FillData(const std::shared_ptr<Core::GlobalContext>& globalContext, Data& data) = 0;
 	protected:
+		Target _target;
 		Settings _baseSettings;
 		std::shared_ptr<Node> _node;
 
@@ -75,7 +90,7 @@ namespace MMPEngine::Core
 			Camera::Settings base;
 		};
 	protected:
-		PerspectiveCamera(const Settings& settings, const std::shared_ptr<Node>& node);
+		PerspectiveCamera(const Settings& settings, const std::shared_ptr<Node>& node, const Target& target);
 	protected:
 		PerspectiveSettings _perspectiveSettings;
 	};
@@ -93,7 +108,7 @@ namespace MMPEngine::Core
 			Camera::Settings base;
 		};
 	protected:
-		OrthographicCamera(const Settings& settings, const std::shared_ptr<Node>& node);
+		OrthographicCamera(const Settings& settings, const std::shared_ptr<Node>& node, const Target& target);
 	protected:
 		OrthographicSettings _orthographicSettings;
 	};
