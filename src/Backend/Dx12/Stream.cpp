@@ -19,9 +19,11 @@ namespace MMPEngine::Backend::Dx12
 	{
 		Super::RestartInternal();
 
-		_specificStreamContext->_cmdAllocator->Reset();
-		_specificStreamContext->_cmdList->Reset(_specificStreamContext->_cmdAllocator.Get(), nullptr);
-		_specificStreamContext->_commandsPopulated = false;
+		if(_specificStreamContext->_fence->GetCompletedValue() == _fenceSignalValue)
+		{
+			_specificStreamContext->_cmdAllocator->Reset();
+			_specificStreamContext->_cmdList->Reset(_specificStreamContext->_cmdAllocator.Get(), nullptr);
+		}
 	}
 
 
@@ -29,10 +31,10 @@ namespace MMPEngine::Backend::Dx12
 	{
 		Super::SubmitInternal();
 
-		_specificStreamContext->_cmdList->Close();
-
 		if (_specificStreamContext->_commandsPopulated)
 		{
+			_specificStreamContext->_cmdList->Close();
+
 			ID3D12CommandList* cmdLists[]{ _specificStreamContext->_cmdList.Get() };
 			_specificStreamContext->_cmdQueue->ExecuteCommandLists(static_cast<std::uint32_t>(std::size(cmdLists)), cmdLists);
 
@@ -42,6 +44,8 @@ namespace MMPEngine::Backend::Dx12
 			assert(_fenceSignalValue < counterValue);
 			_fenceSignalValue = counterValue;
 			_specificStreamContext->_cmdQueue->Signal(fence.Get(), _fenceSignalValue);
+
+			_specificStreamContext->_commandsPopulated = false;
 		}
 	}
 
@@ -50,15 +54,10 @@ namespace MMPEngine::Backend::Dx12
 	{
 		Super::SyncInternal();
 
-		if(_specificStreamContext->_commandsPopulated)
+		if (_specificStreamContext->_fence->GetCompletedValue() < _fenceSignalValue)
 		{
-			const auto fence = _specificStreamContext->_fence;
-
-			if (fence->GetCompletedValue() < _fenceSignalValue)
-			{
-				fence->SetEventOnCompletion(_fenceSignalValue, _waitHandle);
-				WaitForSingleObject(_waitHandle, INFINITE);
-			}
+			_specificStreamContext->_fence->SetEventOnCompletion(_fenceSignalValue, _waitHandle);
+			WaitForSingleObject(_waitHandle, INFINITE);
 		}
 	}
 
