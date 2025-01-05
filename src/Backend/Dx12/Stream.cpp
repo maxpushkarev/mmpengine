@@ -33,7 +33,6 @@ namespace MMPEngine::Backend::Dx12
 
 		if (_specificStreamContext->_commandsPopulated)
 		{
-
 			ID3D12CommandList* cmdLists[]{ _specificStreamContext->_cmdList.Get() };
 			_specificStreamContext->_cmdQueue->ExecuteCommandLists(static_cast<std::uint32_t>(std::size(cmdLists)), cmdLists);
 
