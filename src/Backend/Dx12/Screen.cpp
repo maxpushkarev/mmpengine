@@ -41,6 +41,11 @@ namespace MMPEngine::Backend::Dx12
 		_rtvHandle = std::move(rtvHandle);
 	}
 
+	const BaseDescriptorPool::Handle* Screen::Buffer::GetShaderVisibleDescriptorHandle() const
+	{
+		return &_rtvHandle;	
+	}
+
 	Screen::BackBuffer::BackBuffer(const Settings& settings, std::vector<std::shared_ptr<Buffer>>&& buffers)
 		: Core::ColorTargetTexture(settings), _buffers(std::move(buffers))
 	{
@@ -65,6 +70,11 @@ namespace MMPEngine::Backend::Dx12
 	D3D12_GPU_VIRTUAL_ADDRESS Screen::BackBuffer::GetNativeGPUAddressWithRequiredOffset() const
 	{
 		return GetCurrentBackBuffer()->GetNativeGPUAddressWithRequiredOffset();
+	}
+
+	const BaseDescriptorPool::Handle* Screen::BackBuffer::GetShaderVisibleDescriptorHandle() const
+	{
+		return GetCurrentBackBuffer()->GetShaderVisibleDescriptorHandle();
 	}
 
 	std::shared_ptr<Core::BaseTask> Screen::BackBuffer::CreateSwitchStateTask(D3D12_RESOURCE_STATES nextStateMask)

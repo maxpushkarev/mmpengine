@@ -8,8 +8,6 @@ namespace MMPEngine::Backend::Dx12
 	{
 		descriptorHeaps.clear();
 		descriptorHeaps.push_back(ac->cbvSrvUavShaderVisibleDescPool);
-		descriptorHeaps.push_back(ac->dsvDescPool);
-		descriptorHeaps.push_back(ac->rtvDescPool);
 	}
 
 	BindDescriptorPoolsTask::BindDescriptorPoolsTask(const std::shared_ptr<BindDescriptorPoolsTaskContext>& ctx) : Task(ctx)
