@@ -212,7 +212,7 @@ namespace MMPEngine::Feature
 
 			for (const auto featureLevel : featureLevels)
 			{
-				std::int32_t i = 0;
+				std::uint32_t i = 0;
 				IDXGIAdapter* adapter = nullptr;
 
 				while (_rootContext->factory->EnumAdapters(i, &adapter) != DXGI_ERROR_NOT_FOUND)
@@ -279,8 +279,8 @@ namespace MMPEngine::Feature
 				nullptr,
 				IID_PPV_ARGS(list.GetAddressOf()));
 
+			list->Close();
 			const auto streamContext = std::make_shared<Backend::Dx12::StreamContext>(queue, allocator, list, fence);
-			streamContext->PopulateCommandsInList()->Close();
 
 			_defaultStream = std::make_shared<Backend::Dx12::Stream>(_rootContext, streamContext);
 

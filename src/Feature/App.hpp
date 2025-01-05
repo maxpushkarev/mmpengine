@@ -95,6 +95,7 @@ namespace MMPEngine::Feature
 		RootApp(RootApp&&) noexcept = delete;
 		RootApp& operator=(const RootApp&) = delete;
 		RootApp& operator=(RootApp&&) noexcept = delete;
+		void Initialize() override;
 	protected:
 		~RootApp() override;
 	public:
@@ -123,16 +124,23 @@ namespace MMPEngine::Feature
 	}
 
 	template<typename TRootContext>
+	inline std::shared_ptr<Core::GlobalContext> RootApp<TRootContext>::GetContext() const
+	{
+		return _rootContext;
+	}
+
+	template<typename TRootContext>
+	inline void RootApp<TRootContext>::Initialize()
+	{
+		_defaultStream->Restart();
+	}
+
+	template<typename TRootContext>
 	inline RootApp<TRootContext>::~RootApp()
 	{
 		_defaultStream->SubmitAndWait();
 	}
 
-	template<typename TRootContext>
-	inline std::shared_ptr<Core::GlobalContext> RootApp<TRootContext>::GetContext() const
-	{
-		return _rootContext;
-	}
 	template<typename TRootContext>
 	inline std::shared_ptr<Core::BaseStream> RootApp<TRootContext>::GetDefaultStream() const
 	{
