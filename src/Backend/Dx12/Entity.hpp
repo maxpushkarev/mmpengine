@@ -19,7 +19,9 @@ namespace MMPEngine::Backend::Dx12
 		virtual std::shared_ptr<Core::BaseTask> CreateSwitchStateTask(D3D12_RESOURCE_STATES nextStateMask) = 0;
 		virtual Microsoft::WRL::ComPtr<ID3D12Resource> GetNativeResource() const = 0;
 		virtual D3D12_GPU_VIRTUAL_ADDRESS GetNativeGPUAddressWithRequiredOffset() const = 0;
-		virtual const BaseDescriptorPool::Handle* GetShaderVisibleDescriptorHandle() const;
+		virtual const BaseDescriptorPool::Handle* GetResourceDescriptorHandle() const;
+		virtual const BaseDescriptorPool::Handle* GetRTVDescriptorHandle() const;
+		virtual const BaseDescriptorPool::Handle* GetDSVDescriptorHandle() const;
 	};
 
 	class ResourceEntity : public BaseEntity

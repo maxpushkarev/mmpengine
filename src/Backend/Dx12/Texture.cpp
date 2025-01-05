@@ -44,7 +44,7 @@ namespace MMPEngine::Backend::Dx12
 		}
 	}
 
-	const BaseDescriptorPool::Handle* DepthStencilTargetTexture::GetShaderVisibleDescriptorHandle() const
+	const BaseDescriptorPool::Handle* DepthStencilTargetTexture::GetDSVDescriptorHandle() const
 	{
 		return &_dsvHandle;
 	}

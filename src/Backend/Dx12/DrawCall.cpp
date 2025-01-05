@@ -21,12 +21,12 @@ namespace MMPEngine::Backend::Dx12
 		const auto ds = ctx->job->_camera->GetTarget().depthStencil;
 		if(ds.tex)
 		{
-			ctx->depthStencilDescriptor = std::dynamic_pointer_cast<BaseEntity>(ds.tex->GetUnderlyingTexture())->GetShaderVisibleDescriptorHandle()->GetCPUDescriptorHandle();
+			ctx->depthStencil = std::dynamic_pointer_cast<BaseEntity>(ds.tex->GetUnderlyingTexture());
 		}
 
 		for(const auto& crt : ctx->job->_camera->GetTarget().color)
 		{
-			ctx->colorRenderTargetDescriptors.push_back(std::dynamic_pointer_cast<BaseEntity>(crt.tex->GetUnderlyingTexture())->GetShaderVisibleDescriptorHandle()->GetCPUDescriptorHandle());
+			ctx->colorRenderTargets.push_back(std::dynamic_pointer_cast<BaseEntity>(crt.tex->GetUnderlyingTexture()));
 		}
 
 		return std::make_shared<PrepareTask>(ctx);
@@ -50,7 +50,7 @@ namespace MMPEngine::Backend::Dx12
 			if(clearValue.has_value())
 			{
 				_specificStreamContext->PopulateCommandsInList()->ClearDepthStencilView(
-					tc->depthStencilDescriptor,
+					tc->depthStencil->GetDSVDescriptorHandle()->GetCPUDescriptorHandle(),
 					D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL,
 					std::get<std::float_t>(clearValue.value()), std::get<std::uint8_t>(clearValue.value()),
 					0, nullptr
@@ -67,7 +67,7 @@ namespace MMPEngine::Backend::Dx12
 				if(clearValue.has_value())
 				{
 					const auto cv  = clearValue.value();
-					_specificStreamContext->PopulateCommandsInList()->ClearRenderTargetView(tc->colorRenderTargetDescriptors.at(i), &(cv.x), 0, nullptr);
+					_specificStreamContext->PopulateCommandsInList()->ClearRenderTargetView(tc->colorRenderTargets.at(i)->GetRTVDescriptorHandle()->GetCPUDescriptorHandle(), &(cv.x), 0, nullptr);
 				}
 			}
 		}

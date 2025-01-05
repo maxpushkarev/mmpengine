@@ -41,7 +41,7 @@ namespace MMPEngine::Backend::Dx12
 		_rtvHandle = std::move(rtvHandle);
 	}
 
-	const BaseDescriptorPool::Handle* Screen::Buffer::GetShaderVisibleDescriptorHandle() const
+	const BaseDescriptorPool::Handle* Screen::Buffer::GetRTVDescriptorHandle() const
 	{
 		return &_rtvHandle;	
 	}
@@ -72,9 +72,9 @@ namespace MMPEngine::Backend::Dx12
 		return GetCurrentBackBuffer()->GetNativeGPUAddressWithRequiredOffset();
 	}
 
-	const BaseDescriptorPool::Handle* Screen::BackBuffer::GetShaderVisibleDescriptorHandle() const
+	const BaseDescriptorPool::Handle* Screen::BackBuffer::GetRTVDescriptorHandle() const
 	{
-		return GetCurrentBackBuffer()->GetShaderVisibleDescriptorHandle();
+		return GetCurrentBackBuffer()->GetRTVDescriptorHandle();
 	}
 
 	std::shared_ptr<Core::BaseTask> Screen::BackBuffer::CreateSwitchStateTask(D3D12_RESOURCE_STATES nextStateMask)
@@ -177,9 +177,9 @@ namespace MMPEngine::Backend::Dx12
 		Task::Run(stream);
 
 		const auto screen = GetTaskContext()->entity;
+		screen->_swapChain->Present(screen->_settings.vSync, 0);
+		screen->_backBuffer->Swap();
 		_specificStreamContext->PopulateCommandsInList();
-		//screen->_swapChain->Present(screen->_settings.vSync, 0);
-		//screen->_backBuffer->Swap();
 	}
 
 }

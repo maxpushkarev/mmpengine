@@ -133,6 +133,7 @@ namespace MMPEngine::Feature
 	inline void RootApp<TRootContext>::Initialize()
 	{
 		_defaultStream->Restart();
+		BaseRootApp::Initialize();
 	}
 
 	template<typename TRootContext>

@@ -238,7 +238,7 @@ namespace MMPEngine::Backend::Dx12
 		return &_shaderVisibleHandleCounter;
 	}
 
-	const BaseDescriptorPool::Handle* UaBuffer::GetShaderVisibleDescriptorHandle() const
+	const BaseDescriptorPool::Handle* UaBuffer::GetResourceDescriptorHandle() const
 	{
 		return &_shaderVisibleHandle;
 	}

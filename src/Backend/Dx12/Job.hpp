@@ -103,7 +103,7 @@ namespace MMPEngine::Backend::Dx12
 					{
 						this->_applyMaterialParametersCallbacks.emplace_back([nativeBuffer, index](const auto& ctx)
 							{
-								ctx->PopulateCommandsInList()->SetComputeRootDescriptorTable(static_cast<std::uint32_t>(index), nativeBuffer->GetShaderVisibleDescriptorHandle()->GetGPUDescriptorHandle());
+								ctx->PopulateCommandsInList()->SetComputeRootDescriptorTable(static_cast<std::uint32_t>(index), nativeBuffer->GetResourceDescriptorHandle()->GetGPUDescriptorHandle());
 							});
 					}
 					break;
@@ -111,7 +111,7 @@ namespace MMPEngine::Backend::Dx12
 					{
 						this->_applyMaterialParametersCallbacks.emplace_back([nativeBuffer, index](const auto& ctx)
 							{
-								ctx->PopulateCommandsInList()->SetComputeRootDescriptorTable(static_cast<std::uint32_t>(index), nativeBuffer->GetShaderVisibleDescriptorHandle()->GetGPUDescriptorHandle());
+								ctx->PopulateCommandsInList()->SetComputeRootDescriptorTable(static_cast<std::uint32_t>(index), nativeBuffer->GetResourceDescriptorHandle()->GetGPUDescriptorHandle());
 							});
 					}
 					break;
@@ -151,7 +151,7 @@ namespace MMPEngine::Backend::Dx12
 					{
 						this->_applyMaterialParametersCallbacks.emplace_back([nativeBuffer, index](const auto& ctx)
 							{
-								ctx->PopulateCommandsInList()->SetGraphicsRootDescriptorTable(static_cast<std::uint32_t>(index), nativeBuffer->GetShaderVisibleDescriptorHandle()->GetGPUDescriptorHandle());
+								ctx->PopulateCommandsInList()->SetGraphicsRootDescriptorTable(static_cast<std::uint32_t>(index), nativeBuffer->GetResourceDescriptorHandle()->GetGPUDescriptorHandle());
 							});
 					}
 					break;
@@ -159,7 +159,7 @@ namespace MMPEngine::Backend::Dx12
 					{
 						this->_applyMaterialParametersCallbacks.emplace_back([nativeBuffer, index](const auto& ctx)
 							{
-								ctx->PopulateCommandsInList()->SetGraphicsRootDescriptorTable(static_cast<std::uint32_t>(index), nativeBuffer->GetShaderVisibleDescriptorHandle()->GetGPUDescriptorHandle());
+								ctx->PopulateCommandsInList()->SetGraphicsRootDescriptorTable(static_cast<std::uint32_t>(index), nativeBuffer->GetResourceDescriptorHandle()->GetGPUDescriptorHandle());
 							});
 					}
 					break;

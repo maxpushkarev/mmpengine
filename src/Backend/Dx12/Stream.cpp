@@ -19,10 +19,11 @@ namespace MMPEngine::Backend::Dx12
 	{
 		Super::RestartInternal();
 
-		if(_specificStreamContext->_fence->GetCompletedValue() == _fenceSignalValue)
+		if(_specificStreamContext->_fence->GetCompletedValue() == _fenceSignalValue && _specificStreamContext->_commandsClosed)
 		{
 			_specificStreamContext->_cmdAllocator->Reset();
 			_specificStreamContext->_cmdList->Reset(_specificStreamContext->_cmdAllocator.Get(), nullptr);
+			_specificStreamContext->_commandsClosed = false;
 		}
 	}
 
@@ -33,10 +34,16 @@ namespace MMPEngine::Backend::Dx12
 
 		if (_specificStreamContext->_commandsPopulated)
 		{
-			_specificStreamContext->_cmdList->Close();
+			if(!_specificStreamContext->_commandsClosed)
+			{
+				_specificStreamContext->_cmdList->Close();
 
-			ID3D12CommandList* cmdLists[]{ _specificStreamContext->_cmdList.Get() };
-			_specificStreamContext->_cmdQueue->ExecuteCommandLists(static_cast<std::uint32_t>(std::size(cmdLists)), cmdLists);
+				ID3D12CommandList* cmdLists[]{ _specificStreamContext->_cmdList.Get() };
+				_specificStreamContext->_cmdQueue->ExecuteCommandLists(static_cast<std::uint32_t>(std::size(cmdLists)), cmdLists);
+
+				_specificStreamContext->_commandsClosed = true;
+			}
+
 
 			const auto fence = _specificStreamContext->_fence;
 			const auto counterValue = GetSyncCounterValue();

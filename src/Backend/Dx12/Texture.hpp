@@ -20,7 +20,7 @@ namespace MMPEngine::Backend::Dx12
 	public:
 		DepthStencilTargetTexture(const Settings& settings);
 		std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;
-		const BaseDescriptorPool::Handle* GetShaderVisibleDescriptorHandle() const override;
+		const BaseDescriptorPool::Handle* GetDSVDescriptorHandle() const override;
 	private:
 		BaseDescriptorPool::Handle _dsvHandle;
 

@@ -7,7 +7,17 @@ namespace MMPEngine::Backend::Dx12
 	BaseEntity::~BaseEntity() = default;
 	ResourceEntity::ResourceEntity() = default;
 
-	const BaseDescriptorPool::Handle* BaseEntity::GetShaderVisibleDescriptorHandle() const
+	const BaseDescriptorPool::Handle* BaseEntity::GetResourceDescriptorHandle() const
+	{
+		return nullptr;
+	}
+
+	const BaseDescriptorPool::Handle* BaseEntity::GetDSVDescriptorHandle() const
+	{
+		return nullptr;
+	}
+
+	const BaseDescriptorPool::Handle* BaseEntity::GetRTVDescriptorHandle() const
 	{
 		return nullptr;
 	}
@@ -47,7 +57,10 @@ namespace MMPEngine::Backend::Dx12
 
 		if(const auto tc = GetTaskContext() ; const auto entity = tc->entity)
 		{
-			if((entity->_currentStateMask & tc->nextStateMask) != tc->nextStateMask)
+			if( 
+				((entity->_currentStateMask & tc->nextStateMask) != tc->nextStateMask) ||
+				(tc->nextStateMask == 0 && entity->_currentStateMask != tc->nextStateMask)
+			)
 			{
 				const D3D12_RESOURCE_BARRIER transitions[] = {
 					CD3DX12_RESOURCE_BARRIER::Transition(entity->GetNativeResource().Get(),  entity->_currentStateMask, tc->nextStateMask)

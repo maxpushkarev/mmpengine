@@ -45,5 +45,6 @@ namespace MMPEngine::Backend::Dx12
 		Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> _cmdList;
 		Microsoft::WRL::ComPtr<ID3D12Fence> _fence;
 		bool _commandsPopulated = false;
+		bool _commandsClosed = true;
 	};
 }

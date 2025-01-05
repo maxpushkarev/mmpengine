@@ -13,7 +13,7 @@ namespace MMPEngine::Backend::Dx12
 		public:
 			Buffer();
 			void SetUp(const Microsoft::WRL::ComPtr<ID3D12Resource>& nativeResource, BaseDescriptorPool::Handle&& rtvHandle);
-			const BaseDescriptorPool::Handle* GetShaderVisibleDescriptorHandle() const override;
+			const BaseDescriptorPool::Handle* GetRTVDescriptorHandle() const override;
 		private:
 			BaseDescriptorPool::Handle _rtvHandle;
 		};
@@ -48,7 +48,7 @@ namespace MMPEngine::Backend::Dx12
 			std::shared_ptr<Core::BaseTask> CreateSwitchStateTask(D3D12_RESOURCE_STATES nextStateMask) override;
 			D3D12_GPU_VIRTUAL_ADDRESS GetNativeGPUAddressWithRequiredOffset() const override;
 			Microsoft::WRL::ComPtr<ID3D12Resource> GetNativeResource() const override;
-			const BaseDescriptorPool::Handle* GetShaderVisibleDescriptorHandle() const override;
+			const BaseDescriptorPool::Handle* GetRTVDescriptorHandle() const override;
 		private:
 			std::size_t _currentBackBufferIndex = 0;
 			std::vector<std::shared_ptr<Buffer>> _buffers;

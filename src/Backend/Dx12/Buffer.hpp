@@ -112,7 +112,7 @@ namespace MMPEngine::Backend::Dx12
 		};
 
 	public:
-		const BaseDescriptorPool::Handle* GetShaderVisibleDescriptorHandle() const override;
+		const BaseDescriptorPool::Handle* GetResourceDescriptorHandle() const override;
 
 		const BaseDescriptorPool::Handle* GetShaderInVisibleCounterDescriptorHandle() const;
 		const BaseDescriptorPool::Handle* GetShaderVisibleCounterDescriptorHandle() const;
@@ -286,7 +286,7 @@ namespace MMPEngine::Backend::Dx12
 		std::shared_ptr<Core::BaseTask> CreateCopyToBufferTask(const std::shared_ptr<Core::Buffer>& dst, std::size_t byteLength, std::size_t srcByteOffset, std::size_t dstByteOffset) const override;
 		std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;
 		std::shared_ptr<Core::BaseTask> CreateSwitchStateTask(D3D12_RESOURCE_STATES nextStateMask) override;
-		const BaseDescriptorPool::Handle* GetShaderVisibleDescriptorHandle() const override;
+		const BaseDescriptorPool::Handle* GetResourceDescriptorHandle() const override;
 
 	private:
 
@@ -386,7 +386,7 @@ namespace MMPEngine::Backend::Dx12
 	}
 
 	template<class TUniformBufferData>
-	inline const BaseDescriptorPool::Handle* UniformBuffer<TUniformBufferData>::GetShaderVisibleDescriptorHandle() const
+	inline const BaseDescriptorPool::Handle* UniformBuffer<TUniformBufferData>::GetResourceDescriptorHandle() const
 	{
 		return &(this->_descriptorHeapHandle);
 	}
