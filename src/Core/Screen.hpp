@@ -5,6 +5,22 @@ namespace MMPEngine::Core
 {
 	class Screen : public IInitializationTaskSource, public std::enable_shared_from_this<Screen>
 	{
+	private:
+
+		class TaskContext final : public Core::TaskContext
+		{
+		public:
+			std::shared_ptr<Screen> screen;
+		};
+
+		class StreamValidationTask : public Core::ContextualTask<TaskContext>
+		{
+		public:
+			StreamValidationTask(const std::shared_ptr<TaskContext>& ctx);
+		protected:
+			void OnScheduled(const std::shared_ptr<BaseStream>& stream) override;
+		};
+
 	public:
 		struct Settings final
 		{
@@ -20,5 +36,7 @@ namespace MMPEngine::Core
 		Screen(const Settings& settings);
 		Settings _settings;
 		std::uint32_t _currentBackBufferIndex = 0;
+	private:
+		Core::BaseStream* _streamPtr;
 	};
 }
