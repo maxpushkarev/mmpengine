@@ -18,6 +18,12 @@ namespace MMPEngine::Backend::Dx12
 		const auto ctx = std::make_shared<InternalTaskContext>();
 		ctx->job = std::dynamic_pointer_cast<DrawCallsJob>(shared_from_this());
 
+		ctx->colorRenderTargets.clear();
+		ctx->colorRenderTargetHandles.clear();
+
+		ctx->colorRenderTargets.reserve(ctx->job->_camera->GetTarget().color.size());
+		ctx->colorRenderTargetHandles.reserve(ctx->job->_camera->GetTarget().color.size());
+
 		const auto ds = ctx->job->_camera->GetTarget().depthStencil;
 		if(ds.tex)
 		{
@@ -44,13 +50,20 @@ namespace MMPEngine::Backend::Dx12
 		const auto ds = tc->job->_camera->GetTarget().depthStencil;
 		const auto crts = tc->job->_camera->GetTarget().color;
 
+		const D3D12_CPU_DESCRIPTOR_HANDLE* dsHandlePtr = nullptr;
+
+		if(ds.tex)
+		{
+			dsHandlePtr = &(tc->depthStencil->GetDSVDescriptorHandle()->GetCPUDescriptorHandle());
+		}
+
 		if(ds.tex && ds.clear)
 		{
 			const auto& clearValue = ds.tex->GetSettings().clearValue;
 			if(clearValue.has_value())
 			{
 				_specificStreamContext->PopulateCommandsInList()->ClearDepthStencilView(
-					tc->depthStencil->GetDSVDescriptorHandle()->GetCPUDescriptorHandle(),
+					*dsHandlePtr,
 					D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL,
 					std::get<std::float_t>(clearValue.value()), std::get<std::uint8_t>(clearValue.value()),
 					0, nullptr
@@ -58,19 +71,46 @@ namespace MMPEngine::Backend::Dx12
 			}
 		}
 
+		tc->colorRenderTargetHandles.clear();
+
 		for(std::size_t i = 0; i < crts.size(); ++i)
 		{
 			const auto& crt = crts[i];
+			const auto h = tc->colorRenderTargets.at(i)->GetRTVDescriptorHandle()->GetCPUDescriptorHandle();
+
+			tc->colorRenderTargetHandles.push_back(h);
+
 			if (crt.clear)
 			{
 				const auto& clearValue = crt.tex->GetSettings().clearColor;
+
 				if(clearValue.has_value())
 				{
 					const auto cv  = clearValue.value();
-					_specificStreamContext->PopulateCommandsInList()->ClearRenderTargetView(tc->colorRenderTargets.at(i)->GetRTVDescriptorHandle()->GetCPUDescriptorHandle(), &(cv.x), 0, nullptr);
+					_specificStreamContext->PopulateCommandsInList()->ClearRenderTargetView(h, &(cv.x), 0, nullptr);
 				}
 			}
 		}
+
+		D3D12_VIEWPORT viewport {};
+		const auto size = crts.begin()->tex->GetSettings().base.size;
+		viewport.TopLeftX = 0;
+		viewport.TopLeftY = 0;
+		viewport.Width = static_cast<std::float_t>(size.x);
+		viewport.Height = static_cast<std::float_t>(size.y);
+		viewport.MinDepth = 0.0f;
+		viewport.MaxDepth = 1.0f;
+
+		const D3D12_RECT scissorsRect = { 0, 0, static_cast<decltype(scissorsRect.right)>(size.x), static_cast<decltype(scissorsRect.bottom)>(size.y) };
+
+		_specificStreamContext->PopulateCommandsInList()->RSSetViewports(1, &viewport);
+		_specificStreamContext->PopulateCommandsInList()->RSSetScissorRects(1, &scissorsRect);
+
+		_specificStreamContext->PopulateCommandsInList()->OMSetRenderTargets(
+			static_cast<std::uint32_t>(tc->colorRenderTargetHandles.size()),
+			tc->colorRenderTargetHandles.data(),
+			false,
+			dsHandlePtr);
 	}
 
 	Camera::DrawCallsJob::PrepareTask::PrepareTask(const std::shared_ptr<InternalTaskContext>& ctx) : Task(ctx)

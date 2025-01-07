@@ -15,6 +15,7 @@ namespace MMPEngine::Backend::Dx12
 			std::shared_ptr<DrawCallsJob> job;
 			std::vector<std::shared_ptr<BaseEntity>> colorRenderTargets;
 			std::shared_ptr<BaseEntity> depthStencil;
+			std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> colorRenderTargetHandles;
 		};
 
 		class PrepareRenderTargetsTask final : public Task<InternalTaskContext>
