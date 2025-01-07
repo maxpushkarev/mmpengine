@@ -8,7 +8,7 @@ namespace MMPEngine::Backend::Dx12
 	{
 	}
 
-	std::shared_ptr<Core::BaseTask> Screen::CreateInitializationTask()
+	std::shared_ptr<Core::BaseTask> Screen::CreateInitializationTaskInternal()
 	{
 		const auto ctx = std::make_shared<ScreenTaskContext>();
 		ctx->entity = std::dynamic_pointer_cast<Screen>(shared_from_this());
@@ -16,7 +16,7 @@ namespace MMPEngine::Backend::Dx12
 		return std::make_shared<InitTask>(ctx);
 	}
 
-	std::shared_ptr<Core::BaseTask> Screen::CreateTaskToSwapBuffer()
+	std::shared_ptr<Core::BaseTask> Screen::CreateTaskToSwapBufferInternal()
 	{
 		const auto ctx = std::make_shared<ScreenTaskContext>();
 		ctx->entity = std::dynamic_pointer_cast<Screen>(shared_from_this());

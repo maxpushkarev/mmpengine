@@ -32,4 +32,14 @@ namespace MMPEngine::Frontend
 	{
 		return _impl->GetBackBuffer();
 	}
+
+	std::shared_ptr<Core::BaseTask> Screen::CreateInitializationTaskInternal()
+	{
+		throw std::logic_error {"impossible"};
+	}
+
+	std::shared_ptr<Core::BaseTask> Screen::CreateTaskToSwapBufferInternal()
+	{
+		throw std::logic_error {"impossible"};
+	}
 }

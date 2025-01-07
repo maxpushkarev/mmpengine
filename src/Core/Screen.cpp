@@ -31,4 +31,26 @@ namespace MMPEngine::Core
 		}
 	}
 
+	std::shared_ptr<BaseTask> Screen::CreateInitializationTask()
+	{
+		const auto ctx = std::make_shared<TaskContext>();
+		ctx->screen = std::dynamic_pointer_cast<Screen>(shared_from_this());
+
+		return std::make_shared<BatchTask>(std::initializer_list<std::shared_ptr<BaseTask>>{
+			std::make_shared<StreamValidationTask>(ctx),
+			CreateInitializationTaskInternal()
+		});
+	}
+
+	std::shared_ptr<BaseTask> Screen::CreateTaskToSwapBuffer()
+	{
+		const auto ctx = std::make_shared<TaskContext>();
+		ctx->screen = std::dynamic_pointer_cast<Screen>(shared_from_this());
+
+		return std::make_shared<BatchTask>(std::initializer_list<std::shared_ptr<BaseTask>>{
+			std::make_shared<StreamValidationTask>(ctx),
+			CreateTaskToSwapBufferInternal()
+		});
+	}
+
 }
