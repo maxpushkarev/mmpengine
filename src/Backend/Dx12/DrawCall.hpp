@@ -155,7 +155,7 @@ namespace MMPEngine::Backend::Dx12
 				break;
 			}
 
-			const auto vertexLayout = mesh->GetVertexInputLayout();
+			const auto& vertexLayout = mesh->GetVertexInputLayout();
 			psoDesc.InputLayout = { vertexLayout.data(), static_cast<std::uint32_t>(vertexLayout.size()) };
 		}
 
