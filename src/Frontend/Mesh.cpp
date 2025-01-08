@@ -24,7 +24,7 @@ namespace MMPEngine::Frontend
 		return _impl->CreateInitializationTask();
 	}
 
-	std::shared_ptr<Core::Mesh> Mesh::GetUnderlyingMesh()
+	std::shared_ptr<const Core::Mesh> Mesh::GetUnderlyingMesh() const
 	{
 		return _impl;
 	}

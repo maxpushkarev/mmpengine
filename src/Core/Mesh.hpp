@@ -57,7 +57,7 @@ namespace MMPEngine::Core
 		std::vector<GeometryPrototype::Subset> _subsets;
 
 	public:
-		virtual std::shared_ptr<Mesh> GetUnderlyingMesh();
+		virtual std::shared_ptr<const Mesh> GetUnderlyingMesh() const;
 		virtual const VertexBufferInfo& GetVertexBufferInfo(VertexBufferPrototype::Semantics semantics, std::size_t semanticIndex) const;
 		virtual const IndexBufferInfo& GetIndexBufferInfo() const;
 		virtual const std::vector<GeometryPrototype::Subset>& GetSubsets() const;

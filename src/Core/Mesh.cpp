@@ -91,7 +91,7 @@ namespace MMPEngine::Core
 		return _topology;
 	}
 
-	std::shared_ptr<Mesh> Mesh::GetUnderlyingMesh()
+	std::shared_ptr<const Mesh> Mesh::GetUnderlyingMesh() const
 	{
 		return shared_from_this();
 	}
