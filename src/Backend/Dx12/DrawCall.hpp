@@ -125,6 +125,7 @@ namespace MMPEngine::Backend::Dx12
 		PsoDescType psoDesc = {};
 		psoDesc.pRootSignature = job->_rootSignature.Get();
 		psoDesc.SampleDesc = std::dynamic_pointer_cast<IColorTargetTexture>(camera->GetTarget().color.begin()->tex->GetUnderlyingTexture())->GetSampleDesc();
+		psoDesc.SampleMask = UINT_MAX;
 
 		if constexpr (std::is_base_of_v<Core::MeshMaterial, TCoreMaterial>)
 		{
@@ -226,6 +227,54 @@ namespace MMPEngine::Backend::Dx12
 			}
 		};
 
+		const auto getBlendOp = [](Core::RenderingMaterial::Settings::Blend::Op op) -> auto
+		{
+			switch (op)
+			{
+				case Core::RenderingMaterial::Settings::Blend::Op::Add:
+					return D3D12_BLEND_OP_ADD;
+				case Core::RenderingMaterial::Settings::Blend::Op::Max:
+					return D3D12_BLEND_OP_MAX;
+				case Core::RenderingMaterial::Settings::Blend::Op::Min:
+					return D3D12_BLEND_OP_MIN;
+				case Core::RenderingMaterial::Settings::Blend::Op::RevSub:
+					return D3D12_BLEND_OP_REV_SUBTRACT;
+				case Core::RenderingMaterial::Settings::Blend::Op::Sub:
+					return D3D12_BLEND_OP_SUBTRACT;
+				default:
+					return D3D12_BLEND_OP_ADD;
+			}
+		};
+
+		const auto getBlendFactor = [](Core::RenderingMaterial::Settings::Blend::Factor factor) -> auto
+		{
+			switch (factor)
+			{
+			case Core::RenderingMaterial::Settings::Blend::Factor::Zero:
+				return D3D12_BLEND_ZERO;
+			case Core::RenderingMaterial::Settings::Blend::Factor::DstAlpha:
+				return D3D12_BLEND_DEST_ALPHA;
+			case Core::RenderingMaterial::Settings::Blend::Factor::DstColor:
+				return D3D12_BLEND_DEST_COLOR;
+			case Core::RenderingMaterial::Settings::Blend::Factor::One:
+				return D3D12_BLEND_ONE;
+			case Core::RenderingMaterial::Settings::Blend::Factor::OneMinusSrcAlpha:
+				return D3D12_BLEND_INV_SRC_ALPHA;
+			case Core::RenderingMaterial::Settings::Blend::Factor::OneMinusDstAlpha:
+				return D3D12_BLEND_INV_DEST_ALPHA;
+			case Core::RenderingMaterial::Settings::Blend::Factor::OneMinusDstColor:
+				return D3D12_BLEND_INV_DEST_COLOR;
+			case Core::RenderingMaterial::Settings::Blend::Factor::OneMinusSrcColor:
+				return D3D12_BLEND_INV_SRC_COLOR;
+			case Core::RenderingMaterial::Settings::Blend::Factor::SrcAlpha:
+				return D3D12_BLEND_SRC_ALPHA;
+			case Core::RenderingMaterial::Settings::Blend::Factor::SrcColor:
+				return D3D12_BLEND_SRC_COLOR;
+			default:
+				return D3D12_BLEND_ONE;
+			}
+		};
+
 		psoDesc.DepthStencilState = {
 			(settings.depth.test == Core::RenderingMaterial::Settings::Depth::Test::On || settings.depth.write == Core::RenderingMaterial::Settings::Depth::Write::On),
 			(settings.depth.write == Core::RenderingMaterial::Settings::Depth::Write::On ? D3D12_DEPTH_WRITE_MASK_ALL : D3D12_DEPTH_WRITE_MASK_ZERO),
@@ -264,6 +313,43 @@ namespace MMPEngine::Backend::Dx12
 		}
 
 		psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+		psoDesc.BlendState.AlphaToCoverageEnable = settings.alphaToCoverage == Core::RenderingMaterial::Settings::AlphaToCoverage::On;
+		psoDesc.BlendState.IndependentBlendEnable = !std::equal(settings.blend.targets.begin() + 1, settings.blend.targets.end(), settings.blend.targets.begin());
+
+		for(std::size_t i = 0; i < settings.blend.targets.size(); ++i)
+		{
+			const auto& bt = settings.blend.targets.at(i);
+			psoDesc.BlendState.RenderTarget[i].BlendEnable = bt.op != Core::RenderingMaterial::Settings::Blend::Op::None;
+			psoDesc.BlendState.RenderTarget[i].BlendOp = getBlendOp(bt.op);
+			psoDesc.BlendState.RenderTarget[i].SrcBlend = getBlendFactor(bt.src);
+			psoDesc.BlendState.RenderTarget[i].DestBlend = getBlendFactor(bt.dst);
+
+			psoDesc.BlendState.RenderTarget[i].BlendOpAlpha = psoDesc.BlendState.RenderTarget[i].BlendOp;
+			psoDesc.BlendState.RenderTarget[i].SrcBlendAlpha = psoDesc.BlendState.RenderTarget[i].SrcBlend;
+			psoDesc.BlendState.RenderTarget[i].DestBlendAlpha = psoDesc.BlendState.RenderTarget[i].DestBlend;
+
+			psoDesc.BlendState.RenderTarget[i].RenderTargetWriteMask = 0;
+
+			if(static_cast<std::uint8_t>(bt.colorMask) & static_cast<std::uint8_t>(Core::RenderingMaterial::Settings::Blend::ColorMask::Red))
+			{
+				psoDesc.BlendState.RenderTarget[i].RenderTargetWriteMask |= D3D12_COLOR_WRITE_ENABLE_RED;
+			}
+
+			if (static_cast<std::uint8_t>(bt.colorMask) & static_cast<std::uint8_t>(Core::RenderingMaterial::Settings::Blend::ColorMask::Green))
+			{
+				psoDesc.BlendState.RenderTarget[i].RenderTargetWriteMask |= D3D12_COLOR_WRITE_ENABLE_GREEN;
+			}
+
+			if (static_cast<std::uint8_t>(bt.colorMask) & static_cast<std::uint8_t>(Core::RenderingMaterial::Settings::Blend::ColorMask::Blue))
+			{
+				psoDesc.BlendState.RenderTarget[i].RenderTargetWriteMask |= D3D12_COLOR_WRITE_ENABLE_BLUE;
+			}
+
+			if (static_cast<std::uint8_t>(bt.colorMask) & static_cast<std::uint8_t>(Core::RenderingMaterial::Settings::Blend::ColorMask::Alpha))
+			{
+				psoDesc.BlendState.RenderTarget[i].RenderTargetWriteMask |= D3D12_COLOR_WRITE_ENABLE_ALPHA;
+			}
+		}
 
 		psoDesc.NumRenderTargets = static_cast<decltype(psoDesc.NumRenderTargets)>(camera->GetTarget().color.size());
 
@@ -282,10 +368,11 @@ namespace MMPEngine::Backend::Dx12
 		streamDesc.pPipelineStateSubobjectStream = &psoStream;
 		streamDesc.SizeInBytes = sizeof(psoStream);
 
-		/*Microsoft::WRL::ComPtr<ID3D12Device2> castedDevice = nullptr;
+		Microsoft::WRL::ComPtr<ID3D12Device2> castedDevice = nullptr;
 		this->_specificGlobalContext->device->QueryInterface(IID_PPV_ARGS(castedDevice.GetAddressOf()));
 		assert(castedDevice != nullptr);
 
-		castedDevice->CreatePipelineState(&streamDesc, IID_PPV_ARGS(job->_pipelineState.GetAddressOf()));*/
+		castedDevice->CreatePipelineState(&streamDesc, IID_PPV_ARGS(&job->_pipelineState));
+		assert(job->_pipelineState);
 	}
 }

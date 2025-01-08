@@ -211,8 +211,19 @@ namespace MMPEngine::Core
 					OneMinusDstColor,
 				};
 
+				enum class ColorMask : std::uint8_t
+				{
+					None = 0,
+					Red = 1,
+					Green = 2,
+					Blue = 4,
+					Alpha = 8,
+					All = (Red | Green | Blue | Alpha)
+				};
+
 				struct Target final
 				{
+					ColorMask colorMask = ColorMask::All;
 					Factor src = Factor::One;
 					Op op = Op::None;
 					Factor dst = Factor::One;
