@@ -86,6 +86,16 @@ namespace MMPEngine::Core
 		return _subsets;
 	}
 
+	GeometryPrototype::Topology Mesh::GetTopology() const
+	{
+		return _topology;
+	}
+
+	std::shared_ptr<Mesh> Mesh::GetUnderlyingMesh()
+	{
+		return shared_from_this();
+	}
+
 	const Mesh::VertexBufferInfo& Mesh::GetVertexBufferInfo(VertexBufferPrototype::Semantics semantics, std::size_t semanticIndex) const
 	{
 		return _vertexBufferInfos.at(semantics).at(semanticIndex);

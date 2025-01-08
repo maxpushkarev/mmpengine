@@ -1,6 +1,7 @@
 #pragma once
 #include <cassert>
 #include <Core/DrawCall.hpp>
+#include <Core/Mesh.hpp>
 #include <Backend/Dx12/d3dx12.h>
 #include <Backend/Dx12/Job.hpp>
 #include <Backend/Dx12/Camera.hpp>
@@ -139,6 +140,18 @@ namespace MMPEngine::Backend::Dx12
 				ps->GetCompiledBinaryData(),
 				ps->GetCompiledBinaryLength()
 			};
+
+
+			const auto meshRenderer = std::dynamic_pointer_cast<Core::Mesh::Renderer>(renderer);
+
+			switch (const auto topology = meshRenderer->GetMesh()->GetTopology())
+			{
+			case Core::GeometryPrototype::Topology::Triangles:
+				psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+				break;
+			default:
+				break;
+			}
 		}
 
 		psoDesc.NumRenderTargets = static_cast<decltype(psoDesc.NumRenderTargets)>(camera->GetTarget().color.size());

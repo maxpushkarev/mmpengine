@@ -24,6 +24,31 @@ namespace MMPEngine::Frontend
 		return _impl->CreateInitializationTask();
 	}
 
+	std::shared_ptr<Core::Mesh> Mesh::GetUnderlyingMesh()
+	{
+		return _impl;
+	}
+
+	const Mesh::IndexBufferInfo& Mesh::GetIndexBufferInfo() const
+	{
+		return _impl->GetIndexBufferInfo();
+	}
+
+	Core::GeometryPrototype::Topology Mesh::GetTopology() const
+	{
+		return _impl->GetTopology();
+	}
+
+	const std::vector<Core::GeometryPrototype::Subset>& Mesh::GetSubsets() const
+	{
+		return _impl->GetSubsets();
+	}
+
+	const Mesh::VertexBufferInfo& Mesh::GetVertexBufferInfo(Core::VertexBufferPrototype::Semantics semantics, std::size_t semanticIndex) const
+	{
+		return _impl->GetVertexBufferInfo(semantics, semanticIndex);
+	}
+
 	std::shared_ptr<Core::IndexBuffer> Mesh::CreateIndexBuffer(const Core::IndexBufferPrototype* ibPrototype)
 	{
 		throw std::logic_error("impossible exception");

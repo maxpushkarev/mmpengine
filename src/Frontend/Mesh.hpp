@@ -8,6 +8,12 @@ namespace MMPEngine::Frontend
 	public:
 		Mesh(const std::shared_ptr<Core::GlobalContext>& globalContext, Core::GeometryPrototype&& proto);
 		std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;
+		std::shared_ptr<Core::Mesh> GetUnderlyingMesh() override;
+
+		const VertexBufferInfo& GetVertexBufferInfo(Core::VertexBufferPrototype::Semantics semantics, std::size_t semanticIndex) const override;
+		const IndexBufferInfo& GetIndexBufferInfo() const override;
+		const std::vector<Core::GeometryPrototype::Subset>& GetSubsets() const override;
+		Core::GeometryPrototype::Topology GetTopology() const override;
 
 		class Renderer final : public Core::Mesh::Renderer
 		{
