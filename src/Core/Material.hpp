@@ -111,6 +111,13 @@ namespace MMPEngine::Core
 				WireFrame
 			};
 
+			enum class CullMode : std::uint8_t
+			{
+				Back,
+				Front,
+				None
+			};
+
 			enum class Comparision : std::uint8_t
 			{
 				LessEqual,
@@ -218,6 +225,7 @@ namespace MMPEngine::Core
 			};
 
 			FillMode fillMode = FillMode::Solid;
+			CullMode cullMode = CullMode::Back;
 			Depth depth = {};
 			std::optional<Stencil> stencil = std::nullopt;
 			AlphaToCoverage alphaToCoverage = AlphaToCoverage::Off;
@@ -226,6 +234,8 @@ namespace MMPEngine::Core
 	protected:
 		RenderingMaterial(const Settings& settings, Parameters&& params);
 		Settings _settings;
+	public:
+		const Settings& GetSettings() const;
 	};
 
 	class MeshMaterial final : public RenderingMaterial

@@ -124,6 +124,7 @@ namespace MMPEngine::Backend::Dx12
 
 		PsoDescType psoDesc = {};
 		psoDesc.pRootSignature = job->_rootSignature.Get();
+		psoDesc.SampleDesc = std::dynamic_pointer_cast<IColorTargetTexture>(camera->GetTarget().color.begin()->tex->GetUnderlyingTexture())->GetSampleDesc();
 
 		if constexpr (std::is_base_of_v<Core::MeshMaterial, TCoreMaterial>)
 		{
@@ -157,6 +158,47 @@ namespace MMPEngine::Backend::Dx12
 			psoDesc.InputLayout = { vertexLayout.data(), static_cast<std::uint32_t>(vertexLayout.size()) };
 		}
 
+		const auto& settings = material->GetSettings();
+
+		psoDesc.RasterizerState = {
+			(settings.fillMode == Core::RenderingMaterial::Settings::FillMode::Solid ? D3D12_FILL_MODE_SOLID : D3D12_FILL_MODE_WIREFRAME),
+			(settings.cullMode == Core::RenderingMaterial::Settings::CullMode::Back 
+				? D3D12_CULL_MODE_BACK : 
+				(settings.cullMode == Core::RenderingMaterial::Settings::CullMode::Front ? D3D12_CULL_MODE_FRONT : D3D12_CULL_MODE_NONE )),
+			false,
+			D3D12_DEFAULT_DEPTH_BIAS,
+			D3D12_DEFAULT_DEPTH_BIAS_CLAMP,
+			D3D12_DEFAULT_SLOPE_SCALED_DEPTH_BIAS,
+			true,
+			psoDesc.SampleDesc.Count > 1,
+			false,
+			0,
+			D3D12_CONSERVATIVE_RASTERIZATION_MODE_OFF
+		};
+
+		psoDesc.DepthStencilState = {
+			true,
+			D3D12_DEPTH_WRITE_MASK_ALL,
+			D3D12_COMPARISON_FUNC_LESS_EQUAL,
+			false,
+			D3D12_DEFAULT_STENCIL_READ_MASK,
+			D3D12_DEFAULT_STENCIL_WRITE_MASK,
+			{
+				D3D12_STENCIL_OP_KEEP,
+				D3D12_STENCIL_OP_KEEP,
+				D3D12_STENCIL_OP_KEEP,
+				D3D12_COMPARISON_FUNC_ALWAYS
+			},
+			{
+				D3D12_STENCIL_OP_KEEP,
+				D3D12_STENCIL_OP_KEEP,
+				D3D12_STENCIL_OP_KEEP,
+				D3D12_COMPARISON_FUNC_ALWAYS
+			}
+		};
+		psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+
+
 		psoDesc.NumRenderTargets = static_cast<decltype(psoDesc.NumRenderTargets)>(camera->GetTarget().color.size());
 
 		for(std::size_t i = 0; i < camera->GetTarget().color.size(); ++i)
@@ -168,8 +210,6 @@ namespace MMPEngine::Backend::Dx12
 		psoDesc.DSVFormat = camera->GetTarget().depthStencil.tex
 			? std::dynamic_pointer_cast<IDepthStencilTexture>(camera->GetTarget().depthStencil.tex->GetUnderlyingTexture())->GetDSVFormat()
 			: DXGI_FORMAT_UNKNOWN;
-
-		psoDesc.SampleDesc = std::dynamic_pointer_cast<IColorTargetTexture>(camera->GetTarget().color.begin()->tex->GetUnderlyingTexture())->GetSampleDesc();
 
 		auto psoStream = PsoStreamType{ psoDesc };
 		D3D12_PIPELINE_STATE_STREAM_DESC streamDesc;
