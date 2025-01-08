@@ -176,10 +176,60 @@ namespace MMPEngine::Backend::Dx12
 			D3D12_CONSERVATIVE_RASTERIZATION_MODE_OFF
 		};
 
+		const auto getCmpFunc = [](Core::RenderingMaterial::Settings::Comparision comparision) -> auto
+		{
+			switch (comparision)
+			{
+			case Core::RenderingMaterial::Settings::Comparision::Always:
+				return D3D12_COMPARISON_FUNC_ALWAYS;
+			case Core::RenderingMaterial::Settings::Comparision::Equal:
+				return D3D12_COMPARISON_FUNC_EQUAL;
+			case Core::RenderingMaterial::Settings::Comparision::Greater:
+				return D3D12_COMPARISON_FUNC_GREATER;
+			case Core::RenderingMaterial::Settings::Comparision::GreaterEqual:
+				return D3D12_COMPARISON_FUNC_GREATER_EQUAL;
+			case Core::RenderingMaterial::Settings::Comparision::Less:
+				return D3D12_COMPARISON_FUNC_LESS;
+			case Core::RenderingMaterial::Settings::Comparision::LessEqual:
+				return D3D12_COMPARISON_FUNC_LESS_EQUAL;
+			case Core::RenderingMaterial::Settings::Comparision::Never:
+				return D3D12_COMPARISON_FUNC_NEVER;
+			case Core::RenderingMaterial::Settings::Comparision::NotEqual:
+				return D3D12_COMPARISON_FUNC_NOT_EQUAL;
+			default:
+				return D3D12_COMPARISON_FUNC_ALWAYS;
+			}
+		};
+
+		const auto getStencilOpFunc = [](Core::RenderingMaterial::Settings::Stencil::Op func) -> auto
+		{
+			switch(func)
+			{
+			case Core::RenderingMaterial::Settings::Stencil::Op::Keep:
+				return D3D12_STENCIL_OP_KEEP;
+			case Core::RenderingMaterial::Settings::Stencil::Op::DecrementAndSaturate:
+				return D3D12_STENCIL_OP_DECR_SAT;
+			case Core::RenderingMaterial::Settings::Stencil::Op::DecrementAndWrap:
+				return D3D12_STENCIL_OP_DECR;
+			case Core::RenderingMaterial::Settings::Stencil::Op::IncrementAndSaturate:
+				return D3D12_STENCIL_OP_INCR_SAT;
+			case Core::RenderingMaterial::Settings::Stencil::Op::IncrementAndWrap:
+				return D3D12_STENCIL_OP_INCR;
+			case Core::RenderingMaterial::Settings::Stencil::Op::Invert:
+				return D3D12_STENCIL_OP_INVERT;
+			case Core::RenderingMaterial::Settings::Stencil::Op::Replace:
+				return D3D12_STENCIL_OP_REPLACE;
+			case Core::RenderingMaterial::Settings::Stencil::Op::Zero:
+				return D3D12_STENCIL_OP_ZERO;
+			default:
+				return D3D12_STENCIL_OP_KEEP;
+			}
+		};
+
 		psoDesc.DepthStencilState = {
-			true,
-			D3D12_DEPTH_WRITE_MASK_ALL,
-			D3D12_COMPARISON_FUNC_LESS_EQUAL,
+			(settings.depth.test == Core::RenderingMaterial::Settings::Depth::Test::On || settings.depth.write == Core::RenderingMaterial::Settings::Depth::Write::On),
+			(settings.depth.write == Core::RenderingMaterial::Settings::Depth::Write::On ? D3D12_DEPTH_WRITE_MASK_ALL : D3D12_DEPTH_WRITE_MASK_ZERO),
+			getCmpFunc(settings.depth.comparision),
 			false,
 			D3D12_DEFAULT_STENCIL_READ_MASK,
 			D3D12_DEFAULT_STENCIL_WRITE_MASK,
@@ -196,8 +246,24 @@ namespace MMPEngine::Backend::Dx12
 				D3D12_COMPARISON_FUNC_ALWAYS
 			}
 		};
-		psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
 
+		if(settings.stencil.has_value())
+		{
+			const auto& stencil = settings.stencil.value();
+			psoDesc.DepthStencilState.StencilEnable = true;
+
+			psoDesc.DepthStencilState.FrontFace.StencilFunc = getCmpFunc(stencil.front.comparision);
+			psoDesc.DepthStencilState.FrontFace.StencilDepthFailOp = getStencilOpFunc(stencil.front.depthFail);
+			psoDesc.DepthStencilState.FrontFace.StencilFailOp = getStencilOpFunc(stencil.front.stencilFail);
+			psoDesc.DepthStencilState.FrontFace.StencilPassOp = getStencilOpFunc(stencil.front.stencilPass);
+
+			psoDesc.DepthStencilState.BackFace.StencilFunc = getCmpFunc(stencil.back.comparision);
+			psoDesc.DepthStencilState.BackFace.StencilDepthFailOp = getStencilOpFunc(stencil.back.depthFail);
+			psoDesc.DepthStencilState.BackFace.StencilFailOp = getStencilOpFunc(stencil.back.stencilFail);
+			psoDesc.DepthStencilState.BackFace.StencilPassOp = getStencilOpFunc(stencil.back.stencilPass);
+		}
+
+		psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
 
 		psoDesc.NumRenderTargets = static_cast<decltype(psoDesc.NumRenderTargets)>(camera->GetTarget().color.size());
 
