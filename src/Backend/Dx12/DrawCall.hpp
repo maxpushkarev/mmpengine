@@ -120,7 +120,7 @@ namespace MMPEngine::Backend::Dx12
 		const auto material = std::dynamic_pointer_cast<TCoreMaterial>(job->_item.material);
 		const auto camera = job->_camera;
 
-		job->BakeMaterialParameters(this->_specificGlobalContext, material->GetParameters());
+		job->BakeMaterialParameters(this->_specificGlobalContext, material->GetParameters(), D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 
 		PsoDescType psoDesc = {};
 		psoDesc.pRootSignature = job->_rootSignature.Get();

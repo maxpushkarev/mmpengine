@@ -61,7 +61,7 @@ namespace MMPEngine::Backend::Dx12
 			std::shared_ptr<Core::BaseTask> _apply;
 		};
 
-		virtual void BakeMaterialParameters(const std::shared_ptr<GlobalContext>& globalContext, const Core::BaseMaterial::Parameters& params);
+		virtual void BakeMaterialParameters(const std::shared_ptr<GlobalContext>& globalContext, const Core::BaseMaterial::Parameters& params, D3D12_ROOT_SIGNATURE_FLAGS rootSignatureFlags = D3D12_ROOT_SIGNATURE_FLAG_NONE);
 	};
 
 	template<typename TCoreMaterial>
@@ -69,14 +69,14 @@ namespace MMPEngine::Backend::Dx12
 	{
 		static_assert(std::is_base_of_v<Core::BaseMaterial, TCoreMaterial>, "TCoreMaterial must be derived from Core::BaseMaterial");
 	public:
-		void BakeMaterialParameters(const std::shared_ptr<GlobalContext>& globalContext, const Core::BaseMaterial::Parameters& params) override;
+		void BakeMaterialParameters(const std::shared_ptr<GlobalContext>& globalContext, const Core::BaseMaterial::Parameters& params, D3D12_ROOT_SIGNATURE_FLAGS rootSignatureFlags = D3D12_ROOT_SIGNATURE_FLAG_NONE) override;
 	};
 
 
 	template<typename TCoreMaterial>
-	inline void Job<TCoreMaterial>::BakeMaterialParameters(const std::shared_ptr<GlobalContext>& globalContext, const Core::BaseMaterial::Parameters& params)
+	inline void Job<TCoreMaterial>::BakeMaterialParameters(const std::shared_ptr<GlobalContext>& globalContext, const Core::BaseMaterial::Parameters& params, D3D12_ROOT_SIGNATURE_FLAGS rootSignatureFlags)
 	{
-		BaseJob::BakeMaterialParameters(globalContext, params);
+		BaseJob::BakeMaterialParameters(globalContext, params, rootSignatureFlags);
 
 		this->_applyMaterialParametersCallbacks.clear();
 

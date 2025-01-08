@@ -8,7 +8,7 @@ namespace MMPEngine::Backend::Dx12
 	BaseJob::BaseJob() = default;
 	BaseJob::~BaseJob() = default;
 
-	void BaseJob::BakeMaterialParameters(const std::shared_ptr<GlobalContext>& globalContext, const Core::BaseMaterial::Parameters& params)
+	void BaseJob::BakeMaterialParameters(const std::shared_ptr<GlobalContext>& globalContext, const Core::BaseMaterial::Parameters& params, D3D12_ROOT_SIGNATURE_FLAGS rootSignatureFlags)
 	{
 		_rootSignature.Reset();
 		_switchMaterialParametersStateTasks.clear();
@@ -106,7 +106,7 @@ namespace MMPEngine::Backend::Dx12
 
 		rootSignature.NumParameters = static_cast<std::uint32_t>(rootParameters.size());
 		rootSignature.pParameters = rootParameters.data();
-		rootSignature.Flags = D3D12_ROOT_SIGNATURE_FLAG_NONE;
+		rootSignature.Flags = rootSignatureFlags;
 
 		Microsoft::WRL::ComPtr<ID3DBlob> blob;
 		Microsoft::WRL::ComPtr<ID3DBlob> error;
