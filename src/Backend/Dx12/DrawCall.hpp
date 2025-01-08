@@ -152,6 +152,9 @@ namespace MMPEngine::Backend::Dx12
 			default:
 				break;
 			}
+
+			const auto vertexLayout = mesh->GetVertexInputLayout();
+			psoDesc.InputLayout = { vertexLayout.data(), static_cast<std::uint32_t>(vertexLayout.size()) };
 		}
 
 		psoDesc.NumRenderTargets = static_cast<decltype(psoDesc.NumRenderTargets)>(camera->GetTarget().color.size());
