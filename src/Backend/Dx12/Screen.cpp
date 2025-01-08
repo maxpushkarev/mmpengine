@@ -35,15 +35,27 @@ namespace MMPEngine::Backend::Dx12
 
 	Screen::Buffer::Buffer() = default;
 
-	void Screen::Buffer::SetUp(const Microsoft::WRL::ComPtr<ID3D12Resource>& nativeResource, BaseDescriptorPool::Handle&& rtvHandle)
+	void Screen::Buffer::SetUp(const Microsoft::WRL::ComPtr<ID3D12Resource>& nativeResource, BaseDescriptorPool::Handle&& rtvHandle, DXGI_FORMAT rtvFormat)
 	{
 		SetNativeResource(nativeResource, 0);
 		_rtvHandle = std::move(rtvHandle);
+		_rtvFormat = rtvFormat;
 	}
+
+	DXGI_SAMPLE_DESC Screen::Buffer::GetSampleDesc() const
+	{
+		return {1, 0 };
+	}
+
 
 	const BaseDescriptorPool::Handle* Screen::Buffer::GetRTVDescriptorHandle() const
 	{
 		return &_rtvHandle;	
+	}
+
+	DXGI_FORMAT Screen::Buffer::GetRTVFormat() const
+	{
+		return _rtvFormat;
 	}
 
 	Screen::BackBuffer::BackBuffer(const Settings& settings, std::vector<std::shared_ptr<Buffer>>&& buffers)
@@ -57,7 +69,7 @@ namespace MMPEngine::Backend::Dx12
 		_currentBackBufferIndex %= _buffers.size();
 	}
 
-	std::shared_ptr<ResourceEntity> Screen::BackBuffer::GetCurrentBackBuffer() const
+	std::shared_ptr<Screen::Buffer> Screen::BackBuffer::GetCurrentBackBuffer() const
 	{
 		return _buffers[_currentBackBufferIndex];
 	}
@@ -75,6 +87,16 @@ namespace MMPEngine::Backend::Dx12
 	const BaseDescriptorPool::Handle* Screen::BackBuffer::GetRTVDescriptorHandle() const
 	{
 		return GetCurrentBackBuffer()->GetRTVDescriptorHandle();
+	}
+
+	DXGI_FORMAT Screen::BackBuffer::GetRTVFormat() const
+	{
+		return GetCurrentBackBuffer()->GetRTVFormat();
+	}
+
+	DXGI_SAMPLE_DESC Screen::BackBuffer::GetSampleDesc() const
+	{
+		return GetCurrentBackBuffer()->GetSampleDesc();
 	}
 
 	std::shared_ptr<Core::BaseTask> Screen::BackBuffer::CreateSwitchStateTask(D3D12_RESOURCE_STATES nextStateMask)
@@ -158,7 +180,7 @@ namespace MMPEngine::Backend::Dx12
 			rtvDesc.Texture2D.PlaneSlice = 0;
 
 			_specificGlobalContext->device->CreateRenderTargetView(nativeResource.Get(), &rtvDesc, rtvHandle.GetCPUDescriptorHandle());
-			buffers[i]->SetUp(nativeResource, std::move(rtvHandle));
+			buffers[i]->SetUp(nativeResource, std::move(rtvHandle), rtvDesc.Format);
 		}
 
 		screen->_backBuffer = std::make_shared<BackBuffer>(Core::ColorTargetTexture::Settings {

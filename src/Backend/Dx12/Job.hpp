@@ -183,7 +183,7 @@ namespace MMPEngine::Backend::Dx12
 
 				if (std::holds_alternative<Core::BaseMaterial::Parameters::StencilRef>(parameterEntry.settings))
 				{
-					const auto stencilRef = std::dynamic_pointer_cast<Core::StencilRef>(parameterEntry.entity);
+					const auto stencilRef = std::dynamic_pointer_cast<const Core::StencilRef>(parameterEntry.entity);
 					assert(stencilRef);
 
 					this->_applyMaterialParametersCallbacks.emplace_back([stencilRef](const auto& ctx)

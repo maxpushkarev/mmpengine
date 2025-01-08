@@ -1,6 +1,7 @@
 #pragma once
 #include <Core/Screen.hpp>
 #include <Backend/Dx12/Entity.hpp>
+#include <Backend/Dx12/Texture.hpp>
 
 namespace MMPEngine::Backend::Dx12
 {
@@ -8,17 +9,20 @@ namespace MMPEngine::Backend::Dx12
 	{
 	private:
 
-		class Buffer final : public Core::BaseEntity, public ResourceEntity
+		class Buffer final : public Core::BaseEntity, public ResourceEntity, public IColorTargetTexture
 		{
 		public:
 			Buffer();
-			void SetUp(const Microsoft::WRL::ComPtr<ID3D12Resource>& nativeResource, BaseDescriptorPool::Handle&& rtvHandle);
+			void SetUp(const Microsoft::WRL::ComPtr<ID3D12Resource>& nativeResource, BaseDescriptorPool::Handle&& rtvHandle, DXGI_FORMAT rtvFormat);
+			DXGI_FORMAT GetRTVFormat() const override;
 			const BaseDescriptorPool::Handle* GetRTVDescriptorHandle() const override;
+			DXGI_SAMPLE_DESC GetSampleDesc() const override;
 		private:
 			BaseDescriptorPool::Handle _rtvHandle;
+			DXGI_FORMAT _rtvFormat = DXGI_FORMAT_UNKNOWN;
 		};
 
-		class BackBuffer final : public Core::ColorTargetTexture, public BaseEntity
+		class BackBuffer final : public Core::ColorTargetTexture, public BaseEntity, public IColorTargetTexture
 		{
 		private:
 			class BackBufferContext : public Core::EntityTaskContext<BackBuffer>
@@ -44,11 +48,13 @@ namespace MMPEngine::Backend::Dx12
 		public:
 			BackBuffer(const Settings& settings, std::vector<std::shared_ptr<Buffer>>&& buffers);
 			void Swap();
-			std::shared_ptr<ResourceEntity> GetCurrentBackBuffer() const;
+			std::shared_ptr<Buffer> GetCurrentBackBuffer() const;
 			std::shared_ptr<Core::BaseTask> CreateSwitchStateTask(D3D12_RESOURCE_STATES nextStateMask) override;
 			D3D12_GPU_VIRTUAL_ADDRESS GetNativeGPUAddressWithRequiredOffset() const override;
 			Microsoft::WRL::ComPtr<ID3D12Resource> GetNativeResource() const override;
 			const BaseDescriptorPool::Handle* GetRTVDescriptorHandle() const override;
+			DXGI_SAMPLE_DESC GetSampleDesc() const override;
+			DXGI_FORMAT GetRTVFormat() const override;
 		private:
 			std::size_t _currentBackBufferIndex = 0;
 			std::vector<std::shared_ptr<Buffer>> _buffers;

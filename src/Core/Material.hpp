@@ -234,6 +234,8 @@ namespace MMPEngine::Core
 		MeshMaterial(const Settings& settings, Parameters&& params, const std::shared_ptr<VertexShader>& vs, const std::shared_ptr<PixelShader>& ps);
 		std::shared_ptr<VertexShader> _vs;
 		std::shared_ptr<PixelShader> _ps;
+		const std::shared_ptr<VertexShader>& GetVertexShader() const;
+		const std::shared_ptr<PixelShader>& GetPixelShader() const;
 	};
 
 	class ComputeMaterial final : public BaseMaterial

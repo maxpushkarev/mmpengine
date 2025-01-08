@@ -130,6 +130,16 @@ namespace MMPEngine::Core
 	{
 	}
 
+	const std::shared_ptr<PixelShader>& MeshMaterial::GetPixelShader() const
+	{
+		return _ps;
+	}
+
+	const std::shared_ptr<VertexShader>& MeshMaterial::GetVertexShader() const
+	{
+		return _vs;
+	}
+
 	ComputeMaterial::ComputeMaterial(Parameters&& params, const std::shared_ptr<ComputeShader>& computeShader) : BaseMaterial(std::move(params)), _shader(computeShader)
 	{
 	}

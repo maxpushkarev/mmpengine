@@ -1,4 +1,6 @@
+#include <cassert>
 #include <Core/DrawCall.hpp>
+#include <Core/Mesh.hpp>
 
 namespace MMPEngine::Core
 {
@@ -16,6 +18,11 @@ namespace MMPEngine::Core
 
 				for(const auto& item : thisJob->_items)
 				{
+					if(const auto mr = std::dynamic_pointer_cast<Mesh::Renderer>(item.renderer))
+					{
+						assert(std::dynamic_pointer_cast<Core::MeshMaterial>(item.material) != nullptr);
+					}
+
 					thisJob->_iterations.push_back(thisJob->BuildIteration(item));
 					stream->Schedule(thisJob->_iterations.back()->CreateInitializationTask());
 				}

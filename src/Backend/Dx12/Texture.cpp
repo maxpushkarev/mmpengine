@@ -3,6 +3,9 @@
 
 namespace MMPEngine::Backend::Dx12
 {
+	ITargetTexture::ITargetTexture() = default;
+	ITargetTexture::~ITargetTexture() = default;
+
 	DepthStencilTargetTexture::DepthStencilTargetTexture(const Settings& settings) : Core::DepthStencilTargetTexture(settings)
 	{
 	}
@@ -13,6 +16,12 @@ namespace MMPEngine::Backend::Dx12
 		ctx->entity = std::dynamic_pointer_cast<DepthStencilTargetTexture>(shared_from_this());
 		return std::make_shared<InitTask>(ctx);
 	}
+
+	DXGI_SAMPLE_DESC DepthStencilTargetTexture::GetSampleDesc() const
+	{
+		return { _settings.base.antialiasing == Core::TargetTexture::Settings::Antialiasing::MSAA_0 ? 1 : (static_cast<std::uint32_t>(_settings.base.antialiasing)), 0 };
+	}
+
 
 	DXGI_FORMAT DepthStencilTargetTexture::GetResourceFormat() const
 	{
@@ -69,7 +78,7 @@ namespace MMPEngine::Backend::Dx12
 		depthStencilDesc.DepthOrArraySize = 1;
 		depthStencilDesc.MipLevels = 1;
 		depthStencilDesc.Format = dsTex->GetResourceFormat();
-		depthStencilDesc.SampleDesc = {dsTex->_settings.base.antialiasing == Core::TargetTexture::Settings::Antialiasing::MSAA_0 ? 1 : (static_cast<std::uint32_t>(dsTex->_settings.base.antialiasing)), 0};
+		depthStencilDesc.SampleDesc = dsTex->GetSampleDesc();
 		depthStencilDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
 		depthStencilDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
 
