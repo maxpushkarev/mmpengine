@@ -29,36 +29,43 @@ namespace MMPEngine::Backend::Dx12
 		std::vector<std::shared_ptr<Core::BaseTask>> _switchMaterialParametersStateTasks;
 
 
-		class ApplyParametersTaskContext final : public Core::TaskContext
+		class TaskContext final : public Core::TaskContext
 		{
 		public:
 			std::shared_ptr<BaseJob> job;
 		};
 
-		class ApplyParametersTask : public Task<ApplyParametersTaskContext>
+		class ApplyParametersTask : public Task<TaskContext>
 		{
 		private:
-			class SwitchState final : public Task<ApplyParametersTaskContext>
+			class SwitchState final : public Task<TaskContext>
 			{
 			public:
-				SwitchState(const std::shared_ptr<ApplyParametersTaskContext>& context);
+				SwitchState(const std::shared_ptr<TaskContext>& context);
 				void OnScheduled(const std::shared_ptr<Core::BaseStream>& stream) override;
 			};
 
-			class Apply final : public Task<ApplyParametersTaskContext>
+			class Apply final : public Task<TaskContext>
 			{
 			public:
-				Apply(const std::shared_ptr<ApplyParametersTaskContext>& context);
+				Apply(const std::shared_ptr<TaskContext>& context);
 				void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
 			};
 
 		public:
-			ApplyParametersTask(const std::shared_ptr<ApplyParametersTaskContext>& context);
+			ApplyParametersTask(const std::shared_ptr<TaskContext>& context);
 			void OnScheduled(const std::shared_ptr<Core::BaseStream>& stream) override;
 
 		private:
 			std::shared_ptr<Core::BaseTask> _switchState;
 			std::shared_ptr<Core::BaseTask> _apply;
+		};
+
+		class SetPipelineStateTask final : public Task<TaskContext>
+		{
+		public:
+			SetPipelineStateTask(const std::shared_ptr<TaskContext>& ctx);
+			void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
 		};
 
 		virtual void BakeMaterialParameters(const std::shared_ptr<GlobalContext>& globalContext, const Core::BaseMaterial::Parameters& params, D3D12_ROOT_SIGNATURE_FLAGS rootSignatureFlags = D3D12_ROOT_SIGNATURE_FLAG_NONE);

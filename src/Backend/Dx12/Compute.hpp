@@ -30,21 +30,12 @@ namespace MMPEngine::Backend::Dx12
 		class ExecutionTask final : public Task<Core::DirectComputeContext>
 		{
 		private:
-			class SetPipelineState final : public Task<ExecutionContext>
-			{
-			public:
-				SetPipelineState(const std::shared_ptr<ExecutionContext>& ctx);
-				void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
-			};
-
 			class Dispatch final : public Task<ExecutionContext>
 			{
 			public:
 				Dispatch(const std::shared_ptr<ExecutionContext>& ctx);
 				void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
 			};
-
-
 		public:
 			ExecutionTask(const std::shared_ptr<ExecutionContext>& ctx);
 			void OnScheduled(const std::shared_ptr<Core::BaseStream>& stream) override;

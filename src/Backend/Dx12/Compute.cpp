@@ -53,11 +53,11 @@ namespace MMPEngine::Backend::Dx12
 
 	DirectComputeJob::ExecutionTask::ExecutionTask(const std::shared_ptr<ExecutionContext>& ctx) : Task(ctx), _executionContext(ctx)
 	{
-		const auto applyParamsCtx = std::make_shared<ApplyParametersTaskContext>();
-		applyParamsCtx->job = std::dynamic_pointer_cast<Dx12::BaseJob>(ctx->job);
+		const auto baseJobCtx = std::make_shared<TaskContext>();
+		baseJobCtx->job = std::dynamic_pointer_cast<Dx12::BaseJob>(ctx->job);
 
-		_applyMaterial = std::make_shared<ApplyParametersTask>(applyParamsCtx);
-		_setPipelineState = std::make_shared<SetPipelineState>(ctx);
+		_applyMaterial = std::make_shared<ApplyParametersTask>(baseJobCtx);
+		_setPipelineState = std::make_shared<SetPipelineStateTask>(baseJobCtx);
 		_dispatch = std::make_shared<Dispatch>(ctx);
 		_setDescriptorHeaps = std::make_shared<BindDescriptorPoolsTask>(std::make_shared<BindDescriptorPoolsTaskContext>());
 	}
@@ -71,21 +71,6 @@ namespace MMPEngine::Backend::Dx12
 		stream->Schedule(_setPipelineState);
 		stream->Schedule(_applyMaterial);
 		stream->Schedule(_dispatch);
-	}
-
-	DirectComputeJob::ExecutionTask::SetPipelineState::SetPipelineState(const std::shared_ptr<ExecutionContext>& ctx) : Task(ctx)
-	{
-	}
-
-	void DirectComputeJob::ExecutionTask::SetPipelineState::Run(const std::shared_ptr<Core::BaseStream>& stream)
-	{
-		Task::Run(stream);
-
-		if (const auto job = GetTaskContext()->job)
-		{
-			_specificStreamContext->PopulateCommandsInList()->SetPipelineState(job->_pipelineState.Get());
-			_specificStreamContext->PopulateCommandsInList()->SetComputeRootSignature(job->_rootSignature.Get());
-		}
 	}
 
 	DirectComputeJob::ExecutionTask::Dispatch::Dispatch(const std::shared_ptr<ExecutionContext>& ctx) : Task(ctx)

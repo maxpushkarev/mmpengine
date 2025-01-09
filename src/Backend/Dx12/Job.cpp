@@ -118,7 +118,7 @@ namespace MMPEngine::Backend::Dx12
 	}
 
 
-	BaseJob::ApplyParametersTask::ApplyParametersTask(const std::shared_ptr<ApplyParametersTaskContext>& context) : Task<ApplyParametersTaskContext>(context)
+	BaseJob::ApplyParametersTask::ApplyParametersTask(const std::shared_ptr<TaskContext>& context) : Task<TaskContext>(context)
 	{
 		_switchState = std::make_shared<SwitchState>(context);
 		_apply = std::make_shared<Apply>(context);
@@ -133,7 +133,7 @@ namespace MMPEngine::Backend::Dx12
 	}
 
 
-	BaseJob::ApplyParametersTask::SwitchState::SwitchState(const std::shared_ptr<ApplyParametersTaskContext>& context) : Task<ApplyParametersTaskContext>(context)
+	BaseJob::ApplyParametersTask::SwitchState::SwitchState(const std::shared_ptr<TaskContext>& context) : Task<TaskContext>(context)
 	{
 	}
 
@@ -150,7 +150,7 @@ namespace MMPEngine::Backend::Dx12
 		}
 	}
 
-	BaseJob::ApplyParametersTask::Apply::Apply(const std::shared_ptr<ApplyParametersTaskContext>& context) : Task<ApplyParametersTaskContext>(context)
+	BaseJob::ApplyParametersTask::Apply::Apply(const std::shared_ptr<TaskContext>& context) : Task<TaskContext>(context)
 	{
 	}
 
@@ -164,6 +164,21 @@ namespace MMPEngine::Backend::Dx12
 			{
 				applyParameterCallback(sc);
 			}
+		}
+	}
+
+	BaseJob::SetPipelineStateTask::SetPipelineStateTask(const std::shared_ptr<TaskContext>& ctx) : Task(ctx)
+	{
+	}
+
+	void BaseJob::SetPipelineStateTask::Run(const std::shared_ptr<Core::BaseStream>& stream)
+	{
+		Task::Run(stream);
+
+		if (const auto job = GetTaskContext()->job)
+		{
+			_specificStreamContext->PopulateCommandsInList()->SetPipelineState(job->_pipelineState.Get());
+			_specificStreamContext->PopulateCommandsInList()->SetComputeRootSignature(job->_rootSignature.Get());
 		}
 	}
 }
