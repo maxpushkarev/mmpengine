@@ -59,6 +59,7 @@ namespace MMPEngine::Core
 	public:
 		virtual std::shared_ptr<const Mesh> GetUnderlyingMesh() const;
 		virtual const VertexBufferInfo& GetVertexBufferInfo(VertexBufferPrototype::Semantics semantics, std::size_t semanticIndex) const;
+		virtual const std::unordered_map<VertexBufferPrototype::Semantics, std::vector<VertexBufferInfo>>& GetAllVertexBufferInfos() const;
 		virtual const IndexBufferInfo& GetIndexBufferInfo() const;
 		virtual const std::vector<GeometryPrototype::Subset>& GetSubsets() const;
 		virtual GeometryPrototype::Topology GetTopology() const;

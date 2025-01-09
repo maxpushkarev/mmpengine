@@ -101,6 +101,12 @@ namespace MMPEngine::Core
 		return _vertexBufferInfos.at(semantics).at(semanticIndex);
 	}
 
+	const std::unordered_map<VertexBufferPrototype::Semantics, std::vector<Mesh::VertexBufferInfo>>& Mesh::GetAllVertexBufferInfos() const
+	{
+		return _vertexBufferInfos;
+	}
+
+
 	const Mesh::IndexBufferInfo& Mesh::GetIndexBufferInfo() const
 	{
 		return _indexBufferInfo;
