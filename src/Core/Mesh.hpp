@@ -125,6 +125,7 @@ namespace MMPEngine::Core
 			std::shared_ptr<BaseTask> CreateInitializationTask() override;
 			std::shared_ptr<const Mesh> GetMesh() const;
 			std::shared_ptr<const Node> GetNode() const;
+			const Settings& GetSettings() const;
 			virtual std::shared_ptr<BaseEntity> GetUniformDataEntity() const;
 			virtual std::shared_ptr<ContextualTask<UpdateDataTaskContext>> CreateTaskToUpdateAndWriteUniformData();
 		protected:

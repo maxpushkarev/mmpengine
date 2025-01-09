@@ -165,6 +165,11 @@ namespace MMPEngine::Core
 		return _node;
 	}
 
+	const Mesh::Renderer::Settings& Mesh::Renderer::GetSettings() const
+	{
+		return _settings;
+	}
+
 	std::shared_ptr<BaseEntity> Mesh::Renderer::GetUniformDataEntity() const
 	{
 		return _uniformBuffer;
