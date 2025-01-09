@@ -28,7 +28,15 @@ namespace MMPEngine::Feature
 		class FreeController final : public Controller
 		{
 		public:
-			FreeController(const std::shared_ptr<Core::GlobalContext>& globalContext, const IInputController* inputController, const std::shared_ptr<Core::Node>& node);
+			struct Settings final
+			{
+				std::float_t movementSpeed = 10.0f;
+				std::float_t rotationSpeedCoeff = 2.5f;
+			};
+			FreeController(const Settings& settings, const std::shared_ptr<Core::GlobalContext>& globalContext, const IInputController* inputController, const std::shared_ptr<Core::Node>& node);
+			void Update(std::float_t dt) override;
+		private:
+			Settings _settings;
 		};
 
 	};

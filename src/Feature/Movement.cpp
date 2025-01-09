@@ -12,9 +12,13 @@ namespace MMPEngine::Feature
 	{
 	}
 
-	Movement::FreeController::FreeController(const std::shared_ptr<Core::GlobalContext>& globalContext, const IInputController* inputController, const std::shared_ptr<Core::Node>& node)
-		: Controller(globalContext, inputController, node)
+	Movement::FreeController::FreeController(const Settings& settings, const std::shared_ptr<Core::GlobalContext>& globalContext, const IInputController* inputController, const std::shared_ptr<Core::Node>& node)
+		: Controller(globalContext, inputController, node), _settings(settings)
 	{
 	}
 
+	void Movement::FreeController::Update(std::float_t dt)
+	{
+		Controller::Update(dt);
+	}
 }
