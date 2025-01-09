@@ -449,6 +449,45 @@ namespace MMPEngine::Backend::Dx12
 	void Camera::DrawCallsJob::IterationJob<TCoreMaterial>::ExecutionTask::Impl::Run(const std::shared_ptr<Core::BaseStream>& stream)
 	{
 		Task<TaskContext>::Run(stream);
+
+		if constexpr (std::is_base_of_v<Core::MeshMaterial, TCoreMaterial>)
+		{
+			const auto ctx = this->GetTaskContext();
+			const auto& ibv = ctx->mesh->GetIndexBufferView();
+
+			this->_specificStreamContext->PopulateCommandsInList()->IASetIndexBuffer(&ibv);
+
+			const auto& vbvs = ctx->mesh->GetVertexBufferViews();
+			this->_specificStreamContext->PopulateCommandsInList()->IASetVertexBuffers(
+				0,
+				static_cast<std::uint32_t>(vbvs.size()), vbvs.data());
+
+			const auto topology = ctx->mesh->GetTopology();
+			D3D12_PRIMITIVE_TOPOLOGY d3d12Topology = D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+
+			switch (topology)
+			{
+			case Core::GeometryPrototype::Topology::Triangles:
+				d3d12Topology = D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+			default:
+				break;
+			}
+
+			this->_specificStreamContext->PopulateCommandsInList()->IASetPrimitiveTopology(d3d12Topology);
+
+			const auto& subsets = ctx->mesh->GetSubsets();
+
+			for (const auto& ss : subsets)
+			{
+				this->_specificStreamContext->PopulateCommandsInList()->DrawIndexedInstanced(
+					ss.indexCount,
+					static_cast<std::uint32_t>(ctx->meshRenderer->GetSettings().dynamicData.instancesCount),
+					ss.indexStart,
+					ss.baseVertex,
+					0
+				);
+			}
+		}
 	}
 
 	template<typename TCoreMaterial>
