@@ -18,6 +18,9 @@ namespace MMPEngine::Backend::Dx12
 		BaseJob& operator=(const BaseJob&) = delete;
 		BaseJob& operator=(BaseJob&&) noexcept = delete;
 
+		Microsoft::WRL::ComPtr<ID3D12PipelineState> GetPipelineState() const;
+		Microsoft::WRL::ComPtr<ID3D12RootSignature> GetRootSignature() const;
+
 	protected:
 		BaseJob();
 		virtual	~BaseJob();
@@ -27,7 +30,6 @@ namespace MMPEngine::Backend::Dx12
 
 		std::vector<std::function<void(const std::shared_ptr<StreamContext>& streamContext)>> _applyMaterialParametersCallbacks;
 		std::vector<std::shared_ptr<Core::BaseTask>> _switchMaterialParametersStateTasks;
-
 
 		class TaskContext final : public Core::TaskContext
 		{
@@ -61,13 +63,6 @@ namespace MMPEngine::Backend::Dx12
 			std::shared_ptr<Core::BaseTask> _apply;
 		};
 
-		class SetPipelineStateTask final : public Task<TaskContext>
-		{
-		public:
-			SetPipelineStateTask(const std::shared_ptr<TaskContext>& ctx);
-			void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
-		};
-
 		virtual void BakeMaterialParameters(const std::shared_ptr<GlobalContext>& globalContext, const Core::BaseMaterial::Parameters& params, D3D12_ROOT_SIGNATURE_FLAGS rootSignatureFlags = D3D12_ROOT_SIGNATURE_FLAG_NONE);
 	};
 
@@ -75,9 +70,40 @@ namespace MMPEngine::Backend::Dx12
 	class Job : public BaseJob
 	{
 		static_assert(std::is_base_of_v<Core::BaseMaterial, TCoreMaterial>, "TCoreMaterial must be derived from Core::BaseMaterial");
+	protected:
+		class SetPipelineStateTask final : public Task<TaskContext>
+		{
+		public:
+			SetPipelineStateTask(const std::shared_ptr<TaskContext>& ctx);
+			void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
+		};
 	public:
 		void BakeMaterialParameters(const std::shared_ptr<GlobalContext>& globalContext, const Core::BaseMaterial::Parameters& params, D3D12_ROOT_SIGNATURE_FLAGS rootSignatureFlags = D3D12_ROOT_SIGNATURE_FLAG_NONE) override;
 	};
+
+	template <typename TCoreMaterial>
+	Job<TCoreMaterial>::SetPipelineStateTask::SetPipelineStateTask(const std::shared_ptr<TaskContext>& ctx) : Task<TaskContext>(ctx)
+	{
+	}
+
+	template <typename TCoreMaterial>
+	void Job<TCoreMaterial>::SetPipelineStateTask::Run(const std::shared_ptr<Core::BaseStream>& stream)
+	{
+		Task<TaskContext>::Run(stream);
+		if (const auto job = GetTaskContext()->job)
+		{
+			_specificStreamContext->PopulateCommandsInList()->SetPipelineState(job->GetPipelineState().Get());
+
+			if constexpr (std::is_base_of_v<Core::MeshMaterial, TCoreMaterial>)
+			{
+				_specificStreamContext->PopulateCommandsInList()->SetGraphicsRootSignature(job->GetRootSignature().Get());
+			}
+			else
+			{
+				_specificStreamContext->PopulateCommandsInList()->SetComputeRootSignature(job->GetRootSignature().Get());
+			}
+		}
+	}
 
 
 	template<typename TCoreMaterial>

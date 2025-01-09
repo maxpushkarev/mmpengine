@@ -65,6 +65,16 @@ namespace MMPEngine::Backend::Dx12
 				void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
 			};
 
+			class ExecutionTask final : public Task<TaskContext>
+			{
+			public:
+				ExecutionTask(const std::shared_ptr<TaskContext>& ctx);
+				void OnScheduled(const std::shared_ptr<Core::BaseStream>& stream) override;
+			private:
+				std::shared_ptr<Core::BaseTask> _applyMaterial;
+				std::shared_ptr<Core::BaseTask> _setPipelineState;
+			};
+
 		public:
 			IterationJob(const std::shared_ptr<Core::Camera>& camera, const Item& item);
 			std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;
@@ -100,7 +110,9 @@ namespace MMPEngine::Backend::Dx12
 	template<typename TCoreMaterial>
 	std::shared_ptr<Core::BaseTask> Camera::DrawCallsJob::IterationJob<TCoreMaterial>::CreateExecutionTask()
 	{
-		return Core::BaseTask::kEmpty;
+		const auto ctx = std::make_shared<TaskContext>();
+		ctx->job = std::dynamic_pointer_cast<IterationJob>(shared_from_this());
+		return std::make_shared<ExecutionTask>(ctx);
 	}
 
 	template<typename TCoreMaterial>
@@ -374,5 +386,23 @@ namespace MMPEngine::Backend::Dx12
 
 		castedDevice->CreatePipelineState(&streamDesc, IID_PPV_ARGS(&job->_pipelineState));
 		assert(job->_pipelineState);
+	}
+
+	template <typename TCoreMaterial>
+	Camera::DrawCallsJob::IterationJob<TCoreMaterial>::ExecutionTask::ExecutionTask(const std::shared_ptr<TaskContext>& ctx) : Task<TaskContext>(ctx)
+	{
+		const auto baseJobCtx = std::make_shared<Dx12::BaseJob::TaskContext>();
+		baseJobCtx->job = std::dynamic_pointer_cast<Dx12::BaseJob>(ctx->job);
+
+		_applyMaterial = std::make_shared<Dx12::BaseJob::ApplyParametersTask>(baseJobCtx);
+		_setPipelineState = std::make_shared<typename Dx12::Job<TCoreMaterial>::SetPipelineStateTask>(baseJobCtx);
+	}
+
+	template <typename TCoreMaterial>
+	void Camera::DrawCallsJob::IterationJob<TCoreMaterial>::ExecutionTask::OnScheduled(const std::shared_ptr<Core::BaseStream>& stream)
+	{
+		Task<TaskContext>::OnScheduled(stream);
+		stream->Schedule(_setPipelineState);
+		stream->Schedule(_applyMaterial);
 	}
 }

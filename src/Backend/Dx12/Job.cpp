@@ -8,6 +8,16 @@ namespace MMPEngine::Backend::Dx12
 	BaseJob::BaseJob() = default;
 	BaseJob::~BaseJob() = default;
 
+	Microsoft::WRL::ComPtr<ID3D12PipelineState> BaseJob::GetPipelineState() const
+	{
+		return _pipelineState;
+	}
+
+	Microsoft::WRL::ComPtr<ID3D12RootSignature> BaseJob::GetRootSignature() const
+	{
+		return _rootSignature;
+	}
+
 	void BaseJob::BakeMaterialParameters(const std::shared_ptr<GlobalContext>& globalContext, const Core::BaseMaterial::Parameters& params, D3D12_ROOT_SIGNATURE_FLAGS rootSignatureFlags)
 	{
 		_rootSignature.Reset();
@@ -164,21 +174,6 @@ namespace MMPEngine::Backend::Dx12
 			{
 				applyParameterCallback(sc);
 			}
-		}
-	}
-
-	BaseJob::SetPipelineStateTask::SetPipelineStateTask(const std::shared_ptr<TaskContext>& ctx) : Task(ctx)
-	{
-	}
-
-	void BaseJob::SetPipelineStateTask::Run(const std::shared_ptr<Core::BaseStream>& stream)
-	{
-		Task::Run(stream);
-
-		if (const auto job = GetTaskContext()->job)
-		{
-			_specificStreamContext->PopulateCommandsInList()->SetPipelineState(job->_pipelineState.Get());
-			_specificStreamContext->PopulateCommandsInList()->SetComputeRootSignature(job->_rootSignature.Get());
 		}
 	}
 }
