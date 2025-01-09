@@ -54,7 +54,10 @@ namespace MMPEngine::Backend::Dx12
 			class TaskContext final : public Core::TaskContext
 			{
 			public:
+				TaskContext(const std::shared_ptr<IterationJob>& job);
 				std::shared_ptr<IterationJob> job;
+				std::shared_ptr<Core::Mesh::Renderer> meshRenderer;
+				std::shared_ptr<const Dx12::Mesh> mesh;
 			};
 
 			class InitTask final : public Task<TaskContext>
@@ -67,12 +70,20 @@ namespace MMPEngine::Backend::Dx12
 
 			class ExecutionTask final : public Task<TaskContext>
 			{
+			private:
+				class Impl final : public Task<TaskContext>
+				{
+				public:
+					Impl(const std::shared_ptr<TaskContext>& ctx);
+					void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
+				};
 			public:
 				ExecutionTask(const std::shared_ptr<TaskContext>& ctx);
 				void OnScheduled(const std::shared_ptr<Core::BaseStream>& stream) override;
 			private:
 				std::shared_ptr<Core::BaseTask> _applyMaterial;
 				std::shared_ptr<Core::BaseTask> _setPipelineState;
+				std::shared_ptr<Core::BaseTask> _impl;
 				std::vector<std::shared_ptr<Core::BaseTask>> _switchStateTasks;
 			};
 
@@ -103,16 +114,14 @@ namespace MMPEngine::Backend::Dx12
 	template<typename TCoreMaterial>
 	std::shared_ptr<Core::BaseTask> Camera::DrawCallsJob::IterationJob<TCoreMaterial>::CreateInitializationTask()
 	{
-		const auto ctx = std::make_shared<TaskContext>();
-		ctx->job = std::dynamic_pointer_cast<IterationJob>(shared_from_this());
+		const auto ctx = std::make_shared<TaskContext>(std::dynamic_pointer_cast<IterationJob>(shared_from_this()));
 		return std::make_shared<InitTask>(ctx);
 	}
 
 	template<typename TCoreMaterial>
 	std::shared_ptr<Core::BaseTask> Camera::DrawCallsJob::IterationJob<TCoreMaterial>::CreateExecutionTask()
 	{
-		const auto ctx = std::make_shared<TaskContext>();
-		ctx->job = std::dynamic_pointer_cast<IterationJob>(shared_from_this());
+		const auto ctx = std::make_shared<TaskContext>(std::dynamic_pointer_cast<IterationJob>(shared_from_this()));
 		return std::make_shared<ExecutionTask>(ctx);
 	}
 
@@ -126,7 +135,8 @@ namespace MMPEngine::Backend::Dx12
 	{
 		Task<typename Dx12::Camera::DrawCallsJob::IterationJob<TCoreMaterial>::TaskContext>::Run(stream);
 
-		const auto job = this->GetTaskContext()->job;
+		const auto ctx = this->GetTaskContext();
+		const auto job = ctx->job;
 		assert(job);
 
 		const auto renderer = job->_item.renderer;
@@ -156,10 +166,7 @@ namespace MMPEngine::Backend::Dx12
 				ps->GetCompiledBinaryLength()
 			};
 
-			const auto meshRenderer = std::dynamic_pointer_cast<Core::Mesh::Renderer>(renderer);
-			const auto mesh = std::dynamic_pointer_cast<const Dx12::Mesh>(meshRenderer->GetMesh()->GetUnderlyingMesh());
-
-			switch (const auto topology = mesh->GetTopology())
+			switch (const auto topology = ctx->mesh->GetTopology())
 			{
 			case Core::GeometryPrototype::Topology::Triangles:
 				psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
@@ -168,7 +175,7 @@ namespace MMPEngine::Backend::Dx12
 				break;
 			}
 
-			const auto& vertexLayout = mesh->GetVertexInputLayout();
+			const auto& vertexLayout = ctx->mesh->GetVertexInputLayout();
 			psoDesc.InputLayout = { vertexLayout.data(), static_cast<std::uint32_t>(vertexLayout.size()) };
 		}
 
@@ -400,13 +407,10 @@ namespace MMPEngine::Backend::Dx12
 
 		if constexpr (std::is_base_of_v<Core::MeshMaterial, TCoreMaterial>)
 		{
-			const auto meshRenderer = std::dynamic_pointer_cast<Core::Mesh::Renderer>(ctx->job->_item.renderer);
-			const auto mesh =  std::dynamic_pointer_cast<const Dx12::Mesh>(meshRenderer->GetMesh()->GetUnderlyingMesh());
-
-			const auto& ibInfo = mesh->GetIndexBufferInfo();
+			const auto& ibInfo = ctx->mesh->GetIndexBufferInfo();
 			_switchStateTasks.push_back(std::dynamic_pointer_cast<Dx12::BaseEntity>(ibInfo.ptr->GetUnderlyingBuffer())->CreateSwitchStateTask(D3D12_RESOURCE_STATE_GENERIC_READ));
 
-			const auto& allBufferInfos = mesh->GetAllVertexBufferInfos();
+			const auto& allBufferInfos = ctx->mesh->GetAllVertexBufferInfos();
 
 			for(const auto& s2vbs : allBufferInfos)
 			{
@@ -415,6 +419,8 @@ namespace MMPEngine::Backend::Dx12
 					_switchStateTasks.push_back(std::dynamic_pointer_cast<Dx12::BaseEntity>(vbInfo.ptr->GetUnderlyingBuffer())->CreateSwitchStateTask(D3D12_RESOURCE_STATE_GENERIC_READ));
 				}
 			}
+
+			_impl = std::make_shared<Impl>(ctx);
 		}
 	}
 
@@ -429,6 +435,29 @@ namespace MMPEngine::Backend::Dx12
 		for(const auto& sst : _switchStateTasks)
 		{
 			stream->Schedule(sst);
+		}
+
+		stream->Schedule(_impl);
+	}
+
+	template <typename TCoreMaterial>
+	Camera::DrawCallsJob::IterationJob<TCoreMaterial>::ExecutionTask::Impl::Impl(const std::shared_ptr<TaskContext>& ctx) : Task<TaskContext>(ctx)
+	{
+	}
+
+	template <typename TCoreMaterial>
+	void Camera::DrawCallsJob::IterationJob<TCoreMaterial>::ExecutionTask::Impl::Run(const std::shared_ptr<Core::BaseStream>& stream)
+	{
+		Task<TaskContext>::Run(stream);
+	}
+
+	template<typename TCoreMaterial>
+	inline Camera::DrawCallsJob::IterationJob<TCoreMaterial>::TaskContext::TaskContext(const std::shared_ptr<IterationJob>& job) : job(job)
+	{
+		if constexpr (std::is_base_of_v<Core::MeshMaterial, TCoreMaterial>)
+		{
+			meshRenderer = std::dynamic_pointer_cast<Core::Mesh::Renderer>(job->_item.renderer);
+			mesh = std::dynamic_pointer_cast<const Dx12::Mesh>(meshRenderer->GetMesh()->GetUnderlyingMesh());
 		}
 	}
 }
