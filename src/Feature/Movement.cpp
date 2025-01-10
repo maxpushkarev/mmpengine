@@ -107,7 +107,7 @@ namespace MMPEngine::Feature
 			Core::Quaternion q {};
 			_globalContext->math->RotationFromEuler(q, { _relativeAngles.y, _relativeAngles.x, 0.0f });
 
-			_globalContext->math->Multiply(transform.rotation, _initialRotation, q);
+			_globalContext->math->Multiply(transform.rotation, q, _initialRotation);
 		}
 		else
 		{

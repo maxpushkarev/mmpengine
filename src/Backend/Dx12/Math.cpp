@@ -229,6 +229,15 @@ namespace MMPEngine::Backend::Dx12
 		DirectX::XMStoreFloat4(reinterpret_cast<DirectX::XMFLOAT4*>(&res), q);
 	}
 
+	void Math::Multiply(Core::Quaternion& res, const Core::Quaternion& q1, const Core::Quaternion& q2) const
+	{
+		const auto q1Loaded = DirectX::XMLoadFloat4(reinterpret_cast<const DirectX::XMFLOAT4*>(&q1));
+		const auto q2Loaded = DirectX::XMLoadFloat4(reinterpret_cast<const DirectX::XMFLOAT4*>(&q2));
+
+		DirectX::XMStoreFloat4(reinterpret_cast<DirectX::XMFLOAT4*>(&res), DirectX::XMQuaternionMultiply(q2Loaded, q1Loaded));
+	}
+
+
 	void Math::CalculateLocalToWorldSpaceMatrix(Core::Matrix4x4& res, const std::shared_ptr<const Core::Node>& node) const
 	{
 		auto m = TRSInternalTransposed(node->localTransform);
