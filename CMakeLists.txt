@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.7)
 project(mmpengine VERSION 1.0.0 LANGUAGES C CXX)
 
 # Avoid warning about DOWNLOAD_EXTRACT_TIMESTAMP in CMake 2.24:
@@ -100,12 +100,32 @@ include(GoogleTest)
 target_link_libraries(${core_test_name} PRIVATE ${core_name_tmp} GTest::gtest_main)
 gtest_discover_tests(${core_test_name})
 
+IF (NOT APPLE)
+	include(FindVulkan)
+	IF(${Vulkan_FOUND})
+		get_property(vulkan_name_tmp GLOBAL PROPERTY MMPENGINE_BACKEND_VULKAN_NAME)
+		get_property(vulkan_macro_tmp GLOBAL PROPERTY MMPENGINE_VULKAN_MACRO)
+		mmpengine_create_proj(${vulkan_name_tmp} src/Backend/Vulkan)
+		target_link_libraries(${vulkan_name_tmp} ${core_name_tmp} ${Vulkan_LIBRARIES})
+		target_include_directories(${vulkan_name_tmp} PRIVATE ${Vulkan_INCLUDE_DIRS})
+
+		target_link_libraries(${frontend_name_tmp} PRIVATE ${vulkan_name_tmp})
+		target_compile_definitions(${frontend_name_tmp} PRIVATE ${vulkan_macro_tmp}=1)
+		target_link_libraries(${feature_name_tmp} PRIVATE ${vulkan_name_tmp})
+		target_compile_definitions(${feature_name_tmp} PRIVATE ${vulkan_macro_tmp}=1)
+	ENDIF()
+ENDIF()
+
+
 IF (WIN32)
 
 	get_property(win_macro_tmp GLOBAL PROPERTY MMPENGINE_WIN_MACRO)
 	target_compile_definitions(${core_name_tmp} PRIVATE ${win_macro_tmp}=1)
 	target_compile_definitions(${frontend_name_tmp} PRIVATE ${win_macro_tmp}=1)
 	target_compile_definitions(${feature_name_tmp} PRIVATE ${win_macro_tmp}=1)
+	IF(${Vulkan_FOUND})
+		target_compile_definitions(${vulkan_name_tmp} PRIVATE ${win_macro_tmp}=1)
+	ENDIF()
 
 	#Dx12
 	get_property(dx12_name_tmp GLOBAL PROPERTY MMPENGINE_BACKEND_DX12_NAME)
@@ -113,6 +133,7 @@ IF (WIN32)
 
 	mmpengine_create_proj(${dx12_name_tmp} src/Backend/Dx12)
 	target_compile_definitions(${dx12_name_tmp} PRIVATE ${win_macro_tmp}=1)
+	
 	target_link_libraries(${dx12_name_tmp} PRIVATE D3D12.lib dxgi.lib dxguid.lib ${core_name_tmp})
 	target_link_libraries(${frontend_name_tmp} PRIVATE ${dx12_name_tmp})
 	target_compile_definitions(${frontend_name_tmp} PRIVATE ${dx12_macro_tmp}=1)
@@ -129,8 +150,6 @@ IF (WIN32)
 	
 	target_compile_definitions(${core_test_name} PRIVATE ${win_macro_tmp}=1)
 	target_compile_definitions(${core_test_name} PRIVATE ${dx12_macro_tmp}=1)
-
-	#vulkan (TODO)
 
 elseif(APPLE)
 
