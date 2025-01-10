@@ -1,4 +1,5 @@
 #pragma once
+#include <optional>
 #include <Feature/Input.hpp>
 #include <Core/Node.hpp>
 #include <Core/Context.hpp>
@@ -11,7 +12,7 @@ namespace MMPEngine::Feature
 		class Controller
 		{
 		protected:
-			Controller(const std::shared_ptr<Core::GlobalContext>& globalContext, const IInputController* inputController, const std::shared_ptr<Core::Node>& node);
+			Controller(const std::shared_ptr<Core::GlobalContext>& globalContext, const Input* input, const std::shared_ptr<Core::Node>& node);
 		public:
 			Controller(const Controller&) = delete;
 			Controller(Controller&&) noexcept = delete;
@@ -21,7 +22,7 @@ namespace MMPEngine::Feature
 			virtual void Update(std::float_t dt);
 		protected:
 			std::shared_ptr<Core::GlobalContext> _globalContext;
-			const IInputController* _inputController;
+			const Input* _input;
 			std::shared_ptr<Core::Node> _node;
 		};
 
@@ -33,10 +34,13 @@ namespace MMPEngine::Feature
 				std::float_t movementSpeed = 10.0f;
 				std::float_t rotationSpeedCoeff = 2.5f;
 			};
-			FreeController(const Settings& settings, const std::shared_ptr<Core::GlobalContext>& globalContext, const IInputController* inputController, const std::shared_ptr<Core::Node>& node);
+			FreeController(const Settings& settings, const std::shared_ptr<Core::GlobalContext>& globalContext, const Input* input, const std::shared_ptr<Core::Node>& node);
 			void Update(std::float_t dt) override;
 		private:
 			Settings _settings;
+			std::optional<Core::Vector2Float> _previousFrameMousePosition;
+			Core::Quaternion _initialRotation = Core::Math::kQuaternionIdentity;
+			Core::Vector2Float _relativeAngles = {0.0f, 0.0f };
 		};
 
 	};
