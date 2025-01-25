@@ -7,6 +7,6 @@ namespace MMPEngine::Backend::Shared
 	{
 	public:
 		std::float_t Dot(const Core::Vector3Float& v1, const Core::Vector3Float& v2) const override;
-
+		void Cross(Core::Vector3Float& res, const Core::Vector3Float& v1, const Core::Vector3Float& v2) const override;
 	};
 }
