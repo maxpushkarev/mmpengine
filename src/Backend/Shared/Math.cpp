@@ -1,6 +1,9 @@
 #include <Backend/Shared/Math.hpp>
+#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/geometric.hpp>
 #include <glm/vec3.hpp>
+#include <glm/gtx/quaternion.hpp>
+#include <glm/gtx/transform.hpp>
 
 namespace MMPEngine::Backend::Shared
 {
@@ -14,4 +17,30 @@ namespace MMPEngine::Backend::Shared
 		const auto cross = glm::cross(reinterpret_cast<const glm::vec3&>(v1), reinterpret_cast<const glm::vec3&>(v2));
 		std::memcpy(&res, &cross, sizeof(res));
 	}
+
+	std::float_t GLMMath::Magnitude(const Core::Vector3Float& v) const
+	{
+		return glm::length(reinterpret_cast<const glm::vec3&>(v));
+	}
+
+	std::float_t GLMMath::SquaredMagnitude(const Core::Vector3Float& v) const
+	{
+		return glm::length2(reinterpret_cast<const glm::vec3&>(v));
+	}
+
+	void GLMMath::Normalize(Core::Vector3Float& v) const
+	{
+		const auto nrm = glm::normalize(reinterpret_cast<const glm::vec3&>(v));
+		std::memcpy(&v, &nrm, sizeof(v));
+	}
+
+	void GLMMath::Rotate(Core::Vector3Float& res, const Core::Vector3Float& v, const Core::Quaternion& r) const
+	{
+		const auto& glmV = reinterpret_cast<const glm::vec3&>(v);
+		const auto& glmR = reinterpret_cast<const glm::quat&>(r);
+		const auto glmRes = glmR * glmV;
+
+		std::memcpy(&res, &glmRes, sizeof(v));
+	}
+#undef GLM_ENABLE_EXPERIMENTAL
 }

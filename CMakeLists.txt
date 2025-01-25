@@ -52,6 +52,8 @@ set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(glfw)
 FetchContent_MakeAvailable(glm)
 
+target_compile_definitions(glm PRIVATE GLM_ENABLE_EXPERIMENTAL=1)
+
 set_property(GLOBAL PROPERTY MMPENGINE_CORE_NAME "mmpengine.core")
 set_property(GLOBAL PROPERTY MMPENGINE_FRONTEND_NAME "mmpengine.frontend")
 set_property(GLOBAL PROPERTY MMPENGINE_FEATURE_NAME "mmpengine.feature")
