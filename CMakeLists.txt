@@ -32,6 +32,17 @@ set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
 enable_testing()
 
+
+FetchContent_Declare(
+	glfw 
+	GIT_REPOSITORY https://github.com/glfw/glfw.git 
+	GIT_TAG 3.4
+)
+set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+FetchContent_MakeAvailable(glfw)
+
 set_property(GLOBAL PROPERTY MMPENGINE_CORE_NAME "mmpengine.core")
 set_property(GLOBAL PROPERTY MMPENGINE_FRONTEND_NAME "mmpengine.frontend")
 set_property(GLOBAL PROPERTY MMPENGINE_FEATURE_NAME "mmpengine.feature")
@@ -97,8 +108,9 @@ SET(core_test_name ${core_name_tmp}.tests)
 mmpengine_create_test_proj(${core_test_name} src/Core/Tests)
 
 target_link_libraries(${frontend_name_tmp} PRIVATE ${core_name_tmp} assimp nlohmann_json::nlohmann_json)
-target_link_libraries(${feature_name_tmp} PRIVATE ${core_name_tmp} ${frontend_name_tmp})
+target_link_libraries(${feature_name_tmp} PRIVATE ${core_name_tmp} ${frontend_name_tmp} glfw)
 target_link_libraries(${backend_shared_name_tmp} PRIVATE ${core_name_tmp})
+#target_include_directories(${feature_name_tmp} PRIVATE ${Vulkan_INCLUDE_DIRS})
 
 include(GoogleTest)
 target_link_libraries(${core_test_name} PRIVATE ${core_name_tmp} GTest::gtest_main)
