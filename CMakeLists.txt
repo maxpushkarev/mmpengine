@@ -92,6 +92,8 @@ function(mmpengine_create_proj projName folder)
 
 endfunction()
 
+include(GoogleTest)
+
 function(mmpengine_create_test_proj projName folder)
 
 	add_executable(${projName} ${PROJECT_SOURCE_DIR}/${folder}/Base.cpp)
@@ -100,13 +102,15 @@ function(mmpengine_create_test_proj projName folder)
 	set_target_properties(${projName} PROPERTIES LINKER_LANGUAGE CXX)
 	target_compile_features(${projName}  PRIVATE cxx_std_17)
 	target_include_directories(${projName} PRIVATE ${PROJECT_SOURCE_DIR}/src)
-
+	target_link_libraries(${projName} PRIVATE GTest::gtest_main)
+	gtest_discover_tests(${projName})
 endfunction()
 
 get_property(core_name_tmp GLOBAL PROPERTY MMPENGINE_CORE_NAME)
 get_property(frontend_name_tmp GLOBAL PROPERTY MMPENGINE_FRONTEND_NAME)
 get_property(feature_name_tmp GLOBAL PROPERTY MMPENGINE_FEATURE_NAME)
 get_property(backend_shared_name_tmp GLOBAL PROPERTY MMPENGINE_BACKEND_SHARED_NAME)
+
 
 mmpengine_create_proj(${core_name_tmp} src/Core)
 mmpengine_create_proj(${frontend_name_tmp} src/Frontend)
@@ -116,13 +120,15 @@ mmpengine_create_proj(${backend_shared_name_tmp} src/Backend/Shared)
 SET(core_test_name ${core_name_tmp}.tests)
 mmpengine_create_test_proj(${core_test_name} src/Core/Tests)
 
+SET(backend_shared_name_test_name ${backend_shared_name_tmp}.tests)
+mmpengine_create_test_proj(${backend_shared_name_test_name} src/Backend/Shared/Tests)
+
 target_link_libraries(${frontend_name_tmp} PRIVATE ${core_name_tmp} assimp nlohmann_json::nlohmann_json)
 target_link_libraries(${feature_name_tmp} PRIVATE ${core_name_tmp} ${frontend_name_tmp} glfw)
 target_link_libraries(${backend_shared_name_tmp} PRIVATE ${core_name_tmp} glm)
 
-include(GoogleTest)
-target_link_libraries(${core_test_name} PRIVATE ${core_name_tmp} GTest::gtest_main)
-gtest_discover_tests(${core_test_name})
+target_link_libraries(${core_test_name} PRIVATE ${core_name_tmp})
+target_link_libraries(${backend_shared_name_test_name} PRIVATE ${backend_shared_name_tmp})
 
 IF (NOT APPLE)
 	include(FindVulkan)
@@ -166,8 +172,7 @@ IF (WIN32)
 
 	SET(dx12_test_name ${dx12_name_tmp}.tests)
 	mmpengine_create_test_proj(${dx12_test_name} src/Backend/Dx12/Tests)
-	target_link_libraries(${dx12_test_name} PRIVATE ${dx12_name_tmp} GTest::gtest_main)
-	gtest_discover_tests(${dx12_test_name})
+	target_link_libraries(${dx12_test_name} PRIVATE ${dx12_name_tmp})
 
 	target_compile_definitions(${dx12_test_name} PRIVATE ${win_macro_tmp}=1)
 	target_compile_definitions(${dx12_test_name} PRIVATE ${dx12_macro_tmp}=1)
