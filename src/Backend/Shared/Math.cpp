@@ -1,14 +1,11 @@
 #include <Backend/Shared/Math.hpp>
+#include <Core/Node.hpp>
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/geometric.hpp>
 #include <glm/vec3.hpp>
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtx/transform.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
-
-#include "Core/Node.hpp"
-#include "glm/gtx/euler_angles.hpp"
-#include "glm/gtx/rotate_normalized_axis.hpp"
 
 namespace MMPEngine::Backend::Shared
 {
