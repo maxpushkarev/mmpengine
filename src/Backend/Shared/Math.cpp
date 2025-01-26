@@ -6,6 +6,7 @@
 #include <glm/gtx/transform.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
 
+#include "Core/Node.hpp"
 #include "glm/gtx/euler_angles.hpp"
 #include "glm/gtx/rotate_normalized_axis.hpp"
 
@@ -199,6 +200,25 @@ namespace MMPEngine::Backend::Shared
 		const glm::quat rollQuat = glm::angleAxis(eulerAngles.z, glm::vec3(0.0f, 0.0f, 1.0f));
 
 		const auto glmRes = yawQuat * pitchQuat * rollQuat;
+		std::memcpy(&res, &glmRes, sizeof(res));
+	}
+
+	void GLMMath::CalculateLocalToWorldSpaceMatrix(Core::Matrix4x4& res, const std::shared_ptr<const Core::Node>& node) const
+	{
+		auto glmRes = glm::identity<glm::mat4::type>();
+		auto currentNode = node;
+
+		while (currentNode)
+		{
+			const auto glmTranslation = glm::translate(reinterpret_cast<const glm::vec3&>(currentNode->localTransform.position));
+			const auto glmRotation = glm::toMat4(reinterpret_cast<const glm::quat&>(currentNode->localTransform.rotation));
+			const auto glmScale = glm::scale(reinterpret_cast<const glm::vec3&>(currentNode->localTransform.scale));
+
+			glmRes = glmTranslation * glmRotation * glmScale * glmRes;
+			currentNode = currentNode->GetParent();
+		}
+
+		glmRes = glm::transpose(glmRes);
 		std::memcpy(&res, &glmRes, sizeof(res));
 	}
 
