@@ -40,7 +40,33 @@ namespace MMPEngine::Backend::Shared
 		const auto& glmR = reinterpret_cast<const glm::quat&>(r);
 		const auto glmRes = glmR * glmV;
 
-		std::memcpy(&res, &glmRes, sizeof(v));
+		std::memcpy(&res, &glmRes, sizeof(res));
 	}
+
+	void GLMMath::Scale(Core::Matrix4x4& res, const Core::Vector3Float& scale) const
+	{
+		const auto& glmScale = reinterpret_cast<const glm::vec3&>(scale);
+		const auto glmRes = glm::scale(glmScale);
+
+		std::memcpy(&res, &glmRes, sizeof(res));
+	}
+
+	void GLMMath::Translation(Core::Matrix4x4& res, const Core::Vector3Float& translation) const
+	{
+		const auto& glmTranslation = reinterpret_cast<const glm::vec3&>(translation);
+		const auto glmRes = glm::transpose(glm::translate(glmTranslation));
+
+		std::memcpy(&res, &glmRes, sizeof(res));
+	}
+
+	void GLMMath::Rotation(Core::Matrix4x4& res, const Core::Quaternion& rotation) const
+	{
+		const auto& glmRot = reinterpret_cast<const glm::quat&>(rotation);
+		const auto glmRes = glm::transpose(glm::toMat4(glmRot));
+
+		std::memcpy(&res, &glmRes, sizeof(res));
+	}
+
+
 #undef GLM_ENABLE_EXPERIMENTAL
 }
