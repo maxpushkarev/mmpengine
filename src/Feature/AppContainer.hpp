@@ -11,6 +11,8 @@
 #include <windowsx.h>
 #endif
 
+struct GLFWwindow;
+
 namespace MMPEngine::Feature
 {
 	class AppContainer
@@ -41,6 +43,7 @@ namespace MMPEngine::Feature
 		void OnWindowChanged();
 		virtual void CreateNativeContainer() = 0;
 		virtual std::uint32_t GetCurrentScreenRefreshRate() const = 0;
+		virtual Core::Vector2Uint GetCurrentWindowSize() const = 0;
 		virtual std::int32_t RunInternal() = 0;
 		static std::chrono::milliseconds NowMs();
 
@@ -84,13 +87,38 @@ namespace MMPEngine::Feature
 	{
 	}
 
+	namespace Shared
+	{
+		struct AppContainerSetting final
+		{
+		};
+
+		class AppContainer final : public PlatformAppContainer<AppContainerSetting>
+		{
+		public:
+			AppContainer(PlatformAppContainer::Settings&& settings, std::unique_ptr<Feature::BaseRootApp>&& app);
+			AppContainer(const AppContainer&) = delete;
+			AppContainer(AppContainer&&) noexcept = delete;
+			AppContainer& operator=(const AppContainer&) = delete;
+			AppContainer& operator=(AppContainer&&) noexcept = delete;
+			~AppContainer() override;
+		protected:
+			std::int32_t RunInternal() override;
+			void CreateNativeContainer() override;
+			Core::Vector2Uint GetCurrentWindowSize() const override;
+			std::uint32_t GetCurrentScreenRefreshRate() const override;
+		private:
+			GLFWwindow* _window;
+		};
+	}
+
 #ifdef MMPENGINE_WIN
 	namespace Win
 	{
 		struct AppContainerSetting final
 		{
 			HINSTANCE currentWindowApplicationHandle;
-			std::string windowClassName = "MMPEngine::Frontend::Win::AppContainer";
+			std::string windowClassName = "MMPEngine::Feature::Win::AppContainer";
 		};
 
 		class AppContainer : public PlatformAppContainer<AppContainerSetting>
@@ -101,6 +129,7 @@ namespace MMPEngine::Feature
 			std::int32_t RunInternal() override;
 			void CreateNativeContainer() override;
 			std::uint32_t GetCurrentScreenRefreshRate() const override;
+			Core::Vector2Uint GetCurrentWindowSize() const override;
 		private:
 			static std::unordered_map<WPARAM, Feature::KeyButton> _keyMap;
 			static LRESULT CALLBACK MainWndProc(HWND, UINT, WPARAM, LPARAM);

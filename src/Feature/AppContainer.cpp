@@ -1,5 +1,6 @@
 #include <thread>
 #include <Feature/AppContainer.hpp>
+#include <GLFW/glfw3.h>
 
 namespace MMPEngine::Feature
 {
@@ -39,7 +40,10 @@ namespace MMPEngine::Feature
 			return;
 		}
 
-		_app->GetContext()->screenRefreshRate = GetCurrentScreenRefreshRate();
+		const auto appContext = _app->GetContext();
+		appContext->screenRefreshRate = GetCurrentScreenRefreshRate();
+		appContext->windowSize = GetCurrentWindowSize();
+
 		_app->OnNativeWindowUpdated();
 	}
 
@@ -53,12 +57,129 @@ namespace MMPEngine::Feature
 	std::int32_t AppContainer::Run()
 	{
 		CreateNativeContainer();
-		_app->GetContext()->screenRefreshRate = GetCurrentScreenRefreshRate();
 		_app->Initialize();
 		_state.appInitialized = true;
-		_app->OnNativeWindowUpdated();
+		OnWindowChanged();
 		return RunInternal();
 	}
+
+	namespace Shared
+	{
+		AppContainer::AppContainer(PlatformAppContainer::Settings&& settings, std::unique_ptr<Feature::BaseRootApp>&& app) :
+			PlatformAppContainer<MMPEngine::Feature::Shared::AppContainerSetting>(std::move(settings), std::move(app)), _window(nullptr)
+		{
+		}
+
+		void AppContainer::CreateNativeContainer()
+		{
+			glfwInit();
+			glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+
+			_window = glfwCreateWindow(_settings.initialWindowWidth, _settings.initialWindowHeight, _settings.windowCaption.c_str(), nullptr, nullptr);
+		}
+
+		Core::Vector2Uint AppContainer::GetCurrentWindowSize() const
+		{
+			int w = 0;
+			int h = 0;
+			glfwGetWindowSize(_window, &w, &h);
+
+			const Core::Vector2Uint res {
+				static_cast<std::uint32_t>(w),
+				static_cast<std::uint32_t>(h)
+			};
+			return res;
+		}
+
+
+		std::uint32_t AppContainer::GetCurrentScreenRefreshRate() const
+		{
+			const auto monitorPtr = glfwGetPrimaryMonitor();
+			const auto mode = glfwGetVideoMode(monitorPtr);
+			return static_cast<std::uint32_t>(mode->refreshRate);
+		}
+
+		std::int32_t AppContainer::RunInternal()
+		{
+
+			const auto globalContext = _app->GetContext();
+			_state.previousFrameMs.reset();
+
+			const auto targetFrameMilliseconds = std::chrono::milliseconds(
+				static_cast<std::uint64_t>(floor((1000.0 / static_cast<double_t>(_settings.targetFps))))
+			);
+
+			while (!glfwWindowShouldClose(_window))
+			{
+				glfwPollEvents();
+
+				if (_state.prevPaused.value_or(_state.paused) != _state.paused)
+				{
+					if (_state.paused)
+					{
+						_app->OnPause();
+					}
+					else
+					{
+						_app->OnResume();
+					}
+				}
+
+				_state.prevPaused = _state.paused;
+
+				if (!_state.paused)
+				{
+					const auto beforeFrameMs = NowMs();
+					const auto prevMs = _state.previousFrameMs.value_or(beforeFrameMs);
+					_state.previousFrameMs.emplace(beforeFrameMs);
+
+					const auto frameDiff = beforeFrameMs - prevMs;
+					const auto dt = static_cast<float_t>(frameDiff.count()) * 0.001f;
+
+					if (_settings.showFps)
+					{
+						glfwSetWindowTitle(_window, Core::Text::CombineToString(_settings.windowCaption, " | FPS: ", static_cast<std::uint32_t>(std::round(1.0f / dt))).c_str());
+					}
+
+					_app->OnUpdate(dt);
+					ClearInstantInputEvents();
+					_app->OnRender();
+
+					const auto afterFrame = NowMs();
+					const auto diffMs = afterFrame - beforeFrameMs;
+
+					if (diffMs >= targetFrameMilliseconds)
+					{
+						std::this_thread::yield();
+					}
+					else
+					{
+						const auto sleepTimeout = targetFrameMilliseconds - diffMs;
+						while (NowMs() - _state.previousFrameMs.value() < sleepTimeout)
+						{
+							std::this_thread::yield();
+						}
+					}
+				}
+				else
+				{
+					ClearAllInputs();
+					std::this_thread::sleep_for(std::chrono::milliseconds{_settings.pausedSleepTimeoutMs});
+				}
+			}
+
+			_app->OnPause();
+			_app.reset();
+			return 0;
+		}
+
+		AppContainer::~AppContainer()
+		{
+			glfwDestroyWindow(_window);
+			glfwTerminate();
+		}
+	}
+
 
 #ifdef MMPENGINE_WIN
 	namespace Win
@@ -170,6 +291,16 @@ namespace MMPEngine::Feature
 			return static_cast<std::uint32_t>(currentDisplaySettings.dmDisplayFrequency);
 		}
 
+		Core::Vector2Uint AppContainer::GetCurrentWindowSize() const
+		{
+			RECT rect {};
+			GetWindowRect(_app->GetContext()->nativeWindow, &rect);
+
+			return Core::Vector2Uint {
+				static_cast<std::uint32_t>(rect.right - rect.left),
+					static_cast<std::uint32_t>(rect.bottom - rect.top)
+			};
+		}
 
 		void AppContainer::CreateNativeContainer()
 		{
@@ -191,11 +322,11 @@ namespace MMPEngine::Feature
 
 			RECT rect = { 0, 0, _settings.initialWindowWidth, _settings.initialWindowHeight };
 			AdjustWindowRect(&rect, WS_OVERLAPPEDWINDOW, false);
-			globalContext->windowSize.x = rect.right - rect.left;
-			globalContext->windowSize.y = rect.bottom - rect.top;
+			const auto w = rect.right - rect.left;
+			const auto h = rect.bottom - rect.top;
 
 			globalContext->nativeWindow = CreateWindow(className, TEXT(_settings.windowCaption.c_str()),
-				WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, globalContext->windowSize.x, globalContext->windowSize.y, nullptr, nullptr, _platformSettings.currentWindowApplicationHandle, this);
+				WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, w, h, nullptr, nullptr, _platformSettings.currentWindowApplicationHandle, this);
 
 
 			ShowWindow(globalContext->nativeWindow, SW_SHOW);
@@ -270,14 +401,13 @@ namespace MMPEngine::Feature
 			case WM_SIZE:
 			{
 				const auto globalContext = container->_app->GetContext();
-				globalContext->windowSize.x = LOWORD(lParam);
-				globalContext->windowSize.y = HIWORD(lParam);
 
 				if (wParam == SIZE_MINIMIZED)
 				{
 					container->_state.paused = true;
 					container->_state.minimized = true;
 					container->_state.maximized = false;
+					container->OnWindowChanged();
 				}
 				else if (wParam == SIZE_MAXIMIZED)
 				{
