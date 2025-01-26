@@ -127,6 +127,27 @@ namespace MMPEngine::Backend::Shared
 		std::memcpy(&res, &glmRes, sizeof(res));
 	}
 
+	void GLMMath::MultiplyMatrixAndPoint(Core::Vector3Float& res, const Core::Matrix4x4& m, const Core::Vector3Float& p) const
+	{
+		const glm::vec4 glmP = {p.x, p.y, p.z, 1.0f};
+		const auto& glmM = reinterpret_cast<const glm::mat4&>(m);
+
+		auto glmRes = glmP * glmM;
+		const auto revW = 1.0f / glmRes.w;
+		glmRes *= revW;
+
+		std::memcpy(&res, &glmRes, sizeof(res));
+	}
+
+	void GLMMath::MultiplyMatrixAndVector(Core::Vector3Float& res, const Core::Matrix4x4& m, const Core::Vector3Float& v) const
+	{
+		const glm::vec4 glmV = { v.x, v.y, v.z, 0.0f };
+		const auto& glmM = reinterpret_cast<const glm::mat4&>(m);
+
+		const auto glmRes = glmV * glmM;
+		std::memcpy(&res, &glmRes, sizeof(res));
+	}
+
 
 #undef GLM_ENABLE_EXPERIMENTAL
 }
