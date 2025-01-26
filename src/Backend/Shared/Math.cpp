@@ -4,6 +4,7 @@
 #include <glm/vec3.hpp>
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtx/transform.hpp>
+#include <glm/gtx/matrix_decompose.hpp>
 
 namespace MMPEngine::Backend::Shared
 {
@@ -65,6 +66,18 @@ namespace MMPEngine::Backend::Shared
 		const auto glmRes = glm::transpose(glm::toMat4(glmRot));
 
 		std::memcpy(&res, &glmRes, sizeof(res));
+	}
+
+	void GLMMath::DecomposeTRS(Core::Transform& transform, const Core::Matrix4x4& matrix) const
+	{
+		auto& scale = reinterpret_cast<glm::vec3&>(transform.scale);
+		auto& rotation = reinterpret_cast<glm::quat&>(transform.rotation);
+		auto& translation = reinterpret_cast<glm::vec3&>(transform.position);
+		glm::vec3 skew {};
+		glm::vec4 perspective {};
+
+		const auto glmMatrix = glm::transpose(reinterpret_cast<const glm::mat4&>(matrix));
+		glm::decompose(glmMatrix, scale, rotation, translation, skew, perspective);
 	}
 
 
