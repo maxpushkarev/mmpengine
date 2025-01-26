@@ -1,6 +1,7 @@
 #include <Feature/App.hpp>
 #include <array>
 #include <cassert>
+#include <Backend/Shared/Math.hpp>
 
 #ifdef MMPENGINE_BACKEND_DX12
 #include <Backend/Dx12/Stream.hpp>
