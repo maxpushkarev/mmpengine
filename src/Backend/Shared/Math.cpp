@@ -6,6 +6,8 @@
 #include <glm/gtx/transform.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
 
+#include "glm/gtx/rotate_normalized_axis.hpp"
+
 namespace MMPEngine::Backend::Shared
 {
 	std::float_t GLMMath::Dot(const Core::Vector3Float& v1, const Core::Vector3Float& v2) const
@@ -145,6 +147,47 @@ namespace MMPEngine::Backend::Shared
 		const auto& glmM = reinterpret_cast<const glm::mat4&>(m);
 
 		const auto glmRes = glmV * glmM;
+		std::memcpy(&res, &glmRes, sizeof(res));
+	}
+
+	std::float_t GLMMath::Dot(const Core::Quaternion& q1, const Core::Quaternion& q2) const
+	{
+		const auto& glmQ1 = reinterpret_cast<const glm::quat&>(q1);
+		const auto& glmQ2 = reinterpret_cast<const glm::quat&>(q2);
+
+		return glm::dot(glmQ1,glmQ2);
+	}
+
+	void GLMMath::Normalize(Core::Quaternion& q) const
+	{
+		const auto& glmQ = reinterpret_cast<const glm::quat&>(q);
+
+		const auto glmRes = glm::normalize(glmQ);
+		std::memcpy(&q, &glmRes, sizeof(q));
+	}
+
+	void GLMMath::Inverse(Core::Quaternion& res, const Core::Quaternion& q) const
+	{
+		const auto& glmQ = reinterpret_cast<const glm::quat&>(q);
+
+		const auto glmRes = glm::inverse(glmQ);
+		std::memcpy(&res, &glmRes, sizeof(res));
+	}
+
+	void GLMMath::Multiply(Core::Quaternion& res, const Core::Quaternion& q1, const Core::Quaternion& q2) const
+	{
+		const auto& glmQ1 = reinterpret_cast<const glm::quat&>(q1);
+		const auto& glmQ2 = reinterpret_cast<const glm::quat&>(q2);
+
+		const auto glmRes = glmQ1 * glmQ2;
+		std::memcpy(&res, &glmRes, sizeof(res));
+	}
+
+	void GLMMath::RotationAroundAxis(Core::Quaternion& res, const Core::Vector3Float& v, std::float_t rad) const
+	{
+		const auto& glmV = reinterpret_cast<const glm::vec3&>(v);
+
+		const auto glmRes = glm::rotate(glm::quat_identity<std::float_t, glm::defaultp>(), rad, glmV);
 		std::memcpy(&res, &glmRes, sizeof(res));
 	}
 
