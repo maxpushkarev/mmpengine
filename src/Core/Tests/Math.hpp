@@ -422,41 +422,44 @@ namespace MMPEngine::Core::Tests
 
 	TYPED_TEST_P(MathTests, Quaternion_FromEuler)
 	{
-		const auto singleAngle = Core::Math::ConvertDegreesToRadians(30.0f);
-
-		Core::Quaternion expectedX;
-		Core::Quaternion expectedY;
-		Core::Quaternion expectedZ;
-
-		this->GetDefaultMath()->RotationAroundAxis(expectedX, Core::Vector3Float {1.0f, 0.0f, 0.0f }, singleAngle);
-		this->GetDefaultMath()->RotationAroundAxis(expectedY, Core::Vector3Float{ 0.0f, 1.0f, 0.0f }, singleAngle);
-		this->GetDefaultMath()->RotationAroundAxis(expectedZ, Core::Vector3Float{ 0.0f, 0.0f, 1.0f }, singleAngle);
-
-		Core::Quaternion actualX;
-		Core::Quaternion actualY;
-		Core::Quaternion actualZ;
-
-		this->GetMathImpl()->RotationFromEuler(actualX, Core::Vector3Float{ singleAngle, 0.0f, 0.0f });
-		this->GetMathImpl()->RotationFromEuler(actualY, Core::Vector3Float{ 0.0f, singleAngle, 0.0f });
-		this->GetMathImpl()->RotationFromEuler(actualZ, Core::Vector3Float{ 0.0f, 0.0f, singleAngle });
-
-		ASSERT_TRUE(Core::Quaternion::AreEquivalent(expectedX, actualX));
-		ASSERT_TRUE(Core::Quaternion::AreEquivalent(expectedY, actualY));
-		ASSERT_TRUE(Core::Quaternion::AreEquivalent(expectedZ, actualZ));
-
-		this->GetDefaultMath()->RotationFromEuler(actualX, Core::Vector3Float{ singleAngle, 0.0f, 0.0f });
-		this->GetDefaultMath()->RotationFromEuler(actualY, Core::Vector3Float{ 0.0f, singleAngle, 0.0f });
-		this->GetDefaultMath()->RotationFromEuler(actualZ, Core::Vector3Float{ 0.0f, 0.0f, singleAngle });
-
-		ASSERT_TRUE(Core::Quaternion::AreEquivalent(expectedX, actualX));
-		ASSERT_TRUE(Core::Quaternion::AreEquivalent(expectedY, actualY));
-		ASSERT_TRUE(Core::Quaternion::AreEquivalent(expectedZ, actualZ));
-
-		for(std::int32_t x = -180; x <= 180; x+=5)
+		for (std::int32_t a = -360; a <= 360; a += 5)
 		{
-			for (std::int32_t y = -180; y <= 180; y += 5)
+			const auto singleAngle = Core::Math::ConvertDegreesToRadians(static_cast<std::float_t>(a));
+
+			Core::Quaternion expectedX;
+			Core::Quaternion expectedY;
+			Core::Quaternion expectedZ;
+
+			this->GetDefaultMath()->RotationAroundAxis(expectedX, Core::Vector3Float {1.0f, 0.0f, 0.0f }, singleAngle);
+			this->GetDefaultMath()->RotationAroundAxis(expectedY, Core::Vector3Float{ 0.0f, 1.0f, 0.0f }, singleAngle);
+			this->GetDefaultMath()->RotationAroundAxis(expectedZ, Core::Vector3Float{ 0.0f, 0.0f, 1.0f }, singleAngle);
+
+			Core::Quaternion actualX;
+			Core::Quaternion actualY;
+			Core::Quaternion actualZ;
+
+			this->GetMathImpl()->RotationFromEuler(actualX, Core::Vector3Float{ singleAngle, 0.0f, 0.0f });
+			this->GetMathImpl()->RotationFromEuler(actualY, Core::Vector3Float{ 0.0f, singleAngle, 0.0f });
+			this->GetMathImpl()->RotationFromEuler(actualZ, Core::Vector3Float{ 0.0f, 0.0f, singleAngle });
+
+			ASSERT_TRUE(Core::Quaternion::AreEquivalent(expectedX, actualX));
+			ASSERT_TRUE(Core::Quaternion::AreEquivalent(expectedY, actualY));
+			ASSERT_TRUE(Core::Quaternion::AreEquivalent(expectedZ, actualZ));
+
+			this->GetDefaultMath()->RotationFromEuler(actualX, Core::Vector3Float{ singleAngle, 0.0f, 0.0f });
+			this->GetDefaultMath()->RotationFromEuler(actualY, Core::Vector3Float{ 0.0f, singleAngle, 0.0f });
+			this->GetDefaultMath()->RotationFromEuler(actualZ, Core::Vector3Float{ 0.0f, 0.0f, singleAngle });
+
+			ASSERT_TRUE(Core::Quaternion::AreEquivalent(expectedX, actualX));
+			ASSERT_TRUE(Core::Quaternion::AreEquivalent(expectedY, actualY));
+			ASSERT_TRUE(Core::Quaternion::AreEquivalent(expectedZ, actualZ));
+		}
+
+		for(std::int32_t x = -360; x <= 360; x+=5)
+		{
+			for (std::int32_t y = -360; y <= 360; y += 5)
 			{
-				for (std::int32_t z = -180; z <= 180; z += 5)
+				for (std::int32_t z = -360; z <= 360; z += 5)
 				{
 					const Core::Vector3Float customEulerAngles {
 						Core::Math::ConvertDegreesToRadians(static_cast<std::float_t>(x)),

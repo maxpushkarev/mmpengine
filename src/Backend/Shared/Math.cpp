@@ -6,6 +6,7 @@
 #include <glm/gtx/transform.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
 
+#include "glm/gtx/euler_angles.hpp"
 #include "glm/gtx/rotate_normalized_axis.hpp"
 
 namespace MMPEngine::Backend::Shared
@@ -188,6 +189,16 @@ namespace MMPEngine::Backend::Shared
 		const auto& glmV = reinterpret_cast<const glm::vec3&>(v);
 
 		const auto glmRes = glm::rotate(glm::quat_identity<std::float_t, glm::defaultp>(), rad, glmV);
+		std::memcpy(&res, &glmRes, sizeof(res));
+	}
+
+	void GLMMath::RotationFromEuler(Core::Quaternion& res, const Core::Vector3Float& eulerAngles) const
+	{
+		const glm::quat pitchQuat = glm::angleAxis(eulerAngles.x, glm::vec3(1.0f, 0.0f, 0.0f));
+		const glm::quat yawQuat = glm::angleAxis(eulerAngles.y, glm::vec3(0.0f, 1.0f, 0.0f));
+		const glm::quat rollQuat = glm::angleAxis(eulerAngles.z, glm::vec3(0.0f, 0.0f, 1.0f));
+
+		const auto glmRes = yawQuat * pitchQuat * rollQuat;
 		std::memcpy(&res, &glmRes, sizeof(res));
 	}
 
