@@ -80,6 +80,53 @@ namespace MMPEngine::Backend::Shared
 		glm::decompose(glmMatrix, scale, rotation, translation, skew, perspective);
 	}
 
+	void GLMMath::Multiply(Core::Matrix4x4& res, const Core::Matrix4x4& m1, const Core::Matrix4x4& m2) const
+	{
+		const auto& glmM1 = reinterpret_cast<const glm::mat4&>(m1);
+		const auto& glmM2 = reinterpret_cast<const glm::mat4&>(m2);
+
+		const auto glmRes = glmM2 * glmM1;
+		std::memcpy(&res, &glmRes, sizeof(res));
+	}
+
+	void GLMMath::Multiply(Core::Vector4Float& res, const Core::Matrix4x4& m, const Core::Vector4Float& v) const
+	{
+		const auto& glmM = reinterpret_cast<const glm::mat4&>(m);
+		const auto& glmV = reinterpret_cast<const glm::vec4&>(v);
+
+		const auto glmRes = glmV * glmM;
+		std::memcpy(&res, &glmRes, sizeof(res));
+	}
+
+	std::float_t GLMMath::Determinant(const Core::Matrix4x4& m) const
+	{
+		const auto& glmM = reinterpret_cast<const glm::mat4&>(m);
+		return glm::determinant(glmM);
+	}
+
+	void GLMMath::Inverse(Core::Matrix4x4& res, const Core::Matrix4x4& m) const
+	{
+		const auto& glmM = glm::transpose(reinterpret_cast<const glm::mat4&>(m));
+
+		const auto glmRes = glm::transpose(glm::inverse(glmM));
+		std::memcpy(&res, &glmRes, sizeof(res));
+	}
+
+	void GLMMath::Transpose(Core::Matrix4x4& res, const Core::Matrix4x4& m) const
+	{
+		const auto& glmM = reinterpret_cast<const glm::mat4&>(m);
+
+		const auto glmRes = glm::transpose(glmM);
+		std::memcpy(&res, &glmRes, sizeof(res));
+	}
+
+	void GLMMath::InverseTranspose(Core::Matrix4x4& res, const Core::Matrix4x4& m) const
+	{
+		const auto& glmM = glm::transpose(reinterpret_cast<const glm::mat4&>(m));
+		const auto glmRes = glm::inverse(glmM);
+		std::memcpy(&res, &glmRes, sizeof(res));
+	}
+
 
 #undef GLM_ENABLE_EXPERIMENTAL
 }
