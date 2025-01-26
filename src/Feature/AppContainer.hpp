@@ -108,6 +108,9 @@ namespace MMPEngine::Feature
 			Core::Vector2Uint GetCurrentWindowSize() const override;
 			std::uint32_t GetCurrentScreenRefreshRate() const override;
 		private:
+			static void OnWindowFocusChanged(GLFWwindow* window, int focused);
+			static void OnWindowSizeChanged(GLFWwindow* window, int width, int height);
+		private:
 			GLFWwindow* _window;
 		};
 	}

@@ -2,6 +2,12 @@
 #include <Feature/AppContainer.hpp>
 #include <GLFW/glfw3.h>
 
+#ifdef MMPENGINE_WIN
+#define GLFW_EXPOSE_NATIVE_WIN32 1
+#endif
+
+#include <GLFW/glfw3native.h>
+
 namespace MMPEngine::Feature
 {
 	void AppContainer::ClearAllInputs() const
@@ -70,12 +76,32 @@ namespace MMPEngine::Feature
 		{
 		}
 
+		void AppContainer::OnWindowFocusChanged(GLFWwindow* window, int focused)
+		{
+			const auto appContainerPtr = static_cast<AppContainer*>(glfwGetWindowUserPointer(window));
+			appContainerPtr->_state.paused = !static_cast<bool>(focused);
+		}
+
+		void AppContainer::OnWindowSizeChanged(GLFWwindow* window, int width, int height)
+		{
+			const auto appContainerPtr = static_cast<AppContainer*>(glfwGetWindowUserPointer(window));
+			appContainerPtr->OnWindowChanged();
+		}
+
 		void AppContainer::CreateNativeContainer()
 		{
 			glfwInit();
 			glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 
 			_window = glfwCreateWindow(_settings.initialWindowWidth, _settings.initialWindowHeight, _settings.windowCaption.c_str(), nullptr, nullptr);
+			glfwSetWindowUserPointer(_window, this);
+
+			glfwSetWindowFocusCallback(_window, OnWindowFocusChanged);
+			glfwSetWindowSizeCallback(_window, OnWindowSizeChanged);
+
+#ifdef MMPENGINE_WIN
+			_app->GetContext()->nativeWindow = glfwGetWin32Window(_window);
+#endif
 		}
 
 		Core::Vector2Uint AppContainer::GetCurrentWindowSize() const
