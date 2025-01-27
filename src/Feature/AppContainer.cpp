@@ -71,6 +71,30 @@ namespace MMPEngine::Feature
 
 	namespace Shared
 	{
+		std::unordered_map<std::int32_t, Feature::KeyButton> AppContainer::_keyMap {
+
+			{ GLFW_KEY_W, Feature::KeyButton::W },
+			{ GLFW_KEY_A, Feature::KeyButton::A },
+			{ GLFW_KEY_S, Feature::KeyButton::S },
+			{ GLFW_KEY_D, Feature::KeyButton::D },
+
+			{ GLFW_KEY_LEFT, Feature::KeyButton::LeftArrow },
+			{ GLFW_KEY_RIGHT, Feature::KeyButton::RightArrow },
+			{ GLFW_KEY_UP, Feature::KeyButton::UpArrow },
+			{ GLFW_KEY_DOWN, Feature::KeyButton::DownArrow },
+
+			{ GLFW_KEY_Q, Feature::KeyButton::Q },
+			{ GLFW_KEY_E, Feature::KeyButton::E },
+			{ GLFW_KEY_R, Feature::KeyButton::R },
+			{ GLFW_KEY_F, Feature::KeyButton::F },
+
+			{ GLFW_KEY_PAGE_UP, Feature::KeyButton::PageUp },
+			{ GLFW_KEY_PAGE_DOWN, Feature::KeyButton::PageDown },
+
+			{ GLFW_KEY_ENTER, Feature::KeyButton::Enter },
+			{ GLFW_KEY_SPACE, Feature::KeyButton::Space }
+		};
+
 		AppContainer::AppContainer(PlatformAppContainer::Settings&& settings, std::unique_ptr<Feature::BaseRootApp>&& app) :
 			PlatformAppContainer<MMPEngine::Feature::Shared::AppContainerSetting>(std::move(settings), std::move(app)), _window(nullptr)
 		{
@@ -127,7 +151,6 @@ namespace MMPEngine::Feature
 
 		std::int32_t AppContainer::RunInternal()
 		{
-
 			const auto globalContext = _app->GetContext();
 			_state.previousFrameMs.reset();
 
@@ -166,6 +189,24 @@ namespace MMPEngine::Feature
 					{
 						glfwSetWindowTitle(_window, Core::Text::CombineToString(_settings.windowCaption, " | FPS: ", static_cast<std::uint32_t>(std::round(1.0f / dt))).c_str());
 					}
+
+					for (const auto& [glfwKey, coreKey] : _keyMap)
+					{
+						SetButtonPressedStatus(coreKey, glfwGetKey(_window, glfwKey) == GLFW_PRESS);
+					}
+
+
+					SetButtonPressedStatus(MouseButton::Left, glfwGetMouseButton(_window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS);
+					SetButtonPressedStatus(MouseButton::Right, glfwGetMouseButton(_window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS);
+
+					std::double_t x;
+					std::double_t y;
+					glfwGetCursorPos(_window, &x, &y);
+
+					UpdateMouseNormalizedPosition({
+						std::clamp(static_cast<std::float_t>(x) / static_cast<std::float_t>(globalContext->windowSize.x), 0.0f, 1.0f),
+						std::clamp(static_cast<std::float_t>(y) / static_cast<std::float_t>(globalContext->windowSize.y), 0.0f, 1.0f)
+					});
 
 					_app->OnUpdate(dt);
 					ClearInstantInputEvents();

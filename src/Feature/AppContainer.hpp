@@ -111,6 +111,7 @@ namespace MMPEngine::Feature
 			static void OnWindowFocusChanged(GLFWwindow* window, int focused);
 			static void OnWindowSizeChanged(GLFWwindow* window, int width, int height);
 		private:
+			static std::unordered_map<std::int32_t, Feature::KeyButton> _keyMap;
 			GLFWwindow* _window;
 		};
 	}
