@@ -8,6 +8,10 @@
 #include <Backend/Dx12/Math.hpp>
 #endif
 
+#ifdef MMPENGINE_BACKEND_VULKAN
+#include <Backend/Vulkan/Stream.hpp>
+#endif
+
 
 namespace MMPEngine::Feature
 {
@@ -62,6 +66,22 @@ namespace MMPEngine::Feature
 			throw Core::UnsupportedException("unable to create root app for DX12 backend");
 #endif
 		}
+
+		if (globalContextSettings.backend == Core::BackendType::Vulkan)
+		{
+#ifdef MMPENGINE_BACKEND_VULKAN
+			if (!math)
+			{
+				math = std::make_unique<Backend::Shared::GLMMath>();
+			}
+			auto rootApp = std::make_unique<Vulkan::RootApp>(std::make_shared<Backend::Vulkan::GlobalContext>(globalContextSettings, std::move(math)), logger);
+			rootApp->Attach(std::move(userApp));
+			return rootApp;
+#else
+			throw Core::UnsupportedException("unable to create root app for Vulkan backend");
+#endif
+		}
+
 
 		throw std::runtime_error("unable to create root app");
 	}
@@ -289,4 +309,20 @@ namespace MMPEngine::Feature
 		}
 	}
 #endif
+
+#ifdef MMPENGINE_BACKEND_VULKAN
+	namespace Vulkan
+	{
+		RootApp::RootApp(const std::shared_ptr<Backend::Vulkan::GlobalContext>& context, const std::shared_ptr<BaseLogger>& logger)
+			: Feature::RootApp<Backend::Vulkan::GlobalContext>(context, logger)
+		{
+		}
+
+		void RootApp::Initialize()
+		{
+			Feature::RootApp<Backend::Vulkan::GlobalContext>::Initialize();
+		}
+	}
+#endif
+
 }

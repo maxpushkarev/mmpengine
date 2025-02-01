@@ -9,6 +9,10 @@
 #include <Backend/Dx12/Context.hpp>
 #endif
 
+#ifdef MMPENGINE_BACKEND_VULKAN
+#include <Backend/Vulkan/Context.hpp>
+#endif
+
 namespace MMPEngine::Feature
 {
 	class BaseRootApp;
@@ -113,6 +117,18 @@ namespace MMPEngine::Feature
 		{
 		public:
 			RootApp(const std::shared_ptr<Backend::Dx12::GlobalContext>& context, const std::shared_ptr<BaseLogger>& logger);
+			void Initialize() override;
+		};
+	}
+#endif
+
+#ifdef MMPENGINE_BACKEND_VULKAN
+	namespace Vulkan
+	{
+		class RootApp final : public Feature::RootApp<Backend::Vulkan::GlobalContext>
+		{
+		public:
+			RootApp(const std::shared_ptr<Backend::Vulkan::GlobalContext>& context, const std::shared_ptr<BaseLogger>& logger);
 			void Initialize() override;
 		};
 	}
