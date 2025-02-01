@@ -320,6 +320,9 @@ namespace MMPEngine::Feature
 
 		void RootApp::Initialize()
 		{
+			const auto streamContext = std::make_shared<Backend::Vulkan::StreamContext>();
+			_defaultStream = std::make_shared<Backend::Vulkan::Stream>(_rootContext, streamContext);
+
 			Feature::RootApp<Backend::Vulkan::GlobalContext>::Initialize();
 		}
 	}
