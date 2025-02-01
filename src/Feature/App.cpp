@@ -333,7 +333,13 @@ namespace MMPEngine::Feature
 			createInfo.pApplicationInfo = &appInfo;
 			createInfo.flags |= VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
 
-			const std::vector<const char*> requiredExtensions {VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME};
+			std::vector<const char*> requiredExtensions {VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME};
+
+			if(_rootContext->settings.isDebug)
+			{
+				requiredExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+			}
+
 			createInfo.enabledExtensionCount = static_cast<std::uint32_t>(requiredExtensions.size());
 			createInfo.ppEnabledExtensionNames = requiredExtensions.data();
 
