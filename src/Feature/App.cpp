@@ -331,6 +331,11 @@ namespace MMPEngine::Feature
 			VkInstanceCreateInfo createInfo{};
 			createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
 			createInfo.pApplicationInfo = &appInfo;
+			createInfo.flags |= VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
+
+			const std::vector<const char*> requiredExtensions {VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME};
+			createInfo.enabledExtensionCount = static_cast<std::uint32_t>(requiredExtensions.size());
+			createInfo.ppEnabledExtensionNames = requiredExtensions.data();
 
 			const auto instanceRes = vkCreateInstance(&createInfo, nullptr, &_rootContext->instance);
 
