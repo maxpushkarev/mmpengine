@@ -337,6 +337,16 @@ namespace MMPEngine::Feature
 			createInfo.enabledExtensionCount = static_cast<std::uint32_t>(requiredExtensions.size());
 			createInfo.ppEnabledExtensionNames = requiredExtensions.data();
 
+			std::vector<const char*> requiredLayers {};
+
+			if(_rootContext->settings.isDebug)
+			{
+				requiredLayers.push_back("VK_LAYER_KHRONOS_validation");
+			}
+
+			createInfo.enabledLayerCount = static_cast<std::uint32_t>(requiredLayers.size());
+			createInfo.ppEnabledLayerNames = requiredLayers.data();
+
 			const auto instanceRes = vkCreateInstance(&createInfo, nullptr, &_rootContext->instance);
 
 			assert(instanceRes == VkResult::VK_SUCCESS);
