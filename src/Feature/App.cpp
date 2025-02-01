@@ -424,6 +424,11 @@ namespace MMPEngine::Feature
 
 			assert(createDeviceRes == VK_SUCCESS);
 
+			VkQueue queue;
+			vkGetDeviceQueue(_rootContext->device, static_cast<std::uint32_t>(queueFamilyIndex.value()), 0, &queue);
+
+			assert(queue != nullptr);
+
 			const auto streamContext = std::make_shared<Backend::Vulkan::StreamContext>();
 			_defaultStream = std::make_shared<Backend::Vulkan::Stream>(_rootContext, streamContext);
 
