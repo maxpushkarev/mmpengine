@@ -10,6 +10,7 @@
 
 #ifdef MMPENGINE_BACKEND_VULKAN
 #include <Backend/Vulkan/Stream.hpp>
+#include <vulkan/vulkan.h>
 #endif
 
 
@@ -320,6 +321,22 @@ namespace MMPEngine::Feature
 
 		void RootApp::Initialize()
 		{
+			VkApplicationInfo appInfo{};
+			appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
+			appInfo.pApplicationName = "MMPEngine.Feature.Vulkan.RootApp";
+			appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
+			appInfo.pEngineName = "MMPEngine";
+			appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
+			appInfo.apiVersion = VK_API_VERSION_1_3;
+
+			VkInstanceCreateInfo createInfo{};
+			createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+			createInfo.pApplicationInfo = &appInfo;
+
+			const auto instanceRes = vkCreateInstance(&createInfo, nullptr, &_rootContext->instance);
+
+			assert(instanceRes == VkResult::VK_SUCCESS);
+
 			const auto streamContext = std::make_shared<Backend::Vulkan::StreamContext>();
 			_defaultStream = std::make_shared<Backend::Vulkan::Stream>(_rootContext, streamContext);
 

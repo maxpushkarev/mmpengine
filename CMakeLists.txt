@@ -143,7 +143,9 @@ IF (NOT APPLE)
 
 		target_link_libraries(${frontend_name_tmp} PRIVATE ${vulkan_name_tmp})
 		target_compile_definitions(${frontend_name_tmp} PRIVATE ${vulkan_macro_tmp}=1)
-		target_link_libraries(${feature_name_tmp} PRIVATE ${vulkan_name_tmp})
+		
+		target_link_libraries(${feature_name_tmp} PRIVATE ${vulkan_name_tmp} ${Vulkan_LIBRARIES})
+		target_include_directories(${feature_name_tmp} PRIVATE ${Vulkan_INCLUDE_DIRS})
 		target_compile_definitions(${feature_name_tmp} PRIVATE ${vulkan_macro_tmp}=1)
 	ENDIF()
 ENDIF()

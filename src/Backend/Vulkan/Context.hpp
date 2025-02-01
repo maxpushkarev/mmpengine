@@ -1,5 +1,6 @@
 #pragma once
 #include <Core/Context.hpp>
+#include <vulkan/vulkan.h>
 
 namespace MMPEngine::Backend::Vulkan
 {
@@ -7,6 +8,13 @@ namespace MMPEngine::Backend::Vulkan
 	{
 	public:
 		GlobalContext(const Core::GlobalContext::Settings& s, std::unique_ptr<Core::Math>&& m);
+		GlobalContext(const GlobalContext&) = delete;
+		GlobalContext(GlobalContext&&) noexcept = delete;
+		GlobalContext& operator=(const GlobalContext&) = delete;
+		GlobalContext& operator=(GlobalContext&&) noexcept = delete;
+		~GlobalContext() override;
+	public:
+		VkInstance instance;
 	};
 
 	class StreamContext : public Core::StreamContext
