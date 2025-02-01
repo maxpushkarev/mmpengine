@@ -10,7 +10,6 @@
 
 #ifdef MMPENGINE_BACKEND_VULKAN
 #include <Backend/Vulkan/Stream.hpp>
-#include <vulkan/vulkan.h>
 #endif
 
 
