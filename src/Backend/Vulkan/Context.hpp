@@ -15,6 +15,7 @@ namespace MMPEngine::Backend::Vulkan
 		~GlobalContext() override;
 	public:
 		VkInstance instance;
+		VkDevice device;
 	};
 
 	class StreamContext : public Core::StreamContext

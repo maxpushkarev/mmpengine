@@ -3,12 +3,17 @@
 namespace MMPEngine::Backend::Vulkan
 {
 	GlobalContext::GlobalContext(const Core::GlobalContext::Settings& s, std::unique_ptr<Core::Math>&& m) : Core::GlobalContext(s, std::move(m)),
-		instance(nullptr)
+		instance(nullptr), device(nullptr)
 	{
 	}
 
 	GlobalContext::~GlobalContext()
 	{
+		if(device)
+		{
+			vkDestroyDevice(device, nullptr);
+		}
+
 		if(instance)
 		{
 			vkDestroyInstance(instance, nullptr);

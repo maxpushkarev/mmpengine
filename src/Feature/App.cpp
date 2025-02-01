@@ -328,20 +328,20 @@ namespace MMPEngine::Feature
 			appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
 			appInfo.apiVersion = VK_API_VERSION_1_3;
 
-			VkInstanceCreateInfo createInfo{};
-			createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
-			createInfo.pApplicationInfo = &appInfo;
-			createInfo.flags |= VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
+			VkInstanceCreateInfo createInstanceInfo{};
+			createInstanceInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+			createInstanceInfo.pApplicationInfo = &appInfo;
+			createInstanceInfo.flags |= VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
 
-			std::vector<const char*> requiredExtensions {VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME};
+			std::vector<const char*> requiredExtensions {VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME, VK_KHR_SURFACE_EXTENSION_NAME};
 
 			if(_rootContext->settings.isDebug)
 			{
 				requiredExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 			}
 
-			createInfo.enabledExtensionCount = static_cast<std::uint32_t>(requiredExtensions.size());
-			createInfo.ppEnabledExtensionNames = requiredExtensions.data();
+			createInstanceInfo.enabledExtensionCount = static_cast<std::uint32_t>(requiredExtensions.size());
+			createInstanceInfo.ppEnabledExtensionNames = requiredExtensions.data();
 
 			std::vector<const char*> requiredLayers {};
 
@@ -350,12 +350,79 @@ namespace MMPEngine::Feature
 				requiredLayers.push_back("VK_LAYER_KHRONOS_validation");
 			}
 
-			createInfo.enabledLayerCount = static_cast<std::uint32_t>(requiredLayers.size());
-			createInfo.ppEnabledLayerNames = requiredLayers.data();
+			createInstanceInfo.enabledLayerCount = static_cast<std::uint32_t>(requiredLayers.size());
+			createInstanceInfo.ppEnabledLayerNames = requiredLayers.data();
 
-			const auto instanceRes = vkCreateInstance(&createInfo, nullptr, &_rootContext->instance);
+			const auto instanceRes = vkCreateInstance(&createInstanceInfo, nullptr, &_rootContext->instance);
 
 			assert(instanceRes == VkResult::VK_SUCCESS);
+
+			uint32_t deviceCount = 0;
+			vkEnumeratePhysicalDevices(_rootContext->instance, &deviceCount, nullptr);
+
+			std::vector<VkPhysicalDevice> physicalDevices {deviceCount};
+			vkEnumeratePhysicalDevices(_rootContext->instance, &deviceCount, physicalDevices.data());
+
+			std::optional<std::pair<std::size_t, VkPhysicalDeviceProperties>> selectedDeviceProps;
+
+			for(std::size_t i = 0; i < physicalDevices.size(); ++i)
+			{
+				const auto pd = physicalDevices[i];
+
+				VkPhysicalDeviceProperties deviceProps;
+				vkGetPhysicalDeviceProperties(pd, &deviceProps);
+
+				if(!selectedDeviceProps.has_value() || selectedDeviceProps.value().second.apiVersion < deviceProps.apiVersion)
+				{
+					selectedDeviceProps = std::make_pair(i, deviceProps);
+				}
+			}
+
+			assert(selectedDeviceProps.has_value());
+
+			uint32_t queueFamilyCount = 0;
+			vkGetPhysicalDeviceQueueFamilyProperties(physicalDevices[selectedDeviceProps.value().first], &queueFamilyCount, nullptr);
+
+			std::vector<VkQueueFamilyProperties> queueFamilies {queueFamilyCount};
+			vkGetPhysicalDeviceQueueFamilyProperties(physicalDevices[selectedDeviceProps.value().first], &queueFamilyCount, queueFamilies.data());
+
+			std::optional<std::size_t> queueFamilyIndex = std::nullopt;
+			for(std::size_t i = 0; i < queueFamilies.size(); ++i)
+			{
+				if(queueFamilies[i].queueFlags & (VK_QUEUE_COMPUTE_BIT | VK_QUEUE_TRANSFER_BIT | VK_QUEUE_GRAPHICS_BIT))
+				{
+					queueFamilyIndex = i;
+				}
+			}
+
+			assert(queueFamilyIndex.has_value());
+
+			VkDeviceQueueCreateInfo queueCreateInfo{};
+			queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+			queueCreateInfo.queueFamilyIndex = static_cast<std::uint32_t>(queueFamilyIndex.value());
+			queueCreateInfo.queueCount = 1;
+
+			constexpr auto queuePriority = 1.0f;
+			queueCreateInfo.pQueuePriorities = &queuePriority;
+
+
+			VkDeviceCreateInfo createDeviceInfo{};
+			createDeviceInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+			createDeviceInfo.pQueueCreateInfos = &queueCreateInfo;
+			createDeviceInfo.queueCreateInfoCount = 1;
+
+			VkPhysicalDeviceFeatures deviceFeatures;
+			vkGetPhysicalDeviceFeatures(physicalDevices[selectedDeviceProps.value().first], &deviceFeatures);
+			createDeviceInfo.pEnabledFeatures = &deviceFeatures;
+
+			requiredExtensions.clear();
+			requiredExtensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
+			createDeviceInfo.enabledExtensionCount = static_cast<std::uint32_t>(requiredExtensions.size());
+			createDeviceInfo.ppEnabledExtensionNames = requiredExtensions.data();
+
+			const auto createDeviceRes = vkCreateDevice(physicalDevices[selectedDeviceProps.value().first], &createDeviceInfo, nullptr, &_rootContext->device);
+
+			assert(createDeviceRes == VK_SUCCESS);
 
 			const auto streamContext = std::make_shared<Backend::Vulkan::StreamContext>();
 			_defaultStream = std::make_shared<Backend::Vulkan::Stream>(_rootContext, streamContext);
