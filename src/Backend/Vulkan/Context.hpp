@@ -22,5 +22,10 @@ namespace MMPEngine::Backend::Vulkan
 	{
 	public:
 		StreamContext();
+		StreamContext(const StreamContext&) = delete;
+		StreamContext(StreamContext&&) noexcept = delete;
+		StreamContext& operator=(const StreamContext&) = delete;
+		StreamContext& operator=(StreamContext&&) noexcept = delete;
+		~StreamContext() override;
 	};
 }

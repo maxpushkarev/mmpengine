@@ -22,4 +22,5 @@ namespace MMPEngine::Backend::Vulkan
 	}
 
 	StreamContext::StreamContext() = default;
+	StreamContext::~StreamContext() = default;
 }
