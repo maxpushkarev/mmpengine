@@ -11,6 +11,7 @@ namespace MMPEngine::Backend::Vulkan
 	{
 		if(device)
 		{
+			vkDeviceWaitIdle(device);
 			vkDestroyDevice(device, nullptr);
 		}
 
