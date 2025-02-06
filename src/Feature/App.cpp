@@ -429,8 +429,28 @@ namespace MMPEngine::Feature
 
 			assert(queue != nullptr);
 
-			const auto streamContext = std::make_shared<Backend::Vulkan::StreamContext>();
+
+			VkCommandPoolCreateInfo poolInfo{};
+			poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+			poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+			poolInfo.queueFamilyIndex = static_cast<std::uint32_t>(queueFamilyIndex.value());
+			VkCommandPool commandPool;
+			
+			vkCreateCommandPool(_rootContext->device, &poolInfo, nullptr, &commandPool);
+
+			VkCommandBufferAllocateInfo allocInfo{};
+			allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+			allocInfo.commandPool = commandPool;
+			allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+			allocInfo.commandBufferCount = 1;
+
+			VkCommandBuffer commandBuffer;
+			
+			vkAllocateCommandBuffers(_rootContext->device, &allocInfo, &commandBuffer);
+
+			const auto streamContext = std::make_shared<Backend::Vulkan::StreamContext>(_rootContext, commandPool, commandBuffer);
 			_defaultStream = std::make_shared<Backend::Vulkan::Stream>(_rootContext, streamContext);
+
 
 			Feature::RootApp<Backend::Vulkan::GlobalContext>::Initialize();
 		}

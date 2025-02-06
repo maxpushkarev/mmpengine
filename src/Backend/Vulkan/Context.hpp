@@ -18,14 +18,19 @@ namespace MMPEngine::Backend::Vulkan
 		VkDevice device;
 	};
 
+
 	class StreamContext : public Core::StreamContext
 	{
 	public:
-		StreamContext();
+		StreamContext(const std::shared_ptr<GlobalContext>& globalContext, VkCommandPool commandPool, VkCommandBuffer commandBuffer);
 		StreamContext(const StreamContext&) = delete;
 		StreamContext(StreamContext&&) noexcept = delete;
 		StreamContext& operator=(const StreamContext&) = delete;
 		StreamContext& operator=(StreamContext&&) noexcept = delete;
 		~StreamContext() override;
+	private:
+		std::shared_ptr<GlobalContext> _globalContext;
+		VkCommandPool _commandPool;
+		VkCommandBuffer _commandBuffer;
 	};
 }
