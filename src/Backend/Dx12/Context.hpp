@@ -4,6 +4,7 @@
 #include <Core/Context.hpp>
 #include <Backend/Dx12/Pool.hpp>
 #include <Backend/Dx12/Heap.hpp>
+#include <Backend/Shared/Context.hpp>
 #include <wrl/client.h>
 
 namespace MMPEngine::Backend::Dx12
@@ -23,28 +24,19 @@ namespace MMPEngine::Backend::Dx12
 		std::shared_ptr<ConstantBufferHeap> constantBufferEntityHeap;
 	};
 
-	class Stream;
-
-	class StreamContext : public Core::StreamContext
+	class StreamContext : public Shared::StreamContext<
+		GlobalContext,
+		Microsoft::WRL::ComPtr<ID3D12CommandQueue>,
+		Microsoft::WRL::ComPtr<ID3D12CommandAllocator>,
+		Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>,
+		Microsoft::WRL::ComPtr<ID3D12Fence>>
 	{
-		friend class Stream;
-
 	public:
 		StreamContext(
+			const std::shared_ptr<GlobalContext>& globalContext,
 			const Microsoft::WRL::ComPtr<ID3D12CommandQueue>& queue, 
 			const Microsoft::WRL::ComPtr<ID3D12CommandAllocator>& allocator,
 			const Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>& list,
 			const Microsoft::WRL::ComPtr<ID3D12Fence>& fence);
-
-		Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>& PopulateCommandsInList();
-		Microsoft::WRL::ComPtr<ID3D12CommandQueue> GetQueue() const;
-	private:
-
-		Microsoft::WRL::ComPtr<ID3D12CommandQueue> _cmdQueue;
-		Microsoft::WRL::ComPtr<ID3D12CommandAllocator> _cmdAllocator;
-		Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> _cmdList;
-		Microsoft::WRL::ComPtr<ID3D12Fence> _fence;
-		bool _commandsPopulated = false;
-		bool _commandsClosed = true;
 	};
 }

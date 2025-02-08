@@ -37,6 +37,7 @@ namespace MMPEngine::Backend::Shared
 		if (IsFenceCompleted() && this->_specificStreamContext->_commandsClosed)
 		{
 			ResetCommandBufferAndAllocator();
+			this->_specificStreamContext->_commandsClosed = false;
 		}
 	}
 
@@ -55,7 +56,6 @@ namespace MMPEngine::Backend::Shared
 
 
 			UpdateFence();
-
 			this->_specificStreamContext->_commandsPopulated = false;
 		}
 	}
@@ -64,7 +64,6 @@ namespace MMPEngine::Backend::Shared
 	void Stream<TGlobalContext, TQueue, TCommandBufferAllocator, TCommandBuffer, TFence>::SyncInternal()
 	{
 		Super::SyncInternal();
-
 		WaitFence();
 	}
 }

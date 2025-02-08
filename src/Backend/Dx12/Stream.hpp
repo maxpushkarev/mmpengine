@@ -1,13 +1,24 @@
 #pragma once
 #include <Core/Stream.hpp>
 #include <Backend/Dx12/Context.hpp>
+#include <Backend/Shared/Stream.hpp>
 
 namespace MMPEngine::Backend::Dx12
 {
-	class Stream : public Core::Stream<GlobalContext, StreamContext>
+	class Stream : public Shared::Stream<
+		GlobalContext,
+		Microsoft::WRL::ComPtr<ID3D12CommandQueue>,
+		Microsoft::WRL::ComPtr<ID3D12CommandAllocator>,
+		Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>,
+		Microsoft::WRL::ComPtr<ID3D12Fence>>
 	{
 	private:
-		using Super = Core::Stream<GlobalContext, StreamContext>;
+		using Super = Shared::Stream<
+			GlobalContext,
+			Microsoft::WRL::ComPtr<ID3D12CommandQueue>,
+			Microsoft::WRL::ComPtr<ID3D12CommandAllocator>,
+			Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>,
+			Microsoft::WRL::ComPtr<ID3D12Fence>>;
 	public:
 		Stream(const std::shared_ptr<GlobalContext>& globalContext, const std::shared_ptr<StreamContext>& streamContext);
 		Stream(const Stream&) = delete;
@@ -17,9 +28,11 @@ namespace MMPEngine::Backend::Dx12
 		~Stream() override;
 		bool IsSyncCounterValueCompleted(std::uint64_t counterValue) const override;
 	protected:
-		void RestartInternal() override;
-		void SubmitInternal() override;
-		void SyncInternal() override;
+		bool IsFenceCompleted() override;
+		void ResetCommandBufferAndAllocator() override;
+		void ScheduleCommandBufferForExecution() override;
+		void UpdateFence() override;
+		void WaitFence() override;
 	private:
 		std::uint64_t _fenceSignalValue = 0;
 		HANDLE _waitHandle;

@@ -20,7 +20,7 @@ namespace MMPEngine::Backend::Shared
 		);
 		TCommandBuffer& PopulateCommandsInList();
 		TQueue& GetQueue();
-	private:
+	public:
 		std::shared_ptr<TGlobalContext> _globalContext;
 		TQueue _queue;
 		TCommandBufferAllocator _allocator;
@@ -50,6 +50,7 @@ namespace MMPEngine::Backend::Shared
 	template <typename TGlobalContext, typename TQueue, typename TCommandBufferAllocator, typename TCommandBuffer, typename TFence>
 	TCommandBuffer& StreamContext<TGlobalContext, TQueue, TCommandBufferAllocator, TCommandBuffer, TFence>::PopulateCommandsInList()
 	{
-		return  _cmdBuffer;
+		_commandsPopulated = true;
+		return _cmdBuffer;
 	}
 }

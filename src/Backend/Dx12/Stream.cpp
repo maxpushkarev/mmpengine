@@ -15,52 +15,36 @@ namespace MMPEngine::Backend::Dx12
 		CloseHandle(_waitHandle);
 	}
 
-	void Stream::RestartInternal()
+	bool Stream::IsFenceCompleted()
 	{
-		Super::RestartInternal();
-
-		if(_specificStreamContext->_fence->GetCompletedValue() == _fenceSignalValue && _specificStreamContext->_commandsClosed)
-		{
-			_specificStreamContext->_cmdAllocator->Reset();
-			_specificStreamContext->_cmdList->Reset(_specificStreamContext->_cmdAllocator.Get(), nullptr);
-			_specificStreamContext->_commandsClosed = false;
-		}
+		return _specificStreamContext->_fence->GetCompletedValue() == _fenceSignalValue;
 	}
 
-
-	void Stream::SubmitInternal()
+	void Stream::ResetCommandBufferAndAllocator()
 	{
-		Super::SubmitInternal();
-
-		if (_specificStreamContext->_commandsPopulated)
-		{
-			if(!_specificStreamContext->_commandsClosed)
-			{
-				_specificStreamContext->_cmdList->Close();
-
-				ID3D12CommandList* cmdLists[]{ _specificStreamContext->_cmdList.Get() };
-				_specificStreamContext->_cmdQueue->ExecuteCommandLists(static_cast<std::uint32_t>(std::size(cmdLists)), cmdLists);
-
-				_specificStreamContext->_commandsClosed = true;
-			}
-
-
-			const auto fence = _specificStreamContext->_fence;
-			const auto counterValue = GetSyncCounterValue();
-
-			assert(_fenceSignalValue < counterValue);
-			_fenceSignalValue = counterValue;
-			_specificStreamContext->_cmdQueue->Signal(fence.Get(), _fenceSignalValue);
-
-			_specificStreamContext->_commandsPopulated = false;
-		}
+		_specificStreamContext->_allocator->Reset();
+		_specificStreamContext->_cmdBuffer->Reset(_specificStreamContext->_allocator.Get(), nullptr);
 	}
 
-
-	void Stream::SyncInternal()
+	void Stream::ScheduleCommandBufferForExecution()
 	{
-		Super::SyncInternal();
+		_specificStreamContext->_cmdBuffer->Close();
+		ID3D12CommandList* cmdLists[]{ _specificStreamContext->_cmdBuffer.Get() };
+		_specificStreamContext->_queue->ExecuteCommandLists(static_cast<std::uint32_t>(std::size(cmdLists)), cmdLists);
+	}
 
+	void Stream::UpdateFence()
+	{
+		const auto fence = _specificStreamContext->_fence;
+		const auto counterValue = GetSyncCounterValue();
+
+		assert(_fenceSignalValue < counterValue);
+		_fenceSignalValue = counterValue;
+		_specificStreamContext->_queue->Signal(fence.Get(), _fenceSignalValue);
+	}
+
+	void Stream::WaitFence()
+	{
 		if (_specificStreamContext->_fence->GetCompletedValue() < _fenceSignalValue)
 		{
 			_specificStreamContext->_fence->SetEventOnCompletion(_fenceSignalValue, _waitHandle);
