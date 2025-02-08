@@ -34,10 +34,10 @@ namespace MMPEngine::Backend::Shared
 	{
 		Super::RestartInternal();
 
-		if (IsFenceCompleted() && this->_specificStreamContext->_commandsClosed)
+		if (IsFenceCompleted() && this->_specificStreamContext->IsCommandsClosed())
 		{
 			ResetCommandBufferAndAllocator();
-			this->_specificStreamContext->_commandsClosed = false;
+			this->_specificStreamContext->SetCommandsClosed(false);
 		}
 	}
 
@@ -46,17 +46,17 @@ namespace MMPEngine::Backend::Shared
 	{
 		Super::SubmitInternal();
 
-		if (this->_specificStreamContext->_commandsPopulated)
+		if (this->_specificStreamContext->IsCommandsPopulated())
 		{
-			if (!this->_specificStreamContext->_commandsClosed)
+			if (!this->_specificStreamContext->IsCommandsClosed())
 			{
 				ScheduleCommandBufferForExecution();
-				this->_specificStreamContext->_commandsClosed = true;
+				this->_specificStreamContext->SetCommandsClosed(true);
 			}
 
 
 			UpdateFence();
-			this->_specificStreamContext->_commandsPopulated = false;
+			this->_specificStreamContext->SetCommandsPopulated(false);
 		}
 	}
 
