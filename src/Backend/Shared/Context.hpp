@@ -4,8 +4,12 @@
 namespace MMPEngine::Backend::Shared
 {
 	template<typename TGlobalContext, typename TQueue, typename TCommandBufferAllocator, typename TCommandBuffer, typename TFence>
+	class Stream;
+
+	template<typename TGlobalContext, typename TQueue, typename TCommandBufferAllocator, typename TCommandBuffer, typename TFence>
 	class StreamContext : public Core::StreamContext
 	{
+		friend Stream<TGlobalContext, TQueue, TCommandBufferAllocator, TCommandBuffer, TFence>;
 	public:
 		StreamContext(
 			const std::shared_ptr<TGlobalContext>& globalContext,
