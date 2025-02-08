@@ -31,8 +31,8 @@ namespace MMPEngine::Core
 		}
 
 	public:
-		template<typename T>
-		PasskeyControl(const std::enable_if_t<IsRequestedTypeAllowed<T, Types...>(), PasskeyRequest<T>>&)
+		template<typename T, typename = std::enable_if_t<IsRequestedTypeAllowed<T, Types...>(), void>>
+		PasskeyControl(const PasskeyRequest<T>&)
 		{
 		}
 	};

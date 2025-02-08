@@ -1,5 +1,7 @@
 #pragma once
 #include <Core/Context.hpp>
+#include <Core/Passkey.hpp>
+#include <Core/Stream.hpp>
 
 namespace MMPEngine::Backend::Shared
 {
@@ -7,6 +9,7 @@ namespace MMPEngine::Backend::Shared
 	class StreamContext : public Core::StreamContext
 	{
 	public:
+		using PasskeyControl = Core::PasskeyControl<true, Core::BaseStream>;
 		StreamContext(
 			const std::shared_ptr<TGlobalContext>& globalContext,
 			TQueue queue,
@@ -16,15 +19,15 @@ namespace MMPEngine::Backend::Shared
 		);
 		TCommandBuffer& PopulateCommandsInList();
 		TQueue& GetQueue();
-		TCommandBufferAllocator& GetAllocator();
-		TCommandBuffer& GetCommandBuffer();
-		TFence& GetFence();
+		TCommandBufferAllocator& GetAllocator(PasskeyControl);
+		TCommandBuffer& GetCommandBuffer(PasskeyControl);
+		TFence& GetFence(PasskeyControl);
 
-		bool IsCommandsPopulated() const;
-		bool IsCommandsClosed() const;
+		bool IsCommandsPopulated(PasskeyControl) const;
+		bool IsCommandsClosed(PasskeyControl) const;
 
-		void SetCommandsPopulated(bool value);
-		void SetCommandsClosed(bool value);
+		void SetCommandsPopulated(PasskeyControl, bool value);
+		void SetCommandsClosed(PasskeyControl, bool value);
 
 	private:
 		std::shared_ptr<TGlobalContext> _globalContext;
@@ -61,45 +64,45 @@ namespace MMPEngine::Backend::Shared
 	}
 
 	template <typename TGlobalContext, typename TQueue, typename TCommandBufferAllocator, typename TCommandBuffer, typename TFence>
-	TCommandBuffer& StreamContext<TGlobalContext, TQueue, TCommandBufferAllocator, TCommandBuffer, TFence>::GetCommandBuffer()
+	TCommandBuffer& StreamContext<TGlobalContext, TQueue, TCommandBufferAllocator, TCommandBuffer, TFence>::GetCommandBuffer(PasskeyControl)
 	{
 		return _cmdBuffer;
 	}
 
 
 	template <typename TGlobalContext, typename TQueue, typename TCommandBufferAllocator, typename TCommandBuffer, typename TFence>
-	TCommandBufferAllocator& StreamContext<TGlobalContext, TQueue, TCommandBufferAllocator, TCommandBuffer, TFence>::GetAllocator()
+	TCommandBufferAllocator& StreamContext<TGlobalContext, TQueue, TCommandBufferAllocator, TCommandBuffer, TFence>::GetAllocator(PasskeyControl)
 	{
 		return _allocator;
 	}
 
 	template <typename TGlobalContext, typename TQueue, typename TCommandBufferAllocator, typename TCommandBuffer, typename TFence>
-	TFence& StreamContext<TGlobalContext, TQueue, TCommandBufferAllocator, TCommandBuffer, TFence>::GetFence()
+	TFence& StreamContext<TGlobalContext, TQueue, TCommandBufferAllocator, TCommandBuffer, TFence>::GetFence(PasskeyControl)
 	{
 		return _fence;
 	}
 
 	template <typename TGlobalContext, typename TQueue, typename TCommandBufferAllocator, typename TCommandBuffer, typename TFence>
-	bool StreamContext<TGlobalContext, TQueue, TCommandBufferAllocator, TCommandBuffer, TFence>::IsCommandsClosed() const
+	bool StreamContext<TGlobalContext, TQueue, TCommandBufferAllocator, TCommandBuffer, TFence>::IsCommandsClosed(PasskeyControl) const
 	{
 		return _commandsClosed;
 	}
 
 	template <typename TGlobalContext, typename TQueue, typename TCommandBufferAllocator, typename TCommandBuffer, typename TFence>
-	bool StreamContext<TGlobalContext, TQueue, TCommandBufferAllocator, TCommandBuffer, TFence>::IsCommandsPopulated() const
+	bool StreamContext<TGlobalContext, TQueue, TCommandBufferAllocator, TCommandBuffer, TFence>::IsCommandsPopulated(PasskeyControl) const
 	{
 		return _commandsPopulated;
 	}
 
 	template <typename TGlobalContext, typename TQueue, typename TCommandBufferAllocator, typename TCommandBuffer, typename TFence>
-	void StreamContext<TGlobalContext, TQueue, TCommandBufferAllocator, TCommandBuffer, TFence>::SetCommandsClosed(bool value)
+	void StreamContext<TGlobalContext, TQueue, TCommandBufferAllocator, TCommandBuffer, TFence>::SetCommandsClosed(PasskeyControl, bool value)
 	{
 		_commandsClosed = value;
 	}
 
 
 	template <typename TGlobalContext, typename TQueue, typename TCommandBufferAllocator, typename TCommandBuffer, typename TFence>
-	void StreamContext<TGlobalContext, TQueue, TCommandBufferAllocator, TCommandBuffer, TFence>::SetCommandsPopulated(bool value)
+	void StreamContext<TGlobalContext, TQueue, TCommandBufferAllocator, TCommandBuffer, TFence>::SetCommandsPopulated(PasskeyControl, bool value)
 	{
 		_commandsPopulated = value;
 	}
