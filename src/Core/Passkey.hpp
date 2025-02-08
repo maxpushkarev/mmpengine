@@ -4,17 +4,17 @@
 namespace MMPEngine::Core
 {
 	template<typename T>
-	class PasskeyRequest
+	class PassKey
 	{
 		friend T;
 	private:
-		explicit PasskeyRequest(const T*)
+		explicit PassKey(const T*)
 		{
 		}
 	};
 
 	template<bool AllowInheritance, typename...Types>
-	class PasskeyControl
+	class PassControl
 	{
 	private:
 		template<typename TRequest>
@@ -32,7 +32,7 @@ namespace MMPEngine::Core
 
 	public:
 		template<typename T, typename = std::enable_if_t<IsRequestedTypeAllowed<T, Types...>(), void>>
-		PasskeyControl(const PasskeyRequest<T>&)
+		PassControl(const PassKey<T>&)
 		{
 		}
 	};

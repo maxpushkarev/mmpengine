@@ -301,7 +301,7 @@ namespace MMPEngine::Feature
 				IID_PPV_ARGS(list.GetAddressOf()));
 
 			list->Close();
-			const auto streamContext = std::make_shared<Backend::Dx12::StreamContext>(_rootContext, queue, allocator, list, fence);
+			const auto streamContext = std::make_shared<Backend::Dx12::StreamContext>(queue, allocator, list, fence);
 
 			_defaultStream = std::make_shared<Backend::Dx12::Stream>(_rootContext, streamContext);
 

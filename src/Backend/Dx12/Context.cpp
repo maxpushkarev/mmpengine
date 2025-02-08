@@ -7,17 +7,15 @@ namespace MMPEngine::Backend::Dx12
 	}
 
 	StreamContext::StreamContext(
-		const std::shared_ptr<GlobalContext>& globalContext,
 		const Microsoft::WRL::ComPtr<ID3D12CommandQueue>& queue, 
 		const Microsoft::WRL::ComPtr<ID3D12CommandAllocator>& allocator, 
 		const Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>& list, 
 		const Microsoft::WRL::ComPtr<ID3D12Fence>& fence
 	) :Shared::StreamContext<
-		GlobalContext,
 		Microsoft::WRL::ComPtr<ID3D12CommandQueue>,
 		Microsoft::WRL::ComPtr<ID3D12CommandAllocator>,
 		Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>,
-		Microsoft::WRL::ComPtr<ID3D12Fence>>(globalContext, queue, allocator, list, fence)
+		Microsoft::WRL::ComPtr<ID3D12Fence>>(queue, allocator, list, fence)
 	{
 	}
 }

@@ -7,7 +7,7 @@ namespace MMPEngine::Backend::Dx12
 		: Super(globalContext, streamContext)
 	{
 		_waitHandle = CreateEventEx(nullptr, nullptr, false, EVENT_ALL_ACCESS);
-		_fenceSignalValue = _specificStreamContext->GetFence(_passKey)->GetCompletedValue();
+		_fenceSignalValue = _specificStreamContext->GetFence(_passControl)->GetCompletedValue();
 	}
 
 	Stream::~Stream()
@@ -17,25 +17,25 @@ namespace MMPEngine::Backend::Dx12
 
 	bool Stream::IsFenceCompleted()
 	{
-		return _specificStreamContext->GetFence(_passKey)->GetCompletedValue() == _fenceSignalValue;
+		return _specificStreamContext->GetFence(_passControl)->GetCompletedValue() == _fenceSignalValue;
 	}
 
 	void Stream::ResetCommandBufferAndAllocator()
 	{
-		_specificStreamContext->GetAllocator(_passKey)->Reset();
-		_specificStreamContext->GetCommandBuffer(_passKey)->Reset(_specificStreamContext->GetAllocator(_passKey).Get(), nullptr);
+		_specificStreamContext->GetAllocator(_passControl)->Reset();
+		_specificStreamContext->GetCommandBuffer(_passControl)->Reset(_specificStreamContext->GetAllocator(_passControl).Get(), nullptr);
 	}
 
 	void Stream::ScheduleCommandBufferForExecution()
 	{
-		_specificStreamContext->GetCommandBuffer(_passKey)->Close();
-		ID3D12CommandList* cmdLists[]{ _specificStreamContext->GetCommandBuffer(_passKey).Get() };
+		_specificStreamContext->GetCommandBuffer(_passControl)->Close();
+		ID3D12CommandList* cmdLists[]{ _specificStreamContext->GetCommandBuffer(_passControl).Get() };
 		_specificStreamContext->GetQueue()->ExecuteCommandLists(static_cast<std::uint32_t>(std::size(cmdLists)), cmdLists);
 	}
 
 	void Stream::UpdateFence()
 	{
-		const auto fence = _specificStreamContext->GetFence(_passKey);
+		const auto fence = _specificStreamContext->GetFence(_passControl);
 		const auto counterValue = GetSyncCounterValue();
 
 		assert(_fenceSignalValue < counterValue);
@@ -45,16 +45,16 @@ namespace MMPEngine::Backend::Dx12
 
 	void Stream::WaitFence()
 	{
-		if (_specificStreamContext->GetFence(_passKey)->GetCompletedValue() < _fenceSignalValue)
+		if (_specificStreamContext->GetFence(_passControl)->GetCompletedValue() < _fenceSignalValue)
 		{
-			_specificStreamContext->GetFence(_passKey)->SetEventOnCompletion(_fenceSignalValue, _waitHandle);
+			_specificStreamContext->GetFence(_passControl)->SetEventOnCompletion(_fenceSignalValue, _waitHandle);
 			WaitForSingleObject(_waitHandle, INFINITE);
 		}
 	}
 
 	bool Stream::IsSyncCounterValueCompleted(std::uint64_t counterValue) const
 	{
-		return  _specificStreamContext->GetFence(_passKey)->GetCompletedValue() >= counterValue;
+		return  _specificStreamContext->GetFence(_passControl)->GetCompletedValue() >= counterValue;
 	}
 
 }

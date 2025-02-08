@@ -6,11 +6,11 @@
 namespace MMPEngine::Backend::Shared
 {
 	template<typename TGlobalContext, typename TQueue, typename TCommandBufferAllocator, typename TCommandBuffer, typename TFence>
-	class Stream : public Core::Stream<TGlobalContext, StreamContext<TGlobalContext, TQueue, TCommandBufferAllocator, TCommandBuffer, TFence>>
+	class Stream : public Core::Stream<TGlobalContext, StreamContext<TQueue, TCommandBufferAllocator, TCommandBuffer, TFence>>
 	{
 	protected:
-		using StreamContextType = StreamContext<TGlobalContext, TQueue, TCommandBufferAllocator, TCommandBuffer, TFence>;
-		using PasskeyControl = typename StreamContextType::PasskeyControl;
+		using StreamContextType = StreamContext<TQueue, TCommandBufferAllocator, TCommandBuffer, TFence>;
+		using PassControl = typename StreamContextType::PassControl;
 		using Super = Core::Stream<TGlobalContext, StreamContextType>;
 
 		Stream(const std::shared_ptr<TGlobalContext>& globalContext, const std::shared_ptr<StreamContextType>& streamContext);
@@ -24,12 +24,12 @@ namespace MMPEngine::Backend::Shared
 		virtual void UpdateFence() = 0;
 		virtual void WaitFence() = 0;
 	protected:
-		PasskeyControl _passKey;
+		PassControl _passControl;
 	};
 
 	template <typename TGlobalContext, typename TQueue, typename TCommandBufferAllocator, typename TCommandBuffer, typename TFence>
 	Stream<TGlobalContext, TQueue, TCommandBufferAllocator, TCommandBuffer, TFence>::Stream(const std::shared_ptr<TGlobalContext>& globalContext, const std::shared_ptr<StreamContextType>& streamContext)
-		: Super(globalContext, streamContext), _passKey(PasskeyControl {Core::PasskeyRequest {this}})
+		: Super(globalContext, streamContext), _passControl(PassControl {Core::PassKey {this}})
 	{
 	}
 
@@ -38,10 +38,10 @@ namespace MMPEngine::Backend::Shared
 	{
 		Super::RestartInternal();
 
-		if (IsFenceCompleted() && this->_specificStreamContext->IsCommandsClosed(_passKey))
+		if (IsFenceCompleted() && this->_specificStreamContext->IsCommandsClosed(_passControl))
 		{
 			ResetCommandBufferAndAllocator();
-			this->_specificStreamContext->SetCommandsClosed(_passKey, false);
+			this->_specificStreamContext->SetCommandsClosed(_passControl, false);
 		}
 	}
 
@@ -50,17 +50,17 @@ namespace MMPEngine::Backend::Shared
 	{
 		Super::SubmitInternal();
 
-		if (this->_specificStreamContext->IsCommandsPopulated(_passKey))
+		if (this->_specificStreamContext->IsCommandsPopulated(_passControl))
 		{
-			if (!this->_specificStreamContext->IsCommandsClosed(_passKey))
+			if (!this->_specificStreamContext->IsCommandsClosed(_passControl))
 			{
 				ScheduleCommandBufferForExecution();
-				this->_specificStreamContext->SetCommandsClosed(_passKey, true);
+				this->_specificStreamContext->SetCommandsClosed(_passControl, true);
 			}
 
 
 			UpdateFence();
-			this->_specificStreamContext->SetCommandsPopulated(_passKey, false);
+			this->_specificStreamContext->SetCommandsPopulated(_passControl, false);
 		}
 	}
 
