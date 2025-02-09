@@ -60,11 +60,14 @@ namespace MMPEngine::Backend::Vulkan
 		submitInfo.signalSemaphoreCount = 0;
 		submitInfo.pSignalSemaphores = nullptr;
 
+		const auto vkFence = _specificStreamContext->GetFence(_passControl)->GetNative();
+
+		vkResetFences(_specificGlobalContext->device->GetNative(), 1, &vkFence);
 		vkQueueSubmit(
 			_specificStreamContext->GetQueue()->GetNative(),
 			1,
 			&submitInfo,
-			_specificStreamContext->GetFence(_passControl)->GetNative()
+			vkFence
 		);
 	}
 
