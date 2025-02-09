@@ -81,5 +81,19 @@ namespace MMPEngine::Backend::Vulkan
 			VkQueue _queue;
 			std::uint32_t _familyIndex;
 		};
+
+		class Fence final
+		{
+		public:
+			Fence(const std::shared_ptr<Device>& device, VkFence fence);
+			Fence(const Fence&) = delete;
+			Fence(Fence&&) noexcept = delete;
+			Fence& operator=(const Fence&) = delete;
+			Fence& operator=(Fence&&) noexcept = delete;
+			~Fence();
+		private:
+			std::shared_ptr<Device> _device;
+			VkFence _fence;
+		};
 	}
 }

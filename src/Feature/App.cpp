@@ -450,6 +450,16 @@ namespace MMPEngine::Feature
 			vkAllocateCommandBuffers(vkDevice, &allocInfo, &vkCommandBuffer);
 			const auto commandBufferWrapper = std::make_shared<Backend::Vulkan::Wrapper::CommandBuffer>(_rootContext->device, commandAllocatorWrapper, vkCommandBuffer);
 
+			VkFenceCreateInfo vkCreateFenceInfo;
+			vkCreateFenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+			vkCreateFenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+			vkCreateFenceInfo.pNext = nullptr;
+			
+			VkFence vkFence;
+			vkCreateFence(vkDevice, &vkCreateFenceInfo, nullptr, &vkFence);
+			assert(vkGetFenceStatus(vkDevice, vkFence) == VK_SUCCESS);
+			const auto fenceWrapper =  std::make_shared<Backend::Vulkan::Wrapper::Fence>(_rootContext->device, vkFence);
+
 			const auto streamContext = std::make_shared<Backend::Vulkan::StreamContext>();
 			_defaultStream = std::make_shared<Backend::Vulkan::Stream>(_rootContext, streamContext);
 

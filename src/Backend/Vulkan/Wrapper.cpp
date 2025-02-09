@@ -76,5 +76,14 @@ namespace MMPEngine::Backend::Vulkan
 			return _queue;
 		}
 
+		Fence::Fence(const std::shared_ptr<Device>& device, VkFence fence) : _device(device), _fence(fence)
+		{
+		}
+
+		Fence::~Fence()
+		{
+			vkDestroyFence(_device->GetNative(), _fence, nullptr);
+		}
+
 	}
 }
