@@ -81,7 +81,7 @@ namespace MMPEngine::Backend::Dx12
 	{
 		Task::Run(stream);
 		const auto& dim = GetTaskContext()->dimensions;
-		_specificStreamContext->PopulateCommandsInList()->Dispatch(dim.x, dim.y, dim.z);
+		_specificStreamContext->PopulateCommandsInBuffer()->Dispatch(dim.x, dim.y, dim.z);
 	}
 
 	std::shared_ptr<Core::BaseTask> DirectComputeJob::CreateInitializationTask()

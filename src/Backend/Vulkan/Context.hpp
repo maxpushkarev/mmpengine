@@ -1,5 +1,6 @@
 #pragma once
 #include <Core/Context.hpp>
+#include <Backend/Vulkan/Wrapper.hpp>
 #include <vulkan/vulkan.h>
 
 namespace MMPEngine::Backend::Vulkan
@@ -8,29 +9,15 @@ namespace MMPEngine::Backend::Vulkan
 	{
 	public:
 		GlobalContext(const Core::GlobalContext::Settings& s, std::unique_ptr<Core::Math>&& m);
-		GlobalContext(const GlobalContext&) = delete;
-		GlobalContext(GlobalContext&&) noexcept = delete;
-		GlobalContext& operator=(const GlobalContext&) = delete;
-		GlobalContext& operator=(GlobalContext&&) noexcept = delete;
-		~GlobalContext() override;
 	public:
-		VkInstance instance;
-		VkDevice device;
+		std::shared_ptr<Wrapper::Instance> instance;
+		std::shared_ptr<Wrapper::Device> device;
 	};
 
 
 	class StreamContext : public Core::StreamContext
 	{
 	public:
-		StreamContext(const std::shared_ptr<GlobalContext>& globalContext, VkCommandPool commandPool, VkCommandBuffer commandBuffer);
-		StreamContext(const StreamContext&) = delete;
-		StreamContext(StreamContext&&) noexcept = delete;
-		StreamContext& operator=(const StreamContext&) = delete;
-		StreamContext& operator=(StreamContext&&) noexcept = delete;
-		~StreamContext() override;
 	private:
-		std::shared_ptr<GlobalContext> _globalContext;
-		VkCommandPool _commandPool;
-		VkCommandBuffer _commandBuffer;
 	};
 }

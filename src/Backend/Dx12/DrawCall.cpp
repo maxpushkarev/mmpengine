@@ -68,7 +68,7 @@ namespace MMPEngine::Backend::Dx12
 			const auto& clearValue = ds.tex->GetSettings().clearValue;
 			if(clearValue.has_value())
 			{
-				_specificStreamContext->PopulateCommandsInList()->ClearDepthStencilView(
+				_specificStreamContext->PopulateCommandsInBuffer()->ClearDepthStencilView(
 					*dsHandlePtr,
 					D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL,
 					std::get<std::float_t>(clearValue.value()), std::get<std::uint8_t>(clearValue.value()),
@@ -93,7 +93,7 @@ namespace MMPEngine::Backend::Dx12
 				if(clearValue.has_value())
 				{
 					const auto cv  = clearValue.value();
-					_specificStreamContext->PopulateCommandsInList()->ClearRenderTargetView(h, &(cv.x), 0, nullptr);
+					_specificStreamContext->PopulateCommandsInBuffer()->ClearRenderTargetView(h, &(cv.x), 0, nullptr);
 				}
 			}
 		}
@@ -109,10 +109,10 @@ namespace MMPEngine::Backend::Dx12
 
 		const D3D12_RECT scissorsRect = { 0, 0, static_cast<decltype(scissorsRect.right)>(size.x), static_cast<decltype(scissorsRect.bottom)>(size.y) };
 
-		_specificStreamContext->PopulateCommandsInList()->RSSetViewports(1, &viewport);
-		_specificStreamContext->PopulateCommandsInList()->RSSetScissorRects(1, &scissorsRect);
+		_specificStreamContext->PopulateCommandsInBuffer()->RSSetViewports(1, &viewport);
+		_specificStreamContext->PopulateCommandsInBuffer()->RSSetScissorRects(1, &scissorsRect);
 
-		_specificStreamContext->PopulateCommandsInList()->OMSetRenderTargets(
+		_specificStreamContext->PopulateCommandsInBuffer()->OMSetRenderTargets(
 			static_cast<std::uint32_t>(tc->colorRenderTargetHandles.size()),
 			tc->colorRenderTargetHandles.data(),
 			false,

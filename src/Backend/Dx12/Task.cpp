@@ -26,7 +26,7 @@ namespace MMPEngine::Backend::Dx12
 
 		if(!_nativeHeaps.empty())
 		{
-			_specificStreamContext->PopulateCommandsInList()->SetDescriptorHeaps(
+			_specificStreamContext->PopulateCommandsInBuffer()->SetDescriptorHeaps(
 				static_cast<std::uint32_t>(_nativeHeaps.size()),
 				_nativeHeaps.data()
 			);

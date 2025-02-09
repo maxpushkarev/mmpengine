@@ -10,6 +10,7 @@
 
 #ifdef MMPENGINE_BACKEND_VULKAN
 #include <Backend/Vulkan/Stream.hpp>
+#include <Backend/Vulkan/Wrapper.hpp>
 #endif
 
 
@@ -353,15 +354,16 @@ namespace MMPEngine::Feature
 			createInstanceInfo.enabledLayerCount = static_cast<std::uint32_t>(requiredLayers.size());
 			createInstanceInfo.ppEnabledLayerNames = requiredLayers.data();
 
-			const auto instanceRes = vkCreateInstance(&createInstanceInfo, nullptr, &_rootContext->instance);
-
+			VkInstance vkInstance;
+			const auto instanceRes = vkCreateInstance(&createInstanceInfo, nullptr, &vkInstance);
 			assert(instanceRes == VkResult::VK_SUCCESS);
+			_rootContext->instance = std::make_shared<Backend::Vulkan::Wrapper::Instance>(vkInstance);
 
 			uint32_t deviceCount = 0;
-			vkEnumeratePhysicalDevices(_rootContext->instance, &deviceCount, nullptr);
+			vkEnumeratePhysicalDevices(vkInstance, &deviceCount, nullptr);
 
 			std::vector<VkPhysicalDevice> physicalDevices {deviceCount};
-			vkEnumeratePhysicalDevices(_rootContext->instance, &deviceCount, physicalDevices.data());
+			vkEnumeratePhysicalDevices(vkInstance, &deviceCount, physicalDevices.data());
 
 			std::optional<std::pair<std::size_t, VkPhysicalDeviceProperties>> selectedDeviceProps;
 
@@ -420,23 +422,23 @@ namespace MMPEngine::Feature
 			createDeviceInfo.enabledExtensionCount = static_cast<std::uint32_t>(requiredExtensions.size());
 			createDeviceInfo.ppEnabledExtensionNames = requiredExtensions.data();
 
-			const auto createDeviceRes = vkCreateDevice(physicalDevices[selectedDeviceProps.value().first], &createDeviceInfo, nullptr, &_rootContext->device);
-
+			VkDevice vkDevice;
+			const auto createDeviceRes = vkCreateDevice(physicalDevices[selectedDeviceProps.value().first], &createDeviceInfo, nullptr, &vkDevice);
 			assert(createDeviceRes == VK_SUCCESS);
+			_rootContext->device = std::make_shared<Backend::Vulkan::Wrapper::Device>(_rootContext->instance, vkDevice);
 
 			VkQueue queue;
-			vkGetDeviceQueue(_rootContext->device, static_cast<std::uint32_t>(queueFamilyIndex.value()), 0, &queue);
-
+			vkGetDeviceQueue(vkDevice, static_cast<std::uint32_t>(queueFamilyIndex.value()), 0, &queue);
 			assert(queue != nullptr);
-
+			const auto queueWrapper = std::make_shared<Backend::Vulkan::Wrapper::Queue>(queue, static_cast<std::uint32_t>(queueFamilyIndex.value()));
 
 			VkCommandPoolCreateInfo poolInfo{};
 			poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
 			poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 			poolInfo.queueFamilyIndex = static_cast<std::uint32_t>(queueFamilyIndex.value());
 			VkCommandPool commandPool;
-			
-			vkCreateCommandPool(_rootContext->device, &poolInfo, nullptr, &commandPool);
+			vkCreateCommandPool(vkDevice, &poolInfo, nullptr, &commandPool);
+			const auto commandAllocatorWrapper = std::make_shared<Backend::Vulkan::Wrapper::CommandAllocator>(_rootContext->device, commandPool);
 
 			VkCommandBufferAllocateInfo allocInfo{};
 			allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -444,11 +446,11 @@ namespace MMPEngine::Feature
 			allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
 			allocInfo.commandBufferCount = 1;
 
-			VkCommandBuffer commandBuffer;
-			
-			vkAllocateCommandBuffers(_rootContext->device, &allocInfo, &commandBuffer);
+			VkCommandBuffer vkCommandBuffer;
+			vkAllocateCommandBuffers(vkDevice, &allocInfo, &vkCommandBuffer);
+			const auto commandBufferWrapper = std::make_shared<Backend::Vulkan::Wrapper::CommandBuffer>(_rootContext->device, commandAllocatorWrapper, vkCommandBuffer);
 
-			const auto streamContext = std::make_shared<Backend::Vulkan::StreamContext>(_rootContext, commandPool, commandBuffer);
+			const auto streamContext = std::make_shared<Backend::Vulkan::StreamContext>();
 			_defaultStream = std::make_shared<Backend::Vulkan::Stream>(_rootContext, streamContext);
 
 

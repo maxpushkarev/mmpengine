@@ -92,15 +92,15 @@ namespace MMPEngine::Backend::Dx12
 		Task<TaskContext>::Run(stream);
 		if (const auto job = GetTaskContext()->job)
 		{
-			_specificStreamContext->PopulateCommandsInList()->SetPipelineState(job->GetPipelineState().Get());
+			_specificStreamContext->PopulateCommandsInBuffer()->SetPipelineState(job->GetPipelineState().Get());
 
 			if constexpr (std::is_base_of_v<Core::MeshMaterial, TCoreMaterial>)
 			{
-				_specificStreamContext->PopulateCommandsInList()->SetGraphicsRootSignature(job->GetRootSignature().Get());
+				_specificStreamContext->PopulateCommandsInBuffer()->SetGraphicsRootSignature(job->GetRootSignature().Get());
 			}
 			else
 			{
-				_specificStreamContext->PopulateCommandsInList()->SetComputeRootSignature(job->GetRootSignature().Get());
+				_specificStreamContext->PopulateCommandsInBuffer()->SetComputeRootSignature(job->GetRootSignature().Get());
 			}
 		}
 	}
@@ -136,7 +136,7 @@ namespace MMPEngine::Backend::Dx12
 					{
 						this->_applyMaterialParametersCallbacks.emplace_back([nativeBuffer, index](const auto& ctx)
 							{
-								ctx->PopulateCommandsInList()->SetComputeRootDescriptorTable(static_cast<std::uint32_t>(index), nativeBuffer->GetResourceDescriptorHandle()->GetGPUDescriptorHandle());
+								ctx->PopulateCommandsInBuffer()->SetComputeRootDescriptorTable(static_cast<std::uint32_t>(index), nativeBuffer->GetResourceDescriptorHandle()->GetGPUDescriptorHandle());
 							});
 					}
 					break;
@@ -144,7 +144,7 @@ namespace MMPEngine::Backend::Dx12
 					{
 						this->_applyMaterialParametersCallbacks.emplace_back([nativeBuffer, index](const auto& ctx)
 							{
-								ctx->PopulateCommandsInList()->SetComputeRootDescriptorTable(static_cast<std::uint32_t>(index), nativeBuffer->GetResourceDescriptorHandle()->GetGPUDescriptorHandle());
+								ctx->PopulateCommandsInBuffer()->SetComputeRootDescriptorTable(static_cast<std::uint32_t>(index), nativeBuffer->GetResourceDescriptorHandle()->GetGPUDescriptorHandle());
 							});
 					}
 					break;
@@ -152,7 +152,7 @@ namespace MMPEngine::Backend::Dx12
 					{
 						this->_applyMaterialParametersCallbacks.emplace_back([nativeBuffer, index](const auto& ctx)
 							{
-								ctx->PopulateCommandsInList()->SetComputeRootShaderResourceView(static_cast<std::uint32_t>(index), nativeBuffer->GetNativeGPUAddressWithRequiredOffset());
+								ctx->PopulateCommandsInBuffer()->SetComputeRootShaderResourceView(static_cast<std::uint32_t>(index), nativeBuffer->GetNativeGPUAddressWithRequiredOffset());
 							});
 					}
 					break;
@@ -184,7 +184,7 @@ namespace MMPEngine::Backend::Dx12
 					{
 						this->_applyMaterialParametersCallbacks.emplace_back([nativeBuffer, index](const auto& ctx)
 							{
-								ctx->PopulateCommandsInList()->SetGraphicsRootDescriptorTable(static_cast<std::uint32_t>(index), nativeBuffer->GetResourceDescriptorHandle()->GetGPUDescriptorHandle());
+								ctx->PopulateCommandsInBuffer()->SetGraphicsRootDescriptorTable(static_cast<std::uint32_t>(index), nativeBuffer->GetResourceDescriptorHandle()->GetGPUDescriptorHandle());
 							});
 					}
 					break;
@@ -192,7 +192,7 @@ namespace MMPEngine::Backend::Dx12
 					{
 						this->_applyMaterialParametersCallbacks.emplace_back([nativeBuffer, index](const auto& ctx)
 							{
-								ctx->PopulateCommandsInList()->SetGraphicsRootDescriptorTable(static_cast<std::uint32_t>(index), nativeBuffer->GetResourceDescriptorHandle()->GetGPUDescriptorHandle());
+								ctx->PopulateCommandsInBuffer()->SetGraphicsRootDescriptorTable(static_cast<std::uint32_t>(index), nativeBuffer->GetResourceDescriptorHandle()->GetGPUDescriptorHandle());
 							});
 					}
 					break;
@@ -200,7 +200,7 @@ namespace MMPEngine::Backend::Dx12
 					{
 						this->_applyMaterialParametersCallbacks.emplace_back([nativeBuffer, index](const auto& ctx)
 							{
-								ctx->PopulateCommandsInList()->SetGraphicsRootShaderResourceView(static_cast<std::uint32_t>(index), nativeBuffer->GetNativeGPUAddressWithRequiredOffset());
+								ctx->PopulateCommandsInBuffer()->SetGraphicsRootShaderResourceView(static_cast<std::uint32_t>(index), nativeBuffer->GetNativeGPUAddressWithRequiredOffset());
 							});
 					}
 					break;
@@ -221,7 +221,7 @@ namespace MMPEngine::Backend::Dx12
 
 					this->_applyMaterialParametersCallbacks.emplace_back([stencilRef](const auto& ctx)
 						{
-							ctx->PopulateCommandsInList()->OMSetStencilRef(static_cast<std::uint32_t>(stencilRef->value));
+							ctx->PopulateCommandsInBuffer()->OMSetStencilRef(static_cast<std::uint32_t>(stencilRef->value));
 						});
 
 					continue;

@@ -52,7 +52,7 @@ namespace MMPEngine::Backend::Dx12
 		assert(srcNativeAddressWithOffset >= srcNativeBaseAddress);
 		assert(dstNativeAddressWithOffset >= dstNativeBaseAddress);
 
-		_specificStreamContext->PopulateCommandsInList()->CopyBufferRegion(
+		_specificStreamContext->PopulateCommandsInBuffer()->CopyBufferRegion(
 			dstBuffer->GetNativeResource().Get(),
 			static_cast<std::uint64_t>(tc->dstByteOffset) + static_cast<std::uint64_t>(dstNativeAddressWithOffset - dstNativeBaseAddress),
 			srcBuffer->GetNativeResource().Get(),
@@ -417,7 +417,7 @@ namespace MMPEngine::Backend::Dx12
 		const auto entity = tc->entity;
 		constexpr std::uint32_t clear[]{ 0,0,0,0 };
 		
-		_specificStreamContext->PopulateCommandsInList()->ClearUnorderedAccessViewUint(
+		_specificStreamContext->PopulateCommandsInBuffer()->ClearUnorderedAccessViewUint(
 			entity->GetShaderVisibleCounterDescriptorHandle()->GetGPUDescriptorHandle(),
 			entity->GetShaderInVisibleCounterDescriptorHandle()->GetCPUDescriptorHandle(),
 			entity->GetNativeResource().Get(),

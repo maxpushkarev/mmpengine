@@ -201,7 +201,7 @@ namespace MMPEngine::Backend::Dx12
 		const auto screen = GetTaskContext()->entity;
 		screen->_swapChain->Present(screen->_settings.vSync, 0);
 		screen->_backBuffer->Swap();
-		_specificStreamContext->PopulateCommandsInList();
+		_specificStreamContext->PopulateCommandsInBuffer();
 	}
 
 }

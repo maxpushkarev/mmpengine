@@ -11,12 +11,12 @@ namespace MMPEngine::Backend::Shared
 	public:
 		using PassControl = Core::PassControl<true, Core::BaseStream>;
 		StreamContext(
-			TQueue queue,
-			TCommandBufferAllocator allocator,
-			TCommandBuffer cmdBuffer,
-			TFence fence
+			const TQueue& queue,
+			const TCommandBufferAllocator& allocator,
+			const TCommandBuffer& cmdBuffer,
+			const TFence& fence
 		);
-		TCommandBuffer& PopulateCommandsInList();
+		TCommandBuffer& PopulateCommandsInBuffer();
 		TQueue& GetQueue();
 		TCommandBufferAllocator& GetAllocator(PassControl);
 		TCommandBuffer& GetCommandBuffer(PassControl);
@@ -39,10 +39,10 @@ namespace MMPEngine::Backend::Shared
 
 	template<typename TQueue, typename TCommandBufferAllocator, typename TCommandBuffer, typename TFence>
 	StreamContext<TQueue, TCommandBufferAllocator, TCommandBuffer, TFence>::StreamContext(
-		TQueue queue,
-		TCommandBufferAllocator allocator,
-		TCommandBuffer cmdBuffer,
-		TFence fence
+		const TQueue& queue,
+		const TCommandBufferAllocator& allocator,
+		const TCommandBuffer& cmdBuffer,
+		const TFence& fence
 	) : _queue(queue), _allocator(allocator), _cmdBuffer(cmdBuffer), _fence(fence)
 	{
 	}
@@ -54,7 +54,7 @@ namespace MMPEngine::Backend::Shared
 	}
 
 	template <typename TQueue, typename TCommandBufferAllocator, typename TCommandBuffer, typename TFence>
-	TCommandBuffer& StreamContext<TQueue, TCommandBufferAllocator, TCommandBuffer, TFence>::PopulateCommandsInList()
+	TCommandBuffer& StreamContext<TQueue, TCommandBufferAllocator, TCommandBuffer, TFence>::PopulateCommandsInBuffer()
 	{
 		_commandsPopulated = true;
 		return _cmdBuffer;

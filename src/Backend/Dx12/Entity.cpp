@@ -66,7 +66,7 @@ namespace MMPEngine::Backend::Dx12
 					CD3DX12_RESOURCE_BARRIER::Transition(entity->GetNativeResource().Get(),  entity->_currentStateMask, tc->nextStateMask)
 				};
 
-				_specificStreamContext->PopulateCommandsInList()->ResourceBarrier(static_cast<std::uint32_t>(std::size(transitions)), transitions);
+				_specificStreamContext->PopulateCommandsInBuffer()->ResourceBarrier(static_cast<std::uint32_t>(std::size(transitions)), transitions);
 				entity->_currentStateMask = tc->nextStateMask;
 			}
 		}

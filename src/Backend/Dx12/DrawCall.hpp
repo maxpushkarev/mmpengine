@@ -455,10 +455,10 @@ namespace MMPEngine::Backend::Dx12
 			const auto ctx = this->GetTaskContext();
 			const auto& ibv = ctx->mesh->GetIndexBufferView();
 
-			this->_specificStreamContext->PopulateCommandsInList()->IASetIndexBuffer(&ibv);
+			this->_specificStreamContext->PopulateCommandsInBuffer()->IASetIndexBuffer(&ibv);
 
 			const auto& vbvs = ctx->mesh->GetVertexBufferViews();
-			this->_specificStreamContext->PopulateCommandsInList()->IASetVertexBuffers(
+			this->_specificStreamContext->PopulateCommandsInBuffer()->IASetVertexBuffers(
 				0,
 				static_cast<std::uint32_t>(vbvs.size()), vbvs.data());
 
@@ -473,13 +473,13 @@ namespace MMPEngine::Backend::Dx12
 				break;
 			}
 
-			this->_specificStreamContext->PopulateCommandsInList()->IASetPrimitiveTopology(d3d12Topology);
+			this->_specificStreamContext->PopulateCommandsInBuffer()->IASetPrimitiveTopology(d3d12Topology);
 
 			const auto& subsets = ctx->mesh->GetSubsets();
 
 			for (const auto& ss : subsets)
 			{
-				this->_specificStreamContext->PopulateCommandsInList()->DrawIndexedInstanced(
+				this->_specificStreamContext->PopulateCommandsInBuffer()->DrawIndexedInstanced(
 					ss.indexCount,
 					static_cast<std::uint32_t>(ctx->meshRenderer->GetSettings().dynamicData.instancesCount),
 					ss.indexStart,
