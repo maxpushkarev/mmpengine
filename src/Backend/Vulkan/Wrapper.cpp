@@ -85,5 +85,9 @@ namespace MMPEngine::Backend::Vulkan
 			vkDestroyFence(_device->GetNative(), _fence, nullptr);
 		}
 
+		VkFence Fence::GetNative() const
+		{
+			return _fence;
+		}
 	}
 }

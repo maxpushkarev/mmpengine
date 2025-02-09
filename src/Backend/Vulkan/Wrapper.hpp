@@ -91,6 +91,9 @@ namespace MMPEngine::Backend::Vulkan
 			Fence& operator=(const Fence&) = delete;
 			Fence& operator=(Fence&&) noexcept = delete;
 			~Fence();
+
+			VkFence GetNative() const;
+
 		private:
 			std::shared_ptr<Device> _device;
 			VkFence _fence;

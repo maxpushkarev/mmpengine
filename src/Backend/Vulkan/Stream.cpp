@@ -6,4 +6,31 @@ namespace MMPEngine::Backend::Vulkan
 		: Super(globalContext, streamContext)
 	{
 	}
+
+	Stream::~Stream() = default;
+
+	bool Stream::IsFenceCompleted()
+	{
+		return vkGetFenceStatus(_specificGlobalContext->device->GetNative(), _specificStreamContext->GetFence(_passControl)->GetNative()) == VK_SUCCESS;
+	}
+
+	void Stream::ResetCommandBufferAndAllocator()
+	{
+		
+	}
+
+	void Stream::ScheduleCommandBufferForExecution()
+	{
+		
+	}
+
+	void Stream::UpdateFence()
+	{
+		
+	}
+
+	void Stream::WaitFence()
+	{
+		
+	}
 }
