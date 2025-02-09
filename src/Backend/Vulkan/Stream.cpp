@@ -21,12 +21,51 @@ namespace MMPEngine::Backend::Vulkan
 
 	void Stream::ScheduleCommandBufferForExecution()
 	{
-		//VkSubmitInfo submitInfo;
-		//vkQueueSubmit()
+		VkSubmitInfo submitInfo;
+		submitInfo.pNext = nullptr;
+		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+
+		submitInfo.commandBufferCount = 1;
+		const auto cb = _specificStreamContext->GetCommandBuffer(_passControl)->GetNative();
+		submitInfo.pCommandBuffers = &cb;
+
+		submitInfo.waitSemaphoreCount = 0;
+		submitInfo.pWaitSemaphores = nullptr;
+		submitInfo.pWaitDstStageMask = nullptr;
+
+		submitInfo.signalSemaphoreCount = 0;
+		submitInfo.pSignalSemaphores = nullptr;
+
+		vkQueueSubmit(
+			_specificStreamContext->GetQueue()->GetNative(),
+			1,
+			&submitInfo,
+			nullptr
+		);
 	}
 
 	void Stream::UpdateFence()
 	{
+		VkSubmitInfo submitInfo;
+		submitInfo.pNext = nullptr;
+		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+
+		submitInfo.commandBufferCount = 0;
+		submitInfo.pCommandBuffers = nullptr;
+
+		submitInfo.waitSemaphoreCount = 0;
+		submitInfo.pWaitSemaphores = nullptr;
+		submitInfo.pWaitDstStageMask = nullptr;
+
+		submitInfo.signalSemaphoreCount = 0;
+		submitInfo.pSignalSemaphores = nullptr;
+
+		vkQueueSubmit(
+			_specificStreamContext->GetQueue()->GetNative(),
+			1,
+			&submitInfo,
+			_specificStreamContext->GetFence(_passControl)->GetNative()
+		);
 	}
 
 	void Stream::WaitFence()
