@@ -460,7 +460,7 @@ namespace MMPEngine::Feature
 			assert(vkGetFenceStatus(vkDevice, vkFence) == VK_SUCCESS);
 			const auto fenceWrapper =  std::make_shared<Backend::Vulkan::Wrapper::Fence>(_rootContext->device, vkFence);
 
-			const auto streamContext = std::make_shared<Backend::Vulkan::StreamContext>();
+			const auto streamContext = std::make_shared<Backend::Vulkan::StreamContext>(queueWrapper, commandAllocatorWrapper, commandBufferWrapper, fenceWrapper);
 			_defaultStream = std::make_shared<Backend::Vulkan::Stream>(_rootContext, streamContext);
 
 
