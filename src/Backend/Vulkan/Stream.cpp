@@ -21,16 +21,23 @@ namespace MMPEngine::Backend::Vulkan
 
 	void Stream::ScheduleCommandBufferForExecution()
 	{
-		
+		//VkSubmitInfo submitInfo;
+		//vkQueueSubmit()
 	}
 
 	void Stream::UpdateFence()
 	{
-		
 	}
 
 	void Stream::WaitFence()
 	{
-		
+		const auto vkFence = _specificStreamContext->GetFence(_passControl)->GetNative();
+		vkWaitForFences(
+			_specificGlobalContext->device->GetNative(),
+			1,
+			&vkFence,
+			VK_TRUE,
+			(std::numeric_limits<std::uint64_t>::max)()
+		);
 	}
 }
