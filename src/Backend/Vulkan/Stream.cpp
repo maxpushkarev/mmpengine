@@ -16,7 +16,7 @@ namespace MMPEngine::Backend::Vulkan
 
 	void Stream::ResetCommandBufferAndAllocator()
 	{
-		
+		vkResetCommandBuffer(_specificStreamContext->GetCommandBuffer(_passControl)->GetNative(), VK_COMMAND_BUFFER_RESET_RELEASE_RESOURCES_BIT);
 	}
 
 	void Stream::ScheduleCommandBufferForExecution()
