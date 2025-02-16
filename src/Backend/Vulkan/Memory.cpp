@@ -1,4 +1,5 @@
 #include <Backend/Vulkan/Memory.hpp>
+#include <cassert>
 
 namespace MMPEngine::Backend::Vulkan
 {
@@ -10,7 +11,7 @@ namespace MMPEngine::Backend::Vulkan
 	{
 		if(_mem && _device)
 		{
-			vkFreeMemory(_device->GetNative(), _mem, nullptr);
+			vkFreeMemory(_device->GetNativeLogical(), _mem, nullptr);
 		}
 	}
 
@@ -21,6 +22,17 @@ namespace MMPEngine::Backend::Vulkan
 	void DeviceMemoryBlock::InitTask::Run(const std::shared_ptr<Core::BaseStream>& stream)
 	{
 		Task::Run(stream);
+		const auto entity = GetTaskContext()->entity;
+		entity->_device = _specificGlobalContext->device;
+
+		VkMemoryAllocateInfo info {};
+		info.allocationSize = static_cast<VkDeviceSize>(entity->_settings.byteSize);
+		info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+		//info.memoryTypeIndex
+		//vkGetPhysicalDeviceMemoryProperties()
+
+		const auto res = vkAllocateMemory(entity->_device->GetNativeLogical(), &info, nullptr, &entity->_mem);
+		assert(res == VkResult::VK_SUCCESS);
 	}
 
 	std::shared_ptr<Core::BaseTask> DeviceMemoryBlock::CreateInitializationTask()

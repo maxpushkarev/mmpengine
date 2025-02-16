@@ -13,19 +13,24 @@ namespace MMPEngine::Backend::Vulkan
 			vkDestroyInstance(_instance, nullptr);
 		}
 
-		Device::Device(const std::shared_ptr<Instance>& instance, VkDevice device) : _instance(instance), _device(device)
+		Device::Device(const std::shared_ptr<Instance>& instance, VkPhysicalDevice physicalDevice, VkDevice device) : _instance(instance), _physicalDevice(physicalDevice), _logicalDevice(device)
 		{
 		}
 
 		Device::~Device()
 		{
-			vkDeviceWaitIdle(_device);
-			vkDestroyDevice(_device, nullptr);
+			vkDeviceWaitIdle(_logicalDevice);
+			vkDestroyDevice(_logicalDevice, nullptr);
 		}
 
-		VkDevice Device::GetNative() const
+		VkDevice Device::GetNativeLogical() const
 		{
-			return _device;
+			return _logicalDevice;
+		}
+
+		VkPhysicalDevice Device::GetNativePhysical() const
+		{
+			return _physicalDevice;
 		}
 
 		CommandAllocator::CommandAllocator(const std::shared_ptr<Device>& device, VkCommandPool pool)
@@ -35,7 +40,7 @@ namespace MMPEngine::Backend::Vulkan
 
 		CommandAllocator::~CommandAllocator()
 		{
-			vkDestroyCommandPool(_device->GetNative(), _pool, nullptr);
+			vkDestroyCommandPool(_device->GetNativeLogical(), _pool, nullptr);
 		}
 
 		VkCommandPool CommandAllocator::GetNative() const
@@ -54,7 +59,7 @@ namespace MMPEngine::Backend::Vulkan
 
 		CommandBuffer::~CommandBuffer()
 		{
-			vkFreeCommandBuffers(_device->GetNative(), _allocator->GetNative(), 1, &_buffer);
+			vkFreeCommandBuffers(_device->GetNativeLogical(), _allocator->GetNative(), 1, &_buffer);
 		}
 
 		VkCommandBuffer CommandBuffer::GetNative() const
@@ -82,7 +87,7 @@ namespace MMPEngine::Backend::Vulkan
 
 		Fence::~Fence()
 		{
-			vkDestroyFence(_device->GetNative(), _fence, nullptr);
+			vkDestroyFence(_device->GetNativeLogical(), _fence, nullptr);
 		}
 
 		VkFence Fence::GetNative() const

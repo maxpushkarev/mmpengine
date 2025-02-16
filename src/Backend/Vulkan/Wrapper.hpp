@@ -22,16 +22,18 @@ namespace MMPEngine::Backend::Vulkan
 		class Device final
 		{
 		public:
-			Device(const std::shared_ptr<Instance>& instance, VkDevice device);
+			Device(const std::shared_ptr<Instance>& instance, VkPhysicalDevice physicalDevice, VkDevice device);
 			Device(const Device&) = delete;
 			Device(Device&&) noexcept = delete;
 			Device& operator=(const Device&) = delete;
 			Device& operator=(Device&&) noexcept = delete;
 			~Device();
-			VkDevice GetNative() const;
+			VkDevice GetNativeLogical() const;
+			VkPhysicalDevice GetNativePhysical() const;
 		private:
 			std::shared_ptr<Instance> _instance;
-			VkDevice _device;
+			VkPhysicalDevice _physicalDevice;
+			VkDevice _logicalDevice;
 		};
 
 		class CommandAllocator final

@@ -425,7 +425,7 @@ namespace MMPEngine::Feature
 			VkDevice vkDevice;
 			const auto createDeviceRes = vkCreateDevice(physicalDevices[selectedDeviceProps.value().first], &createDeviceInfo, nullptr, &vkDevice);
 			assert(createDeviceRes == VK_SUCCESS);
-			_rootContext->device = std::make_shared<Backend::Vulkan::Wrapper::Device>(_rootContext->instance, vkDevice);
+			_rootContext->device = std::make_shared<Backend::Vulkan::Wrapper::Device>(_rootContext->instance, physicalDevices[selectedDeviceProps.value().first], vkDevice);
 
 			VkQueue queue;
 			vkGetDeviceQueue(vkDevice, static_cast<std::uint32_t>(queueFamilyIndex.value()), 0, &queue);
