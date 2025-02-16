@@ -1,6 +1,7 @@
 #pragma once
 #include <Core/Entity.hpp>
 #include <Backend/Vulkan/Task.hpp>
+#include <Backend/Vulkan/Wrapper.hpp>
 
 namespace MMPEngine::Backend::Vulkan
 {
@@ -13,9 +14,16 @@ namespace MMPEngine::Backend::Vulkan
 		};
 
 		DeviceMemoryBlock(const Settings&);
+		DeviceMemoryBlock(const DeviceMemoryBlock&) = delete;
+		DeviceMemoryBlock(DeviceMemoryBlock&&) noexcept = delete;
+		DeviceMemoryBlock& operator=(const DeviceMemoryBlock&) = delete;
+		DeviceMemoryBlock& operator=(DeviceMemoryBlock&&) noexcept = delete;
+		~DeviceMemoryBlock() override;
 		std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;
 	private:
 		Settings _settings;
+		std::shared_ptr<Wrapper::Device> _device;
+		VkDeviceMemory _mem;
 
 		class InitTaskContext final : public Core::EntityTaskContext<DeviceMemoryBlock>
 		{

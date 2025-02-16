@@ -2,8 +2,16 @@
 
 namespace MMPEngine::Backend::Vulkan
 {
-	DeviceMemoryBlock::DeviceMemoryBlock(const Settings& settings) : _settings(settings)
+	DeviceMemoryBlock::DeviceMemoryBlock(const Settings& settings) : _settings(settings), _mem(nullptr)
 	{
+	}
+
+	DeviceMemoryBlock::~DeviceMemoryBlock()
+	{
+		if(_mem && _device)
+		{
+			vkFreeMemory(_device->GetNative(), _mem, nullptr);
+		}
 	}
 
 	DeviceMemoryBlock::InitTask::InitTask(const std::shared_ptr<InitTaskContext>& ctx) : Task<MMPEngine::Backend::Vulkan::DeviceMemoryBlock::InitTaskContext>(ctx)
