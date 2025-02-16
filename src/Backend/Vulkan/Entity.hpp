@@ -1,5 +1,6 @@
 #pragma once
 #include <Core/Entity.hpp>
+#include <Backend/Vulkan/Heap.hpp>
 
 namespace MMPEngine::Backend::Vulkan
 {
@@ -12,5 +13,7 @@ namespace MMPEngine::Backend::Vulkan
 		BaseEntity& operator=(const BaseEntity&) = delete;
 		BaseEntity& operator=(BaseEntity&&) noexcept = delete;
 		virtual ~BaseEntity();
+
+		virtual const DeviceMemoryHeap::Handle* GetDeviceMemoryHeapHandle() const;
 	};
 }
