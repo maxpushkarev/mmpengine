@@ -39,9 +39,13 @@ namespace MMPEngine::Backend::Vulkan
 		for(std::uint32_t i = 0; i < memProps.memoryTypeCount; ++i)
 		{
 			const auto& vkMemType = memProps.memoryTypes[i];
-			if(vkMemType.propertyFlags & entity->_settings.flags)
+			if(
+				(vkMemType.propertyFlags & entity->_settings.flags) &&
+				(memProps.memoryHeaps[vkMemType.heapIndex].flags == VkMemoryHeapFlagBits::VK_MEMORY_HEAP_DEVICE_LOCAL_BIT)
+			)
 			{
 				memoryTypeIndex = i;
+				break;
 			}
 		}
 
