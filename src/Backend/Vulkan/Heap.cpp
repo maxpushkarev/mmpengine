@@ -17,12 +17,12 @@ namespace MMPEngine::Backend::Vulkan
 	{
 	}
 
-	DeviceMemoryHeap::Block::Block(std::size_t size) : Core::Heap::Block(size)
+	DeviceMemoryHeap::Block::Block(std::size_t size) : Core::Heap::Block(size), _entity(std::make_shared<DeviceMemoryBlock>(DeviceMemoryBlock::Settings {size}))
 	{
 	}
 
 	std::shared_ptr<Core::BaseEntity> DeviceMemoryHeap::Block::GetEntity() const
 	{
-		return nullptr;
+		return _entity;
 	}
 }

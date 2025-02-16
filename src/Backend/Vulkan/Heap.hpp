@@ -1,5 +1,6 @@
 #pragma once
 #include <Core/Heap.hpp>
+#include <Backend/Vulkan/Memory.hpp>
 
 namespace MMPEngine::Backend::Vulkan
 {
@@ -11,6 +12,8 @@ namespace MMPEngine::Backend::Vulkan
 		public:
 			Block(std::size_t size);
 			std::shared_ptr<Core::BaseEntity> GetEntity() const override;
+		private:
+			std::shared_ptr<DeviceMemoryBlock> _entity;
 		};
 
 	public:
