@@ -6,6 +6,17 @@ namespace MMPEngine::Core::Tests
 	class Heap final : public Core::Heap
 	{
 	public:
+		class Block final: public Core::Heap::Block
+		{
+		public:
+			Block(std::size_t size) : Core::Heap::Block(size)
+			{
+			}
+			std::shared_ptr<Core::BaseEntity> GetEntity() const override
+			{
+				return nullptr;
+			}
+		};
 		class Handle final : public Core::Heap::Handle
 		{
 		public:
@@ -32,6 +43,11 @@ namespace MMPEngine::Core::Tests
 		}
 		Heap(const Core::Heap::Settings& settings) : Core::Heap(settings)
 		{
+		}
+
+		std::unique_ptr<Core::Heap::Block> InstantiateBlock(std::size_t size) override
+		{
+			return std::make_unique<Block>(size);
 		}
 	};
 

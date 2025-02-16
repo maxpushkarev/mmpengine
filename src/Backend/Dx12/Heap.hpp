@@ -1,5 +1,4 @@
 #pragma once
-#include <unordered_set>
 #include <Core/Heap.hpp>
 #include <Core/Task.hpp>
 
@@ -19,24 +18,10 @@ namespace MMPEngine::Backend::Dx12
 		{
 		public:
 			Block(std::size_t size);
-			std::shared_ptr<UploadBuffer> GetEntity() const;
+			std::shared_ptr<UploadBuffer> GetUploadBuffer() const;
+			std::shared_ptr<Core::BaseEntity> GetEntity() const override;
 		private:
 			std::shared_ptr<UploadBuffer> _upload;
-		};
-
-		class InitBlocksTaskContext : public Core::TaskContext
-		{
-		public:
-			std::shared_ptr<ConstantBufferHeap> heap;
-		};
-
-		class InitBlocksTask final : public Core::BaseTask
-		{
-		public:
-			InitBlocksTask(const std::shared_ptr<InitBlocksTaskContext>& ctx);
-			void OnScheduled(const std::shared_ptr<Core::BaseStream>& stream) override;
-		private:
-			std::shared_ptr<InitBlocksTaskContext> _ctx;
 		};
 
 	public:
@@ -55,8 +40,5 @@ namespace MMPEngine::Backend::Dx12
 		};
 
 		Handle Allocate(const Request& request);
-		std::shared_ptr<Core::BaseTask> CreateTaskToInitializeBlocks();
-	private:
-		std::unordered_set<std::uint64_t> _initializedBlockIds;
 	};
 }

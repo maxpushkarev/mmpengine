@@ -8,7 +8,6 @@ namespace MMPEngine::Core
 	}
 	Heap::~Heap() = default;
 
-
 	Heap::Block::Block(std::size_t size) : _size(size)
 	{
 		AddRange({0, size - 1});
@@ -223,11 +222,11 @@ namespace MMPEngine::Core
 
 				if(blockIndex == _blocks.size() || !_blocks.at(blockIndex))
 				{
-					auto newBlockSize = std::max(_settings.initialSize, request.size);
+					auto newBlockSize = (std::max)(_settings.initialSize, request.size);
 
 					if(_lastInstantiatedBlockSize.has_value())
 					{
-						newBlockSize = std::max(_lastInstantiatedBlockSize.value() * _settings.growthFactor, request.size);
+						newBlockSize = (std::max)(_lastInstantiatedBlockSize.value() * _settings.growthFactor, request.size);
 					}
 
 					_lastInstantiatedBlockSize = newBlockSize;
@@ -273,11 +272,6 @@ namespace MMPEngine::Core
 		}
 	}
 
-	std::unique_ptr<Heap::Block> Heap::InstantiateBlock(std::size_t size)
-	{
-		return std::make_unique<Block>(size);
-	}
-
 
 	Heap::Handle::Handle() = default;
 
@@ -316,4 +310,39 @@ namespace MMPEngine::Core
 		}
 	}
 
+	std::shared_ptr<Core::BaseTask> Heap::CreateTaskToInitializeBlocks()
+	{
+		const auto ctx = std::make_shared<InitBlocksTaskContext>();
+		ctx->heap = shared_from_this();
+		return  std::make_shared<InitBlocksTask>(ctx);
+	}
+
+
+	Heap::InitBlocksTask::InitBlocksTask(const std::shared_ptr<InitBlocksTaskContext>& ctx)
+		: _ctx(ctx)
+	{
+	}
+
+	void Heap::InitBlocksTask::OnScheduled(const std::shared_ptr<Core::BaseStream>& stream)
+	{
+		Core::BaseTask::OnScheduled(stream);
+
+		const auto heap = _ctx->heap;
+
+		for (const auto& b : heap->_blocks)
+		{
+			if (!b)
+			{
+				continue;
+			}
+
+			const auto id = b->GetEntity()->GetId();
+
+			if (heap->_initializedBlockEntityIds.find(id) == heap->_initializedBlockEntityIds.cend())
+			{
+				heap->_initializedBlockEntityIds.emplace(id);
+				stream->Schedule(b->GetEntity()->CreateInitializationTask());
+			}
+		}
+	}
 }

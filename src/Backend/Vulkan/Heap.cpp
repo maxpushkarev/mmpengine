@@ -21,6 +21,8 @@ namespace MMPEngine::Backend::Vulkan
 	{
 	}
 
-	DeviceMemoryHeap::Block::~Block() = default;
-
+	std::shared_ptr<Core::BaseEntity> DeviceMemoryHeap::Block::GetEntity() const
+	{
+		return nullptr;
+	}
 }

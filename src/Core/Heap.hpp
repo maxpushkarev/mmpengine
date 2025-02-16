@@ -4,6 +4,8 @@
 #include <set>
 #include <unordered_map>
 #include <vector>
+#include <Core/Task.hpp>
+#include <Core/Entity.hpp>
 
 namespace MMPEngine::Core
 {
@@ -39,8 +41,10 @@ namespace MMPEngine::Core
 			void Release(const Range& range);
 			std::size_t GetSize() const;
 			bool Empty() const;
+			virtual std::shared_ptr<Core::BaseEntity> GetEntity() const = 0;
 
 		private:
+
 			struct RangeComparer final
 			{
 				bool operator()(const Range& lhs, const Range& rhs) const;
@@ -66,7 +70,7 @@ namespace MMPEngine::Core
 		Heap& operator=(const Heap&) = delete;
 		Heap& operator=(Heap&&) noexcept = delete;
 		virtual ~Heap();
-
+		std::shared_ptr<Core::BaseTask> CreateTaskToInitializeBlocks();
 	protected:
 		struct Entry final
 		{
@@ -75,7 +79,7 @@ namespace MMPEngine::Core
 		};
 
 		virtual Entry AllocateEntry(const Request& request);
-		virtual std::unique_ptr<Block> InstantiateBlock(std::size_t size);
+		virtual std::unique_ptr<Block> InstantiateBlock(std::size_t size) = 0;
 		virtual void ReleaseEntry(const Entry& entry);
 
 		class Handle
@@ -96,6 +100,25 @@ namespace MMPEngine::Core
 
 		Settings _settings;
 		std::vector<std::unique_ptr<Block>> _blocks;
+	private:
+
+		class InitBlocksTaskContext : public Core::TaskContext
+		{
+		public:
+			std::shared_ptr<Heap> heap;
+		};
+
+		class InitBlocksTask final : public Core::BaseTask
+		{
+		public:
+			InitBlocksTask(const std::shared_ptr<InitBlocksTaskContext>& ctx);
+			void OnScheduled(const std::shared_ptr<Core::BaseStream>& stream) override;
+		private:
+			std::shared_ptr<InitBlocksTaskContext> _ctx;
+		};
+
+
 		std::optional<std::size_t> _lastInstantiatedBlockSize = std::nullopt;
+		std::unordered_set<std::uint64_t> _initializedBlockEntityIds;
 	};
 }

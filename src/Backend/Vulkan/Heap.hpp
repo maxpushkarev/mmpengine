@@ -6,19 +6,15 @@ namespace MMPEngine::Backend::Vulkan
 	class DeviceMemoryHeap final : public Core::Heap
 	{
 	private:
-		class Block : public Core::Heap::Block
+		class Block final : public Core::Heap::Block
 		{
 		public:
 			Block(std::size_t size);
-			Block(const Block&) = delete;
-			Block(Block&&) noexcept = delete;
-			Block& operator=(const Block&) = delete;
-			Block& operator=(Block&&) noexcept = delete;
-			~Block() override;
+			std::shared_ptr<Core::BaseEntity> GetEntity() const override;
 		};
 
 	public:
-		class Handle : public Core::Heap::Handle
+		class Handle final : public Core::Heap::Handle
 		{
 		public:
 			Handle();
