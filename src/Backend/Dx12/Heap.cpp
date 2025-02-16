@@ -73,6 +73,11 @@ namespace MMPEngine::Backend::Dx12
 
 		for(const auto& b : heap->_blocks)
 		{
+			if(!b)
+			{
+				continue;
+			}
+
 			const auto castedBlock = dynamic_cast<Block*>(b.get());
 			const auto id = castedBlock->GetEntity()->GetId();
 

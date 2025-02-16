@@ -38,6 +38,7 @@ namespace MMPEngine::Core
 			std::optional<Range> TryAllocate(const Request& request);
 			void Release(const Range& range);
 			std::size_t GetSize() const;
+			bool Empty() const;
 
 		private:
 			struct RangeComparer final
@@ -57,6 +58,7 @@ namespace MMPEngine::Core
 		{
 			std::size_t initialSize = 1024;
 			std::size_t growthFactor = 2;
+			bool removeEmptyBlocks = false;
 		};
 		Heap(const Settings& settings);
 		Heap(const Heap&) = delete;
@@ -71,7 +73,7 @@ namespace MMPEngine::Core
 			std::size_t blockIndex;
 			Block::Range range;
 		};
-		Settings _settings;
+
 		virtual Entry AllocateEntry(const Request& request);
 		virtual std::unique_ptr<Block> InstantiateBlock(std::size_t size);
 		virtual void ReleaseEntry(const Entry& entry);
@@ -92,6 +94,8 @@ namespace MMPEngine::Core
 			std::weak_ptr<Heap> _heap;
 		};
 
+		Settings _settings;
 		std::vector<std::unique_ptr<Block>> _blocks;
+		std::optional<std::size_t> _lastInstantiatedBlockSize = std::nullopt;
 	};
 }

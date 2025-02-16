@@ -150,6 +150,16 @@ namespace MMPEngine::Core
 		return _size;
 	}
 
+	bool Heap::Block::Empty() const
+	{
+		if(_freeRanges.size() > 1)
+		{
+			return false;
+		}
+
+		const auto& singleRange = _freeRanges.cbegin();
+		return (singleRange->from == 0 && singleRange->to == _size - 1);
+	}
 
 	void Heap::Block::Release(const Range& range)
 	{
@@ -181,32 +191,17 @@ namespace MMPEngine::Core
 	{
 		assert(request.size > 0);
 
-		std::size_t blockIndex = 0;
-
-		while(true)
+		for(std::size_t blockIndex = 0; blockIndex < _blocks.size(); ++blockIndex)
 		{
-			Block* blockPtr = nullptr;
+			auto& blockPtr = _blocks.at(blockIndex);
 
-			if(blockIndex == _blocks.size())
+			if (!blockPtr)
 			{
-				auto newBlockSize = std::max(_settings.initialSize, request.size);
-
-				if(!_blocks.empty())
-				{
-					newBlockSize = std::max(_blocks.back()->GetSize() * _settings.growthFactor, request.size);
-				}
-
-				_blocks.emplace_back(InstantiateBlock(newBlockSize));
-				blockPtr = _blocks.back().get();
-			}
-			else
-			{
-				blockPtr = _blocks.at(blockIndex).get();
+				continue;
 			}
 
 			const auto range = blockPtr->TryAllocate(request);
-
-			if(range.has_value())
+			if (range.has_value())
 			{
 				assert(!request.alignment.has_value() || ((range.value().from % request.alignment.value()) == 0));
 				assert(range.value().GetLength() == request.size);
@@ -214,13 +209,62 @@ namespace MMPEngine::Core
 				return { static_cast<std::size_t>(blockIndex), range.value() };
 			}
 
-			++ blockIndex;
+			if(_settings.removeEmptyBlocks && blockPtr->Empty())
+			{
+				blockPtr = nullptr;
+			}
+		}
+
+		{
+			std::size_t blockIndex = 0;
+			while(true)
+			{
+				Block* blockPtr = nullptr;
+
+				if(blockIndex == _blocks.size() || !_blocks.at(blockIndex))
+				{
+					auto newBlockSize = std::max(_settings.initialSize, request.size);
+
+					if(_lastInstantiatedBlockSize.has_value())
+					{
+						newBlockSize = std::max(_lastInstantiatedBlockSize.value() * _settings.growthFactor, request.size);
+					}
+
+					_lastInstantiatedBlockSize = newBlockSize;
+
+					if(blockIndex == _blocks.size())
+					{
+						_blocks.emplace_back(InstantiateBlock(newBlockSize));
+					}
+					else
+					{
+						_blocks.at(blockIndex) = InstantiateBlock(newBlockSize);
+					}
+				}
+
+				blockPtr = _blocks.at(blockIndex).get();
+				const auto range = blockPtr->TryAllocate(request);
+
+				if(range.has_value())
+				{
+					assert(!request.alignment.has_value() || ((range.value().from % request.alignment.value()) == 0));
+					assert(range.value().GetLength() == request.size);
+
+					return { static_cast<std::size_t>(blockIndex), range.value() };
+				}
+
+				++ blockIndex;
+			}
 		}
 	}
 
 	void Heap::ReleaseEntry(const Entry& entry)
 	{
 		_blocks.at(entry.blockIndex)->Release(entry.range);
+		if (_settings.removeEmptyBlocks && _blocks.at(entry.blockIndex)->Empty())
+		{
+			_blocks.at(entry.blockIndex) = nullptr;
+		}
 	}
 
 	std::unique_ptr<Heap::Block> Heap::InstantiateBlock(std::size_t size)
