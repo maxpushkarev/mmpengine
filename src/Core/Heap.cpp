@@ -253,6 +253,11 @@ namespace MMPEngine::Core
 					return { static_cast<std::size_t>(blockIndex), range.value() };
 				}
 
+				if (_settings.removeEmptyBlocks && blockPtr->Empty())
+				{
+					_blocks.at(blockIndex) = nullptr;
+				}
+
 				++ blockIndex;
 			}
 		}
@@ -260,10 +265,11 @@ namespace MMPEngine::Core
 
 	void Heap::ReleaseEntry(const Entry& entry)
 	{
-		_blocks.at(entry.blockIndex)->Release(entry.range);
-		if (_settings.removeEmptyBlocks && _blocks.at(entry.blockIndex)->Empty())
+		auto& b = _blocks.at(entry.blockIndex);
+		b->Release(entry.range);
+		if (_settings.removeEmptyBlocks && b->Empty())
 		{
-			_blocks.at(entry.blockIndex) = nullptr;
+			b = nullptr;
 		}
 	}
 
