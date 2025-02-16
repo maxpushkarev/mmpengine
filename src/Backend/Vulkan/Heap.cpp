@@ -2,13 +2,13 @@
 
 namespace MMPEngine::Backend::Vulkan
 {
-	DeviceMemoryHeap::DeviceMemoryHeap(const Settings& settings, VkMemoryPropertyFlagBits flags) : Core::Heap(settings), _flags(flags)
+	DeviceMemoryHeap::DeviceMemoryHeap(const Settings& settings, VkMemoryPropertyFlagBits includeFlags, VkMemoryPropertyFlagBits excludeFlags) : Core::Heap(settings), _includeFlags(includeFlags), _excludeFlags(excludeFlags)
 	{
 	}
 
 	std::unique_ptr<Core::Heap::Block> DeviceMemoryHeap::InstantiateBlock(std::size_t size)
 	{
-		return std::make_unique<Block>(DeviceMemoryBlock::Settings {size, _flags});
+		return std::make_unique<Block>(DeviceMemoryBlock::Settings {size, _includeFlags, _excludeFlags});
 	}
 
 	DeviceMemoryHeap::Handle::Handle() = default;

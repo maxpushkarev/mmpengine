@@ -16,6 +16,28 @@ namespace MMPEngine::Backend::Vulkan
 		}
 	}
 
+	std::optional<std::uint32_t> DeviceMemoryBlock::FindMemoryType(VkPhysicalDevice physicalDevice, VkMemoryPropertyFlagBits includeFlags, VkMemoryPropertyFlagBits excludeFlags)
+	{
+		VkPhysicalDeviceMemoryProperties memProps{};
+		vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memProps);
+
+		for (std::uint32_t i = 0; i < memProps.memoryTypeCount; ++i)
+		{
+			const auto& vkMemType = memProps.memoryTypes[i];
+			if (
+				(memProps.memoryHeaps[vkMemType.heapIndex].flags == VkMemoryHeapFlagBits::VK_MEMORY_HEAP_DEVICE_LOCAL_BIT) &&
+				((vkMemType.propertyFlags & includeFlags) == includeFlags) &&
+				(((~vkMemType.propertyFlags) & excludeFlags) == excludeFlags)
+				)
+			{
+				return i;
+			}
+		}
+
+		return std::nullopt;
+	}
+
+
 	DeviceMemoryBlock::InitTask::InitTask(const std::shared_ptr<InitTaskContext>& ctx) : Task<MMPEngine::Backend::Vulkan::DeviceMemoryBlock::InitTaskContext>(ctx)
 	{
 	}
@@ -31,24 +53,7 @@ namespace MMPEngine::Backend::Vulkan
 		info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 		info.pNext = nullptr;
 
-		std::optional<std::uint32_t> memoryTypeIndex = std::nullopt;
-
-		VkPhysicalDeviceMemoryProperties memProps {};
-		vkGetPhysicalDeviceMemoryProperties(entity->_device->GetNativePhysical(), &memProps);
-
-		for(std::uint32_t i = 0; i < memProps.memoryTypeCount; ++i)
-		{
-			const auto& vkMemType = memProps.memoryTypes[i];
-			if(
-				(vkMemType.propertyFlags & entity->_settings.flags) &&
-				(memProps.memoryHeaps[vkMemType.heapIndex].flags == VkMemoryHeapFlagBits::VK_MEMORY_HEAP_DEVICE_LOCAL_BIT)
-			)
-			{
-				memoryTypeIndex = i;
-				break;
-			}
-		}
-
+		const auto memoryTypeIndex = FindMemoryType(entity->_device->GetNativePhysical(), entity->_settings.includeFlags, entity->_settings.excludeFlags);
 		assert(memoryTypeIndex.has_value());
 		info.memoryTypeIndex = memoryTypeIndex.value();
 

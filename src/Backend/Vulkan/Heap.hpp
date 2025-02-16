@@ -25,9 +25,10 @@ namespace MMPEngine::Backend::Vulkan
 			Handle(const std::shared_ptr<Heap>& heap, const Entry& entry);
 		};
 
-		DeviceMemoryHeap(const Settings& settings, VkMemoryPropertyFlagBits flags);
+		DeviceMemoryHeap(const Settings& settings, VkMemoryPropertyFlagBits includeFlags, VkMemoryPropertyFlagBits excludeFlags);
 		std::unique_ptr<Heap::Block> InstantiateBlock(std::size_t size) override;
 	private:
-		VkMemoryPropertyFlagBits _flags;
+		VkMemoryPropertyFlagBits _includeFlags;
+		VkMemoryPropertyFlagBits _excludeFlags;
 	};
 }

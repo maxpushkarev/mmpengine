@@ -1,4 +1,5 @@
 #pragma once
+#include <optional>
 #include <Core/Entity.hpp>
 #include <Backend/Vulkan/Task.hpp>
 #include <Backend/Vulkan/Wrapper.hpp>
@@ -11,7 +12,8 @@ namespace MMPEngine::Backend::Vulkan
 		struct Settings final
 		{
 			std::size_t byteSize;
-			VkMemoryPropertyFlagBits flags = VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_FLAG_BITS_MAX_ENUM;
+			VkMemoryPropertyFlagBits includeFlags = VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_FLAG_BITS_MAX_ENUM;
+			VkMemoryPropertyFlagBits excludeFlags = VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_FLAG_BITS_MAX_ENUM;
 		};
 
 		DeviceMemoryBlock(const Settings&);
@@ -21,6 +23,7 @@ namespace MMPEngine::Backend::Vulkan
 		DeviceMemoryBlock& operator=(DeviceMemoryBlock&&) noexcept = delete;
 		~DeviceMemoryBlock() override;
 		std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;
+		static std::optional<std::uint32_t> FindMemoryType(VkPhysicalDevice physicalDevice, VkMemoryPropertyFlagBits includeFlags, VkMemoryPropertyFlagBits excludeFlags);
 	private:
 		Settings _settings;
 		std::shared_ptr<Wrapper::Device> _device;
