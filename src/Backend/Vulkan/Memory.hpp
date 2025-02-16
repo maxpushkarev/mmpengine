@@ -11,6 +11,7 @@ namespace MMPEngine::Backend::Vulkan
 		struct Settings final
 		{
 			std::size_t byteSize;
+			VkMemoryPropertyFlagBits flags = VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_FLAG_BITS_MAX_ENUM;
 		};
 
 		DeviceMemoryBlock(const Settings&);

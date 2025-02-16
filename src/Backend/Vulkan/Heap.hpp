@@ -10,7 +10,7 @@ namespace MMPEngine::Backend::Vulkan
 		class Block final : public Core::Heap::Block
 		{
 		public:
-			Block(std::size_t size);
+			Block(const DeviceMemoryBlock::Settings& memBlockSettings);
 			std::shared_ptr<Core::BaseEntity> GetEntity() const override;
 		private:
 			std::shared_ptr<DeviceMemoryBlock> _entity;
@@ -25,7 +25,9 @@ namespace MMPEngine::Backend::Vulkan
 			Handle(const std::shared_ptr<Heap>& heap, const Entry& entry);
 		};
 
-		DeviceMemoryHeap(const Settings& settings);
+		DeviceMemoryHeap(const Settings& settings, VkMemoryPropertyFlagBits flags);
 		std::unique_ptr<Heap::Block> InstantiateBlock(std::size_t size) override;
+	private:
+		VkMemoryPropertyFlagBits _flags;
 	};
 }

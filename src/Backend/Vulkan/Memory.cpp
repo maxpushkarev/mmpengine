@@ -1,5 +1,6 @@
 #include <Backend/Vulkan/Memory.hpp>
 #include <cassert>
+#include <optional>
 
 namespace MMPEngine::Backend::Vulkan
 {
@@ -28,8 +29,24 @@ namespace MMPEngine::Backend::Vulkan
 		VkMemoryAllocateInfo info {};
 		info.allocationSize = static_cast<VkDeviceSize>(entity->_settings.byteSize);
 		info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-		//info.memoryTypeIndex
-		//vkGetPhysicalDeviceMemoryProperties()
+		info.pNext = nullptr;
+
+		std::optional<std::uint32_t> memoryTypeIndex = std::nullopt;
+
+		VkPhysicalDeviceMemoryProperties memProps {};
+		vkGetPhysicalDeviceMemoryProperties(entity->_device->GetNativePhysical(), &memProps);
+
+		for(std::uint32_t i = 0; i < memProps.memoryTypeCount; ++i)
+		{
+			const auto& vkMemType = memProps.memoryTypes[i];
+			if(vkMemType.propertyFlags & entity->_settings.flags)
+			{
+				memoryTypeIndex = i;
+			}
+		}
+
+		assert(memoryTypeIndex.has_value());
+		info.memoryTypeIndex = memoryTypeIndex.value();
 
 		const auto res = vkAllocateMemory(entity->_device->GetNativeLogical(), &info, nullptr, &entity->_mem);
 		assert(res == VkResult::VK_SUCCESS);
