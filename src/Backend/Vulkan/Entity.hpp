@@ -13,7 +13,11 @@ namespace MMPEngine::Backend::Vulkan
 		BaseEntity& operator=(const BaseEntity&) = delete;
 		BaseEntity& operator=(BaseEntity&&) noexcept = delete;
 		virtual ~BaseEntity();
+	};
 
-		virtual const DeviceMemoryHeap::Handle* GetDeviceMemoryHeapHandle() const;
+	class ResourceEntity : public BaseEntity
+	{
+	protected:
+		DeviceMemoryHeap::Handle _deviceMemoryHeapHandle;
 	};
 }
