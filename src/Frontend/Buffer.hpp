@@ -6,6 +6,10 @@
 #include <Backend/Dx12/Buffer.hpp>
 #endif
 
+#ifdef MMPENGINE_BACKEND_VULKAN
+#include <Backend/Vulkan/Buffer.hpp>
+#endif
+
 namespace MMPEngine::Frontend
 {
 	template<typename TCoreBuffer, typename TSettings = Core::Buffer::Settings>

@@ -1,8 +1,6 @@
 #include <Frontend/Buffer.hpp>
 
-#ifdef MMPENGINE_BACKEND_DX12
-#include <Backend/Dx12/Buffer.hpp>
-#endif
+
 
 namespace MMPEngine::Frontend
 {
@@ -32,6 +30,15 @@ namespace MMPEngine::Frontend
 #endif
 		}
 
+		if (globalContext->settings.backend == Core::BackendType::Vulkan)
+		{
+#ifdef MMPENGINE_BACKEND_DX12
+			return std::make_shared<Backend::Vulkan::UploadBuffer>(this->_settings);
+#else
+			throw Core::UnsupportedException("unable to create upload buffer for Vulkan backend");
+#endif
+		}
+
 		return nullptr;
 	}
 
@@ -44,6 +51,15 @@ namespace MMPEngine::Frontend
 			return std::make_shared<Backend::Dx12::ResidentBuffer>(this->_settings);
 #else
 			throw Core::UnsupportedException("unable to create resident buffer for DX12 backend");
+#endif
+		}
+
+		if (globalContext->settings.backend == Core::BackendType::Vulkan)
+		{
+#ifdef MMPENGINE_BACKEND_DX12
+			return std::make_shared<Backend::Vulkan::ResidentBuffer>(this->_settings);
+#else
+			throw Core::UnsupportedException("unable to create upload buffer for Vulkan backend");
 #endif
 		}
 
@@ -89,6 +105,15 @@ namespace MMPEngine::Frontend
 			return std::make_shared<Backend::Dx12::ReadBackBuffer>(this->_settings);
 #else
 			throw Core::UnsupportedException("unable to create readback buffer for DX12 backend");
+#endif
+		}
+
+		if (globalContext->settings.backend == Core::BackendType::Vulkan)
+		{
+#ifdef MMPENGINE_BACKEND_DX12
+			return std::make_shared<Backend::Vulkan::ReadBackBuffer>(this->_settings);
+#else
+			throw Core::UnsupportedException("unable to create upload buffer for Vulkan backend");
 #endif
 		}
 
