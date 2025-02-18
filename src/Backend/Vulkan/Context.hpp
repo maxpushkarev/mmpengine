@@ -6,6 +6,8 @@
 
 namespace MMPEngine::Backend::Vulkan
 {
+	class DeviceMemoryHeap;
+
 	class GlobalContext : public Core::GlobalContext
 	{
 	public:
@@ -13,6 +15,9 @@ namespace MMPEngine::Backend::Vulkan
 	public:
 		std::shared_ptr<Wrapper::Instance> instance;
 		std::shared_ptr<Wrapper::Device> device;
+		std::shared_ptr<DeviceMemoryHeap> uploadBufferHeap;
+		std::shared_ptr<DeviceMemoryHeap> readBackBufferHeap;
+		std::shared_ptr<DeviceMemoryHeap> residentBufferHeap;
 	};
 
 

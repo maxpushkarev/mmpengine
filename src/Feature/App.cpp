@@ -11,6 +11,7 @@
 #ifdef MMPENGINE_BACKEND_VULKAN
 #include <Backend/Vulkan/Stream.hpp>
 #include <Backend/Vulkan/Wrapper.hpp>
+#include <Backend/Vulkan/Heap.hpp>
 #endif
 
 
@@ -426,6 +427,35 @@ namespace MMPEngine::Feature
 			const auto createDeviceRes = vkCreateDevice(physicalDevices[selectedDeviceProps.value().first], &createDeviceInfo, nullptr, &vkDevice);
 			assert(createDeviceRes == VK_SUCCESS);
 			_rootContext->device = std::make_shared<Backend::Vulkan::Wrapper::Device>(_rootContext->instance, physicalDevices[selectedDeviceProps.value().first], vkDevice);
+
+			constexpr std::size_t growthFactor = 2.0f;
+			constexpr std::size_t initialSize = 4096;
+
+			_rootContext->uploadBufferHeap = std::make_shared<Backend::Vulkan::DeviceMemoryHeap>(
+				Core::Heap::Settings {initialSize, growthFactor, true},
+				static_cast<VkMemoryPropertyFlagBits>(
+					VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT |
+					VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_HOST_COHERENT_BIT |
+					VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT
+				),
+				static_cast<VkMemoryPropertyFlagBits>(0)
+			);
+
+			_rootContext->readBackBufferHeap = std::make_shared<Backend::Vulkan::DeviceMemoryHeap>(
+				Core::Heap::Settings {initialSize, growthFactor, true},
+				static_cast<VkMemoryPropertyFlagBits>(
+					VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT |
+					VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_HOST_COHERENT_BIT |
+					VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT
+					),
+				static_cast<VkMemoryPropertyFlagBits>(0)
+			);
+
+			_rootContext->residentBufferHeap = std::make_shared<Backend::Vulkan::DeviceMemoryHeap>(
+				Core::Heap::Settings {initialSize, growthFactor, true},
+				static_cast<VkMemoryPropertyFlagBits>(VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT),
+				static_cast<VkMemoryPropertyFlagBits>(VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT)
+			);
 
 			VkQueue queue;
 			vkGetDeviceQueue(vkDevice, static_cast<std::uint32_t>(queueFamilyIndex.value()), 0, &queue);
