@@ -30,6 +30,11 @@ namespace MMPEngine::Backend::Vulkan
 		return _entry->range.from;
 	}
 
+	std::size_t DeviceMemoryHeap::Handle::GetSize() const
+	{
+		return _entry->range.GetLength();
+	}
+
 	std::shared_ptr<DeviceMemoryBlock> DeviceMemoryHeap::Handle::GetMemoryBlock() const
 	{
 		return _deviceMemoryBlock;

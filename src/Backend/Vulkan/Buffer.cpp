@@ -63,6 +63,14 @@ namespace MMPEngine::Backend::Vulkan
 		);
 
 		assert(res == VK_SUCCESS);
+
+		if(const auto mappedBuffer = std::dynamic_pointer_cast<MappedBuffer>(tc->entity))
+		{
+			mappedBuffer->Map(
+				tc->entity->_deviceMemoryHeapHandle.GetSize(), 
+				tc->entity->_deviceMemoryHeapHandle.GetOffset()
+			);
+		}
 	}
 
 
@@ -76,6 +84,33 @@ namespace MMPEngine::Backend::Vulkan
 		stream->Schedule(std::make_shared<Create>(GetTaskContext()));
 		stream->Schedule(GetTaskContext()->entity->GetMemoryHeap(_specificGlobalContext)->CreateTaskToInitializeBlocks());
 		stream->Schedule(std::make_shared<Bind>(GetTaskContext()));
+	}
+
+	MappedBuffer::MappedBuffer() = default;
+	MappedBuffer::~MappedBuffer()
+	{
+		Unmap();
+	}
+
+	void MappedBuffer::Map(std::size_t byteSize, std::size_t offset)
+	{
+		const auto res = vkMapMemory(
+			_device->GetNativeLogical(), 
+			_deviceMemoryHeapHandle.GetMemoryBlock()->GetNative(), 
+			static_cast<VkDeviceSize>(offset),
+			static_cast<VkDeviceSize>(byteSize),
+			0, 
+			&_mappedBufferPtr
+		);
+		assert(res == VK_SUCCESS);
+	}
+
+	void MappedBuffer::Unmap()
+	{
+		if(_mappedBufferPtr)
+		{
+			vkUnmapMemory(_device->GetNativeLogical(), _deviceMemoryHeapHandle.GetMemoryBlock()->GetNative());
+		}
 	}
 
 

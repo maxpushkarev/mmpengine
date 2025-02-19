@@ -24,6 +24,7 @@ namespace MMPEngine::Backend::Vulkan
 		public:
 			Handle();
 			std::size_t GetOffset() const;
+			std::size_t GetSize() const;
 			std::shared_ptr<DeviceMemoryBlock> GetMemoryBlock() const;
 		protected:
 			Handle(const std::shared_ptr<Heap>& heap, const Entry& entry, const std::shared_ptr<DeviceMemoryBlock>& deviceMemoryBlock);

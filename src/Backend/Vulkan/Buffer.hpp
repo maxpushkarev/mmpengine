@@ -25,7 +25,7 @@ namespace MMPEngine::Backend::Vulkan
 
 		class InitTask final : public Task<InitTaskContext>
 		{
-		private:
+		public:
 
 			class Create final : public Task<InitTaskContext>
 			{
@@ -51,7 +51,24 @@ namespace MMPEngine::Backend::Vulkan
 		std::shared_ptr<Wrapper::Device> _device;
 	};
 
-	class UploadBuffer final : public Core::UploadBuffer, public Buffer
+	class MappedBuffer : public Buffer
+	{
+		friend class MMPEngine::Backend::Vulkan::Buffer::InitTask::Bind;
+	public:
+		MappedBuffer();
+		MappedBuffer(const MappedBuffer&) = delete;
+		MappedBuffer(MappedBuffer&&) noexcept = delete;
+		MappedBuffer& operator=(const MappedBuffer&) = delete;
+		MappedBuffer& operator=(MappedBuffer&&) noexcept = delete;
+		~MappedBuffer() override;
+	protected:
+		void* _mappedBufferPtr;
+	protected:
+		void Map(std::size_t byteSize, std::size_t offset);
+		void Unmap();
+	};
+
+	class UploadBuffer final : public Core::UploadBuffer, public MappedBuffer
 	{
 	public:
 		UploadBuffer(const Settings& settings);
@@ -62,7 +79,7 @@ namespace MMPEngine::Backend::Vulkan
 		std::shared_ptr<DeviceMemoryHeap> GetMemoryHeap(const std::shared_ptr<GlobalContext>& globalContext) const override;
 	};
 
-	class ReadBackBuffer final : public Core::ReadBackBuffer, public Buffer
+	class ReadBackBuffer final : public Core::ReadBackBuffer, public MappedBuffer
 	{
 	public:
 		ReadBackBuffer(const Settings& settings);
