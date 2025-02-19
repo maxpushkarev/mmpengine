@@ -19,6 +19,7 @@ namespace MMPEngine::Backend::Vulkan
 	public:
 		class Handle final : public Core::Heap::Handle
 		{
+			friend DeviceMemoryHeap;
 		public:
 			Handle();
 		protected:
@@ -26,6 +27,8 @@ namespace MMPEngine::Backend::Vulkan
 		};
 
 		DeviceMemoryHeap(const Settings& settings, VkMemoryPropertyFlagBits includeFlags, VkMemoryPropertyFlagBits excludeFlags);
+		Handle Allocate(const Request& request);
+	protected:
 		std::unique_ptr<Heap::Block> InstantiateBlock(std::size_t size) override;
 	private:
 		VkMemoryPropertyFlagBits _includeFlags;

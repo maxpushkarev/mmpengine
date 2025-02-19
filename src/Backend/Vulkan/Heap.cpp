@@ -6,6 +6,14 @@ namespace MMPEngine::Backend::Vulkan
 	{
 	}
 
+	DeviceMemoryHeap::Handle DeviceMemoryHeap::Allocate(const Request& request)
+	{
+		const auto entry = AllocateEntry(request);
+		const auto block = dynamic_cast<Block*>(_blocks[entry.blockIndex].get());
+		return { shared_from_this(), entry };
+	}
+
+
 	std::unique_ptr<Core::Heap::Block> DeviceMemoryHeap::InstantiateBlock(std::size_t size)
 	{
 		return std::make_unique<Block>(DeviceMemoryBlock::Settings {size, _includeFlags, _excludeFlags});

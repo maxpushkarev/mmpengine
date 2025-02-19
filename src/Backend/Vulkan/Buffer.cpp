@@ -34,6 +34,15 @@ namespace MMPEngine::Backend::Vulkan
 
 		tc->entity->_device = _specificGlobalContext->device;
 		vkCreateBuffer(tc->entity->_device->GetNativeLogical(), &bufferInfo, nullptr, &tc->entity->_nativeBuffer);
+
+		const auto memHeap = tc->entity->GetMemoryHeap(_specificGlobalContext);
+		VkMemoryRequirements memRequirements;
+		vkGetBufferMemoryRequirements(tc->entity->_device->GetNativeLogical(), tc->entity->_nativeBuffer, &memRequirements);
+
+		tc->entity->_deviceMemoryHeapHandle = memHeap->Allocate(Core::Heap::Request {
+			static_cast<std::size_t>(memRequirements.size),
+			static_cast<std::size_t>(memRequirements.alignment)
+		});
 	}
 
 
@@ -64,6 +73,10 @@ namespace MMPEngine::Backend::Vulkan
 		return std::make_shared<InitTask>(ctx);
 	}
 
+	std::shared_ptr<DeviceMemoryHeap> UploadBuffer::GetMemoryHeap(const std::shared_ptr<GlobalContext>& globalContext) const
+	{
+		return globalContext->uploadBufferHeap;
+	}
 
 	ReadBackBuffer::ReadBackBuffer(const Settings& settings) : Core::ReadBackBuffer(settings)
 	{
@@ -92,6 +105,11 @@ namespace MMPEngine::Backend::Vulkan
 		return std::make_shared<InitTask>(ctx);
 	}
 
+	std::shared_ptr<DeviceMemoryHeap> ReadBackBuffer::GetMemoryHeap(const std::shared_ptr<GlobalContext>& globalContext) const
+	{
+		return globalContext->readBackBufferHeap;
+	}
+
 
 	ResidentBuffer::ResidentBuffer(const Settings& settings) : Core::ResidentBuffer(settings)
 	{
@@ -114,4 +132,10 @@ namespace MMPEngine::Backend::Vulkan
 		ctx->usage = static_cast<VkBufferUsageFlagBits>(VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT);
 		return std::make_shared<InitTask>(ctx);
 	}
+
+	std::shared_ptr<DeviceMemoryHeap> ResidentBuffer::GetMemoryHeap(const std::shared_ptr<GlobalContext>& globalContext) const
+	{
+		return globalContext->residentBufferHeap;
+	}
+
 }

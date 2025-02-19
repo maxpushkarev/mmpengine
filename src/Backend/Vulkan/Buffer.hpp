@@ -20,6 +20,7 @@ namespace MMPEngine::Backend::Vulkan
 		public:
 			std::size_t byteSize = 0;
 			VkBufferUsageFlagBits usage = VK_BUFFER_USAGE_FLAG_BITS_MAX_ENUM;
+			
 		};
 
 		class InitTask final : public Task<InitTaskContext>
@@ -28,6 +29,7 @@ namespace MMPEngine::Backend::Vulkan
 			InitTask(const std::shared_ptr<InitTaskContext>& context);
 			void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
 		};
+
 	protected:
 		VkBuffer _nativeBuffer = nullptr;
 		std::shared_ptr<Wrapper::Device> _device;
@@ -40,6 +42,8 @@ namespace MMPEngine::Backend::Vulkan
 		std::shared_ptr<Core::ContextualTask<Core::UploadBuffer::WriteTaskContext>> CreateWriteTask(const void* src, std::size_t byteLength, std::size_t byteOffset) override;
 		std::shared_ptr<Core::BaseTask> CreateCopyToBufferTask(const std::shared_ptr<Core::Buffer>& dst, std::size_t byteLength, std::size_t srcByteOffset, std::size_t dstByteOffset) const override;
 		std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;
+	protected:
+		std::shared_ptr<DeviceMemoryHeap> GetMemoryHeap(const std::shared_ptr<GlobalContext>& globalContext) const override;
 	};
 
 	class ReadBackBuffer final : public Core::ReadBackBuffer, public Buffer
@@ -49,6 +53,8 @@ namespace MMPEngine::Backend::Vulkan
 		std::shared_ptr<Core::ContextualTask<Core::ReadBackBuffer::ReadTaskContext>> CreateReadTask(void* dst, std::size_t byteLength, std::size_t byteOffset) override;
 		std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;
 		std::shared_ptr<Core::BaseTask> CreateCopyToBufferTask(const std::shared_ptr<Core::Buffer>& dst, std::size_t byteLength, std::size_t srcByteOffset, std::size_t dstByteOffset) const override;
+	protected:
+		std::shared_ptr<DeviceMemoryHeap> GetMemoryHeap(const std::shared_ptr<GlobalContext>& globalContext) const override;
 	};
 
 	class ResidentBuffer : public Core::ResidentBuffer, public Buffer
@@ -57,5 +63,7 @@ namespace MMPEngine::Backend::Vulkan
 		ResidentBuffer(const Settings& settings);
 		std::shared_ptr<Core::BaseTask> CreateCopyToBufferTask(const std::shared_ptr<Core::Buffer>& dst, std::size_t byteLength, std::size_t srcByteOffset, std::size_t dstByteOffset) const override;
 		std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;
+	protected:
+		std::shared_ptr<DeviceMemoryHeap> GetMemoryHeap(const std::shared_ptr<GlobalContext>& globalContext) const override;
 	};
 }
