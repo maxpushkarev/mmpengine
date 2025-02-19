@@ -1,16 +1,25 @@
 #pragma once
 #include <Core/Buffer.hpp>
 #include <Backend/Vulkan/Entity.hpp>
+#include <Backend/Vulkan/Context.hpp>
 
 namespace MMPEngine::Backend::Vulkan
 {
 	class Buffer : public ResourceEntity
 	{
+	public:
+		Buffer();
+		~Buffer() override;
+		Buffer(const Buffer&) = delete;
+		Buffer(Buffer&&) noexcept = delete;
+		Buffer& operator=(const Buffer&) = delete;
+		Buffer& operator=(Buffer&&) noexcept = delete;
 	protected:
 		class InitTaskContext final : public Core::EntityTaskContext<Buffer>
 		{
 		public:
 			std::size_t byteSize = 0;
+			VkBufferUsageFlagBits usage = VK_BUFFER_USAGE_FLAG_BITS_MAX_ENUM;
 		};
 
 		class InitTask final : public Task<InitTaskContext>
@@ -19,6 +28,9 @@ namespace MMPEngine::Backend::Vulkan
 			InitTask(const std::shared_ptr<InitTaskContext>& context);
 			void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
 		};
+	protected:
+		VkBuffer _nativeBuffer = nullptr;
+		std::shared_ptr<Wrapper::Device> _device;
 	};
 
 	class UploadBuffer final : public Core::UploadBuffer, public Buffer
