@@ -24,6 +24,7 @@ namespace MMPEngine::Backend::Vulkan
 		~DeviceMemoryBlock() override;
 		std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;
 		static std::optional<std::uint32_t> FindMemoryType(VkPhysicalDevice physicalDevice, VkMemoryPropertyFlagBits includeFlags, VkMemoryPropertyFlagBits excludeFlags);
+		VkDeviceMemory GetNative() const;
 	private:
 		Settings _settings;
 		std::shared_ptr<Wrapper::Device> _device;

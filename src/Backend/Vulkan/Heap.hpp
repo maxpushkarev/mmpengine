@@ -12,6 +12,7 @@ namespace MMPEngine::Backend::Vulkan
 		public:
 			Block(const DeviceMemoryBlock::Settings& memBlockSettings);
 			std::shared_ptr<Core::BaseEntity> GetEntity() const override;
+			std::shared_ptr<DeviceMemoryBlock> GetEntityBlock() const;
 		private:
 			std::shared_ptr<DeviceMemoryBlock> _entity;
 		};
@@ -22,8 +23,12 @@ namespace MMPEngine::Backend::Vulkan
 			friend DeviceMemoryHeap;
 		public:
 			Handle();
+			std::size_t GetOffset() const;
+			std::shared_ptr<DeviceMemoryBlock> GetMemoryBlock() const;
 		protected:
-			Handle(const std::shared_ptr<Heap>& heap, const Entry& entry);
+			Handle(const std::shared_ptr<Heap>& heap, const Entry& entry, const std::shared_ptr<DeviceMemoryBlock>& deviceMemoryBlock);
+		private:
+			std::shared_ptr<DeviceMemoryBlock> _deviceMemoryBlock;
 		};
 
 		DeviceMemoryHeap(const Settings& settings, VkMemoryPropertyFlagBits includeFlags, VkMemoryPropertyFlagBits excludeFlags);

@@ -16,6 +16,11 @@ namespace MMPEngine::Backend::Vulkan
 		}
 	}
 
+	VkDeviceMemory DeviceMemoryBlock::GetNative() const
+	{
+		return _mem;
+	}
+
 	std::optional<std::uint32_t> DeviceMemoryBlock::FindMemoryType(VkPhysicalDevice physicalDevice, VkMemoryPropertyFlagBits includeFlags, VkMemoryPropertyFlagBits excludeFlags)
 	{
 		VkPhysicalDeviceMemoryProperties memProps{};

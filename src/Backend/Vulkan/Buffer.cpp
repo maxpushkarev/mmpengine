@@ -1,4 +1,5 @@
 #include <Backend/Vulkan/Buffer.hpp>
+#include <cassert>
 
 namespace MMPEngine::Backend::Vulkan
 {
@@ -51,6 +52,17 @@ namespace MMPEngine::Backend::Vulkan
 	void Buffer::InitTask::Bind::Run(const std::shared_ptr<Core::BaseStream>& stream)
 	{
 		Task::Run(stream);
+
+		const auto tc = GetTaskContext();
+
+		const auto res = vkBindBufferMemory(
+			tc->entity->_device->GetNativeLogical(), 
+			tc->entity->_nativeBuffer, 
+			tc->entity->_deviceMemoryHeapHandle.GetMemoryBlock()->GetNative(), 
+			static_cast<VkDeviceSize>(tc->entity->_deviceMemoryHeapHandle.GetOffset())
+		);
+
+		assert(res == VK_SUCCESS);
 	}
 
 
