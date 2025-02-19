@@ -25,9 +25,25 @@ namespace MMPEngine::Backend::Vulkan
 
 		class InitTask final : public Task<InitTaskContext>
 		{
+		private:
+
+			class Create final : public Task<InitTaskContext>
+			{
+			public:
+				Create(const std::shared_ptr<InitTaskContext>& context);
+				void OnScheduled(const std::shared_ptr<Core::BaseStream>& stream) override;
+			};
+
+			class Bind final : public Task<InitTaskContext>
+			{
+			public:
+				Bind(const std::shared_ptr<InitTaskContext>& context);
+				void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
+			};
+
 		public:
 			InitTask(const std::shared_ptr<InitTaskContext>& context);
-			void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
+			void OnScheduled(const std::shared_ptr<Core::BaseStream>& stream) override;
 		};
 
 	protected:

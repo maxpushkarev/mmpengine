@@ -11,14 +11,13 @@ namespace MMPEngine::Backend::Vulkan
 		}
 	}
 
-
-	Buffer::InitTask::InitTask(const std::shared_ptr<InitTaskContext>& context) : Task<MMPEngine::Backend::Vulkan::Buffer::InitTaskContext>(context)
+	Buffer::InitTask::Create::Create(const std::shared_ptr<InitTaskContext>& context) : Task<MMPEngine::Backend::Vulkan::Buffer::InitTaskContext>(context)
 	{
 	}
 
-	void Buffer::InitTask::Run(const std::shared_ptr<Core::BaseStream>& stream)
+	void Buffer::InitTask::Create::OnScheduled(const std::shared_ptr<Core::BaseStream>& stream)
 	{
-		Task::Run(stream);
+		Task::OnScheduled(stream);
 
 		const auto tc = GetTaskContext();
 
@@ -41,8 +40,30 @@ namespace MMPEngine::Backend::Vulkan
 
 		tc->entity->_deviceMemoryHeapHandle = memHeap->Allocate(Core::Heap::Request {
 			static_cast<std::size_t>(memRequirements.size),
-			static_cast<std::size_t>(memRequirements.alignment)
+				static_cast<std::size_t>(memRequirements.alignment)
 		});
+	}
+
+	Buffer::InitTask::Bind::Bind(const std::shared_ptr<InitTaskContext>& context) : Task<MMPEngine::Backend::Vulkan::Buffer::InitTaskContext>(context)
+	{
+	}
+
+	void Buffer::InitTask::Bind::Run(const std::shared_ptr<Core::BaseStream>& stream)
+	{
+		Task::Run(stream);
+	}
+
+
+	Buffer::InitTask::InitTask(const std::shared_ptr<InitTaskContext>& context) : Task<MMPEngine::Backend::Vulkan::Buffer::InitTaskContext>(context)
+	{
+	}
+
+	void Buffer::InitTask::OnScheduled(const std::shared_ptr<Core::BaseStream>& stream)
+	{
+		Task::OnScheduled(stream);
+		stream->Schedule(std::make_shared<Create>(GetTaskContext()));
+		stream->Schedule(GetTaskContext()->entity->GetMemoryHeap(_specificGlobalContext)->CreateTaskToInitializeBlocks());
+		stream->Schedule(std::make_shared<Bind>(GetTaskContext()));
 	}
 
 
