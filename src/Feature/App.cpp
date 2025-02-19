@@ -457,6 +457,16 @@ namespace MMPEngine::Feature
 				static_cast<VkMemoryPropertyFlagBits>(VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT)
 			);
 
+			_rootContext->uniformBufferHeap = std::make_shared<Backend::Vulkan::DeviceMemoryHeap>(
+				Core::Heap::Settings {initialSize, growthFactor, true},
+				static_cast<VkMemoryPropertyFlagBits>(
+					VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT |
+					VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_HOST_COHERENT_BIT |
+					VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT
+					),
+				static_cast<VkMemoryPropertyFlagBits>(0)
+			);
+
 			VkQueue queue;
 			vkGetDeviceQueue(vkDevice, static_cast<std::uint32_t>(queueFamilyIndex.value()), 0, &queue);
 			assert(queue != nullptr);

@@ -2,6 +2,16 @@
 
 namespace MMPEngine::Backend::Vulkan
 {
+	Buffer::InitTask::InitTask(const std::shared_ptr<InitTaskContext>& context) : Task<MMPEngine::Backend::Vulkan::Buffer::InitTaskContext>(context)
+	{
+	}
+
+	void Buffer::InitTask::Run(const std::shared_ptr<Core::BaseStream>& stream)
+	{
+		Task::Run(stream);
+	}
+
+
 	UploadBuffer::UploadBuffer(const Settings& settings) : Core::UploadBuffer(settings)
 	{
 	}
@@ -22,7 +32,9 @@ namespace MMPEngine::Backend::Vulkan
 
 	std::shared_ptr<Core::BaseTask> UploadBuffer::CreateInitializationTask()
 	{
-		return nullptr;
+		const auto ctx = std::make_shared<InitTaskContext>();
+		ctx->entity = std::dynamic_pointer_cast<Vulkan::Buffer>(shared_from_this());
+		return std::make_shared<InitTask>(ctx);
 	}
 
 
@@ -46,7 +58,9 @@ namespace MMPEngine::Backend::Vulkan
 
 	std::shared_ptr<Core::BaseTask> ReadBackBuffer::CreateInitializationTask()
 	{
-		return nullptr;
+		const auto ctx = std::make_shared<InitTaskContext>();
+		ctx->entity = std::dynamic_pointer_cast<Vulkan::Buffer>(shared_from_this());
+		return std::make_shared<InitTask>(ctx);
 	}
 
 
@@ -65,6 +79,8 @@ namespace MMPEngine::Backend::Vulkan
 
 	std::shared_ptr<Core::BaseTask> ResidentBuffer::CreateInitializationTask()
 	{
-		return nullptr;
+		const auto ctx = std::make_shared<InitTaskContext>();
+		ctx->entity = std::dynamic_pointer_cast<Vulkan::Buffer>(shared_from_this());
+		return std::make_shared<InitTask>(ctx);
 	}
 }

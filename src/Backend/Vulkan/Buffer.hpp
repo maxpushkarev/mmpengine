@@ -1,9 +1,27 @@
 #pragma once
 #include <Core/Buffer.hpp>
+#include <Backend/Vulkan/Entity.hpp>
 
 namespace MMPEngine::Backend::Vulkan
 {
-	class UploadBuffer final : public Core::UploadBuffer
+	class Buffer : public ResourceEntity
+	{
+	protected:
+		class InitTaskContext final : public Core::EntityTaskContext<Buffer>
+		{
+		public:
+			std::size_t byteSize = 0;
+		};
+
+		class InitTask final : public Task<InitTaskContext>
+		{
+		public:
+			InitTask(const std::shared_ptr<InitTaskContext>& context);
+			void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
+		};
+	};
+
+	class UploadBuffer final : public Core::UploadBuffer, public Buffer
 	{
 	public:
 		UploadBuffer(const Settings& settings);
@@ -12,7 +30,7 @@ namespace MMPEngine::Backend::Vulkan
 		std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;
 	};
 
-	class ReadBackBuffer final : public Core::ReadBackBuffer
+	class ReadBackBuffer final : public Core::ReadBackBuffer, public Buffer
 	{
 	public:
 		ReadBackBuffer(const Settings& settings);
@@ -21,7 +39,7 @@ namespace MMPEngine::Backend::Vulkan
 		std::shared_ptr<Core::BaseTask> CreateCopyToBufferTask(const std::shared_ptr<Core::Buffer>& dst, std::size_t byteLength, std::size_t srcByteOffset, std::size_t dstByteOffset) const override;
 	};
 
-	class ResidentBuffer : public Core::ResidentBuffer
+	class ResidentBuffer : public Core::ResidentBuffer, public Buffer
 	{
 	public:
 		ResidentBuffer(const Settings& settings);

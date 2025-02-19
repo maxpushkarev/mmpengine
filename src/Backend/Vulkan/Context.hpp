@@ -18,6 +18,7 @@ namespace MMPEngine::Backend::Vulkan
 		std::shared_ptr<DeviceMemoryHeap> uploadBufferHeap;
 		std::shared_ptr<DeviceMemoryHeap> readBackBufferHeap;
 		std::shared_ptr<DeviceMemoryHeap> residentBufferHeap;
+		std::shared_ptr<DeviceMemoryHeap> uniformBufferHeap;
 	};
 
 
