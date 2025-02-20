@@ -70,6 +70,27 @@ namespace MMPEngine::Backend::Vulkan
 
 	class UploadBuffer final : public Core::UploadBuffer, public MappedBuffer
 	{
+	private:
+		class WriteTaskContext final : public Core::UploadBuffer::WriteTaskContext
+		{
+		public:
+			std::shared_ptr<UploadBuffer> uploadBuffer;
+		};
+		class WriteTask final : public Task<Core::UploadBuffer::WriteTaskContext>
+		{
+		private:
+			class Impl final : public Task<WriteTaskContext>
+			{
+			public:
+				Impl(const std::shared_ptr<WriteTaskContext>& context);
+				void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
+			};
+			std::shared_ptr<BaseTask> _implTask;
+
+		public:
+			WriteTask(const std::shared_ptr<WriteTaskContext>& context);
+			void OnScheduled(const std::shared_ptr<Core::BaseStream>& stream) override;
+		};
 	public:
 		UploadBuffer(const Settings& settings);
 		std::shared_ptr<Core::ContextualTask<Core::UploadBuffer::WriteTaskContext>> CreateWriteTask(const void* src, std::size_t byteLength, std::size_t byteOffset) override;

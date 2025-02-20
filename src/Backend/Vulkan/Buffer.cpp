@@ -118,9 +118,45 @@ namespace MMPEngine::Backend::Vulkan
 	{
 	}
 
+	UploadBuffer::WriteTask::WriteTask(const std::shared_ptr<WriteTaskContext>& context) : Task(context)
+	{
+		const auto buffer = context->uploadBuffer;
+		assert(buffer);
+
+		_implTask = std::make_shared<Impl>(context);
+	}
+
+	void UploadBuffer::WriteTask::OnScheduled(const std::shared_ptr<Core::BaseStream>& stream)
+	{
+		Task::OnScheduled(stream);
+
+		stream->Schedule(Core::StreamBarrierTask::kInstance);
+		stream->Schedule(_implTask);
+	}
+
+	UploadBuffer::WriteTask::Impl::Impl(const std::shared_ptr<WriteTaskContext>& context) : Task(context)
+	{
+	}
+
+	void UploadBuffer::WriteTask::Impl::Run(const std::shared_ptr<Core::BaseStream>& stream)
+	{
+		Task::Run(stream);
+		if (const auto tc = GetTaskContext(); const auto entity = tc->uploadBuffer)
+		{
+			std::memcpy(static_cast<char*>(entity->_mappedBufferPtr) + tc->byteOffset, tc->src, tc->byteLength);
+		}
+	}
+
+
 	std::shared_ptr<Core::ContextualTask<Core::UploadBuffer::WriteTaskContext>> UploadBuffer::CreateWriteTask(const void* src, std::size_t byteLength, std::size_t byteOffset)
 	{
-		return nullptr;
+		const auto ctx = std::make_shared<WriteTaskContext>();
+		ctx->uploadBuffer = std::dynamic_pointer_cast<UploadBuffer>(shared_from_this());
+		ctx->byteOffset = byteOffset;
+		ctx->byteLength = byteLength;
+		ctx->src = src;
+
+		return std::make_shared<WriteTask>(ctx);
 	}
 
 	std::shared_ptr<Core::BaseTask> UploadBuffer::CreateCopyToBufferTask(
