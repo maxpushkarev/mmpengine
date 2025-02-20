@@ -428,7 +428,7 @@ namespace MMPEngine::Feature
 			assert(createDeviceRes == VK_SUCCESS);
 			_rootContext->device = std::make_shared<Backend::Vulkan::Wrapper::Device>(_rootContext->instance, physicalDevices[selectedDeviceProps.value().first], vkDevice);
 
-			constexpr std::size_t growthFactor = 2.0f;
+			constexpr std::size_t growthFactor = 2;
 			constexpr std::size_t initialSize = 4096;
 
 			_rootContext->uploadBufferHeap = std::make_shared<Backend::Vulkan::DeviceMemoryHeap>(
