@@ -184,7 +184,6 @@ namespace MMPEngine::Backend::Dx12
 				Impl(const std::shared_ptr<WriteTaskContext>& context);
 				void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
 			};
-			std::shared_ptr<BaseTask> _prepareStateTask;
 			std::shared_ptr<BaseTask> _implTask;
 
 		public:
@@ -215,7 +214,6 @@ namespace MMPEngine::Backend::Dx12
 				Impl(const std::shared_ptr<ReadTaskContext>& context);
 				void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
 			};
-			std::shared_ptr<BaseTask> _prepareStateTask;
 			std::shared_ptr<BaseTask> _implTask;
 		public:
 			ReadTask(const std::shared_ptr<ReadTaskContext>& context);

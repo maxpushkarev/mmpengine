@@ -581,14 +581,12 @@ namespace MMPEngine::Backend::Dx12
 		assert(buffer);
 
 		_implTask = std::make_shared<Impl>(context);
-		_prepareStateTask = buffer->CreateSwitchStateTask(D3D12_RESOURCE_STATE_GENERIC_READ);
 	}
 
 	void UploadBuffer::WriteTask::OnScheduled(const std::shared_ptr<Core::BaseStream>& stream)
 	{
 		Task::OnScheduled(stream);
 
-		stream->Schedule(_prepareStateTask);
 		stream->Schedule(Core::StreamBarrierTask::kInstance);
 		stream->Schedule(_implTask);
 	}
@@ -612,14 +610,12 @@ namespace MMPEngine::Backend::Dx12
 		assert(buffer);
 
 		_implTask = std::make_shared<Impl>(context);
-		_prepareStateTask = buffer->CreateSwitchStateTask(D3D12_RESOURCE_STATE_COPY_DEST);
 	}
 
 	void ReadBackBuffer::ReadTask::OnScheduled(const std::shared_ptr<Core::BaseStream>& stream)
 	{
 		Task::OnScheduled(stream);
 
-		stream->Schedule(_prepareStateTask);
 		stream->Schedule(Core::StreamBarrierTask::kInstance);
 		stream->Schedule(_implTask);
 	}
