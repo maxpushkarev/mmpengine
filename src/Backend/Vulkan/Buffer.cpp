@@ -186,9 +186,45 @@ namespace MMPEngine::Backend::Vulkan
 	{
 	}
 
+	ReadBackBuffer::ReadTask::ReadTask(const std::shared_ptr<ReadTaskContext>& context) : Task(context)
+	{
+		const auto buffer = context->readBackBuffer;
+		assert(buffer);
+
+		_implTask = std::make_shared<Impl>(context);
+	}
+
+	void ReadBackBuffer::ReadTask::OnScheduled(const std::shared_ptr<Core::BaseStream>& stream)
+	{
+		Task::OnScheduled(stream);
+
+		stream->Schedule(Core::StreamBarrierTask::kInstance);
+		stream->Schedule(_implTask);
+	}
+
+	ReadBackBuffer::ReadTask::Impl::Impl(const std::shared_ptr<ReadTaskContext>& context) : Task(context)
+	{
+	}
+
+	void ReadBackBuffer::ReadTask::Impl::Run(const std::shared_ptr<Core::BaseStream>& stream)
+	{
+		Task::Run(stream);
+
+		if (const auto tc = GetTaskContext(); const auto entity = tc->readBackBuffer)
+		{
+			std::memcpy(tc->dst, static_cast<char*>(entity->_mappedBufferPtr) + tc->byteOffset, tc->byteLength);
+		}
+	}
+
 	std::shared_ptr<Core::ContextualTask<Core::ReadBackBuffer::ReadTaskContext>> ReadBackBuffer::CreateReadTask(void* dst, std::size_t byteLength, std::size_t byteOffset)
 	{
-		return nullptr;
+		const auto ctx = std::make_shared<ReadTaskContext>();
+		ctx->readBackBuffer = std::dynamic_pointer_cast<ReadBackBuffer>(shared_from_this());
+		ctx->byteOffset = byteOffset;
+		ctx->byteLength = byteLength;
+		ctx->dst = dst;
+
+		return std::make_shared<ReadTask>(ctx);
 	}
 
 	std::shared_ptr<Core::BaseTask> ReadBackBuffer::CreateCopyToBufferTask(

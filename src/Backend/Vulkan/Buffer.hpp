@@ -102,6 +102,26 @@ namespace MMPEngine::Backend::Vulkan
 
 	class ReadBackBuffer final : public Core::ReadBackBuffer, public MappedBuffer
 	{
+	private:
+		class ReadTaskContext final : public Core::ReadBackBuffer::ReadTaskContext
+		{
+		public:
+			std::shared_ptr<ReadBackBuffer> readBackBuffer;
+		};
+		class ReadTask final : public Task<Core::ReadBackBuffer::ReadTaskContext>
+		{
+		private:
+			class Impl final : public Task<ReadTaskContext>
+			{
+			public:
+				Impl(const std::shared_ptr<ReadTaskContext>& context);
+				void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
+			};
+			std::shared_ptr<BaseTask> _implTask;
+		public:
+			ReadTask(const std::shared_ptr<ReadTaskContext>& context);
+			void OnScheduled(const std::shared_ptr<Core::BaseStream>& stream) override;
+		};
 	public:
 		ReadBackBuffer(const Settings& settings);
 		std::shared_ptr<Core::ContextualTask<Core::ReadBackBuffer::ReadTaskContext>> CreateReadTask(void* dst, std::size_t byteLength, std::size_t byteOffset) override;
