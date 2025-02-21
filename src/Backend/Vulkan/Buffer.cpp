@@ -12,6 +12,50 @@ namespace MMPEngine::Backend::Vulkan
 		}
 	}
 
+	Buffer::MemoryBarrierTask::MemoryBarrierTask(const std::shared_ptr<MemoryBarrierContext>& ctx) : Task<MMPEngine::Backend::Vulkan::Buffer::MemoryBarrierContext>(ctx)
+	{
+	}
+
+	void Buffer::MemoryBarrierTask::Run(const std::shared_ptr<Core::BaseStream>& stream)
+	{
+		Task::Run(stream);
+
+		const auto tc = GetTaskContext();
+		VkBufferMemoryBarrier b {};
+
+		b.pNext = nullptr;
+		b.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
+
+		b.buffer = tc->entity->_nativeBuffer;
+		b.offset = 0;
+		b.size = static_cast<VkDeviceSize>(tc->entity->_deviceMemoryHeapHandle.GetSize());
+
+		b.srcAccessMask = tc->srcAccess;
+		b.dstAccessMask = tc->dstAccess;
+
+		b.srcQueueFamilyIndex = _specificStreamContext->GetQueue()->GetFamilyIndex();
+		b.dstQueueFamilyIndex = _specificStreamContext->GetQueue()->GetFamilyIndex();
+
+		vkCmdPipelineBarrier(
+			_specificStreamContext->PopulateCommandsInBuffer()->GetNative(),
+			VkPipelineStageFlagBits::VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
+			VkPipelineStageFlagBits::VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
+			0,
+			0, nullptr,
+			1, &b,
+			0, nullptr
+		);
+	}
+
+	std::shared_ptr<Core::BaseTask> Buffer::CreateMemoryBarrierTask(VkAccessFlags srcAccess, VkAccessFlags dstAccess)
+	{
+		const auto ctx = std::make_shared<MemoryBarrierContext>();
+		ctx->entity = std::dynamic_pointer_cast<Vulkan::Buffer>(shared_from_this());
+		ctx->srcAccess = srcAccess;
+		ctx->dstAccess = dstAccess;
+		return std::make_shared<MemoryBarrierTask>(ctx);
+	}
+
 	Buffer::InitTask::Create::Create(const std::shared_ptr<InitTaskContext>& context) : Task<MMPEngine::Backend::Vulkan::Buffer::InitTaskContext>(context)
 	{
 	}

@@ -15,6 +15,22 @@ namespace MMPEngine::Backend::Vulkan
 		Buffer& operator=(const Buffer&) = delete;
 		Buffer& operator=(Buffer&&) noexcept = delete;
 	protected:
+
+		class MemoryBarrierContext final : public Core::EntityTaskContext<Buffer>
+		{
+		public:
+			VkAccessFlags srcAccess = VkAccessFlagBits::VK_ACCESS_MEMORY_READ_BIT;
+			VkAccessFlags dstAccess = VkAccessFlagBits::VK_ACCESS_MEMORY_WRITE_BIT;
+		};
+
+		class MemoryBarrierTask final : public Task<MemoryBarrierContext>
+		{
+		public:
+			MemoryBarrierTask(const std::shared_ptr<MemoryBarrierContext>& ctx);
+		protected:
+			void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
+		};
+
 		class InitTaskContext final : public Core::EntityTaskContext<Buffer>
 		{
 		public:
@@ -46,6 +62,7 @@ namespace MMPEngine::Backend::Vulkan
 			void OnScheduled(const std::shared_ptr<Core::BaseStream>& stream) override;
 		};
 
+		std::shared_ptr<Core::BaseTask> CreateMemoryBarrierTask(VkAccessFlags srcAccess, VkAccessFlags dstAccess);
 	protected:
 		VkBuffer _nativeBuffer = nullptr;
 		std::shared_ptr<Wrapper::Device> _device;
