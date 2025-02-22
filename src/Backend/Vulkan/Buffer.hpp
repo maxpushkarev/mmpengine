@@ -256,4 +256,39 @@ namespace MMPEngine::Backend::Vulkan
 		std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;
 	};
 
+
+	template<class TUniformBufferData>
+	class UniformBuffer final : public Core::UniformBuffer<TUniformBufferData>, public Vulkan::Buffer
+	{
+	public:
+		UniformBuffer(std::string_view name);
+		UniformBuffer();
+		std::shared_ptr<Core::ContextualTask<typename Core::UniformBuffer<TUniformBufferData>::WriteTaskContext>> CreateWriteAsyncTask(const TUniformBufferData& data) override;
+		std::shared_ptr<Core::BaseTask> CreateCopyToBufferTask(const std::shared_ptr<Core::Buffer>& dst, std::size_t byteLength, std::size_t srcByteOffset, std::size_t dstByteOffset) const override;
+		std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;
+	protected:
+		std::shared_ptr<DeviceMemoryHeap> GetMemoryHeap(const std::shared_ptr<GlobalContext>& globalContext) const override;
+
+	};
+
+	template<class TUniformBufferData>
+	inline UniformBuffer<TUniformBufferData>::UniformBuffer(std::string_view name)
+		: Core::UniformBuffer<TUniformBufferData>(Core::Buffer::Settings {sizeof(UniformBuffer<TUniformBufferData>::TData), std::string {name}}),
+		Vulkan::Buffer(VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT)
+	{
+	}
+
+	template<class TUniformBufferData>
+	inline UniformBuffer<TUniformBufferData>::UniformBuffer()
+		: Core::UniformBuffer<TUniformBufferData>(Core::Buffer::Settings {sizeof(UniformBuffer<TUniformBufferData>::TData), std::string {}}),
+		Vulkan::Buffer(VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT)
+	{
+	}
+
+	template <class TUniformBufferData>
+	std::shared_ptr<DeviceMemoryHeap> UniformBuffer<TUniformBufferData>::GetMemoryHeap(const std::shared_ptr<GlobalContext>& globalContext) const
+	{
+		return globalContext->uniformBufferHeap;
+	}
+
 }

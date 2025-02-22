@@ -146,6 +146,15 @@ namespace MMPEngine::Frontend
 			throw Core::UnsupportedException("unable to create constant buffer for DX12 backend");
 #endif
 		}
+
+		if (globalContext->settings.backend == Core::BackendType::Vulkan)
+		{
+#ifdef MMPENGINE_BACKEND_VULKAN
+			_impl = std::make_shared<Backend::Vulkan::UniformBuffer<TUniformBufferData>>(name);
+#else
+			throw Core::UnsupportedException("unable to create constant buffer for Vulkan backend");
+#endif
+		}
 	}
 
 	template<class TUniformBufferData>
@@ -158,6 +167,15 @@ namespace MMPEngine::Frontend
 			_impl = std::make_shared<Backend::Dx12::UniformBuffer<TUniformBufferData>>();
 #else
 			throw Core::UnsupportedException("unable to create constant buffer for DX12 backend");
+#endif
+		}
+
+		if (globalContext->settings.backend == Core::BackendType::Vulkan)
+		{
+#ifdef MMPENGINE_BACKEND_VULKAN
+			_impl = std::make_shared<Backend::Vulkan::UniformBuffer<TUniformBufferData>>();
+#else
+			throw Core::UnsupportedException("unable to create constant buffer for Vulkan backend");
 #endif
 		}
 	}
