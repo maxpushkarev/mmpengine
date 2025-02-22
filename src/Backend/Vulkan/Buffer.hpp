@@ -8,7 +8,7 @@ namespace MMPEngine::Backend::Vulkan
 	class Buffer : public ResourceEntity
 	{
 	public:
-		Buffer();
+		Buffer(VkBufferUsageFlags usage);
 		~Buffer() override;
 		Buffer(const Buffer&) = delete;
 		Buffer(Buffer&&) noexcept = delete;
@@ -35,8 +35,6 @@ namespace MMPEngine::Backend::Vulkan
 		{
 		public:
 			std::size_t byteSize = 0;
-			VkBufferUsageFlagBits usage = VK_BUFFER_USAGE_FLAG_BITS_MAX_ENUM;
-			
 		};
 
 		class InitTask final : public Task<InitTaskContext>
@@ -97,6 +95,7 @@ namespace MMPEngine::Backend::Vulkan
 	protected:
 		VkBuffer _nativeBuffer = nullptr;
 		std::shared_ptr<Wrapper::Device> _device;
+		VkBufferUsageFlags _usage;
 	};
 
 	class MappedBuffer : public Buffer

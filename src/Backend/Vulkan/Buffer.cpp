@@ -3,7 +3,10 @@
 
 namespace MMPEngine::Backend::Vulkan
 {
-	Buffer::Buffer() = default;
+	Buffer::Buffer(VkBufferUsageFlags usage) : _usage(usage)
+	{
+	}
+
 	Buffer::~Buffer()
 	{
 		if(_nativeBuffer)
@@ -68,7 +71,7 @@ namespace MMPEngine::Backend::Vulkan
 
 		VkBufferCreateInfo bufferInfo{};
 		bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-		bufferInfo.usage = tc->usage;
+		bufferInfo.usage = tc->entity->_usage;
 		bufferInfo.size = static_cast<VkDeviceSize>(tc->byteSize);
 		bufferInfo.pNext = nullptr;
 		bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
@@ -181,7 +184,9 @@ namespace MMPEngine::Backend::Vulkan
 	}
 
 
-	MappedBuffer::MappedBuffer() = default;
+	MappedBuffer::MappedBuffer() : Vulkan::Buffer(VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT), _mappedBufferPtr(nullptr)
+	{
+	};
 	MappedBuffer::~MappedBuffer()
 	{
 		Unmap();
@@ -275,7 +280,6 @@ namespace MMPEngine::Backend::Vulkan
 		const auto ctx = std::make_shared<InitTaskContext>();
 		ctx->byteSize = GetSettings().byteLength;
 		ctx->entity = std::dynamic_pointer_cast<Vulkan::Buffer>(shared_from_this());
-		ctx->usage = static_cast<VkBufferUsageFlagBits>(VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT);
 		return std::make_shared<InitTask>(ctx);
 	}
 
@@ -350,7 +354,6 @@ namespace MMPEngine::Backend::Vulkan
 		const auto ctx = std::make_shared<InitTaskContext>();
 		ctx->byteSize = GetSettings().byteLength;
 		ctx->entity = std::dynamic_pointer_cast<Vulkan::Buffer>(shared_from_this());
-		ctx->usage = static_cast<VkBufferUsageFlagBits>(VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT);
 		return std::make_shared<InitTask>(ctx);
 	}
 
@@ -360,7 +363,7 @@ namespace MMPEngine::Backend::Vulkan
 	}
 
 
-	ResidentBuffer::ResidentBuffer(const Settings& settings) : Core::ResidentBuffer(settings)
+	ResidentBuffer::ResidentBuffer(const Settings& settings) : Core::ResidentBuffer(settings), Vulkan::Buffer(VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT)
 	{
 	}
 
@@ -385,7 +388,6 @@ namespace MMPEngine::Backend::Vulkan
 		const auto ctx = std::make_shared<InitTaskContext>();
 		ctx->byteSize = GetSettings().byteLength;
 		ctx->entity = std::dynamic_pointer_cast<Vulkan::Buffer>(shared_from_this());
-		ctx->usage = static_cast<VkBufferUsageFlagBits>(VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT);
 		return std::make_shared<InitTask>(ctx);
 	}
 
