@@ -4,21 +4,31 @@
 
 namespace MMPEngine::Backend::Vulkan
 {
-	DeviceMemoryBlock::DeviceMemoryBlock(const Settings& settings) : _settings(settings), _mem(nullptr)
+	DeviceMemoryBlock::DeviceMemoryBlock(const Settings& settings) : _settings(settings), _deviceMem(nullptr)
 	{
 	}
 
 	DeviceMemoryBlock::~DeviceMemoryBlock()
 	{
-		if(_mem && _device)
+		if(_hostMem && _device)
 		{
-			vkFreeMemory(_device->GetNativeLogical(), _mem, nullptr);
+			vkUnmapMemory(_device->GetNativeLogical(), _deviceMem);
+		}
+
+		if(_deviceMem && _device)
+		{
+			vkFreeMemory(_device->GetNativeLogical(), _deviceMem, nullptr);
 		}
 	}
 
 	VkDeviceMemory DeviceMemoryBlock::GetNative() const
 	{
-		return _mem;
+		return _deviceMem;
+	}
+
+	void* DeviceMemoryBlock::GetHost() const
+	{
+		return _hostMem;
 	}
 
 	std::optional<std::uint32_t> DeviceMemoryBlock::FindMemoryType(VkPhysicalDevice physicalDevice, VkMemoryPropertyFlagBits includeFlags, VkMemoryPropertyFlagBits excludeFlags)
@@ -62,8 +72,21 @@ namespace MMPEngine::Backend::Vulkan
 		assert(memoryTypeIndex.has_value());
 		info.memoryTypeIndex = memoryTypeIndex.value();
 
-		const auto res = vkAllocateMemory(entity->_device->GetNativeLogical(), &info, nullptr, &entity->_mem);
+		const auto res = vkAllocateMemory(entity->_device->GetNativeLogical(), &info, nullptr, &entity->_deviceMem);
 		assert(res == VkResult::VK_SUCCESS);
+
+		if((entity->_settings.includeFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT))
+		{
+			const auto res = vkMapMemory(
+				entity->_device->GetNativeLogical(),
+				entity->_deviceMem,
+				0,
+				static_cast<VkDeviceSize>(entity->_settings.byteSize),
+				0,
+				&entity->_hostMem
+			);
+			assert(res == VK_SUCCESS);
+		}
 	}
 
 	std::shared_ptr<Core::BaseTask> DeviceMemoryBlock::CreateInitializationTask()

@@ -25,10 +25,12 @@ namespace MMPEngine::Backend::Vulkan
 		std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;
 		static std::optional<std::uint32_t> FindMemoryType(VkPhysicalDevice physicalDevice, VkMemoryPropertyFlagBits includeFlags, VkMemoryPropertyFlagBits excludeFlags);
 		VkDeviceMemory GetNative() const;
+		void* GetHost() const;
 	private:
 		Settings _settings;
 		std::shared_ptr<Wrapper::Device> _device;
-		VkDeviceMemory _mem;
+		VkDeviceMemory _deviceMem;
+		void* _hostMem = nullptr;
 
 		class InitTaskContext final : public Core::EntityTaskContext<DeviceMemoryBlock>
 		{

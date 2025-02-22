@@ -110,14 +110,6 @@ namespace MMPEngine::Backend::Vulkan
 		);
 
 		assert(res == VK_SUCCESS);
-
-		if(const auto mappedBuffer = std::dynamic_pointer_cast<MappedBuffer>(tc->entity))
-		{
-			mappedBuffer->Map(
-				tc->entity->_deviceMemoryHeapHandle.GetSize(), 
-				tc->entity->_deviceMemoryHeapHandle.GetOffset()
-			);
-		}
 	}
 
 
@@ -183,38 +175,7 @@ namespace MMPEngine::Backend::Vulkan
 		);
 	}
 
-
-	MappedBuffer::MappedBuffer(VkBufferUsageFlags usage) : Vulkan::Buffer(usage), _mappedBufferPtr(nullptr)
-	{
-	};
-	MappedBuffer::~MappedBuffer()
-	{
-		Unmap();
-	}
-
-	void MappedBuffer::Map(std::size_t byteSize, std::size_t offset)
-	{
-		const auto res = vkMapMemory(
-			_device->GetNativeLogical(), 
-			_deviceMemoryHeapHandle.GetMemoryBlock()->GetNative(), 
-			static_cast<VkDeviceSize>(offset),
-			static_cast<VkDeviceSize>(byteSize),
-			0, 
-			&_mappedBufferPtr
-		);
-		assert(res == VK_SUCCESS);
-	}
-
-	void MappedBuffer::Unmap()
-	{
-		if(_mappedBufferPtr)
-		{
-			vkUnmapMemory(_device->GetNativeLogical(), _deviceMemoryHeapHandle.GetMemoryBlock()->GetNative());
-		}
-	}
-
-
-	UploadBuffer::UploadBuffer(const Settings& settings) : Core::UploadBuffer(settings), MappedBuffer(VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT)
+	UploadBuffer::UploadBuffer(const Settings& settings) : Core::UploadBuffer(settings), Vulkan::Buffer(VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT)
 	{
 	}
 
@@ -243,7 +204,7 @@ namespace MMPEngine::Backend::Vulkan
 		Task::Run(stream);
 		if (const auto tc = GetTaskContext(); const auto entity = tc->uploadBuffer)
 		{
-			std::memcpy(static_cast<char*>(entity->_mappedBufferPtr) + tc->byteOffset, tc->src, tc->byteLength);
+			std::memcpy(static_cast<char*>(entity->_deviceMemoryHeapHandle.GetMemoryBlock()->GetHost()) + entity->_deviceMemoryHeapHandle.GetOffset() + tc->byteOffset, tc->src, tc->byteLength);
 		}
 	}
 
@@ -288,7 +249,7 @@ namespace MMPEngine::Backend::Vulkan
 		return globalContext->uploadBufferHeap;
 	}
 
-	ReadBackBuffer::ReadBackBuffer(const Settings& settings) : Core::ReadBackBuffer(settings), MappedBuffer(VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT)
+	ReadBackBuffer::ReadBackBuffer(const Settings& settings) : Core::ReadBackBuffer(settings), Vulkan::Buffer(VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT)
 	{
 	}
 
@@ -318,7 +279,7 @@ namespace MMPEngine::Backend::Vulkan
 
 		if (const auto tc = GetTaskContext(); const auto entity = tc->readBackBuffer)
 		{
-			std::memcpy(tc->dst, static_cast<char*>(entity->_mappedBufferPtr) + tc->byteOffset, tc->byteLength);
+			std::memcpy(tc->dst, static_cast<char*>(entity->_deviceMemoryHeapHandle.GetMemoryBlock()->GetHost()) + entity->_deviceMemoryHeapHandle.GetOffset() + tc->byteOffset, tc->byteLength);
 		}
 	}
 
