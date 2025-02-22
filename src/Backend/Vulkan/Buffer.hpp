@@ -102,7 +102,7 @@ namespace MMPEngine::Backend::Vulkan
 	{
 		friend class MMPEngine::Backend::Vulkan::Buffer::InitTask::Bind;
 	public:
-		MappedBuffer();
+		MappedBuffer(VkBufferUsageFlags usage);
 		MappedBuffer(const MappedBuffer&) = delete;
 		MappedBuffer(MappedBuffer&&) noexcept = delete;
 		MappedBuffer& operator=(const MappedBuffer&) = delete;
@@ -269,6 +269,14 @@ namespace MMPEngine::Backend::Vulkan
 
 		class WriteTask final : public Task<typename Core::UniformBuffer<TUniformBufferData>::WriteTaskContext>
 		{
+		private:
+			class Impl final : public Task<WriteTaskContext>
+			{
+			public:
+				Impl(const std::shared_ptr<WriteTaskContext>& context);
+				void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
+			};
+			std::shared_ptr<Core::BaseTask> _implTask;
 		public:
 			WriteTask(const std::shared_ptr<WriteTaskContext>& ctx);
 		protected:
@@ -328,15 +336,37 @@ namespace MMPEngine::Backend::Vulkan
 	}
 
 	template <class TUniformBufferData>
+	UniformBuffer<TUniformBufferData>::WriteTask::Impl::Impl(const std::shared_ptr<WriteTaskContext>& context)
+		: Task<UniformBuffer<TUniformBufferData>::WriteTaskContext>(context)
+	{
+	}
+
+	template <class TUniformBufferData>
+	void UniformBuffer<TUniformBufferData>::WriteTask::Impl::Run(const std::shared_ptr<Core::BaseStream>& stream)
+	{
+		Task<UniformBuffer<TUniformBufferData>::WriteTaskContext>::Run(stream);
+
+		if (const auto tc = this->GetTaskContext(); const auto entity = tc->uniformBuffer)
+		{
+			//std::memcpy(static_cast<char*>(entity->_mappedBufferPtr) + tc->byteOffset, tc->src, tc->byteLength);
+		}
+	}
+
+
+	template <class TUniformBufferData>
 	UniformBuffer<TUniformBufferData>::WriteTask::WriteTask(const std::shared_ptr<WriteTaskContext>& ctx)
 		: Task<typename Core::UniformBuffer<TUniformBufferData>::WriteTaskContext>(ctx)
 	{
+		_implTask = std::make_shared<Impl>(ctx);
 	}
 
 	template <class TUniformBufferData>
 	void UniformBuffer<TUniformBufferData>::WriteTask::OnScheduled(const std::shared_ptr<Core::BaseStream>& stream)
 	{
 		Task<typename Core::UniformBuffer<TUniformBufferData>::WriteTaskContext>::OnScheduled(stream);
+
+		stream->Schedule(Core::StreamBarrierTask::kInstance);
+		stream->Schedule(_implTask);
 	}
 
 

@@ -184,7 +184,7 @@ namespace MMPEngine::Backend::Vulkan
 	}
 
 
-	MappedBuffer::MappedBuffer() : Vulkan::Buffer(VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT), _mappedBufferPtr(nullptr)
+	MappedBuffer::MappedBuffer(VkBufferUsageFlags usage) : Vulkan::Buffer(usage), _mappedBufferPtr(nullptr)
 	{
 	};
 	MappedBuffer::~MappedBuffer()
@@ -214,7 +214,7 @@ namespace MMPEngine::Backend::Vulkan
 	}
 
 
-	UploadBuffer::UploadBuffer(const Settings& settings) : Core::UploadBuffer(settings)
+	UploadBuffer::UploadBuffer(const Settings& settings) : Core::UploadBuffer(settings), MappedBuffer(VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT)
 	{
 	}
 
@@ -288,7 +288,7 @@ namespace MMPEngine::Backend::Vulkan
 		return globalContext->uploadBufferHeap;
 	}
 
-	ReadBackBuffer::ReadBackBuffer(const Settings& settings) : Core::ReadBackBuffer(settings)
+	ReadBackBuffer::ReadBackBuffer(const Settings& settings) : Core::ReadBackBuffer(settings), MappedBuffer(VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT)
 	{
 	}
 
