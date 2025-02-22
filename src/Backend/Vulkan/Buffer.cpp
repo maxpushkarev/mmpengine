@@ -31,7 +31,7 @@ namespace MMPEngine::Backend::Vulkan
 
 		b.buffer = tc->entity->_nativeBuffer;
 		b.offset = 0;
-		b.size = static_cast<VkDeviceSize>(tc->entity->_deviceMemoryHeapHandle.GetSize());
+		b.size = VK_WHOLE_SIZE;
 
 		b.srcAccessMask = tc->srcAccess;
 		b.dstAccessMask = tc->dstAccess;
