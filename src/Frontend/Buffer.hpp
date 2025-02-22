@@ -136,7 +136,7 @@ namespace MMPEngine::Frontend
 
 	template<class TUniformBufferData>
 	inline UniformBuffer<TUniformBufferData>::UniformBuffer(const std::shared_ptr<Core::GlobalContext>& globalContext, std::string_view name) :
-		Core::UniformBuffer<TUniformBufferData>(Core::Buffer::Settings {sizeof(TUniformBufferData), std::string {name}})
+		Core::UniformBuffer<TUniformBufferData>(Core::Buffer::Settings {sizeof(Core::UniformBuffer<TUniformBufferData>::TData), std::string {name}})
 	{
 		if (globalContext->settings.backend == Core::BackendType::Dx12)
 		{
@@ -159,7 +159,7 @@ namespace MMPEngine::Frontend
 
 	template<class TUniformBufferData>
 	inline UniformBuffer<TUniformBufferData>::UniformBuffer(const std::shared_ptr<Core::GlobalContext>& globalContext) :
-		Core::UniformBuffer<TUniformBufferData>(Core::Buffer::Settings {sizeof(TUniformBufferData), ""})
+		Core::UniformBuffer<TUniformBufferData>(Core::Buffer::Settings {sizeof(Core::UniformBuffer<TUniformBufferData>::TData), ""})
 	{
 		if (globalContext->settings.backend == Core::BackendType::Dx12)
 		{
