@@ -260,6 +260,20 @@ namespace MMPEngine::Backend::Vulkan
 	template<class TUniformBufferData>
 	class UniformBuffer final : public Core::UniformBuffer<TUniformBufferData>, public Vulkan::Buffer
 	{
+	private:
+		class WriteTaskContext final : public Core::UniformBuffer<TUniformBufferData>::WriteTaskContext
+		{
+		public:
+			std::shared_ptr<UniformBuffer> uniformBuffer;
+		};
+
+		class WriteTask final : public Task<typename Core::UniformBuffer<TUniformBufferData>::WriteTaskContext>
+		{
+		public:
+			WriteTask(const std::shared_ptr<WriteTaskContext>& ctx);
+		protected:
+			void OnScheduled(const std::shared_ptr<Core::BaseStream>& stream) override;
+		};
 	public:
 		UniformBuffer(std::string_view name);
 		UniformBuffer();
@@ -313,5 +327,26 @@ namespace MMPEngine::Backend::Vulkan
 		return std::make_shared<CopyBufferTask>(context);
 	}
 
+	template <class TUniformBufferData>
+	UniformBuffer<TUniformBufferData>::WriteTask::WriteTask(const std::shared_ptr<WriteTaskContext>& ctx)
+		: Task<typename Core::UniformBuffer<TUniformBufferData>::WriteTaskContext>(ctx)
+	{
+	}
+
+	template <class TUniformBufferData>
+	void UniformBuffer<TUniformBufferData>::WriteTask::OnScheduled(const std::shared_ptr<Core::BaseStream>& stream)
+	{
+		Task<typename Core::UniformBuffer<TUniformBufferData>::WriteTaskContext>::OnScheduled(stream);
+	}
+
+
+	template <class TUniformBufferData>
+	std::shared_ptr<Core::ContextualTask<typename Core::UniformBuffer<TUniformBufferData>::WriteTaskContext>> UniformBuffer<TUniformBufferData>::CreateWriteAsyncTask(const TUniformBufferData& data)
+	{
+		const auto ctx = std::make_shared<WriteTaskContext>();
+		ctx->uniformBuffer = std::dynamic_pointer_cast<UniformBuffer>(this->shared_from_this());
+		std::memcpy(std::addressof(ctx->data), std::addressof(data), sizeof(data));
+		return std::make_shared<WriteTask>(ctx);
+	}
 
 }
