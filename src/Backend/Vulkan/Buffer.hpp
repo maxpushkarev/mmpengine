@@ -258,7 +258,7 @@ namespace MMPEngine::Backend::Vulkan
 
 
 	template<class TUniformBufferData>
-	class UniformBuffer final : public Core::UniformBuffer<TUniformBufferData>, public Vulkan::Buffer
+	class UniformBuffer final : public Core::UniformBuffer<TUniformBufferData>, public Vulkan::MappedBuffer
 	{
 	private:
 		class WriteTaskContext final : public Core::UniformBuffer<TUniformBufferData>::WriteTaskContext
@@ -296,14 +296,14 @@ namespace MMPEngine::Backend::Vulkan
 	template<class TUniformBufferData>
 	inline UniformBuffer<TUniformBufferData>::UniformBuffer(std::string_view name)
 		: Core::UniformBuffer<TUniformBufferData>(Core::Buffer::Settings {sizeof(UniformBuffer<TUniformBufferData>::TData), std::string {name}}),
-		Vulkan::Buffer(VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT)
+		Vulkan::MappedBuffer(VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT)
 	{
 	}
 
 	template<class TUniformBufferData>
 	inline UniformBuffer<TUniformBufferData>::UniformBuffer()
 		: Core::UniformBuffer<TUniformBufferData>(Core::Buffer::Settings {sizeof(UniformBuffer<TUniformBufferData>::TData), std::string {}}),
-		Vulkan::Buffer(VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT)
+		Vulkan::MappedBuffer(VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT)
 	{
 	}
 
@@ -348,7 +348,7 @@ namespace MMPEngine::Backend::Vulkan
 
 		if (const auto tc = this->GetTaskContext(); const auto entity = tc->uniformBuffer)
 		{
-			//std::memcpy(static_cast<char*>(entity->_mappedBufferPtr) + tc->byteOffset, tc->src, tc->byteLength);
+			std::memcpy(static_cast<char*>(entity->_mappedBufferPtr), std::addressof(tc->data), sizeof(tc->data));
 		}
 	}
 
