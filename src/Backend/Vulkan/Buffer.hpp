@@ -197,7 +197,7 @@ namespace MMPEngine::Backend::Vulkan
 		InputAssemblerBuffer& operator=(const InputAssemblerBuffer&) = delete;
 		InputAssemblerBuffer& operator=(InputAssemblerBuffer&&) noexcept = delete;
 	protected:
-		InputAssemblerBuffer(const Core::InputAssemblerBuffer::Settings& settings);
+		InputAssemblerBuffer(const Core::InputAssemblerBuffer::Settings& settings, const std::shared_ptr<UploadBuffer>& upload, const std::shared_ptr<Core::Buffer>& storage);
 		virtual ~InputAssemblerBuffer();
 
 		class TaskContext final : public Core::EntityTaskContext<InputAssemblerBuffer>
@@ -213,13 +213,23 @@ namespace MMPEngine::Backend::Vulkan
 		};
 	protected:
 		std::shared_ptr<UploadBuffer> _upload;
-		std::shared_ptr<ResidentBuffer> _resident;
+		std::shared_ptr<Core::Buffer> _storage;
 	private:
 		Core::InputAssemblerBuffer::IASettings _ia;
 	};
 
 	class VertexBuffer final : public Core::VertexBuffer, public Vulkan::InputAssemblerBuffer
 	{
+	private:
+		class Internal : public Core::ResidentBuffer, public Vulkan::Buffer
+		{
+		public:
+			Internal(const Settings& settings);
+			std::shared_ptr<Core::BaseTask> CreateCopyToBufferTask(const std::shared_ptr<Core::Buffer>& dst, std::size_t byteLength, std::size_t srcByteOffset, std::size_t dstByteOffset) const override;
+			std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;
+		protected:
+			std::shared_ptr<DeviceMemoryHeap> GetMemoryHeap(const std::shared_ptr<GlobalContext>& globalContext) const override;
+		};
 	public:
 		VertexBuffer(const Core::InputAssemblerBuffer::Settings& settings);
 		std::shared_ptr<Core::Buffer> GetUnderlyingBuffer() override;
@@ -229,6 +239,16 @@ namespace MMPEngine::Backend::Vulkan
 
 	class IndexBuffer final : public Core::IndexBuffer, public Vulkan::InputAssemblerBuffer
 	{
+	private:
+		class Internal : public Core::ResidentBuffer, public Vulkan::Buffer
+		{
+		public:
+			Internal(const Settings& settings);
+			std::shared_ptr<Core::BaseTask> CreateCopyToBufferTask(const std::shared_ptr<Core::Buffer>& dst, std::size_t byteLength, std::size_t srcByteOffset, std::size_t dstByteOffset) const override;
+			std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;
+		protected:
+			std::shared_ptr<DeviceMemoryHeap> GetMemoryHeap(const std::shared_ptr<GlobalContext>& globalContext) const override;
+		};
 	public:
 		IndexBuffer(const Core::InputAssemblerBuffer::Settings& settings);
 		std::shared_ptr<Core::Buffer> GetUnderlyingBuffer() override;

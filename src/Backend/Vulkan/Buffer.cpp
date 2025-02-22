@@ -1,3 +1,5 @@
+#include "Buffer.hpp"
+
 #include <Backend/Vulkan/Buffer.hpp>
 #include <cassert>
 
@@ -396,10 +398,9 @@ namespace MMPEngine::Backend::Vulkan
 		return globalContext->residentBufferHeap;
 	}
 
-	InputAssemblerBuffer::InputAssemblerBuffer(const Core::InputAssemblerBuffer::Settings& settings) : _ia(settings.ia)
+	InputAssemblerBuffer::InputAssemblerBuffer(const Core::InputAssemblerBuffer::Settings& settings, const std::shared_ptr<UploadBuffer>& upload, const std::shared_ptr<Core::Buffer>& storage)
+		: _upload(upload), _storage(storage), _ia(settings.ia)
 	{
-		_upload = std::make_shared<UploadBuffer>(settings.base);
-		_resident = std::make_shared<ResidentBuffer>(settings.base);
 	}
 
 	InputAssemblerBuffer::~InputAssemblerBuffer() = default;
@@ -415,10 +416,10 @@ namespace MMPEngine::Backend::Vulkan
 		if (const auto tc = GetTaskContext(); const auto entity = tc->entity)
 		{
 			stream->Schedule(entity->_upload->CreateInitializationTask());
-			stream->Schedule(entity->_resident->CreateInitializationTask());
+			stream->Schedule(entity->_storage->CreateInitializationTask());
 			stream->Schedule(Core::StreamBarrierTask::kInstance);
 			stream->Schedule(entity->_upload->CreateWriteTask(entity->_ia.rawData, entity->_upload->GetSettings().byteLength, 0));
-			stream->Schedule(entity->_upload->CopyToBuffer(entity->_resident));
+			stream->Schedule(entity->_upload->CopyToBuffer(entity->_storage));
 		}
 	}
 
@@ -432,7 +433,7 @@ namespace MMPEngine::Backend::Vulkan
 		}
 	}
 
-	IndexBuffer::IndexBuffer(const Core::InputAssemblerBuffer::Settings& settings) : Core::IndexBuffer(settings), Vulkan::InputAssemblerBuffer(settings)
+	IndexBuffer::IndexBuffer(const Core::InputAssemblerBuffer::Settings& settings) : Core::IndexBuffer(settings), Vulkan::InputAssemblerBuffer(settings, std::make_shared<UploadBuffer>(settings.base), std::make_shared<Internal>(settings.base))
 	{
 	}
 
@@ -445,21 +446,55 @@ namespace MMPEngine::Backend::Vulkan
 
 	std::shared_ptr<Core::Buffer> IndexBuffer::GetUnderlyingBuffer()
 	{
-		return _resident;
+		return _storage;
 	}
 
 	std::shared_ptr<Core::BaseTask> IndexBuffer::CreateCopyToBufferTask(const std::shared_ptr<Core::Buffer>& dst, std::size_t byteLength, std::size_t srcByteOffset, std::size_t dstByteOffset) const
 	{
-		return _resident->CreateCopyToBufferTask(dst, byteLength, srcByteOffset, dstByteOffset);
+		return _storage->CreateCopyToBufferTask(dst, byteLength, srcByteOffset, dstByteOffset);
 	}
 
-	VertexBuffer::VertexBuffer(const Core::InputAssemblerBuffer::Settings& settings) : Core::VertexBuffer(settings), Vulkan::InputAssemblerBuffer(settings)
+	IndexBuffer::Internal::Internal(const Settings& settings) : Core::ResidentBuffer(settings), Vulkan::Buffer(VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT)
+	{
+	}
+
+	std::shared_ptr<Core::BaseTask> IndexBuffer::Internal::CreateCopyToBufferTask(
+		const std::shared_ptr<Core::Buffer>& dst,
+		std::size_t byteLength,
+		std::size_t srcByteOffset,
+		std::size_t dstByteOffset) const
+	{
+		const auto context = std::make_shared<CopyBufferTaskContext>();
+		context->src = std::dynamic_pointer_cast<Vulkan::Buffer>(std::const_pointer_cast<Core::Buffer>(GetUnderlyingBuffer()));
+		context->dst = std::dynamic_pointer_cast<Vulkan::Buffer>(dst->GetUnderlyingBuffer());
+		context->srcByteOffset = srcByteOffset;
+		context->dstByteOffset = dstByteOffset;
+		context->byteLength = byteLength;
+
+		return std::make_shared<CopyBufferTask>(context);
+	}
+
+	std::shared_ptr<Core::BaseTask> IndexBuffer::Internal::CreateInitializationTask()
+	{
+		const auto ctx = std::make_shared<InitTaskContext>();
+		ctx->byteSize = GetSettings().byteLength;
+		ctx->entity = std::dynamic_pointer_cast<Vulkan::Buffer>(shared_from_this());
+		return std::make_shared<InitTask>(ctx);
+	}
+
+	std::shared_ptr<DeviceMemoryHeap> IndexBuffer::Internal::GetMemoryHeap(const std::shared_ptr<GlobalContext>& globalContext) const
+	{
+		return globalContext->residentBufferHeap;
+	}
+
+
+	VertexBuffer::VertexBuffer(const Core::InputAssemblerBuffer::Settings& settings) : Core::VertexBuffer(settings), Vulkan::InputAssemblerBuffer(settings, std::make_shared<UploadBuffer>(settings.base), std::make_shared<Internal>(settings.base))
 	{
 	}
 
 	std::shared_ptr<Core::BaseTask> VertexBuffer::CreateCopyToBufferTask(const std::shared_ptr<Core::Buffer>& dst, std::size_t byteLength, std::size_t srcByteOffset, std::size_t dstByteOffset) const
 	{
-		return _resident->CreateCopyToBufferTask(dst, byteLength, srcByteOffset, dstByteOffset);
+		return _storage->CreateCopyToBufferTask(dst, byteLength, srcByteOffset, dstByteOffset);
 	}
 
 	std::shared_ptr<Core::BaseTask> VertexBuffer::CreateInitializationTask()
@@ -471,6 +506,40 @@ namespace MMPEngine::Backend::Vulkan
 
 	std::shared_ptr<Core::Buffer> VertexBuffer::GetUnderlyingBuffer()
 	{
-		return _resident;
+		return _storage;
 	}
+
+	VertexBuffer::Internal::Internal(const Settings& settings) : Core::ResidentBuffer(settings), Vulkan::Buffer(VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT)
+	{
+	}
+
+	std::shared_ptr<Core::BaseTask> VertexBuffer::Internal::CreateCopyToBufferTask(
+		const std::shared_ptr<Core::Buffer>& dst,
+		std::size_t byteLength,
+		std::size_t srcByteOffset,
+		std::size_t dstByteOffset) const
+	{
+		const auto context = std::make_shared<CopyBufferTaskContext>();
+		context->src = std::dynamic_pointer_cast<Vulkan::Buffer>(std::const_pointer_cast<Core::Buffer>(GetUnderlyingBuffer()));
+		context->dst = std::dynamic_pointer_cast<Vulkan::Buffer>(dst->GetUnderlyingBuffer());
+		context->srcByteOffset = srcByteOffset;
+		context->dstByteOffset = dstByteOffset;
+		context->byteLength = byteLength;
+
+		return std::make_shared<CopyBufferTask>(context);
+	}
+
+	std::shared_ptr<Core::BaseTask> VertexBuffer::Internal::CreateInitializationTask()
+	{
+		const auto ctx = std::make_shared<InitTaskContext>();
+		ctx->byteSize = GetSettings().byteLength;
+		ctx->entity = std::dynamic_pointer_cast<Vulkan::Buffer>(shared_from_this());
+		return std::make_shared<InitTask>(ctx);
+	}
+
+	std::shared_ptr<DeviceMemoryHeap> VertexBuffer::Internal::GetMemoryHeap(const std::shared_ptr<GlobalContext>& globalContext) const
+	{
+		return globalContext->residentBufferHeap;
+	}
+
 }
