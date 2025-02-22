@@ -21,7 +21,7 @@ namespace MMPEngine::Backend::Vulkan
 
 	void Stream::ScheduleCommandBufferForExecution()
 	{
-		const auto cb = _specificStreamContext->GetCommandBuffer(_passControl)->GetNative()
+		const auto cb = _specificStreamContext->GetCommandBuffer(_passControl)->GetNative();
 
 		VkSubmitInfo submitInfo;
 		submitInfo.pNext = nullptr;

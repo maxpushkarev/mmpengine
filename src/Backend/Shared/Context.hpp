@@ -16,7 +16,7 @@ namespace MMPEngine::Backend::Shared
 			const TCommandBuffer& cmdBuffer,
 			const TFence& fence
 		);
-		TCommandBuffer& PopulateCommandsInBuffer();
+		virtual TCommandBuffer& PopulateCommandsInBuffer();
 		TQueue& GetQueue();
 		TCommandBufferAllocator& GetAllocator(PassControl);
 		TCommandBuffer& GetCommandBuffer(PassControl);
@@ -27,14 +27,13 @@ namespace MMPEngine::Backend::Shared
 
 		void SetCommandsPopulated(PassControl, bool value);
 		void SetCommandsClosed(PassControl, bool value);
-
-	private:
+	protected:
+		bool _commandsPopulated = false;
+		bool _commandsClosed = true;
 		TQueue _queue;
 		TCommandBufferAllocator _allocator;
 		TCommandBuffer _cmdBuffer;
 		TFence _fence;
-		bool _commandsPopulated = false;
-		bool _commandsClosed = true;
 	};
 
 	template<typename TQueue, typename TCommandBufferAllocator, typename TCommandBuffer, typename TFence>

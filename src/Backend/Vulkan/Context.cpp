@@ -19,4 +19,23 @@ namespace MMPEngine::Backend::Vulkan
 				std::shared_ptr<MMPEngine::Backend::Vulkan::Wrapper::Fence>>(queue, allocator, cmdBuffer, fence)
 	{
 	}
+
+	std::shared_ptr<Wrapper::CommandBuffer>& StreamContext::PopulateCommandsInBuffer()
+	{
+		if(!_commandsPopulated)
+		{
+			_commandsPopulated = true;
+
+			VkCommandBufferBeginInfo beginInfo {};
+			beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+			beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+			beginInfo.pInheritanceInfo = nullptr;
+			beginInfo.pNext = nullptr;
+
+			vkBeginCommandBuffer(_cmdBuffer->GetNative(), &beginInfo);
+		}
+
+		return _cmdBuffer;
+	}
+
 }
