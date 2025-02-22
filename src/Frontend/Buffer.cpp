@@ -32,7 +32,7 @@ namespace MMPEngine::Frontend
 
 		if (globalContext->settings.backend == Core::BackendType::Vulkan)
 		{
-#ifdef MMPENGINE_BACKEND_DX12
+#ifdef MMPENGINE_BACKEND_VULKAN
 			return std::make_shared<Backend::Vulkan::UploadBuffer>(this->_settings);
 #else
 			throw Core::UnsupportedException("unable to create upload buffer for Vulkan backend");
@@ -56,10 +56,10 @@ namespace MMPEngine::Frontend
 
 		if (globalContext->settings.backend == Core::BackendType::Vulkan)
 		{
-#ifdef MMPENGINE_BACKEND_DX12
+#ifdef MMPENGINE_BACKEND_VULKAN
 			return std::make_shared<Backend::Vulkan::ResidentBuffer>(this->_settings);
 #else
-			throw Core::UnsupportedException("unable to create upload buffer for Vulkan backend");
+			throw Core::UnsupportedException("unable to create resident buffer for Vulkan backend");
 #endif
 		}
 
@@ -110,10 +110,10 @@ namespace MMPEngine::Frontend
 
 		if (globalContext->settings.backend == Core::BackendType::Vulkan)
 		{
-#ifdef MMPENGINE_BACKEND_DX12
+#ifdef MMPENGINE_BACKEND_VULKAN
 			return std::make_shared<Backend::Vulkan::ReadBackBuffer>(this->_settings);
 #else
-			throw Core::UnsupportedException("unable to create upload buffer for Vulkan backend");
+			throw Core::UnsupportedException("unable to create readback buffer for Vulkan backend");
 #endif
 		}
 
@@ -134,6 +134,15 @@ namespace MMPEngine::Frontend
 #endif
 		}
 
+		if (globalContext->settings.backend == Core::BackendType::Vulkan)
+		{
+#ifdef MMPENGINE_BACKEND_VULKAN
+			return std::make_shared<Backend::Vulkan::VertexBuffer>(settings);
+#else
+			throw Core::UnsupportedException("unable to create vertex buffer for Vulkan backend");
+#endif
+		}
+
 		return nullptr;
 	}
 
@@ -150,6 +159,16 @@ namespace MMPEngine::Frontend
 			throw Core::UnsupportedException("unable to create index buffer for DX12 backend");
 #endif
 		}
+
+		if (globalContext->settings.backend == Core::BackendType::Vulkan)
+		{
+#ifdef MMPENGINE_BACKEND_VULKAN
+			return std::make_shared<Backend::Vulkan::IndexBuffer>(settings);
+#else
+			throw Core::UnsupportedException("unable to create index buffer for Vulkan backend");
+#endif
+		}
+
 
 		return nullptr;
 	}
