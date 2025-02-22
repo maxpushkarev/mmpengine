@@ -21,12 +21,13 @@ namespace MMPEngine::Backend::Vulkan
 
 	void Stream::ScheduleCommandBufferForExecution()
 	{
+		const auto cb = _specificStreamContext->GetCommandBuffer(_passControl)->GetNative()
+
 		VkSubmitInfo submitInfo;
 		submitInfo.pNext = nullptr;
 		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
 		submitInfo.commandBufferCount = 1;
-		const auto cb = _specificStreamContext->GetCommandBuffer(_passControl)->GetNative();
 		submitInfo.pCommandBuffers = &cb;
 
 		submitInfo.waitSemaphoreCount = 0;
@@ -36,6 +37,7 @@ namespace MMPEngine::Backend::Vulkan
 		submitInfo.signalSemaphoreCount = 0;
 		submitInfo.pSignalSemaphores = nullptr;
 
+		vkEndCommandBuffer(cb);
 		vkQueueSubmit(
 			_specificStreamContext->GetQueue()->GetNative(),
 			1,
