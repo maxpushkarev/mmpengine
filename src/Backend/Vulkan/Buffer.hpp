@@ -62,6 +62,37 @@ namespace MMPEngine::Backend::Vulkan
 			void OnScheduled(const std::shared_ptr<Core::BaseStream>& stream) override;
 		};
 
+
+		class CopyBufferTaskContext : public Core::TaskContext
+		{
+		public:
+			std::shared_ptr<Vulkan::Buffer> src;
+			std::shared_ptr<Vulkan::Buffer> dst;
+			std::size_t byteLength = 0;
+			std::size_t srcByteOffset = 0;
+			std::size_t dstByteOffset = 0;
+		};
+
+		class CopyBufferTask final : public Task<CopyBufferTaskContext>
+		{
+		private:
+			class Impl final : public Task<CopyBufferTaskContext>
+			{
+			public:
+				Impl(const std::shared_ptr<CopyBufferTaskContext>& context);
+				void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
+			};
+		public:
+			CopyBufferTask(const std::shared_ptr<CopyBufferTaskContext>& context);
+			void OnScheduled(const std::shared_ptr<Core::BaseStream>& stream) override;
+		private:
+			std::shared_ptr<BaseTask> _srcBufferBarrierTask;
+			std::shared_ptr<BaseTask> _dstBufferBarrierTask;
+			std::shared_ptr<Impl> _commandTask;
+		};
+
+
+
 		std::shared_ptr<Core::BaseTask> CreateMemoryBarrierTask(VkAccessFlags srcAccess, VkAccessFlags dstAccess);
 	protected:
 		VkBuffer _nativeBuffer = nullptr;

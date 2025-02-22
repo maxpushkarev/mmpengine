@@ -130,6 +130,57 @@ namespace MMPEngine::Backend::Vulkan
 		stream->Schedule(std::make_shared<Bind>(GetTaskContext()));
 	}
 
+	Buffer::CopyBufferTask::CopyBufferTask(const std::shared_ptr<CopyBufferTaskContext>& context) : Task<
+		MMPEngine::Backend::Vulkan::Buffer::CopyBufferTaskContext>(context)
+	{
+		const auto tc = GetTaskContext();
+		const auto srcBuffer = tc->src;
+		const auto dstBuffer = tc->dst;
+
+		assert(srcBuffer);
+		assert(dstBuffer);
+
+		_commandTask = std::make_shared<Impl>(context);
+		_srcBufferBarrierTask = srcBuffer->CreateMemoryBarrierTask(VkAccessFlagBits::VK_ACCESS_MEMORY_WRITE_BIT, VkAccessFlagBits::VK_ACCESS_TRANSFER_READ_BIT);
+		_dstBufferBarrierTask = dstBuffer->CreateMemoryBarrierTask(VkAccessFlagBits::VK_ACCESS_MEMORY_READ_BIT, VkAccessFlagBits::VK_ACCESS_TRANSFER_WRITE_BIT);
+	}
+
+	void Buffer::CopyBufferTask::OnScheduled(const std::shared_ptr<Core::BaseStream>& stream)
+	{
+		Task::OnScheduled(stream);
+
+		stream->Schedule(_srcBufferBarrierTask);
+		stream->Schedule(_dstBufferBarrierTask);
+		stream->Schedule(_commandTask);
+	}
+
+	Buffer::CopyBufferTask::Impl::Impl(const std::shared_ptr<CopyBufferTaskContext>& context) : Task<MMPEngine::Backend::Vulkan::Buffer::CopyBufferTaskContext>(context)
+	{
+	}
+
+	void Buffer::CopyBufferTask::Impl::Run(const std::shared_ptr<Core::BaseStream>& stream)
+	{
+		Task::Run(stream);
+
+		const auto tc = GetTaskContext();
+		const auto srcBuffer = tc->src;
+		const auto dstBuffer = tc->dst;
+
+		VkBufferCopy region {};
+		region.size = static_cast<VkDeviceSize>(tc->byteLength);
+		region.srcOffset = static_cast<VkDeviceSize>(tc->srcByteOffset);
+		region.dstOffset = static_cast<VkDeviceSize>(tc->dstByteOffset);
+
+		vkCmdCopyBuffer(
+			_specificStreamContext->PopulateCommandsInBuffer()->GetNative(),
+			srcBuffer->_nativeBuffer,
+			dstBuffer->_nativeBuffer,
+			1,
+			&region
+		);
+	}
+
+
 	MappedBuffer::MappedBuffer() = default;
 	MappedBuffer::~MappedBuffer()
 	{
