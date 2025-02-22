@@ -260,7 +260,14 @@ namespace MMPEngine::Backend::Vulkan
 		std::size_t srcByteOffset,
 		std::size_t dstByteOffset) const
 	{
-		return nullptr;
+		const auto context = std::make_shared<CopyBufferTaskContext>();
+		context->src = std::dynamic_pointer_cast<Vulkan::Buffer>(std::const_pointer_cast<Core::Buffer>(GetUnderlyingBuffer()));
+		context->dst = std::dynamic_pointer_cast<Vulkan::Buffer>(dst->GetUnderlyingBuffer());
+		context->srcByteOffset = srcByteOffset;
+		context->dstByteOffset = dstByteOffset;
+		context->byteLength = byteLength;
+
+		return std::make_shared<CopyBufferTask>(context);
 	}
 
 	std::shared_ptr<Core::BaseTask> UploadBuffer::CreateInitializationTask()
@@ -328,7 +335,14 @@ namespace MMPEngine::Backend::Vulkan
 		std::size_t srcByteOffset,
 		std::size_t dstByteOffset) const
 	{
-		return nullptr;
+		const auto context = std::make_shared<CopyBufferTaskContext>();
+		context->src = std::dynamic_pointer_cast<Vulkan::Buffer>(std::const_pointer_cast<Core::Buffer>(GetUnderlyingBuffer()));
+		context->dst = std::dynamic_pointer_cast<Vulkan::Buffer>(dst->GetUnderlyingBuffer());
+		context->srcByteOffset = srcByteOffset;
+		context->dstByteOffset = dstByteOffset;
+		context->byteLength = byteLength;
+
+		return std::make_shared<CopyBufferTask>(context);
 	}
 
 	std::shared_ptr<Core::BaseTask> ReadBackBuffer::CreateInitializationTask()
@@ -356,7 +370,14 @@ namespace MMPEngine::Backend::Vulkan
 		std::size_t srcByteOffset,
 		std::size_t dstByteOffset) const
 	{
-		return nullptr;
+		const auto context = std::make_shared<CopyBufferTaskContext>();
+		context->src = std::dynamic_pointer_cast<Vulkan::Buffer>(std::const_pointer_cast<Core::Buffer>(GetUnderlyingBuffer()));
+		context->dst = std::dynamic_pointer_cast<Vulkan::Buffer>(dst->GetUnderlyingBuffer());
+		context->srcByteOffset = srcByteOffset;
+		context->dstByteOffset = dstByteOffset;
+		context->byteLength = byteLength;
+
+		return std::make_shared<CopyBufferTask>(context);
 	}
 
 	std::shared_ptr<Core::BaseTask> ResidentBuffer::CreateInitializationTask()
