@@ -291,4 +291,27 @@ namespace MMPEngine::Backend::Vulkan
 		return globalContext->uniformBufferHeap;
 	}
 
+	template <class TUniformBufferData>
+	std::shared_ptr<Core::BaseTask> UniformBuffer<TUniformBufferData>::CreateInitializationTask()
+	{
+		const auto ctx = std::make_shared<InitTaskContext>();
+		ctx->byteSize = this->GetSettings().byteLength;
+		ctx->entity = std::dynamic_pointer_cast<Vulkan::Buffer>(shared_from_this());
+		return std::make_shared<InitTask>(ctx);
+	}
+
+	template <class TUniformBufferData>
+	std::shared_ptr<Core::BaseTask> UniformBuffer<TUniformBufferData>::CreateCopyToBufferTask(const std::shared_ptr<Core::Buffer>& dst, std::size_t byteLength, std::size_t srcByteOffset, std::size_t dstByteOffset) const
+	{
+		const auto context = std::make_shared<CopyBufferTaskContext>();
+		context->src = std::dynamic_pointer_cast<Vulkan::Buffer>(std::const_pointer_cast<Core::Buffer>(this->GetUnderlyingBuffer()));
+		context->dst = std::dynamic_pointer_cast<Vulkan::Buffer>(dst->GetUnderlyingBuffer());
+		context->srcByteOffset = srcByteOffset;
+		context->dstByteOffset = dstByteOffset;
+		context->byteLength = byteLength;
+
+		return std::make_shared<CopyBufferTask>(context);
+	}
+
+
 }
