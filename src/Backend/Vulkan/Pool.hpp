@@ -1,19 +1,23 @@
 #pragma once
 #include <Core/Pool.hpp>
+#include <vulkan/vulkan.h>
+
 
 namespace MMPEngine::Backend::Vulkan
 {
 	class DescriptorPool final : public Core::Pool
 	{
-	protected:
+	public:
 		struct NativeSettings final
 		{
+			VkDescriptorType type;
 		};
 		struct Settings final
 		{
 			Core::Pool::Settings base;
 			NativeSettings native;
 		};
+	private:
 		class Block final : public Core::Pool::Block
 		{
 		public:

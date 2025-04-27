@@ -12,6 +12,7 @@
 #include <Backend/Vulkan/Stream.hpp>
 #include <Backend/Vulkan/Wrapper.hpp>
 #include <Backend/Vulkan/Heap.hpp>
+#include <Backend/Vulkan/Pool.hpp>
 #endif
 
 
@@ -465,6 +466,24 @@ namespace MMPEngine::Feature
 					VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT
 					),
 				static_cast<VkMemoryPropertyFlagBits>(0)
+			);
+
+			_rootContext->uniformBuffersDescriptorPool = std::make_shared<Backend::Vulkan::DescriptorPool>(
+				Backend::Vulkan::DescriptorPool::Settings {
+					Core::Pool::Settings {8, 2},
+					Backend::Vulkan::DescriptorPool::NativeSettings {
+						VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER
+					}
+				}
+			);
+
+			_rootContext->storageBuffersDescriptorPool = std::make_shared<Backend::Vulkan::DescriptorPool>(
+				Backend::Vulkan::DescriptorPool::Settings{
+					Core::Pool::Settings {8, 2},
+					Backend::Vulkan::DescriptorPool::NativeSettings {
+						VK_DESCRIPTOR_TYPE_STORAGE_BUFFER
+					}
+				}
 			);
 
 			VkQueue queue;
