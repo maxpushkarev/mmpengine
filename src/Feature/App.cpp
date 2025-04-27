@@ -469,6 +469,7 @@ namespace MMPEngine::Feature
 			);
 
 			_rootContext->uniformBuffersDescriptorPool = std::make_shared<Backend::Vulkan::DescriptorPool>(
+				_rootContext->device,
 				Backend::Vulkan::DescriptorPool::Settings {
 					Core::Pool::Settings {8, 2},
 					Backend::Vulkan::DescriptorPool::NativeSettings {
@@ -478,6 +479,7 @@ namespace MMPEngine::Feature
 			);
 
 			_rootContext->storageBuffersDescriptorPool = std::make_shared<Backend::Vulkan::DescriptorPool>(
+				_rootContext->device,
 				Backend::Vulkan::DescriptorPool::Settings{
 					Core::Pool::Settings {8, 2},
 					Backend::Vulkan::DescriptorPool::NativeSettings {

@@ -1,7 +1,6 @@
 #pragma once
 #include <Core/Pool.hpp>
-#include <vulkan/vulkan.h>
-
+#include <Backend/Vulkan/Wrapper.hpp>
 
 namespace MMPEngine::Backend::Vulkan
 {
@@ -21,7 +20,11 @@ namespace MMPEngine::Backend::Vulkan
 		class Block final : public Core::Pool::Block
 		{
 		public:
-			Block(std::uint32_t size, const NativeSettings& nativeSettings);
+			Block(const std::shared_ptr<Wrapper::Device>& device, std::uint32_t size, const NativeSettings& nativeSettings);
+			~Block();
+		private:
+			VkDescriptorPool _nativeDescPool;
+			std::shared_ptr<Wrapper::Device> _device;
 		};
 	public:
 
@@ -36,11 +39,12 @@ namespace MMPEngine::Backend::Vulkan
 			std::weak_ptr<DescriptorPool> _descHeap;
 		};
 
-		DescriptorPool(const Settings& settings);
+		DescriptorPool(const std::shared_ptr<Wrapper::Device>& device, const Settings& settings);
 		Handle Allocate();
 		std::unique_ptr<Core::Pool::Block> InstantiateBlock(std::uint32_t size) override;
 
 	private:
 		NativeSettings _nativeSettings;
+		std::shared_ptr<Wrapper::Device> _device;
 	};
 }
