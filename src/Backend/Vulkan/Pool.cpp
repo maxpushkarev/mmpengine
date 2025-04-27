@@ -53,6 +53,9 @@ namespace MMPEngine::Backend::Vulkan
 	{
 		if (_entry.has_value())
 		{
+			if (const auto descHeap = _descHeap.lock())
+			{
+			}
 		}
 	}
 

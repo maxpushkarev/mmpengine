@@ -62,6 +62,7 @@ namespace MMPEngine::Core
 				std::string name;
 				std::shared_ptr<const BaseEntity> entity;
 				std::variant<Buffer,Texture,StencilRef> settings;
+				std::string tag = {};
 			};
 
 			struct EntryView final
