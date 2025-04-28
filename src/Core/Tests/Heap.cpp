@@ -163,4 +163,43 @@ namespace MMPEngine::Core::Tests
 		ASSERT_EQ(h6->GetLength(), 2);
 		ASSERT_EQ(h6->GetOffset(), 2);
 	}
+
+	TEST_F(HeapTests, MinMax)
+	{
+		const auto h1 = std::make_unique<Heap::Handle>(_heap->Allocate({ 2, std::nullopt, 13, 16 }));
+		const auto h2 = std::make_unique<Heap::Handle>(_heap->Allocate({ 6, std::nullopt, 13, 22 }));
+		const auto h3 = std::make_unique<Heap::Handle>(_heap->Allocate({ 1, std::nullopt, 13, 33 }));
+		const auto h4 = std::make_unique<Heap::Handle>(_heap->Allocate({ 1, std::nullopt, 13, 14 }));
+
+		ASSERT_EQ(h1->GetLength(), 2);
+		ASSERT_EQ(h1->GetOffset(), 13);
+
+		ASSERT_EQ(h2->GetLength(), 6);
+		ASSERT_EQ(h2->GetOffset(), 15);
+
+		ASSERT_EQ(h3->GetLength(), 1);
+		ASSERT_EQ(h3->GetOffset(), 21);
+
+		ASSERT_EQ(h4->GetLength(), 1);
+		ASSERT_EQ(h4->GetOffset(), 13);
+	}
+
+	TEST_F(HeapTests, MinMaxAlignment)
+	{
+		const auto h1 = std::make_unique<Heap::Handle>(_heap->Allocate({ 2, 14, 13, 16 }));
+		auto h2 = std::make_unique<Heap::Handle>(_heap->Allocate({ 3, 2, 13, 22 }));
+
+		ASSERT_EQ(h1->GetLength(), 2);
+		ASSERT_EQ(h1->GetOffset(), 14);
+
+		ASSERT_EQ(h2->GetLength(), 3);
+		ASSERT_EQ(h2->GetOffset(), 16);
+
+		h2.reset();
+
+		const auto h3 = std::make_unique<Heap::Handle>(_heap->Allocate({ 5, 8, 13, 22 }));
+
+		ASSERT_EQ(h3->GetLength(), 5);
+		ASSERT_EQ(h3->GetOffset(), 16);
+	}
 }
