@@ -16,6 +16,8 @@ namespace MMPEngine::Core
 		{
 			std::size_t size = 128;
 			std::optional<std::size_t> alignment = std::nullopt;
+			std::size_t minAddress = (std::numeric_limits<std::uint64_t>::min)();
+			std::size_t maxAddress = (std::numeric_limits<std::uint64_t>::max)();
 		};
 	protected:
 		class Block
@@ -28,6 +30,7 @@ namespace MMPEngine::Core
 				std::size_t to;
 
 				std::size_t GetLength() const;
+				bool Valid() const;
 			};
 
 			Block(std::size_t size);

@@ -16,8 +16,13 @@ namespace MMPEngine::Core
 
 	std::size_t Heap::Block::Range::GetLength() const
 	{
-		assert(to >= from);
+		assert(Valid());
 		return to - from + 1;
+	}
+
+	bool Heap::Block::Range::Valid() const
+	{
+		return from <= to;
 	}
 
 	bool Heap::Block::RangeComparer::operator()(const Range& lhs, const Range& rhs) const
@@ -70,43 +75,50 @@ namespace MMPEngine::Core
 
 		while (it != _freeRanges.cend())
 		{
-			if(request.alignment.has_value())
-			{
-				const auto requiredAlignment = request.alignment.value();
-				const auto mod = it->from % requiredAlignment;
+			Range r = *it;
+			r.from = (std::max)(r.from, request.minAddress);
+			r.to = (std::min)(r.to, request.maxAddress);
 
-				if(mod == 0)
+			if (r.Valid())
+			{
+				if (request.alignment.has_value())
 				{
-					if (it->GetLength() >= request.size)
+					const auto requiredAlignment = request.alignment.value();
+					const auto mod = r.from % requiredAlignment;
+
+					if (mod == 0)
 					{
-						rangePlaceholder = *it;
-						res = { it->from, it->from + request.size - 1 };
-						break;
+						if (r.GetLength() >= request.size)
+						{
+							rangePlaceholder = *it;
+							res = { r.from, r.from + request.size - 1 };
+							break;
+						}
+					}
+					else
+					{
+						const auto f = r.from + (requiredAlignment - mod);
+						const auto t = f + request.size - 1;
+
+						if (
+							f >= r.from && f <= r.to &&
+							t >= r.from && t <= r.to
+							)
+						{
+							rangePlaceholder = *it;
+							res = { f, t };
+							break;
+						}
 					}
 				}
 				else
 				{
-					const auto f = it->from + (requiredAlignment - mod);
-					const auto t = f + request.size - 1;
-
-					if(
-						f >= it->from && f <= it->to && 
-						t >= it->from && t <= it->to
-						)
+					if (r.GetLength() >= request.size)
 					{
 						rangePlaceholder = *it;
-						res = {f, t};
+						res = { r.from, r.from + request.size - 1 };
 						break;
 					}
-				}
-			}
-			else
-			{
-				if(it->GetLength() >= request.size)
-				{
-					rangePlaceholder = *it;
-					res = {it->from, it->from + request.size - 1};
-					break;
 				}
 			}
 
