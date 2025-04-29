@@ -39,9 +39,4 @@ namespace MMPEngine::Backend::Vulkan
 			void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
 		};
 	};
-
-	/*class DescriptorPool final : public Core::Heap
-	{
-			
-	};*/
 }
