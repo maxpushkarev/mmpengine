@@ -28,6 +28,9 @@ namespace MMPEngine::Backend::Vulkan
 		std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;
 
 	private:
+
+		void CreateNativePool(std::vector<VkDescriptorPoolSize> poolSizes);
+
 		std::shared_ptr<Wrapper::Device> _device;
 		Settings _settings;
 		std::vector<VkDescriptorPool> _pools;

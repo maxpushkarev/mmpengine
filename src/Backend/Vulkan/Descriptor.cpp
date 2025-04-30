@@ -17,6 +17,32 @@ namespace MMPEngine::Backend::Vulkan
 		}
 	}
 
+	void DescriptorPool::CreateNativePool(std::vector<VkDescriptorPoolSize> poolSizes)
+	{
+		for (std::size_t i = 0; i < poolSizes.size(); ++i)
+		{
+			const auto& entry = _settings.entries[i];
+			auto& ps = poolSizes[i];
+
+			std::size_t m = (std::max)(static_cast<std::size_t>(1), entry.growth * _pools.size());
+			ps.descriptorCount = (std::max)(ps.descriptorCount,
+				static_cast<std::uint32_t>(m) * entry.initialSizeInfo.descriptorCount
+			);
+		}
+
+		VkDescriptorPoolCreateInfo poolInfo{};
+		poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+		poolInfo.poolSizeCount = static_cast<std::uint32_t>(poolSizes.size());
+		poolInfo.pPoolSizes = poolSizes.data();
+		poolInfo.maxSets = 0;
+		poolInfo.pNext = nullptr;
+		poolInfo.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT | VK_DESCRIPTOR_POOL_CREATE_ALLOW_OVERALLOCATION_SETS_BIT_NV;
+
+		VkDescriptorPool pool;
+		vkCreateDescriptorPool(_device->GetNativeLogical(), &poolInfo, nullptr, &pool);
+		_pools.push_back(pool);
+	}
+
 	DescriptorPool::InitTask::InitTask(const std::shared_ptr<InitTaskContext>& ctx) : Task<MMPEngine::Backend::Vulkan::DescriptorPool::InitTaskContext>(ctx)
 	{
 	}
@@ -26,16 +52,6 @@ namespace MMPEngine::Backend::Vulkan
 		Task::Run(stream);
 		const auto entity = GetTaskContext()->entity;
 		entity->_device = _specificGlobalContext->device;
-
-		/*VkDescriptorPoolCreateInfo poolInfo{};
-		poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-		poolInfo.poolSizeCount = static_cast<std::uint32_t>(entity->_settings.sizeInfos.size());
-		poolInfo.pPoolSizes = entity->_settings.sizeInfos.data();
-		poolInfo.maxSets = 0;
-		poolInfo.pNext = nullptr;
-		poolInfo.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT | VK_DESCRIPTOR_POOL_CREATE_ALLOW_OVERALLOCATION_SETS_BIT_NV;
-
-		vkCreateDescriptorPool(entity->_device->GetNativeLogical(), &poolInfo, nullptr, &entity->_pool);*/
 	}
 
 	std::shared_ptr<Core::BaseTask> DescriptorPool::CreateInitializationTask()
