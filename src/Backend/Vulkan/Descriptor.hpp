@@ -10,7 +10,12 @@ namespace MMPEngine::Backend::Vulkan
 	public:
 		struct Settings final
 		{
-			std::vector<VkDescriptorPoolSize> sizeInfos;
+			struct Entry
+			{
+				VkDescriptorPoolSize initialSizeInfo;
+				std::size_t growth = 1;
+			};
+			std::vector<Entry> entries;
 		};
 
 		DescriptorPool(const Settings&);
@@ -25,7 +30,7 @@ namespace MMPEngine::Backend::Vulkan
 	private:
 		std::shared_ptr<Wrapper::Device> _device;
 		Settings _settings;
-		VkDescriptorPool _pool;
+		std::vector<VkDescriptorPool> _pools;
 
 		class InitTaskContext final : public Core::EntityTaskContext<DescriptorPool>
 		{

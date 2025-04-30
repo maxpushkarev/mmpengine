@@ -2,15 +2,18 @@
 
 namespace MMPEngine::Backend::Vulkan
 {
-	DescriptorPool::DescriptorPool(const Settings& settings) : _settings(settings), _pool(nullptr)
+	DescriptorPool::DescriptorPool(const Settings& settings) : _settings(settings)
 	{
 	}
 
 	DescriptorPool::~DescriptorPool()
 	{
-		if (_device && _pool)
+		if (_device)
 		{
-			vkDestroyDescriptorPool(_device->GetNativeLogical(), _pool, nullptr);
+			for (auto& pool : _pools)
+			{
+				vkDestroyDescriptorPool(_device->GetNativeLogical(), pool, nullptr);
+			}
 		}
 	}
 
@@ -24,7 +27,7 @@ namespace MMPEngine::Backend::Vulkan
 		const auto entity = GetTaskContext()->entity;
 		entity->_device = _specificGlobalContext->device;
 
-		VkDescriptorPoolCreateInfo poolInfo{};
+		/*VkDescriptorPoolCreateInfo poolInfo{};
 		poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
 		poolInfo.poolSizeCount = static_cast<std::uint32_t>(entity->_settings.sizeInfos.size());
 		poolInfo.pPoolSizes = entity->_settings.sizeInfos.data();
@@ -32,7 +35,7 @@ namespace MMPEngine::Backend::Vulkan
 		poolInfo.pNext = nullptr;
 		poolInfo.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT | VK_DESCRIPTOR_POOL_CREATE_ALLOW_OVERALLOCATION_SETS_BIT_NV;
 
-		vkCreateDescriptorPool(entity->_device->GetNativeLogical(), &poolInfo, nullptr, &entity->_pool);
+		vkCreateDescriptorPool(entity->_device->GetNativeLogical(), &poolInfo, nullptr, &entity->_pool);*/
 	}
 
 	std::shared_ptr<Core::BaseTask> DescriptorPool::CreateInitializationTask()

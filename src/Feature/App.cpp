@@ -3,6 +3,8 @@
 #include <cassert>
 #include <Backend/Shared/Math.hpp>
 
+#include "Backend/Vulkan/Descriptor.hpp"
+
 #ifdef MMPENGINE_BACKEND_DX12
 #include <Backend/Dx12/Stream.hpp>
 #include <Backend/Dx12/Math.hpp>
@@ -12,6 +14,7 @@
 #include <Backend/Vulkan/Stream.hpp>
 #include <Backend/Vulkan/Wrapper.hpp>
 #include <Backend/Vulkan/Heap.hpp>
+#include <Backend/Vulkan/Descriptor.hpp>
 #endif
 
 
@@ -503,6 +506,18 @@ namespace MMPEngine::Feature
 			const auto streamContext = std::make_shared<Backend::Vulkan::StreamContext>(queueWrapper, commandAllocatorWrapper, commandBufferWrapper, fenceWrapper);
 			_defaultStream = std::make_shared<Backend::Vulkan::Stream>(_rootContext, streamContext);
 
+			_rootContext->descriptorPool = std::make_shared<MMPEngine::Backend::Vulkan::DescriptorPool>(
+				MMPEngine::Backend::Vulkan::DescriptorPool::Settings {
+					{
+						{ {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 256}, 2},
+						{ {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 256}, 2}
+					}
+				}
+			);
+
+			_defaultStream->Restart();
+			_defaultStream->Schedule(_rootContext->descriptorPool->CreateInitializationTask());
+			_defaultStream->SubmitAndWait();
 
 			Feature::RootApp<Backend::Vulkan::GlobalContext>::Initialize();
 		}
