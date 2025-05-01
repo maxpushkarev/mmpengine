@@ -17,6 +17,41 @@ namespace MMPEngine::Backend::Vulkan
 			};
 			std::vector<Entry> entries;
 		};
+	private:
+		class Pool final
+		{
+		public:
+			Pool(const std::shared_ptr<Wrapper::Device>& device, VkDescriptorPool pool);
+			~Pool();
+			Pool(const Pool&) = delete;
+			Pool(Pool&&) noexcept = delete;
+			Pool& operator=(const Pool&) = delete;
+			Pool& operator=(Pool&&) noexcept = delete;
+			VkDescriptorPool GetPool() const;
+		private:
+			std::shared_ptr<Wrapper::Device> _device;
+			VkDescriptorPool _pool;
+		};
+
+	public:
+
+		class Allocation final
+		{
+			friend class DescriptorPool;
+		private:
+			Allocation(const std::shared_ptr<Wrapper::Device>& device, const std::shared_ptr<Pool>& pool, VkDescriptorSet set, VkDescriptorSetLayout setLayout);
+		public:
+			~Allocation();
+			Allocation(const Allocation&) = delete;
+			Allocation(Allocation&&) noexcept;
+			Allocation& operator=(const Allocation&) = delete;
+			Allocation& operator=(Allocation&&) noexcept;
+		private:
+			std::shared_ptr<Wrapper::Device> _device;
+			std::shared_ptr<Pool> _pool;
+			VkDescriptorSet _set = nullptr;
+			VkDescriptorSetLayout _layout = nullptr;
+		};
 
 		DescriptorPool(const Settings&);
 		DescriptorPool(const DescriptorPool&) = delete;
@@ -26,14 +61,15 @@ namespace MMPEngine::Backend::Vulkan
 		~DescriptorPool() override;
 
 		std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;
+		Allocation AllocateSet(const VkDescriptorSetLayoutCreateInfo& layoutCreateInfo);
 
 	private:
 
-		void CreateNativePool(const VkDescriptorSetLayoutCreateInfo& layoutCreateInfo);
+		void CreateNewPool(const VkDescriptorSetLayoutCreateInfo& layoutCreateInfo);
 
 		std::shared_ptr<Wrapper::Device> _device;
 		Settings _settings;
-		std::vector<VkDescriptorPool> _pools;
+		std::vector<std::shared_ptr<Pool>> _pools;
 
 		class InitTaskContext final : public Core::EntityTaskContext<DescriptorPool>
 		{

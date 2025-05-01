@@ -1,23 +1,32 @@
 #include <Backend/Vulkan/Descriptor.hpp>
+#include <cassert>
 
 namespace MMPEngine::Backend::Vulkan
 {
+	DescriptorPool::Pool::Pool(const std::shared_ptr<Wrapper::Device>& device, VkDescriptorPool pool) : _device(device), _pool(pool)
+	{
+	}
+
+	DescriptorPool::Pool::~Pool()
+	{
+		if (_device && _pool)
+		{
+			vkDestroyDescriptorPool(_device->GetNativeLogical(), _pool, nullptr);
+		}
+	}
+
+	VkDescriptorPool DescriptorPool::Pool::GetPool() const
+	{
+		return _pool;
+	}
+
 	DescriptorPool::DescriptorPool(const Settings& settings) : _settings(settings)
 	{
 	}
 
-	DescriptorPool::~DescriptorPool()
-	{
-		if (_device)
-		{
-			for (auto& pool : _pools)
-			{
-				vkDestroyDescriptorPool(_device->GetNativeLogical(), pool, nullptr);
-			}
-		}
-	}
+	DescriptorPool::~DescriptorPool() = default;
 
-	void DescriptorPool::CreateNativePool(const VkDescriptorSetLayoutCreateInfo& layoutCreateInfo)
+	void DescriptorPool::CreateNewPool(const VkDescriptorSetLayoutCreateInfo& layoutCreateInfo)
 	{
 		std::vector<VkDescriptorPoolSize> poolSizes (_settings.entries.size(), VkDescriptorPoolSize {});
 		for (std::size_t i = 0; i < _settings.entries.size(); ++i)
@@ -52,7 +61,7 @@ namespace MMPEngine::Backend::Vulkan
 
 		VkDescriptorPool pool;
 		vkCreateDescriptorPool(_device->GetNativeLogical(), &poolInfo, nullptr, &pool);
-		_pools.push_back(pool);
+		_pools.push_back(std::make_shared<Pool>(_device, pool));
 	}
 
 	DescriptorPool::InitTask::InitTask(const std::shared_ptr<InitTaskContext>& ctx) : Task<MMPEngine::Backend::Vulkan::DescriptorPool::InitTaskContext>(ctx)
@@ -72,4 +81,101 @@ namespace MMPEngine::Backend::Vulkan
 		ctx->entity = std::dynamic_pointer_cast<DescriptorPool>(shared_from_this());
 		return std::make_shared<InitTask>(ctx);
 	}
+
+	DescriptorPool::Allocation DescriptorPool::AllocateSet(const VkDescriptorSetLayoutCreateInfo& layoutCreateInfo)
+	{
+		VkDescriptorSetLayout layout = nullptr;
+		VkDescriptorSet set = nullptr;
+		std::shared_ptr<Pool> pool = nullptr;
+
+		vkCreateDescriptorSetLayout(_device->GetNativeLogical(), &layoutCreateInfo, nullptr, &layout);
+		assert(layout != nullptr);
+
+		for (const auto& p : _pools)
+		{
+			VkDescriptorSetAllocateInfo allocInfo{};
+			allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+			allocInfo.descriptorPool = p->GetPool();
+			allocInfo.descriptorSetCount = 1;
+			allocInfo.pSetLayouts = &layout;
+			allocInfo.pNext = nullptr;
+
+			const auto res = vkAllocateDescriptorSets(_device->GetNativeLogical(), &allocInfo, &set);
+
+			if (res == VK_SUCCESS)
+			{
+				pool = p;
+				break;
+			}
+
+			assert(res == VK_ERROR_OUT_OF_POOL_MEMORY || res == VK_ERROR_FRAGMENTED_POOL);
+		}
+
+		if (!set)
+		{
+			CreateNewPool(layoutCreateInfo);
+
+			VkDescriptorSetAllocateInfo allocInfo{};
+			allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+			allocInfo.descriptorPool = _pools.back()->GetPool();
+			allocInfo.descriptorSetCount = 1;
+			allocInfo.pSetLayouts = &layout;
+			allocInfo.pNext = nullptr;
+
+			const auto res = vkAllocateDescriptorSets(_device->GetNativeLogical(), &allocInfo, &set);
+			pool = _pools.back();
+			assert(res == VK_SUCCESS);
+		}
+
+		assert(set != nullptr);
+		return Allocation {_device, pool, set, layout};
+	}
+
+	DescriptorPool::Allocation::Allocation(const std::shared_ptr<Wrapper::Device>& device, const std::shared_ptr<Pool>& pool, VkDescriptorSet set, VkDescriptorSetLayout setLayout)
+		: _device(device), _pool(pool), _set(set), _layout(setLayout)
+	{
+		
+	}
+
+	DescriptorPool::Allocation::~Allocation()
+	{
+		if (_set && _pool && _device)
+		{
+			vkFreeDescriptorSets(_device->GetNativeLogical(), _pool->GetPool(), 1, &_set);
+		}
+
+		if (_layout && _device)
+		{
+			vkDestroyDescriptorSetLayout(_device->GetNativeLogical(), _layout, nullptr);
+		}
+	}
+
+	DescriptorPool::Allocation::Allocation(Allocation&& other) noexcept
+		: _device(std::move(other._device)), _pool(std::move(other._pool)), _set(other._set), _layout(other._layout)
+	{
+		other._device = nullptr;
+		other._pool = nullptr;
+		other._set = nullptr;
+		other._layout = nullptr;
+	}
+
+	DescriptorPool::Allocation& DescriptorPool::Allocation::operator=(Allocation&& other) noexcept
+	{
+		if (this != &other)
+		{
+			_device = other._device;
+			_pool = other._pool;
+			_set = other._set;
+			_layout = other._layout;
+
+			other._device = nullptr;
+			other._pool = nullptr;
+			other._set = nullptr;
+			other._layout = nullptr;
+		}
+
+		return *this;
+	}
+
+
 }
