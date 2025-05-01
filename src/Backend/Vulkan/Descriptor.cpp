@@ -26,7 +26,6 @@ namespace MMPEngine::Backend::Vulkan
 			auto& ps = poolSizes[i];
 
 			ps = entry.initialSizeInfo;
-			ps.descriptorCount = 0;
 
 			for (std::size_t j = 0; j < static_cast<std::size_t>(layoutCreateInfo.bindingCount); ++j)
 			{
@@ -37,17 +36,10 @@ namespace MMPEngine::Backend::Vulkan
 					ps.descriptorCount = binding.descriptorCount;
 				}
 			}
-		}
-
-		for (std::size_t i = 0; i < poolSizes.size(); ++i)
-		{
-			const auto& entry = _settings.entries[i];
-			auto& ps = poolSizes[i];
 
 			std::size_t m = (std::max)(static_cast<std::size_t>(1), entry.growth * _pools.size());
 			ps.descriptorCount = (std::max)(ps.descriptorCount,
-				static_cast<std::uint32_t>(m) * entry.initialSizeInfo.descriptorCount
-			);
+				static_cast<std::uint32_t>(m) * entry.initialSizeInfo.descriptorCount);
 		}
 
 		VkDescriptorPoolCreateInfo poolInfo{};
