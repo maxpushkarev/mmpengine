@@ -17,8 +17,28 @@ namespace MMPEngine::Backend::Vulkan
 		}
 	}
 
-	void DescriptorPool::CreateNativePool(std::vector<VkDescriptorPoolSize> poolSizes)
+	void DescriptorPool::CreateNativePool(const VkDescriptorSetLayoutCreateInfo& layoutCreateInfo)
 	{
+		std::vector<VkDescriptorPoolSize> poolSizes (_settings.entries.size(), VkDescriptorPoolSize {});
+		for (std::size_t i = 0; i < _settings.entries.size(); ++i)
+		{
+			const auto& entry = _settings.entries[i];
+			auto& ps = poolSizes[i];
+
+			ps = entry.initialSizeInfo;
+			ps.descriptorCount = 0;
+
+			for (std::size_t j = 0; j < static_cast<std::size_t>(layoutCreateInfo.bindingCount); ++j)
+			{
+				const auto& binding = layoutCreateInfo.pBindings[j];
+
+				if (ps.type == binding.descriptorType)
+				{
+					ps.descriptorCount = binding.descriptorCount;
+				}
+			}
+		}
+
 		for (std::size_t i = 0; i < poolSizes.size(); ++i)
 		{
 			const auto& entry = _settings.entries[i];

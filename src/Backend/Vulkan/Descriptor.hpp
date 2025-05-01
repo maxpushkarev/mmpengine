@@ -29,7 +29,7 @@ namespace MMPEngine::Backend::Vulkan
 
 	private:
 
-		void CreateNativePool(std::vector<VkDescriptorPoolSize> poolSizes);
+		void CreateNativePool(const VkDescriptorSetLayoutCreateInfo& layoutCreateInfo);
 
 		std::shared_ptr<Wrapper::Device> _device;
 		Settings _settings;
