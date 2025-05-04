@@ -1,6 +1,7 @@
 #include <Core/Material.hpp>
 #include <cassert>
 #include <memory>
+#include <unordered_set>
 
 namespace MMPEngine::Core
 {
@@ -95,18 +96,31 @@ namespace MMPEngine::Core
 
 	void BaseMaterial::Parameters::Build()
 	{
+		std::unordered_set<std::string> knownTags {};
+
 		for (std::size_t i = 0; i < _entries.size(); ++i)
 		{
 			const auto& entry = _entries[i];
 			const auto& name = entry.name;
+			const auto& tag = entry.tag;
 
+			assert(!name.empty());
+			assert(!tag.empty());
 			assert(_viewMap.find(name) == _viewMap.cend());
+
+			if (i > 0)
+			{
+				assert((_entries[i - 1].tag == tag) || (knownTags.find(tag) == knownTags.cend()));
+			}
+
+			knownTags.insert(tag);
 
 			EntryView entryView{};
 			entryView.entryPtr = &entry;
 			entryView.index = static_cast<decltype(entryView.index)>(i);
 
 			_viewMap.emplace(std::make_pair(name, entryView));
+
 		}
 	}
 
