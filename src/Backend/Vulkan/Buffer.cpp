@@ -501,4 +501,35 @@ namespace MMPEngine::Backend::Vulkan
 		return globalContext->residentBufferHeap;
 	}
 
+
+	UnorderedAccessBuffer::UnorderedAccessBuffer(const Settings& settings) : Core::UnorderedAccessBuffer(settings), Vulkan::Buffer(VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT)
+	{
+	}
+
+	std::shared_ptr<Core::BaseTask> UnorderedAccessBuffer::CreateCopyToBufferTask(const std::shared_ptr<Core::Buffer>& dst, std::size_t byteLength, std::size_t srcByteOffset, std::size_t dstByteOffset) const
+	{
+		const auto context = std::make_shared<CopyBufferTaskContext>();
+		context->src = std::dynamic_pointer_cast<Vulkan::Buffer>(std::const_pointer_cast<Core::Buffer>(GetUnderlyingBuffer()));
+		context->dst = std::dynamic_pointer_cast<Vulkan::Buffer>(dst->GetUnderlyingBuffer());
+		context->srcByteOffset = srcByteOffset;
+		context->dstByteOffset = dstByteOffset;
+		context->byteLength = byteLength;
+
+		return std::make_shared<CopyBufferTask>(context);
+	}
+
+	std::shared_ptr<Core::BaseTask> UnorderedAccessBuffer::CreateInitializationTask()
+	{
+		const auto ctx = std::make_shared<InitTaskContext>();
+		ctx->byteSize = GetSettings().byteLength;
+		ctx->entity = std::dynamic_pointer_cast<Vulkan::Buffer>(shared_from_this());
+		return std::make_shared<InitTask>(ctx);
+	}
+
+	std::shared_ptr<DeviceMemoryHeap> UnorderedAccessBuffer::GetMemoryHeap(const std::shared_ptr<GlobalContext>& globalContext) const
+	{
+		return globalContext->residentBufferHeap;
+	}
+
+
 }

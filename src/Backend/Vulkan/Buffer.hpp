@@ -171,6 +171,16 @@ namespace MMPEngine::Backend::Vulkan
 		std::shared_ptr<DeviceMemoryHeap> GetMemoryHeap(const std::shared_ptr<GlobalContext>& globalContext) const override;
 	};
 
+	class UnorderedAccessBuffer final : public Core::UnorderedAccessBuffer, public Buffer
+	{
+	public:
+		UnorderedAccessBuffer(const Settings& settings);
+		std::shared_ptr<Core::BaseTask> CreateCopyToBufferTask(const std::shared_ptr<Core::Buffer>& dst, std::size_t byteLength, std::size_t srcByteOffset, std::size_t dstByteOffset) const override;
+		std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;
+	protected:
+		std::shared_ptr<DeviceMemoryHeap> GetMemoryHeap(const std::shared_ptr<GlobalContext>& globalContext) const override;
+	};
+
 
 	class InputAssemblerBuffer
 	{
