@@ -3,7 +3,7 @@
 
 namespace MMPEngine::Backend::Vulkan
 {
-	Buffer::Buffer(VkBufferUsageFlags usage) : _usage(usage)
+	Buffer::Buffer(VkBufferUsageFlags usage) : _usage(usage), _info {}
 	{
 	}
 
@@ -13,6 +13,11 @@ namespace MMPEngine::Backend::Vulkan
 		{
 			vkDestroyBuffer(_device->GetNativeLogical(), _nativeBuffer, nullptr);
 		}
+	}
+
+	const VkDescriptorBufferInfo& Buffer::GetDescriptorBufferInfo() const
+	{
+		return _info;
 	}
 
 	Buffer::MemoryBarrierTask::MemoryBarrierTask(const std::shared_ptr<MemoryBarrierContext>& ctx) : Task<MMPEngine::Backend::Vulkan::Buffer::MemoryBarrierContext>(ctx)
@@ -81,6 +86,12 @@ namespace MMPEngine::Backend::Vulkan
 
 		tc->entity->_device = _specificGlobalContext->device;
 		vkCreateBuffer(tc->entity->_device->GetNativeLogical(), &bufferInfo, nullptr, &tc->entity->_nativeBuffer);
+
+		tc->entity->_info = {
+			tc->entity->_nativeBuffer,
+			0,
+			bufferInfo.size
+		};
 
 		const auto memHeap = tc->entity->GetMemoryHeap(_specificGlobalContext);
 		VkMemoryRequirements memRequirements;
