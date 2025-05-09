@@ -51,7 +51,7 @@ namespace MMPEngine::Backend::Dx12
 		castedDevice->CreatePipelineState(&streamDesc, IID_PPV_ARGS(&job->_pipelineState));
 	}
 
-	DirectComputeJob::ExecutionTask::ExecutionTask(const std::shared_ptr<ExecutionContext>& ctx) : Task(ctx), _executionContext(ctx)
+	DirectComputeJob::ExecutionTask::ExecutionTask(const std::shared_ptr<ExecutionContext>& ctx) : Task(ctx)
 	{
 		const auto baseJobCtx = std::make_shared<TaskContext>();
 		baseJobCtx->job = std::dynamic_pointer_cast<Dx12::BaseJob>(ctx->job);
