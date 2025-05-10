@@ -16,6 +16,8 @@ namespace MMPEngine::Backend::Vulkan
 				std::size_t growth = 1;
 			};
 			std::vector<Entry> entries;
+			std::size_t setsCount = 32;
+			std::size_t setsGrowth = 1;
 		};
 	private:
 		class Pool final

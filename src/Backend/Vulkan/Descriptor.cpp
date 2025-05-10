@@ -29,6 +29,8 @@ namespace MMPEngine::Backend::Vulkan
 	void DescriptorPool::CreateNewPool(const VkDescriptorSetLayoutCreateInfo& layoutCreateInfo)
 	{
 		std::vector<VkDescriptorPoolSize> poolSizes (_settings.entries.size(), VkDescriptorPoolSize {});
+		std::uint32_t maxSets = 1;
+
 		for (std::size_t i = 0; i < _settings.entries.size(); ++i)
 		{
 			const auto& entry = _settings.entries[i];
@@ -49,15 +51,19 @@ namespace MMPEngine::Backend::Vulkan
 			std::size_t m = (std::max)(static_cast<std::size_t>(1), entry.growth * _pools.size());
 			ps.descriptorCount = (std::max)(ps.descriptorCount,
 				static_cast<std::uint32_t>(m) * entry.initialSizeInfo.descriptorCount);
+
+			maxSets = (std::max)(1U,static_cast<std::uint32_t>(
+				(std::max)(static_cast<std::size_t>(1), _settings.setsGrowth * _pools.size())
+			) * static_cast<std::uint32_t>(_settings.setsCount));
 		}
 
 		VkDescriptorPoolCreateInfo poolInfo{};
 		poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
 		poolInfo.poolSizeCount = static_cast<std::uint32_t>(poolSizes.size());
 		poolInfo.pPoolSizes = poolSizes.data();
-		poolInfo.maxSets = 0;
+		poolInfo.maxSets = maxSets;
 		poolInfo.pNext = nullptr;
-		poolInfo.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT | VK_DESCRIPTOR_POOL_CREATE_ALLOW_OVERALLOCATION_SETS_BIT_NV;
+		poolInfo.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
 
 		VkDescriptorPool pool;
 		vkCreateDescriptorPool(_device->GetNativeLogical(), &poolInfo, nullptr, &pool);
