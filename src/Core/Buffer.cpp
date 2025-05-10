@@ -59,6 +59,10 @@ namespace MMPEngine::Core
 	{
 	}
 
+	BaseUniformBuffer::BaseUniformBuffer(const Settings& settings) : Buffer(settings)
+	{
+	}
+
 	BaseUnorderedAccessBuffer::BaseUnorderedAccessBuffer(const Settings& settings) : Buffer(Core::Buffer::Settings {settings.stride * settings.elementsCount, settings.name}), _uaSettings(settings)
 	{
 		assert(_uaSettings.stride % sizeof(std::uint32_t) == 0);

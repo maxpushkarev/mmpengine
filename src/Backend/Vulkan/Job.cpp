@@ -1,4 +1,7 @@
 #include <Backend/Vulkan/Job.hpp>
+#include <Core/Buffer.hpp>
+
+#include "Descriptor.hpp"
 
 namespace MMPEngine::Backend::Vulkan
 {
@@ -7,12 +10,62 @@ namespace MMPEngine::Backend::Vulkan
 
 	void BaseJob::BakeMaterialParameters(const std::shared_ptr<GlobalContext>& globalContext, const Core::BaseMaterial::Parameters& params)
 	{
-		VkDescriptorSetLayoutBinding layoutBinding{};
-		layoutBinding.binding = 0;
-		layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-		layoutBinding.descriptorCount = 1;
-		layoutBinding.stageFlags = GetStageFlags();
-		layoutBinding.pImmutableSamplers = nullptr;
+		const auto& paramsVec = params.GetAll();
+
+		std::uint32_t bindingCounter = 0;
+		std::vector<VkDescriptorSetLayoutBinding> bindings;
+
+		for (std::size_t i = 0; i < paramsVec.size(); ++i)
+		{
+			if (i > 0 && paramsVec[i - 1].tag != paramsVec[i].tag)
+			{
+				VkDescriptorSetLayoutCreateInfo layoutInfo{};
+				layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+				layoutInfo.bindingCount = static_cast<std::uint32_t>(bindings.size());
+				layoutInfo.pBindings = bindings.data();
+
+				auto setAllocation = globalContext->descriptorPool->AllocateSet(layoutInfo);
+				_setAllocations.push_back(std::move(setAllocation));
+
+				bindingCounter = 0;
+				bindings.clear();
+				continue;
+			}
+
+			VkDescriptorSetLayoutBinding layoutBinding{};
+			layoutBinding.binding = bindingCounter++;
+			layoutBinding.descriptorCount = 1;
+			layoutBinding.stageFlags = GetStageFlags();
+			layoutBinding.pImmutableSamplers = nullptr;
+
+			if (std::holds_alternative<Core::BaseMaterial::Parameters::Buffer>(paramsVec[i].settings))
+			{
+				if (std::dynamic_pointer_cast<const Core::BaseUniformBuffer>(paramsVec[i].entity))
+				{
+					layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+				}
+				else
+				{
+					layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+				}
+			}
+			else
+			{
+				throw Core::UnsupportedException("unsupported entity type as parameter for Vulkan backend");
+			}
+			bindings.push_back(layoutBinding);
+		}
+
+		if (!bindings.empty())
+		{
+			VkDescriptorSetLayoutCreateInfo layoutInfo{};
+			layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+			layoutInfo.bindingCount = static_cast<std::uint32_t>(bindings.size());
+			layoutInfo.pBindings = bindings.data();
+
+			auto setAllocation = globalContext->descriptorPool->AllocateSet(layoutInfo);
+			_setAllocations.push_back(std::move(setAllocation));
+		}
 	}
 
 

@@ -127,8 +127,14 @@ namespace MMPEngine::Core
 		IndexBuffer(const Settings& settings);
 	};
 
+	class BaseUniformBuffer : public Buffer
+	{
+	protected:
+		BaseUniformBuffer(const Settings& settings);
+	};
+
 	template<class TUniformBufferData>
-	class UniformBuffer: public Buffer
+	class UniformBuffer: public BaseUniformBuffer
 	{
 	protected:
 		using TData = std::decay_t<TUniformBufferData>;
@@ -147,7 +153,7 @@ namespace MMPEngine::Core
 	};
 
 	template<class TUniformBufferData>
-	inline UniformBuffer<TUniformBufferData>::UniformBuffer(const Settings& settings) : Buffer(settings)
+	inline UniformBuffer<TUniformBufferData>::UniformBuffer(const Settings& settings) : BaseUniformBuffer(settings)
 	{
 	}
 }

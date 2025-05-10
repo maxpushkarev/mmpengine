@@ -4,6 +4,7 @@
 #include <Backend/Vulkan/Context.hpp>
 #include <Backend/Vulkan/Task.hpp>
 #include <Backend/Vulkan/Entity.hpp>
+#include <Backend/Vulkan/Descriptor.hpp>
 
 namespace MMPEngine::Backend::Vulkan
 {
@@ -24,6 +25,7 @@ namespace MMPEngine::Backend::Vulkan
 
 		std::vector<std::shared_ptr<Core::BaseTask>> _switchMaterialParametersStateTasks;
 		std::vector<std::function<void(const std::shared_ptr<StreamContext>& streamContext)>> _applyMaterialParametersCallbacks;
+		std::vector<DescriptorPool::Allocation> _setAllocations;
 
 		class TaskContext final : public Core::TaskContext
 		{
