@@ -393,7 +393,8 @@ namespace MMPEngine::Feature
 			std::optional<std::size_t> queueFamilyIndex = std::nullopt;
 			for(std::size_t i = 0; i < queueFamilies.size(); ++i)
 			{
-				if(queueFamilies[i].queueFlags & (VK_QUEUE_COMPUTE_BIT | VK_QUEUE_TRANSFER_BIT | VK_QUEUE_GRAPHICS_BIT))
+				constexpr auto mask = (VK_QUEUE_COMPUTE_BIT | VK_QUEUE_TRANSFER_BIT | VK_QUEUE_GRAPHICS_BIT);
+				if((queueFamilies[i].queueFlags & mask) == mask)
 				{
 					queueFamilyIndex = i;
 				}
