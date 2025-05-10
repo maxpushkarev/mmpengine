@@ -32,7 +32,7 @@ namespace MMPEngine::Backend::Vulkan
 		assert(job);
 
 		job->_device = _specificGlobalContext->device;
-		job->BakeMaterialParameters(_specificGlobalContext, job->_material->GetParameters());
+		job->PrepareMaterialParameters(_specificGlobalContext, job->_material->GetParameters());
 
 		VkShaderModuleCreateInfo shaderModelInfo{};
 		shaderModelInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
@@ -70,28 +70,23 @@ namespace MMPEngine::Backend::Vulkan
 		const auto baseJobCtx = std::make_shared<TaskContext>();
 		baseJobCtx->job = std::dynamic_pointer_cast<Vulkan::BaseJob>(ctx->job);
 
-		_applyMaterial = std::make_shared<ApplyParametersTask>(baseJobCtx);
-		//_setPipelineState = std::make_shared<SetPipelineStateTask>(baseJobCtx);
-		_dispatch = std::make_shared<Dispatch>(ctx);
-		//_setDescriptorHeaps = std::make_shared<BindDescriptorPoolsTask>(std::make_shared<BindDescriptorPoolsTaskContext>());
+		_switchStates = std::make_shared<SwitchState>(baseJobCtx);
+		_impl = std::make_shared<Impl>(ctx);
 	}
 
 	void DirectComputeJob::ExecutionTask::OnScheduled(const std::shared_ptr<Core::BaseStream>& stream)
 	{
 		Task::OnScheduled(stream);
 
-		//_setDescriptorHeaps->GetTaskContext()->FillDescriptors(_specificGlobalContext);
-		//stream->Schedule(_setDescriptorHeaps);
-		//stream->Schedule(_setPipelineState);
-		stream->Schedule(_applyMaterial);
-		stream->Schedule(_dispatch);
+		stream->Schedule(_switchStates);
+		stream->Schedule(_impl);
 	}
 
-	DirectComputeJob::ExecutionTask::Dispatch::Dispatch(const std::shared_ptr<ExecutionContext>& ctx) : Task(ctx)
+	DirectComputeJob::ExecutionTask::Impl::Impl(const std::shared_ptr<ExecutionContext>& ctx) : Task(ctx)
 	{
 	}
 
-	void DirectComputeJob::ExecutionTask::Dispatch::Run(const std::shared_ptr<Core::BaseStream>& stream)
+	void DirectComputeJob::ExecutionTask::Impl::Run(const std::shared_ptr<Core::BaseStream>& stream)
 	{
 		Task::Run(stream);
 		const auto& dim = GetTaskContext()->dimensions;

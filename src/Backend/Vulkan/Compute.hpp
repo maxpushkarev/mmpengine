@@ -30,18 +30,18 @@ namespace MMPEngine::Backend::Vulkan
 		class ExecutionTask final : public Task<Core::DirectComputeContext>
 		{
 		private:
-			class Dispatch final : public Task<ExecutionContext>
+			class Impl final : public Task<ExecutionContext>
 			{
 			public:
-				Dispatch(const std::shared_ptr<ExecutionContext>& ctx);
+				Impl(const std::shared_ptr<ExecutionContext>& ctx);
 				void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
 			};
 		public:
 			ExecutionTask(const std::shared_ptr<ExecutionContext>& ctx);
 			void OnScheduled(const std::shared_ptr<Core::BaseStream>& stream) override;
 		private:
-			std::shared_ptr<BaseTask> _applyMaterial;
-			std::shared_ptr<Dispatch> _dispatch;
+			std::shared_ptr<BaseTask> _switchStates;
+			std::shared_ptr<Impl> _impl;
 		};
 
 	public:

@@ -19,7 +19,7 @@ namespace MMPEngine::Backend::Vulkan
 		}
 	};
 
-	void BaseJob::BakeMaterialParameters(const std::shared_ptr<GlobalContext>& globalContext, const Core::BaseMaterial::Parameters& params)
+	void BaseJob::PrepareMaterialParameters(const std::shared_ptr<GlobalContext>& globalContext, const Core::BaseMaterial::Parameters& params)
 	{
 		const auto& paramsVec = params.GetAll();
 		assert(!paramsVec.empty());
@@ -153,27 +153,12 @@ namespace MMPEngine::Backend::Vulkan
 		vkCreatePipelineLayout(_device->GetNativeLogical(), &pipelineLayoutInfo, nullptr, &_pipelineLayout);
 		assert(_pipelineLayout);
 	}
-
-
-	BaseJob::ApplyParametersTask::ApplyParametersTask(const std::shared_ptr<TaskContext>& context) : Task<TaskContext>(context)
-	{
-		_switchState = std::make_shared<SwitchState>(context);
-		_apply = std::make_shared<Apply>(context);
-	}
-
-	void BaseJob::ApplyParametersTask::OnScheduled(const std::shared_ptr<Core::BaseStream>& stream)
-	{
-		Task::OnScheduled(stream);
-
-		stream->Schedule(_switchState);
-		stream->Schedule(_apply);
-	}
-
-	BaseJob::ApplyParametersTask::SwitchState::SwitchState(const std::shared_ptr<TaskContext>& context) : Task<TaskContext>(context)
+	
+	BaseJob::SwitchState::SwitchState(const std::shared_ptr<TaskContext>& context) : Task<TaskContext>(context)
 	{
 	}
 
-	void BaseJob::ApplyParametersTask::SwitchState::OnScheduled(const std::shared_ptr<Core::BaseStream>& stream)
+	void BaseJob::SwitchState::OnScheduled(const std::shared_ptr<Core::BaseStream>& stream)
 	{
 		Task::OnScheduled(stream);
 
@@ -182,23 +167,6 @@ namespace MMPEngine::Backend::Vulkan
 			for (const auto& sst : job->_switchMaterialParametersStateTasks)
 			{
 				stream->Schedule(sst);
-			}
-		}
-	}
-
-	BaseJob::ApplyParametersTask::Apply::Apply(const std::shared_ptr<TaskContext>& context) : Task<TaskContext>(context)
-	{
-	}
-
-	void BaseJob::ApplyParametersTask::Apply::Run(const std::shared_ptr<Core::BaseStream>& stream)
-	{
-		Task::Run(stream);
-
-		if (const auto job = this->GetTaskContext()->job; const auto sc = _specificStreamContext)
-		{
-			for (const auto& applyParameterCallback : job->_applyMaterialParametersCallbacks)
-			{
-				applyParameterCallback(sc);
 			}
 		}
 	}
