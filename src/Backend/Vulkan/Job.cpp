@@ -80,16 +80,32 @@ namespace MMPEngine::Backend::Vulkan
 					writeSet.dstArrayElement = 0;
 					writeSet.descriptorCount = 1;
 
+					VkAccessFlags srcAccess = 0;
+					VkAccessFlags dstAccess = 0;
 
 					if (std::holds_alternative<Core::BaseMaterial::Parameters::Buffer>(ev.entryPtr->settings))
 					{
 						if (std::dynamic_pointer_cast<const Core::BaseUniformBuffer>(ev.entryPtr->entity))
 						{
 							writeSet.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+
+							srcAccess = VK_ACCESS_MEMORY_WRITE_BIT;
+							dstAccess = VK_ACCESS_UNIFORM_READ_BIT;
 						}
 						else
 						{
 							writeSet.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+
+							if (std::dynamic_pointer_cast<const Core::BaseUnorderedAccessBuffer>(ev.entryPtr->entity))
+							{
+								srcAccess = VK_ACCESS_MEMORY_WRITE_BIT | VK_ACCESS_MEMORY_READ_BIT;
+								dstAccess = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT;
+							}
+							else
+							{
+								srcAccess = VK_ACCESS_MEMORY_WRITE_BIT;
+								dstAccess = VK_ACCESS_SHADER_READ_BIT;
+							}
 						}
 
 						const auto buffer = std::dynamic_pointer_cast<const Core::Buffer>(ev.entryPtr->entity);
@@ -97,6 +113,7 @@ namespace MMPEngine::Backend::Vulkan
 						const auto& castedBufferInfo = castedBuffer->GetDescriptorBufferInfo();
 
 						writeSet.pBufferInfo = &castedBufferInfo;
+						_switchMaterialParametersStateTasks.push_back(const_cast<Buffer*>(castedBuffer.get())->CreateMemoryBarrierTask(srcAccess, dstAccess));
 					}
 					else
 					{

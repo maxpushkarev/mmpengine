@@ -16,6 +16,7 @@ namespace MMPEngine::Backend::Vulkan
 		Buffer& operator=(Buffer&&) noexcept = delete;
 
 		const VkDescriptorBufferInfo& GetDescriptorBufferInfo() const;
+		std::shared_ptr<Core::BaseTask> CreateMemoryBarrierTask(VkAccessFlags srcAccess, VkAccessFlags dstAccess);
 	protected:
 
 		class MemoryBarrierContext final : public Core::EntityTaskContext<Buffer>
@@ -90,10 +91,6 @@ namespace MMPEngine::Backend::Vulkan
 			std::shared_ptr<BaseTask> _dstBufferBarrierTask;
 			std::shared_ptr<Impl> _commandTask;
 		};
-
-
-
-		std::shared_ptr<Core::BaseTask> CreateMemoryBarrierTask(VkAccessFlags srcAccess, VkAccessFlags dstAccess);
 
 	protected:
 		VkBuffer _nativeBuffer = VK_NULL_HANDLE;
