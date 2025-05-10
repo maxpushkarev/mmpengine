@@ -156,10 +156,18 @@ namespace MMPEngine::Backend::Vulkan
 		pipelineLayoutInfo.flags = 0;
 
 		std::vector<VkDescriptorSetLayout> setLayouts;
+
 		setLayouts.reserve(_setAllocations.size());
+		_sets.reserve(_setAllocations.size());
+
 		std::transform(_setAllocations.cbegin(), _setAllocations.cend(), std::back_inserter(setLayouts), [](const auto& alloc)
 		{
 			return alloc.GetDescriptorSetLayout();
+		});
+
+		std::transform(_setAllocations.cbegin(), _setAllocations.cend(), std::back_inserter(_sets), [](const auto& alloc)
+		{
+			return alloc.GetDescriptorSet();
 		});
 
 		pipelineLayoutInfo.setLayoutCount = static_cast<std::uint32_t>(_setAllocations.size());

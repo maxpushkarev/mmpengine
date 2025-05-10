@@ -99,10 +99,18 @@ namespace MMPEngine::Backend::Vulkan
 			job->_pipeline
 		);
 
-		//vkCmdBindDescriptorSets(_specificStreamContext->PopulateCommandsInBuffer()->GetNative(), VK_PIPELINE_BIND_POINT_COMPUTE,
-		//	pipelineLayout, 0, 1, &descriptorSet, 0, nullptr);
+		vkCmdBindDescriptorSets(
+		_specificStreamContext->PopulateCommandsInBuffer()->GetNative(), 
+			VK_PIPELINE_BIND_POINT_COMPUTE,
+			job->_pipelineLayout, 
+			0,
+			static_cast<std::uint32_t>(job->_sets.size()), 
+			job->_sets.data(), 
+			0, 
+			nullptr
+		);
 
-		//_specificStreamContext->PopulateCommandsInBuffer()->Dispatch(dim.x, dim.y, dim.z);
+		vkCmdDispatch(_specificStreamContext->PopulateCommandsInBuffer()->GetNative(), dim.x, dim.y, dim.z);
 	}
 
 	std::shared_ptr<Core::BaseTask> DirectComputeJob::CreateInitializationTask()

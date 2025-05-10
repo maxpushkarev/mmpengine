@@ -24,6 +24,7 @@ namespace MMPEngine::Backend::Vulkan
 
 		std::vector<std::shared_ptr<Core::BaseTask>> _switchMaterialParametersStateTasks;
 		std::vector<DescriptorPool::Allocation> _setAllocations;
+		std::vector<VkDescriptorSet> _sets;
 		VkPipelineLayout _pipelineLayout = VK_NULL_HANDLE;
 		VkPipeline _pipeline = VK_NULL_HANDLE;
 		std::shared_ptr<Wrapper::Device> _device;
