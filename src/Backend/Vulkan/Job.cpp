@@ -40,7 +40,6 @@ namespace MMPEngine::Backend::Vulkan
 
 				bindingCounter = 0;
 				bindings.clear();
-				continue;
 			}
 
 			VkDescriptorSetLayoutBinding layoutBinding{};
