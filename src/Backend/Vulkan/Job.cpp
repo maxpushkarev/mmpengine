@@ -18,8 +18,6 @@ namespace MMPEngine::Backend::Vulkan
 		const auto& paramsVec = params.GetAll();
 		assert(!paramsVec.empty());
 
-		_device = globalContext->device;
-
 		std::uint32_t bindingCounter = 0;
 		std::vector<VkDescriptorSetLayoutBinding> bindings;
 

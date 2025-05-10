@@ -25,7 +25,7 @@ namespace MMPEngine::Backend::Vulkan
 		std::vector<std::shared_ptr<Core::BaseTask>> _switchMaterialParametersStateTasks;
 		std::vector<std::function<void(const std::shared_ptr<StreamContext>& streamContext)>> _applyMaterialParametersCallbacks;
 		std::vector<DescriptorPool::Allocation> _setAllocations;
-		VkPipelineLayout _pipelineLayout;
+		VkPipelineLayout _pipelineLayout = nullptr;
 		std::shared_ptr<Wrapper::Device> _device;
 
 		class TaskContext final : public Core::TaskContext

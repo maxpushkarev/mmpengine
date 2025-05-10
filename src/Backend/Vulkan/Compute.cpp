@@ -4,9 +4,18 @@
 
 namespace MMPEngine::Backend::Vulkan
 {
-	DirectComputeJob::DirectComputeJob(const std::shared_ptr<Core::ComputeMaterial>& material) : Core::DirectComputeJob(material)
+	DirectComputeJob::DirectComputeJob(const std::shared_ptr<Core::ComputeMaterial>& material) : Core::DirectComputeJob(material), _shaderModule(nullptr)
 	{
 	}
+
+	DirectComputeJob::~DirectComputeJob()
+	{
+		if (_device && _shaderModule)
+		{
+			vkDestroyShaderModule(_device->GetNativeLogical(), _shaderModule, nullptr);
+		}
+	}
+
 
 	DirectComputeJob::InitTask::InitTask(const std::shared_ptr<InitContext>& ctx) : Task(ctx)
 	{
@@ -22,7 +31,18 @@ namespace MMPEngine::Backend::Vulkan
 		const auto job = GetTaskContext()->job;
 		assert(job);
 
+		job->_device = _specificGlobalContext->device;
 		job->BakeMaterialParameters(_specificGlobalContext, job->_material->GetParameters());
+
+		VkShaderModuleCreateInfo shaderModelInfo{};
+		shaderModelInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+		shaderModelInfo.pNext = nullptr;
+		shaderModelInfo.flags = 0;
+		shaderModelInfo.codeSize = job->_material->GetShader()->GetCompiledBinaryLength();
+		shaderModelInfo.pCode = static_cast<const std::uint32_t*>(job->_material->GetShader()->GetCompiledBinaryData());
+
+		vkCreateShaderModule(_specificGlobalContext->device->GetNativeLogical(), &shaderModelInfo, nullptr, &job->_shaderModule);
+		assert(job->_shaderModule);
 
 		/*const auto cs = job->_material->GetShader();
 		assert(cs);

@@ -46,7 +46,10 @@ namespace MMPEngine::Backend::Vulkan
 
 	public:
 		DirectComputeJob(const std::shared_ptr<Core::ComputeMaterial>& material);
+		~DirectComputeJob() override;
 		std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;
 		std::shared_ptr<Core::ContextualTask<Core::DirectComputeContext>> CreateExecutionTask() override;
+	private:
+		VkShaderModule _shaderModule;
 	};
 }
