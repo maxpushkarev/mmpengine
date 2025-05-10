@@ -28,6 +28,8 @@ namespace MMPEngine::Core
 		const void* GetCompiledBinaryData() const;
 		std::size_t GetCompiledBinaryLength() const;
 		std::shared_ptr<BaseTask> CreateInitializationTask() override;
+
+		inline static auto ENTRY_POINT_NAME = "main";
 	protected:
 		std::vector<char> _compiledBinaryData;
 		std::filesystem::path _path;

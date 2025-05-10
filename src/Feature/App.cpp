@@ -3,8 +3,6 @@
 #include <cassert>
 #include <Backend/Shared/Math.hpp>
 
-#include "Backend/Vulkan/Descriptor.hpp"
-
 #ifdef MMPENGINE_BACKEND_DX12
 #include <Backend/Dx12/Stream.hpp>
 #include <Backend/Dx12/Math.hpp>

@@ -7,6 +7,11 @@ namespace MMPEngine::Backend::Vulkan
 	BaseJob::BaseJob() = default;
 	BaseJob::~BaseJob()
 	{
+		if (_device && _pipeline)
+		{
+			vkDestroyPipeline(_device->GetNativeLogical(), _pipeline, nullptr);
+		}
+
 		if (_device && _pipelineLayout)
 		{
 			vkDestroyPipelineLayout(_device->GetNativeLogical(), _pipelineLayout, nullptr);

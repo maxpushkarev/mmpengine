@@ -4,7 +4,7 @@
 
 namespace MMPEngine::Backend::Vulkan
 {
-	DirectComputeJob::DirectComputeJob(const std::shared_ptr<Core::ComputeMaterial>& material) : Core::DirectComputeJob(material), _shaderModule(nullptr)
+	DirectComputeJob::DirectComputeJob(const std::shared_ptr<Core::ComputeMaterial>& material) : Core::DirectComputeJob(material)
 	{
 	}
 
@@ -43,6 +43,26 @@ namespace MMPEngine::Backend::Vulkan
 
 		vkCreateShaderModule(_specificGlobalContext->device->GetNativeLogical(), &shaderModelInfo, nullptr, &job->_shaderModule);
 		assert(job->_shaderModule);
+
+		VkComputePipelineCreateInfo computePipelineInfo;
+		computePipelineInfo.sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO;
+		computePipelineInfo.pNext = VK_NULL_HANDLE;
+		computePipelineInfo.flags = 0;
+		computePipelineInfo.layout = job->_pipelineLayout;
+		computePipelineInfo.stage = {
+			VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+			VK_NULL_HANDLE,
+			0,
+			VK_SHADER_STAGE_COMPUTE_BIT,
+			job->_shaderModule,
+			Core::Shader::ENTRY_POINT_NAME,
+			VK_NULL_HANDLE
+		};
+		computePipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
+		computePipelineInfo.basePipelineIndex = 0;
+
+		vkCreateComputePipelines(_specificGlobalContext->device->GetNativeLogical(), VK_NULL_HANDLE, 1, &computePipelineInfo, nullptr, &job->_pipeline);
+		assert(job->_pipeline);
 
 		/*const auto cs = job->_material->GetShader();
 		assert(cs);
