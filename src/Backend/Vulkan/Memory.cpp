@@ -4,7 +4,7 @@
 
 namespace MMPEngine::Backend::Vulkan
 {
-	DeviceMemoryBlock::DeviceMemoryBlock(const Settings& settings) : _settings(settings), _deviceMem(nullptr)
+	DeviceMemoryBlock::DeviceMemoryBlock(const Settings& settings) : _settings(settings), _deviceMem(VK_NULL_HANDLE)
 	{
 	}
 

@@ -50,6 +50,6 @@ namespace MMPEngine::Backend::Vulkan
 		std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;
 		std::shared_ptr<Core::ContextualTask<Core::DirectComputeContext>> CreateExecutionTask() override;
 	private:
-		VkShaderModule _shaderModule = nullptr;
+		VkShaderModule _shaderModule = VK_NULL_HANDLE;
 	};
 }

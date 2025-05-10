@@ -54,8 +54,8 @@ namespace MMPEngine::Backend::Vulkan
 		private:
 			std::shared_ptr<Wrapper::Device> _device;
 			std::shared_ptr<Pool> _pool;
-			VkDescriptorSet _set = nullptr;
-			VkDescriptorSetLayout _layout = nullptr;
+			VkDescriptorSet _set = VK_NULL_HANDLE;
+			VkDescriptorSetLayout _layout = VK_NULL_HANDLE;
 		};
 
 		DescriptorPool(const Settings&);

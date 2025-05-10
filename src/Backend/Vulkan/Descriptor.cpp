@@ -90,12 +90,12 @@ namespace MMPEngine::Backend::Vulkan
 
 	DescriptorPool::Allocation DescriptorPool::AllocateSet(const VkDescriptorSetLayoutCreateInfo& layoutCreateInfo)
 	{
-		VkDescriptorSetLayout layout = nullptr;
-		VkDescriptorSet set = nullptr;
+		VkDescriptorSetLayout layout = VK_NULL_HANDLE;
+		VkDescriptorSet set = VK_NULL_HANDLE;
 		std::shared_ptr<Pool> pool = nullptr;
 
 		vkCreateDescriptorSetLayout(_device->GetNativeLogical(), &layoutCreateInfo, nullptr, &layout);
-		assert(layout != nullptr);
+		assert(layout);
 
 		for (const auto& p : _pools)
 		{
@@ -133,7 +133,7 @@ namespace MMPEngine::Backend::Vulkan
 			assert(res == VK_SUCCESS);
 		}
 
-		assert(set != nullptr);
+		assert(set);
 		return Allocation {_device, pool, set, layout};
 	}
 
@@ -161,8 +161,8 @@ namespace MMPEngine::Backend::Vulkan
 	{
 		other._device = nullptr;
 		other._pool = nullptr;
-		other._set = nullptr;
-		other._layout = nullptr;
+		other._set = VK_NULL_HANDLE;
+		other._layout = VK_NULL_HANDLE;
 	}
 
 	DescriptorPool::Allocation& DescriptorPool::Allocation::operator=(Allocation&& other) noexcept
@@ -176,8 +176,8 @@ namespace MMPEngine::Backend::Vulkan
 
 			other._device = nullptr;
 			other._pool = nullptr;
-			other._set = nullptr;
-			other._layout = nullptr;
+			other._set = VK_NULL_HANDLE;
+			other._layout = VK_NULL_HANDLE;
 		}
 
 		return *this;

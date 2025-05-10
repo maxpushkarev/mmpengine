@@ -63,31 +63,6 @@ namespace MMPEngine::Backend::Vulkan
 
 		vkCreateComputePipelines(_specificGlobalContext->device->GetNativeLogical(), VK_NULL_HANDLE, 1, &computePipelineInfo, nullptr, &job->_pipeline);
 		assert(job->_pipeline);
-
-		/*const auto cs = job->_material->GetShader();
-		assert(cs);
-
-		D3D12_COMPUTE_PIPELINE_STATE_DESC psoDesc = {};
-
-		psoDesc.CS =
-		{
-			cs->GetCompiledBinaryData(),
-			cs->GetCompiledBinaryLength()
-		};
-
-		psoDesc.pRootSignature = job->_rootSignature.Get();
-		psoDesc.Flags = D3D12_PIPELINE_STATE_FLAG_NONE;
-
-		auto psoStream = CD3Vulkan_PIPELINE_STATE_STREAM{ psoDesc };
-		D3D12_PIPELINE_STATE_STREAM_DESC streamDesc;
-		streamDesc.pPipelineStateSubobjectStream = &psoStream;
-		streamDesc.SizeInBytes = sizeof(psoStream);
-
-		Microsoft::WRL::ComPtr<ID3D12Device2> castedDevice = nullptr;
-		ac->device->QueryInterface(IID_PPV_ARGS(castedDevice.GetAddressOf()));
-		assert(castedDevice != nullptr);
-
-		castedDevice->CreatePipelineState(&streamDesc, IID_PPV_ARGS(&job->_pipelineState));*/
 	}
 
 	DirectComputeJob::ExecutionTask::ExecutionTask(const std::shared_ptr<ExecutionContext>& ctx) : Task(ctx)

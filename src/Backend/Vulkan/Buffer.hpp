@@ -96,7 +96,7 @@ namespace MMPEngine::Backend::Vulkan
 		std::shared_ptr<Core::BaseTask> CreateMemoryBarrierTask(VkAccessFlags srcAccess, VkAccessFlags dstAccess);
 
 	protected:
-		VkBuffer _nativeBuffer = nullptr;
+		VkBuffer _nativeBuffer = VK_NULL_HANDLE;
 		std::shared_ptr<Wrapper::Device> _device;
 		VkBufferUsageFlags _usage;
 		VkDescriptorBufferInfo _info;
