@@ -48,6 +48,9 @@ namespace MMPEngine::Backend::Vulkan
 			Allocation(Allocation&&) noexcept;
 			Allocation& operator=(const Allocation&) = delete;
 			Allocation& operator=(Allocation&&) noexcept;
+
+			VkDescriptorSet GetDescriptorSet() const;
+			VkDescriptorSetLayout GetDescriptorSetLayout() const;
 		private:
 			std::shared_ptr<Wrapper::Device> _device;
 			std::shared_ptr<Pool> _pool;

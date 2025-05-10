@@ -183,5 +183,14 @@ namespace MMPEngine::Backend::Vulkan
 		return *this;
 	}
 
+	VkDescriptorSet DescriptorPool::Allocation::GetDescriptorSet() const
+	{
+		return _set;
+	}
+
+	VkDescriptorSetLayout DescriptorPool::Allocation::GetDescriptorSetLayout() const
+	{
+		return _layout;
+	}
 
 }

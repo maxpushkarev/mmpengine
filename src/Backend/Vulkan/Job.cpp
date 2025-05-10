@@ -1,14 +1,24 @@
+#include <cassert>
 #include <Backend/Vulkan/Job.hpp>
 #include <Core/Buffer.hpp>
 
 namespace MMPEngine::Backend::Vulkan
 {
 	BaseJob::BaseJob() = default;
-	BaseJob::~BaseJob() = default;
+	BaseJob::~BaseJob()
+	{
+		if (_device && _pipelineLayout)
+		{
+			vkDestroyPipelineLayout(_device->GetNativeLogical(), _pipelineLayout, nullptr);
+		}
+	};
 
 	void BaseJob::BakeMaterialParameters(const std::shared_ptr<GlobalContext>& globalContext, const Core::BaseMaterial::Parameters& params)
 	{
 		const auto& paramsVec = params.GetAll();
+		assert(!paramsVec.empty());
+
+		_device = globalContext->device;
 
 		std::uint32_t bindingCounter = 0;
 		std::vector<VkDescriptorSetLayoutBinding> bindings;
@@ -64,6 +74,27 @@ namespace MMPEngine::Backend::Vulkan
 			auto setAllocation = globalContext->descriptorPool->AllocateSet(layoutInfo);
 			_setAllocations.push_back(std::move(setAllocation));
 		}
+
+
+		VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
+		pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+		pipelineLayoutInfo.pNext = nullptr;
+		pipelineLayoutInfo.flags = 0;
+
+		std::vector<VkDescriptorSetLayout> setLayouts;
+		setLayouts.reserve(_setAllocations.size());
+		std::transform(_setAllocations.cbegin(), _setAllocations.cend(), std::back_inserter(setLayouts), [](const auto& alloc)
+		{
+			return alloc.GetDescriptorSetLayout();
+		});
+
+		pipelineLayoutInfo.setLayoutCount = static_cast<std::uint32_t>(_setAllocations.size());
+		pipelineLayoutInfo.pSetLayouts = setLayouts.data();
+		pipelineLayoutInfo.pPushConstantRanges = nullptr;
+		pipelineLayoutInfo.pushConstantRangeCount = 0;
+
+		vkCreatePipelineLayout(_device->GetNativeLogical(), &pipelineLayoutInfo, nullptr, &_pipelineLayout);
+		assert(_pipelineLayout);
 	}
 
 
