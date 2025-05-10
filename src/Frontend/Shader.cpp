@@ -18,6 +18,16 @@ namespace MMPEngine::Frontend
 #endif
 		}
 
+		if (globalContext->settings.backend == Core::BackendType::Vulkan)
+		{
+
+#ifdef MMPENGINE_BACKEND_VULKAN
+			return std::make_shared<Backend::Vulkan::ComputeShader>(std::move(specificShaderPath));
+#else
+			throw Core::UnsupportedException("unable to load compute shader for Vulkan backend");
+#endif
+		}
+
 		return nullptr;
 	}
 
@@ -33,6 +43,16 @@ namespace MMPEngine::Frontend
 			return std::make_shared<Backend::Dx12::VertexShader>(std::move(specificShaderPath));
 #else
 			throw Core::UnsupportedException("unable to load vertex shader for DX12 backend");
+#endif
+		}
+
+		if (globalContext->settings.backend == Core::BackendType::Vulkan)
+		{
+
+#ifdef MMPENGINE_BACKEND_VULKAN
+			return std::make_shared<Backend::Vulkan::VertexShader>(std::move(specificShaderPath));
+#else
+			throw Core::UnsupportedException("unable to load vertex shader for Vulkan backend");
 #endif
 		}
 
@@ -53,6 +73,15 @@ namespace MMPEngine::Frontend
 #endif
 		}
 
+		if (globalContext->settings.backend == Core::BackendType::Vulkan)
+		{
+
+#ifdef MMPENGINE_BACKEND_VULKAN
+			return std::make_shared<Backend::Vulkan::PixelShader>(std::move(specificShaderPath));
+#else
+			throw Core::UnsupportedException("unable to load pixel shader for Vulkan backend");
+#endif
+		}
 		return nullptr;
 	}
 

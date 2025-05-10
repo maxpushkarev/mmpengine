@@ -6,6 +6,10 @@
 #include <Backend/Dx12/Shader.hpp>
 #endif
 
+#ifdef MMPENGINE_BACKEND_VULKAN
+#include <Backend/Vulkan/Shader.hpp>
+#endif
+
 namespace MMPEngine::Frontend
 {
 	class Shader final
