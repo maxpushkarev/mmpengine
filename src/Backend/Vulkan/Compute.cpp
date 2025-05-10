@@ -46,12 +46,12 @@ namespace MMPEngine::Backend::Vulkan
 
 		VkComputePipelineCreateInfo computePipelineInfo;
 		computePipelineInfo.sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO;
-		computePipelineInfo.pNext = VK_NULL_HANDLE;
+		computePipelineInfo.pNext = nullptr;
 		computePipelineInfo.flags = 0;
 		computePipelineInfo.layout = job->_pipelineLayout;
 		computePipelineInfo.stage = {
 			VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
-			VK_NULL_HANDLE,
+			nullptr,
 			0,
 			VK_SHADER_STAGE_COMPUTE_BIT,
 			job->_shaderModule,
