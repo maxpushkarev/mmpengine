@@ -1,6 +1,7 @@
 #include <cassert>
 #include <Backend/Vulkan/Job.hpp>
-#include <Core/Buffer.hpp>
+#include <Backend/Vulkan/Buffer.hpp>
+
 
 namespace MMPEngine::Backend::Vulkan
 {
@@ -23,13 +24,42 @@ namespace MMPEngine::Backend::Vulkan
 		const auto& paramsVec = params.GetAll();
 		assert(!paramsVec.empty());
 
-		std::uint32_t bindingCounter = 0;
-		std::vector<VkDescriptorSetLayoutBinding> bindings;
+		std::vector<Core::BaseMaterial::Parameters::EntryView> entryViewsInSet;
+		std::vector<VkWriteDescriptorSet> writeSets;
 
-		for (std::size_t i = 0; i < paramsVec.size(); ++i)
+		auto buildSets = [this, &entryViewsInSet, &writeSets, &globalContext]()
 		{
-			if (i > 0 && paramsVec[i - 1].tag != paramsVec[i].tag)
-			{
+				std::vector<VkDescriptorSetLayoutBinding> bindings;
+				std::uint32_t bindingCounter = 0;
+
+				for (const auto& ev : entryViewsInSet)
+				{
+					VkDescriptorSetLayoutBinding layoutBinding{};
+					layoutBinding.binding = bindingCounter++;
+					layoutBinding.descriptorCount = 1;
+					layoutBinding.stageFlags = GetStageFlags();
+					layoutBinding.pImmutableSamplers = nullptr;
+
+
+					if (std::holds_alternative<Core::BaseMaterial::Parameters::Buffer>(ev.entryPtr->settings))
+					{
+						if (std::dynamic_pointer_cast<const Core::BaseUniformBuffer>(ev.entryPtr->entity))
+						{
+							layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+						}
+						else
+						{
+							layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+						}
+					}
+					else
+					{
+						throw Core::UnsupportedException("unsupported entity type as parameter for Vulkan backend");
+					}
+
+					bindings.push_back(layoutBinding);
+				}
+
 				VkDescriptorSetLayoutCreateInfo layoutInfo{};
 				layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
 				layoutInfo.bindingCount = static_cast<std::uint32_t>(bindings.size());
@@ -38,44 +68,69 @@ namespace MMPEngine::Backend::Vulkan
 				auto setAllocation = globalContext->descriptorPool->AllocateSet(layoutInfo);
 				_setAllocations.push_back(std::move(setAllocation));
 
+
 				bindingCounter = 0;
-				bindings.clear();
-			}
-
-			VkDescriptorSetLayoutBinding layoutBinding{};
-			layoutBinding.binding = bindingCounter++;
-			layoutBinding.descriptorCount = 1;
-			layoutBinding.stageFlags = GetStageFlags();
-			layoutBinding.pImmutableSamplers = nullptr;
-
-			if (std::holds_alternative<Core::BaseMaterial::Parameters::Buffer>(paramsVec[i].settings))
-			{
-				if (std::dynamic_pointer_cast<const Core::BaseUniformBuffer>(paramsVec[i].entity))
+				for (const auto& ev : entryViewsInSet)
 				{
-					layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-				}
-				else
-				{
-					layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-				}
-			}
-			else
-			{
-				throw Core::UnsupportedException("unsupported entity type as parameter for Vulkan backend");
-			}
-			bindings.push_back(layoutBinding);
-		}
+					VkWriteDescriptorSet writeSet{};
+					writeSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+					writeSet.pNext = nullptr;
+					writeSet.dstSet = _setAllocations.back().GetDescriptorSet();
+					writeSet.dstBinding = bindingCounter++;
+					writeSet.dstArrayElement = 0;
+					writeSet.descriptorCount = 1;
 
-		if (!bindings.empty())
+
+					if (std::holds_alternative<Core::BaseMaterial::Parameters::Buffer>(ev.entryPtr->settings))
+					{
+						if (std::dynamic_pointer_cast<const Core::BaseUniformBuffer>(ev.entryPtr->entity))
+						{
+							writeSet.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+						}
+						else
+						{
+							writeSet.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+						}
+
+						const auto buffer = std::dynamic_pointer_cast<const Core::Buffer>(ev.entryPtr->entity);
+						const auto castedBuffer = std::dynamic_pointer_cast<const Buffer>(buffer->GetUnderlyingBuffer());
+						const auto& castedBufferInfo = castedBuffer->GetDescriptorBufferInfo();
+
+						writeSet.pBufferInfo = &castedBufferInfo;
+					}
+					else
+					{
+						throw Core::UnsupportedException("unsupported entity type as parameter for Vulkan backend");
+					}
+
+					writeSets.push_back(writeSet);
+				}
+		};
+
+		for (std::size_t i = 0; i < paramsVec.size(); ++i)
 		{
-			VkDescriptorSetLayoutCreateInfo layoutInfo{};
-			layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-			layoutInfo.bindingCount = static_cast<std::uint32_t>(bindings.size());
-			layoutInfo.pBindings = bindings.data();
+			if (i > 0 && paramsVec[i - 1].tag != paramsVec[i].tag)
+			{
+				buildSets();
+				entryViewsInSet.clear();
+			}
 
-			auto setAllocation = globalContext->descriptorPool->AllocateSet(layoutInfo);
-			_setAllocations.push_back(std::move(setAllocation));
+			entryViewsInSet.push_back(params.TryGet(paramsVec[i].name).value());
 		}
+
+		if (!entryViewsInSet.empty())
+		{
+			buildSets();
+		}
+
+
+		vkUpdateDescriptorSets(
+			_device->GetNativeLogical(), 
+			static_cast<std::uint32_t>(writeSets.size()),
+			writeSets.data(), 
+			0, 
+			nullptr
+		);
 
 
 		VkPipelineLayoutCreateInfo pipelineLayoutInfo{};

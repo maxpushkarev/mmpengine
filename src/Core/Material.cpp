@@ -119,8 +119,7 @@ namespace MMPEngine::Core
 			entryView.entryPtr = &entry;
 			entryView.index = static_cast<decltype(entryView.index)>(i);
 
-			_viewMap.emplace(std::make_pair(name, entryView));
-
+			_viewMap[name] = entryView;
 		}
 	}
 
