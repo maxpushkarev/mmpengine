@@ -3,7 +3,6 @@
 #include <Core/Material.hpp>
 #include <Backend/Vulkan/Context.hpp>
 #include <Backend/Vulkan/Task.hpp>
-#include <Backend/Vulkan/Entity.hpp>
 #include <Backend/Vulkan/Descriptor.hpp>
 
 namespace MMPEngine::Backend::Vulkan

@@ -1,8 +1,6 @@
 #include <Backend/Vulkan/Job.hpp>
 #include <Core/Buffer.hpp>
 
-#include "Descriptor.hpp"
-
 namespace MMPEngine::Backend::Vulkan
 {
 	BaseJob::BaseJob() = default;
