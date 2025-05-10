@@ -19,6 +19,9 @@ namespace MMPEngine::Backend::Vulkan
 		BaseJob();
 		virtual	~BaseJob();
 
+		void BakeMaterialParameters(const std::shared_ptr<GlobalContext>& globalContext, const Core::BaseMaterial::Parameters& params);
+		virtual VkShaderStageFlags GetStageFlags() const = 0;
+
 		std::vector<std::shared_ptr<Core::BaseTask>> _switchMaterialParametersStateTasks;
 		std::vector<std::function<void(const std::shared_ptr<StreamContext>& streamContext)>> _applyMaterialParametersCallbacks;
 
@@ -59,5 +62,18 @@ namespace MMPEngine::Backend::Vulkan
 	class Job : public BaseJob
 	{
 		static_assert(std::is_base_of_v<Core::BaseMaterial, TCoreMaterial>, "TCoreMaterial must be derived from Core::BaseMaterial");
+	protected:
+		VkShaderStageFlags GetStageFlags() const override;
 	};
+
+	template<>
+	VkShaderStageFlags Job<Core::ComputeMaterial>::GetStageFlags() const;
+
+	template<typename TCoreMaterial>
+	inline VkShaderStageFlags Job<TCoreMaterial>::GetStageFlags() const
+	{
+		return VK_SHADER_STAGE_ALL;
+	}
+
+
 }

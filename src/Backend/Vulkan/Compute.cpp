@@ -22,7 +22,7 @@ namespace MMPEngine::Backend::Vulkan
 		const auto job = GetTaskContext()->job;
 		assert(job);
 
-		//job->BakeMaterialParameters(_specificGlobalContext, job->_material->GetParameters());
+		job->BakeMaterialParameters(_specificGlobalContext, job->_material->GetParameters());
 
 		/*const auto cs = job->_material->GetShader();
 		assert(cs);

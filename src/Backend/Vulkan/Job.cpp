@@ -5,6 +5,17 @@ namespace MMPEngine::Backend::Vulkan
 	BaseJob::BaseJob() = default;
 	BaseJob::~BaseJob() = default;
 
+	void BaseJob::BakeMaterialParameters(const std::shared_ptr<GlobalContext>& globalContext, const Core::BaseMaterial::Parameters& params)
+	{
+		VkDescriptorSetLayoutBinding layoutBinding{};
+		layoutBinding.binding = 0;
+		layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+		layoutBinding.descriptorCount = 1;
+		layoutBinding.stageFlags = GetStageFlags();
+		layoutBinding.pImmutableSamplers = nullptr;
+	}
+
+
 	BaseJob::ApplyParametersTask::ApplyParametersTask(const std::shared_ptr<TaskContext>& context) : Task<TaskContext>(context)
 	{
 		_switchState = std::make_shared<SwitchState>(context);
@@ -51,5 +62,11 @@ namespace MMPEngine::Backend::Vulkan
 				applyParameterCallback(sc);
 			}
 		}
+	}
+
+	template<>
+	VkShaderStageFlags Job<Core::ComputeMaterial>::GetStageFlags() const
+	{
+		return VK_SHADER_STAGE_COMPUTE_BIT;
 	}
 }
