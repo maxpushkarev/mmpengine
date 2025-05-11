@@ -93,7 +93,6 @@ namespace MMPEngine::Core
 
 		virtual std::shared_ptr<BaseTask> CreateResetCounterTask() = 0;
 		virtual std::shared_ptr<BaseTask> CreateCopyCounterTask(const std::shared_ptr<Buffer>& dst,
-			std::size_t byteLength,
 			std::size_t dstByteOffset) = 0;
 
 	};

@@ -58,7 +58,7 @@ namespace MMPEngine::Frontend
 	{
 	public:
 		CounteredUnorderedAccessBuffer(const std::shared_ptr<Core::GlobalContext>& globalContext, const Settings& settings);
-		std::shared_ptr<Core::BaseTask> CreateCopyCounterTask(const std::shared_ptr<Core::Buffer>& dst, std::size_t byteLength, std::size_t dstByteOffset) override;
+		std::shared_ptr<Core::BaseTask> CreateCopyCounterTask(const std::shared_ptr<Core::Buffer>& dst, std::size_t dstByteOffset) override;
 		std::shared_ptr<Core::BaseTask> CreateResetCounterTask() override;
 	};;
 

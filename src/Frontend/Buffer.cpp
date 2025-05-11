@@ -226,9 +226,9 @@ namespace MMPEngine::Frontend
 		return _impl->CreateResetCounterTask();
 	}
 
-	std::shared_ptr<Core::BaseTask> CounteredUnorderedAccessBuffer::CreateCopyCounterTask(const std::shared_ptr<Core::Buffer>& dst, std::size_t byteLength, std::size_t dstByteOffset)
+	std::shared_ptr<Core::BaseTask> CounteredUnorderedAccessBuffer::CreateCopyCounterTask(const std::shared_ptr<Core::Buffer>& dst, std::size_t dstByteOffset)
 	{
-		return _impl->CreateCopyCounterTask(dst, byteLength, dstByteOffset);
+		return _impl->CreateCopyCounterTask(dst, dstByteOffset);
 	}
 
 	VertexBuffer::VertexBuffer(const std::shared_ptr<Core::GlobalContext>& globalContext, const Settings& settings) : Buffer(globalContext, settings)

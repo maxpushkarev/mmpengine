@@ -433,7 +433,7 @@ namespace MMPEngine::Backend::Dx12
 		return std::make_shared<ResetCounter>(resetCtx);
 	}
 
-	std::shared_ptr<Core::BaseTask> CounteredUnorderedAccessBuffer::CreateCopyCounterTask(const std::shared_ptr<Core::Buffer>& dst, std::size_t byteLength, std::size_t dstByteOffset)
+	std::shared_ptr<Core::BaseTask> CounteredUnorderedAccessBuffer::CreateCopyCounterTask(const std::shared_ptr<Core::Buffer>& dst, std::size_t dstByteOffset)
 	{
 		const auto dataSize = _uaSettings.stride * _uaSettings.elementsCount;
 		constexpr auto counterAlignmentBlock = static_cast<std::size_t>(D3D12_UAV_COUNTER_PLACEMENT_ALIGNMENT);

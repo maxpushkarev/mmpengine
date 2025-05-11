@@ -543,7 +543,11 @@ namespace MMPEngine::Backend::Vulkan
 	}
 
 
-	CounteredUnorderedAccessBuffer::CounteredUnorderedAccessBuffer(const Settings& settings) : Core::CounteredUnorderedAccessBuffer(settings), Vulkan::Buffer(VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT)
+	CounteredUnorderedAccessBuffer::CounteredUnorderedAccessBuffer(const Settings& settings)
+		: Core::CounteredUnorderedAccessBuffer(settings), Vulkan::Buffer(VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT),
+		_counterBuffer(std::make_shared<UnorderedAccessBuffer>(Core::BaseUnorderedAccessBuffer::Settings{
+			sizeof(Core::CounteredUnorderedAccessBuffer::CounterValueType), 1, "counter"
+		}))
 	{
 	}
 
@@ -564,9 +568,10 @@ namespace MMPEngine::Backend::Vulkan
 		const auto ctx = std::make_shared<InitTaskContext>();
 		ctx->byteSize = GetSettings().byteLength;
 		ctx->entity = std::dynamic_pointer_cast<Vulkan::Buffer>(shared_from_this());
-
+		
 		return std::make_shared<Core::BatchTask>(std::initializer_list<std::shared_ptr<Core::BaseTask>>{
 			std::make_shared<InitTask>(ctx),
+			_counterBuffer->CreateInitializationTask(),	
 			CreateResetCounterTask()
 		});
 	}
@@ -589,9 +594,9 @@ namespace MMPEngine::Backend::Vulkan
 		});
 	}
 
-	std::shared_ptr<Core::BaseTask> CounteredUnorderedAccessBuffer::CreateCopyCounterTask(const std::shared_ptr<Core::Buffer>& dst, std::size_t byteLength, std::size_t dstByteOffset)
+	std::shared_ptr<Core::BaseTask> CounteredUnorderedAccessBuffer::CreateCopyCounterTask(const std::shared_ptr<Core::Buffer>& dst, std::size_t dstByteOffset)
 	{
-		return Core::BaseTask::kEmpty;
+		return _counterBuffer->CreateCopyToBufferTask(dst, sizeof(Core::CounteredUnorderedAccessBuffer::CounterValueType), 0, dstByteOffset);
 	}
 
 }
