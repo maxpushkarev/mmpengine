@@ -89,7 +89,7 @@ namespace MMPEngine::Backend::Vulkan
 						{
 							writeSet.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 
-							srcAccess = VK_ACCESS_MEMORY_WRITE_BIT;
+							srcAccess = VK_ACCESS_MEMORY_WRITE_BIT | VK_ACCESS_TRANSFER_WRITE_BIT;
 							dstAccess = VK_ACCESS_UNIFORM_READ_BIT;
 						}
 						else
@@ -98,12 +98,12 @@ namespace MMPEngine::Backend::Vulkan
 
 							if (std::dynamic_pointer_cast<const Core::BaseUnorderedAccessBuffer>(ev.entryPtr->entity))
 							{
-								srcAccess = VK_ACCESS_MEMORY_WRITE_BIT | VK_ACCESS_MEMORY_READ_BIT;
+								srcAccess = VK_ACCESS_MEMORY_WRITE_BIT | VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_TRANSFER_WRITE_BIT | VK_ACCESS_TRANSFER_READ_BIT;
 								dstAccess = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT;
 							}
 							else
 							{
-								srcAccess = VK_ACCESS_MEMORY_WRITE_BIT;
+								srcAccess = VK_ACCESS_MEMORY_WRITE_BIT | VK_ACCESS_TRANSFER_WRITE_BIT;
 								dstAccess = VK_ACCESS_SHADER_READ_BIT;
 							}
 						}

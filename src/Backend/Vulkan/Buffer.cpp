@@ -147,8 +147,8 @@ namespace MMPEngine::Backend::Vulkan
 		assert(dstBuffer);
 
 		_commandTask = std::make_shared<Impl>(context);
-		_srcBufferBarrierTask = srcBuffer->CreateMemoryBarrierTask(VkAccessFlagBits::VK_ACCESS_MEMORY_WRITE_BIT, VkAccessFlagBits::VK_ACCESS_TRANSFER_READ_BIT);
-		_dstBufferBarrierTask = dstBuffer->CreateMemoryBarrierTask(VkAccessFlagBits::VK_ACCESS_MEMORY_READ_BIT, VkAccessFlagBits::VK_ACCESS_TRANSFER_WRITE_BIT);
+		_srcBufferBarrierTask = srcBuffer->CreateMemoryBarrierTask(VK_ACCESS_MEMORY_WRITE_BIT | VK_ACCESS_TRANSFER_WRITE_BIT, VK_ACCESS_TRANSFER_READ_BIT);
+		_dstBufferBarrierTask = dstBuffer->CreateMemoryBarrierTask(VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_TRANSFER_READ_BIT, VK_ACCESS_TRANSFER_WRITE_BIT);
 	}
 
 	void Buffer::CopyBufferTask::OnScheduled(const std::shared_ptr<Core::BaseStream>& stream)
@@ -583,14 +583,23 @@ namespace MMPEngine::Backend::Vulkan
 
 	std::shared_ptr<Core::BaseTask> CounteredUnorderedAccessBuffer::CreateResetCounterTask()
 	{
-		return Core::BaseTask::kEmpty;
+		const auto ctx = std::make_shared<ResetContext>();
+		ctx->entity = _counterBuffer;
+
+		return std::make_shared<Core::BatchTask>(std::initializer_list<std::shared_ptr<Core::BaseTask>>{
+			_counterBuffer->CreateMemoryBarrierTask(
+				VK_ACCESS_MEMORY_WRITE_BIT | VK_ACCESS_TRANSFER_WRITE_BIT | VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_TRANSFER_READ_BIT,
+				VK_ACCESS_MEMORY_WRITE_BIT | VK_ACCESS_TRANSFER_WRITE_BIT
+			),
+			std::make_shared<ResetCounterTaskImpl>(ctx)
+		});
 	}
 
 	std::shared_ptr<Core::BaseTask> CounteredUnorderedAccessBuffer::CreateMemoryBarrierTask(VkAccessFlags srcAccess, VkAccessFlags dstAccess)
 	{
 		return std::make_shared<Core::BatchTask>(std::initializer_list<std::shared_ptr<Core::BaseTask>>{
-			Vulkan::Buffer::CreateMemoryBarrierTask(srcAccess, dstAccess)/*,
-			CreateResetCounterTask()*/
+			Vulkan::Buffer::CreateMemoryBarrierTask(srcAccess, dstAccess),
+			_counterBuffer->CreateMemoryBarrierTask(srcAccess, dstAccess)
 		});
 	}
 
@@ -599,4 +608,16 @@ namespace MMPEngine::Backend::Vulkan
 		return _counterBuffer->CreateCopyToBufferTask(dst, sizeof(Core::CounteredUnorderedAccessBuffer::CounterValueType), 0, dstByteOffset);
 	}
 
+	CounteredUnorderedAccessBuffer::ResetCounterTaskImpl::ResetCounterTaskImpl(const std::shared_ptr<ResetContext>& ctx)
+		: Task<MMPEngine::Backend::Vulkan::CounteredUnorderedAccessBuffer::ResetContext>(ctx)
+	{
+	}
+
+	void CounteredUnorderedAccessBuffer::ResetCounterTaskImpl::Run(const std::shared_ptr<Core::BaseStream>& stream)
+	{
+		Task::Run(stream);
+
+		const auto tc = GetTaskContext();
+		vkCmdFillBuffer(_specificStreamContext->PopulateCommandsInBuffer()->GetNative(), tc->entity->GetDescriptorBufferInfo().buffer, 0, VK_WHOLE_SIZE, 0);
+	}
 }

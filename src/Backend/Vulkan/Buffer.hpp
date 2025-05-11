@@ -195,6 +195,18 @@ namespace MMPEngine::Backend::Vulkan
 		std::shared_ptr<DeviceMemoryHeap> GetMemoryHeap(const std::shared_ptr<GlobalContext>& globalContext) const override;
 	private:
 		std::shared_ptr<UnorderedAccessBuffer> _counterBuffer;
+
+		class ResetContext final : public Core::EntityTaskContext<UnorderedAccessBuffer>
+		{
+		};
+
+		class ResetCounterTaskImpl final : public Task<ResetContext>
+		{
+		public:
+			ResetCounterTaskImpl(const std::shared_ptr<ResetContext>& ctx);
+		protected:
+			void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
+		};
 	};
 
 
