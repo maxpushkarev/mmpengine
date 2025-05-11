@@ -136,8 +136,6 @@ namespace MMPEngine::Backend::Dx12
 	private:
 		class ResetCounterTaskContext final : public Core::EntityTaskContext<UaBuffer>
 		{
-		public:
-			Core::BaseUnorderedAccessBuffer::Settings settings;
 		};
 		class ResetCounter final : public Task<ResetCounterTaskContext>
 		{

@@ -102,6 +102,15 @@ namespace MMPEngine::Frontend
 #endif
 		}
 
+		if (globalContext->settings.backend == Core::BackendType::Vulkan)
+		{
+#ifdef MMPENGINE_BACKEND_VULKAN
+			return std::make_shared<Backend::Vulkan::CounteredUnorderedAccessBuffer>(this->_uaSettings);
+#else
+			throw Core::UnsupportedException("unable to create countered unordered access buffer for Vulkan backend");
+#endif
+		}
+
 		return nullptr;
 	}
 

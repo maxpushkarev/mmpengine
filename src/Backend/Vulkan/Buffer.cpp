@@ -543,4 +543,55 @@ namespace MMPEngine::Backend::Vulkan
 	}
 
 
+	CounteredUnorderedAccessBuffer::CounteredUnorderedAccessBuffer(const Settings& settings) : Core::CounteredUnorderedAccessBuffer(settings), Vulkan::Buffer(VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT)
+	{
+	}
+
+	std::shared_ptr<Core::BaseTask> CounteredUnorderedAccessBuffer::CreateCopyToBufferTask(const std::shared_ptr<Core::Buffer>& dst, std::size_t byteLength, std::size_t srcByteOffset, std::size_t dstByteOffset) const
+	{
+		const auto context = std::make_shared<CopyBufferTaskContext>();
+		context->src = std::dynamic_pointer_cast<Vulkan::Buffer>(std::const_pointer_cast<Core::Buffer>(GetUnderlyingBuffer()));
+		context->dst = std::dynamic_pointer_cast<Vulkan::Buffer>(dst->GetUnderlyingBuffer());
+		context->srcByteOffset = srcByteOffset;
+		context->dstByteOffset = dstByteOffset;
+		context->byteLength = byteLength;
+
+		return std::make_shared<CopyBufferTask>(context);
+	}
+
+	std::shared_ptr<Core::BaseTask> CounteredUnorderedAccessBuffer::CreateInitializationTask()
+	{
+		const auto ctx = std::make_shared<InitTaskContext>();
+		ctx->byteSize = GetSettings().byteLength;
+		ctx->entity = std::dynamic_pointer_cast<Vulkan::Buffer>(shared_from_this());
+
+		return std::make_shared<Core::BatchTask>(std::initializer_list<std::shared_ptr<Core::BaseTask>>{
+			std::make_shared<InitTask>(ctx),
+			CreateResetCounterTask()
+		});
+	}
+
+	std::shared_ptr<DeviceMemoryHeap> CounteredUnorderedAccessBuffer::GetMemoryHeap(const std::shared_ptr<GlobalContext>& globalContext) const
+	{
+		return globalContext->residentBufferHeap;
+	}
+
+	std::shared_ptr<Core::BaseTask> CounteredUnorderedAccessBuffer::CreateResetCounterTask()
+	{
+		return Core::BaseTask::kEmpty;
+	}
+
+	std::shared_ptr<Core::BaseTask> CounteredUnorderedAccessBuffer::CreateMemoryBarrierTask(VkAccessFlags srcAccess, VkAccessFlags dstAccess)
+	{
+		return std::make_shared<Core::BatchTask>(std::initializer_list<std::shared_ptr<Core::BaseTask>>{
+			Vulkan::Buffer::CreateMemoryBarrierTask(srcAccess, dstAccess)/*,
+			CreateResetCounterTask()*/
+		});
+	}
+
+	std::shared_ptr<Core::BaseTask> CounteredUnorderedAccessBuffer::CreateCopyCounterTask(const std::shared_ptr<Core::Buffer>& dst, std::size_t byteLength, std::size_t dstByteOffset)
+	{
+		return Core::BaseTask::kEmpty;
+	}
+
 }

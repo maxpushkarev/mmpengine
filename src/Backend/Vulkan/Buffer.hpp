@@ -16,7 +16,7 @@ namespace MMPEngine::Backend::Vulkan
 		Buffer& operator=(Buffer&&) noexcept = delete;
 
 		const VkDescriptorBufferInfo& GetDescriptorBufferInfo() const;
-		std::shared_ptr<Core::BaseTask> CreateMemoryBarrierTask(VkAccessFlags srcAccess, VkAccessFlags dstAccess);
+		virtual std::shared_ptr<Core::BaseTask> CreateMemoryBarrierTask(VkAccessFlags srcAccess, VkAccessFlags dstAccess);
 	protected:
 
 		class MemoryBarrierContext final : public Core::EntityTaskContext<Buffer>
@@ -182,6 +182,19 @@ namespace MMPEngine::Backend::Vulkan
 		std::shared_ptr<DeviceMemoryHeap> GetMemoryHeap(const std::shared_ptr<GlobalContext>& globalContext) const override;
 	};
 
+	class CounteredUnorderedAccessBuffer final : public Core::CounteredUnorderedAccessBuffer, public Buffer
+	{
+	public:
+		CounteredUnorderedAccessBuffer(const Settings& settings);
+		std::shared_ptr<Core::BaseTask> CreateCopyToBufferTask(const std::shared_ptr<Core::Buffer>& dst, std::size_t byteLength, std::size_t srcByteOffset, std::size_t dstByteOffset) const override;
+		std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;
+		std::shared_ptr<Core::BaseTask> CreateCopyCounterTask(const std::shared_ptr<Core::Buffer>& dst, std::size_t byteLength, std::size_t dstByteOffset) override;
+		std::shared_ptr<Core::BaseTask> CreateResetCounterTask() override;
+		std::shared_ptr<Core::BaseTask> CreateMemoryBarrierTask(VkAccessFlags srcAccess, VkAccessFlags dstAccess) override;
+	protected:
+		std::shared_ptr<DeviceMemoryHeap> GetMemoryHeap(const std::shared_ptr<GlobalContext>& globalContext) const override;
+	};
+
 
 	class InputAssemblerBuffer
 	{
@@ -249,7 +262,6 @@ namespace MMPEngine::Backend::Vulkan
 		std::shared_ptr<Core::BaseTask> CreateCopyToBufferTask(const std::shared_ptr<Core::Buffer>& dst, std::size_t byteLength, std::size_t srcByteOffset, std::size_t dstByteOffset) const override;
 		std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;
 	};
-
 
 	template<class TUniformBufferData>
 	class UniformBuffer final : public Core::UniformBuffer<TUniformBufferData>, public Vulkan::Buffer

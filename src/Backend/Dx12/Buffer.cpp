@@ -430,7 +430,6 @@ namespace MMPEngine::Backend::Dx12
 	{
 		const auto resetCtx = std::make_shared<ResetCounterTaskContext>();
 		resetCtx->entity = std::dynamic_pointer_cast<UaBuffer>(shared_from_this());
-		resetCtx->settings = GetUnorderedAccessSettings();
 		return std::make_shared<ResetCounter>(resetCtx);
 	}
 
