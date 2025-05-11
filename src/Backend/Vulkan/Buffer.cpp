@@ -603,6 +603,11 @@ namespace MMPEngine::Backend::Vulkan
 		});
 	}
 
+	std::shared_ptr<Vulkan::Buffer> CounteredUnorderedAccessBuffer::GetCounterBuffer() const
+	{
+		return _counterBuffer;
+	}
+
 	std::shared_ptr<Core::BaseTask> CounteredUnorderedAccessBuffer::CreateCopyCounterTask(const std::shared_ptr<Core::Buffer>& dst, std::size_t dstByteOffset)
 	{
 		return _counterBuffer->CreateCopyToBufferTask(dst, sizeof(Core::CounteredUnorderedAccessBuffer::CounterValueType), 0, dstByteOffset);

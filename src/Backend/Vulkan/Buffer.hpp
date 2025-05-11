@@ -191,6 +191,7 @@ namespace MMPEngine::Backend::Vulkan
 		std::shared_ptr<Core::BaseTask> CreateCopyCounterTask(const std::shared_ptr<Core::Buffer>& dst, std::size_t dstByteOffset) override;
 		std::shared_ptr<Core::BaseTask> CreateResetCounterTask() override;
 		std::shared_ptr<Core::BaseTask> CreateMemoryBarrierTask(VkAccessFlags srcAccess, VkAccessFlags dstAccess) override;
+		std::shared_ptr<Vulkan::Buffer> GetCounterBuffer() const;
 	protected:
 		std::shared_ptr<DeviceMemoryHeap> GetMemoryHeap(const std::shared_ptr<GlobalContext>& globalContext) const override;
 	private:

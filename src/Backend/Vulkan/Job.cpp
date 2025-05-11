@@ -58,6 +58,21 @@ namespace MMPEngine::Backend::Vulkan
 					}
 
 					bindings.push_back(layoutBinding);
+
+					if (std::holds_alternative<Core::BaseMaterial::Parameters::Buffer>(ev.entryPtr->settings))
+					{
+						if (std::dynamic_pointer_cast<const Core::CounteredUnorderedAccessBuffer>(ev.entryPtr->entity))
+						{
+							VkDescriptorSetLayoutBinding counterLb{};
+							counterLb.binding = bindingCounter++;
+							counterLb.descriptorCount = 1;
+							counterLb.stageFlags = GetStageFlags();
+							counterLb.pImmutableSamplers = nullptr;
+							counterLb.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+
+							bindings.push_back(counterLb);
+						}
+					}
 				}
 
 				VkDescriptorSetLayoutCreateInfo layoutInfo{};
@@ -121,6 +136,28 @@ namespace MMPEngine::Backend::Vulkan
 					}
 
 					writeSets.push_back(writeSet);
+
+
+					if (std::holds_alternative<Core::BaseMaterial::Parameters::Buffer>(ev.entryPtr->settings))
+					{
+						const auto buffer = std::dynamic_pointer_cast<const Core::Buffer>(ev.entryPtr->entity);
+						if (const auto castedCounteredUaBuffer = std::dynamic_pointer_cast<const CounteredUnorderedAccessBuffer>(buffer->GetUnderlyingBuffer()))
+						{
+							VkWriteDescriptorSet counterWs{};
+							counterWs.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+							counterWs.pNext = nullptr;
+							counterWs.dstSet = _setAllocations.back().GetDescriptorSet();
+							counterWs.dstBinding = bindingCounter++;
+							counterWs.dstArrayElement = 0;
+							counterWs.descriptorCount = 1;
+							counterWs.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+
+							const auto& counterBufferDescInfo = castedCounteredUaBuffer->GetCounterBuffer()->GetDescriptorBufferInfo();
+							counterWs.pBufferInfo = &counterBufferDescInfo;
+
+							writeSets.push_back(counterWs);
+						}
+					}
 				}
 		};
 
