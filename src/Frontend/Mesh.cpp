@@ -49,7 +49,7 @@ namespace MMPEngine::Frontend
 		return _impl->GetVertexBufferInfo(semantics, semanticIndex);
 	}
 
-	const std::unordered_map<Core::VertexBufferPrototype::Semantics, std::vector<Mesh::VertexBufferInfo>>& Mesh::GetAllVertexBufferInfos() const
+	const std::map<Core::VertexBufferPrototype::Semantics, std::vector<Mesh::VertexBufferInfo>>& Mesh::GetAllVertexBufferInfos() const
 	{
 		return _impl->GetAllVertexBufferInfos();
 	}

@@ -1,4 +1,5 @@
 #pragma once
+#include <map>
 #include <optional>
 #include <Core/Base.hpp>
 #include <Core/Geometry.hpp>
@@ -51,7 +52,7 @@ namespace MMPEngine::Core
 		};
 
 		GeometryPrototype _proto;
-		std::unordered_map<VertexBufferPrototype::Semantics, std::vector<VertexBufferInfo>> _vertexBufferInfos;
+		std::map<VertexBufferPrototype::Semantics, std::vector<VertexBufferInfo>> _vertexBufferInfos;
 		IndexBufferInfo _indexBufferInfo;
 		GeometryPrototype::Topology _topology;
 		std::vector<GeometryPrototype::Subset> _subsets;
@@ -59,7 +60,7 @@ namespace MMPEngine::Core
 	public:
 		virtual std::shared_ptr<const Mesh> GetUnderlyingMesh() const;
 		virtual const VertexBufferInfo& GetVertexBufferInfo(VertexBufferPrototype::Semantics semantics, std::size_t semanticIndex) const;
-		virtual const std::unordered_map<VertexBufferPrototype::Semantics, std::vector<VertexBufferInfo>>& GetAllVertexBufferInfos() const;
+		virtual const std::map<VertexBufferPrototype::Semantics, std::vector<VertexBufferInfo>>& GetAllVertexBufferInfos() const;
 		virtual const IndexBufferInfo& GetIndexBufferInfo() const;
 		virtual const std::vector<GeometryPrototype::Subset>& GetSubsets() const;
 		virtual GeometryPrototype::Topology GetTopology() const;

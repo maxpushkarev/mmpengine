@@ -10,7 +10,7 @@ namespace MMPEngine::Frontend
 		std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;
 		std::shared_ptr<const Core::Mesh> GetUnderlyingMesh() const override;
 
-		const std::unordered_map<Core::VertexBufferPrototype::Semantics, std::vector<VertexBufferInfo>>& GetAllVertexBufferInfos() const override;
+		const std::map<Core::VertexBufferPrototype::Semantics, std::vector<VertexBufferInfo>>& GetAllVertexBufferInfos() const override;
 		const VertexBufferInfo& GetVertexBufferInfo(Core::VertexBufferPrototype::Semantics semantics, std::size_t semanticIndex) const override;
 		const IndexBufferInfo& GetIndexBufferInfo() const override;
 		const std::vector<Core::GeometryPrototype::Subset>& GetSubsets() const override;
