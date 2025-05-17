@@ -19,4 +19,21 @@ struct MeshRendererData
 #endif
 
 
+#if MMPENGINE_GLSL
+
+struct CameraData
+{
+	mat4 viewMat;
+	mat4 projMat;
+	vec4 worldPosition;
+};
+
+struct MeshRendererData
+{
+	mat4 worldMat;
+	mat4 worldMatIT;
+};
+
+#endif
+
 #endif
