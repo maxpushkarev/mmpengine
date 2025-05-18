@@ -20,7 +20,7 @@ namespace MMPEngine::Backend::Shared
 		TQueue& GetQueue();
 		TCommandBufferAllocator& GetAllocator(PassControl);
 		TCommandBuffer& GetCommandBuffer(PassControl);
-		TFence& GetFence(PassControl);
+		TFence& GetFence();
 
 		bool IsCommandsPopulated(PassControl) const;
 		bool IsCommandsClosed(PassControl) const;
@@ -73,7 +73,7 @@ namespace MMPEngine::Backend::Shared
 	}
 
 	template <typename TQueue, typename TCommandBufferAllocator, typename TCommandBuffer, typename TFence>
-	TFence& StreamContext<TQueue, TCommandBufferAllocator, TCommandBuffer, TFence>::GetFence(PassControl)
+	TFence& StreamContext<TQueue, TCommandBufferAllocator, TCommandBuffer, TFence>::GetFence()
 	{
 		return _fence;
 	}

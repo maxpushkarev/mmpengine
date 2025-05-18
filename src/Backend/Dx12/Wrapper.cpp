@@ -43,6 +43,11 @@ namespace MMPEngine::Backend::Dx12
 
 		}
 
+		void Fence::Wait(const Microsoft::WRL::ComPtr<ID3D12CommandQueue>& queue)
+		{
+			queue->Wait(_fence.Get(), _expectedValue);
+		}
+
 
 		std::uint64_t Fence::GetExpectedValue() const
 		{

@@ -19,9 +19,11 @@ namespace MMPEngine::Backend::Dx12
 
 			std::uint64_t GetExpectedValue() const;
 			std::uint64_t GetActualValue() const;
+
 			void Signal(const Microsoft::WRL::ComPtr<ID3D12CommandQueue>& queue);
 			void Signal(const Microsoft::WRL::ComPtr<ID3D12CommandQueue>& queue, std::uint64_t newVal);
 			void Wait();
+			void Wait(const Microsoft::WRL::ComPtr<ID3D12CommandQueue>& queue);
 
 		private:
 			std::uint64_t _expectedValue;

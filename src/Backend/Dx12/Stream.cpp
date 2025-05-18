@@ -9,7 +9,7 @@ namespace MMPEngine::Backend::Dx12
 	}
 	bool Stream::ExecutionMonitorCompleted()
 	{
-		const auto fence = _specificStreamContext->GetFence(_passControl);
+		const auto fence = _specificStreamContext->GetFence();
 		const auto actualValue = fence->GetActualValue();
 		const auto expectedValue = fence->GetExpectedValue();
 		assert(actualValue <= expectedValue);
@@ -31,20 +31,19 @@ namespace MMPEngine::Backend::Dx12
 
 	void Stream::UpdateExecutionMonitor()
 	{
-		const auto fence = _specificStreamContext->GetFence(_passControl);
+		const auto fence = _specificStreamContext->GetFence();
 		const auto counterValue = GetSyncCounterValue();
 		fence->Signal(_specificStreamContext->GetQueue(), counterValue);
 	}
 
 	void Stream::WaitForExecutionMonitor()
 	{
-		const auto fence = _specificStreamContext->GetFence(_passControl);
+		const auto fence = _specificStreamContext->GetFence();
 		fence->Wait();
 	}
 
 	bool Stream::IsSyncCounterValueCompleted(std::uint64_t counterValue) const
 	{
-		return  _specificStreamContext->GetFence(_passControl)->GetActualValue() >= counterValue;
+		return  _specificStreamContext->GetFence()->GetActualValue() >= counterValue;
 	}
-
 }

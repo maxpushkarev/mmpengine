@@ -11,7 +11,7 @@ namespace MMPEngine::Backend::Vulkan
 
 	bool Stream::ExecutionMonitorCompleted()
 	{
-		return vkGetFenceStatus(_specificGlobalContext->device->GetNativeLogical(), _specificStreamContext->GetFence(_passControl)->GetNative()) == VK_SUCCESS;
+		return vkGetFenceStatus(_specificGlobalContext->device->GetNativeLogical(), _specificStreamContext->GetFence()->GetNative()) == VK_SUCCESS;
 	}
 
 	void Stream::ResetAll()
@@ -62,7 +62,7 @@ namespace MMPEngine::Backend::Vulkan
 		submitInfo.signalSemaphoreCount = 0;
 		submitInfo.pSignalSemaphores = nullptr;
 
-		const auto vkFence = _specificStreamContext->GetFence(_passControl)->GetNative();
+		const auto vkFence = _specificStreamContext->GetFence()->GetNative();
 
 		vkResetFences(_specificGlobalContext->device->GetNativeLogical(), 1, &vkFence);
 		vkQueueSubmit(
@@ -75,7 +75,7 @@ namespace MMPEngine::Backend::Vulkan
 
 	void Stream::WaitForExecutionMonitor()
 	{
-		const auto vkFence = _specificStreamContext->GetFence(_passControl)->GetNative();
+		const auto vkFence = _specificStreamContext->GetFence()->GetNative();
 		vkWaitForFences(
 			_specificGlobalContext->device->GetNativeLogical(),
 			1,

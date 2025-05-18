@@ -23,14 +23,6 @@ namespace MMPEngine::Backend::Dx12
 
 		return std::make_shared<Core::BatchTask>(std::initializer_list<std::shared_ptr<Core::BaseTask>> {
 			ctx->entity->_backBuffer->CreateSwitchStateTask(D3D12_RESOURCE_STATE_PRESENT),
-			std::make_shared<Core::FunctionalTask>(
-			[](const auto&){}, 
-				[ctx](const auto& stream)
-				{
-					ctx->entity->_targetSync = stream->GetSyncCounterValue();
-				}, 
-				[](const auto&){}
-			),
 			Core::StreamFlushTask::kInstance,
 			std::make_shared<PresentTask>(ctx)
 		});
@@ -201,6 +193,8 @@ namespace MMPEngine::Backend::Dx12
 				screen->_settings.clearColor,
 			{ Core::TargetTexture::Settings::Antialiasing::MSAA_0, _specificGlobalContext->windowSize, "Screen::BackBuffer" }
 		}, std::move(buffers));
+
+		screen->_fence = std::make_shared<Wrapper::Fence>(_specificGlobalContext->device);
 	}
 
 	Screen::PresentTask::PresentTask(const std::shared_ptr<ScreenTaskContext>& ctx) : Task(ctx)

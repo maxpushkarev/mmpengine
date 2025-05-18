@@ -2,6 +2,7 @@
 #include <Core/Stream.hpp>
 #include <Backend/Dx12/Context.hpp>
 #include <Backend/Shared/Stream.hpp>
+#include <Backend/Dx12/Wrapper.hpp>
 
 namespace MMPEngine::Backend::Dx12
 {
