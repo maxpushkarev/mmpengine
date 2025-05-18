@@ -6,18 +6,14 @@ namespace MMPEngine::Backend::Dx12
 	Stream::Stream(const std::shared_ptr<GlobalContext>& globalContext, const std::shared_ptr<StreamContext>& streamContext)
 		: Super(globalContext, streamContext)
 	{
-		_waitHandle = CreateEventEx(nullptr, nullptr, false, EVENT_ALL_ACCESS);
-		_fenceSignalValue = _specificStreamContext->GetFence(_passControl)->GetCompletedValue();
 	}
-
-	Stream::~Stream()
-	{
-		CloseHandle(_waitHandle);
-	}
-
 	bool Stream::ExecutionMonitorCompleted()
 	{
-		return _specificStreamContext->GetFence(_passControl)->GetCompletedValue() == _fenceSignalValue;
+		const auto fence = _specificStreamContext->GetFence(_passControl);
+		const auto actualValue = fence->GetActualValue();
+		const auto expectedValue = fence->GetExpectedValue();
+		assert(actualValue <= expectedValue);
+		return actualValue == expectedValue;
 	}
 
 	void Stream::ResetAll()
@@ -37,24 +33,18 @@ namespace MMPEngine::Backend::Dx12
 	{
 		const auto fence = _specificStreamContext->GetFence(_passControl);
 		const auto counterValue = GetSyncCounterValue();
-
-		assert(_fenceSignalValue < counterValue);
-		_fenceSignalValue = counterValue;
-		_specificStreamContext->GetQueue()->Signal(fence.Get(), _fenceSignalValue);
+		fence->Signal(_specificStreamContext->GetQueue(), counterValue);
 	}
 
 	void Stream::WaitForExecutionMonitor()
 	{
-		if (_specificStreamContext->GetFence(_passControl)->GetCompletedValue() < _fenceSignalValue)
-		{
-			_specificStreamContext->GetFence(_passControl)->SetEventOnCompletion(_fenceSignalValue, _waitHandle);
-			WaitForSingleObject(_waitHandle, INFINITE);
-		}
+		const auto fence = _specificStreamContext->GetFence(_passControl);
+		fence->Wait();
 	}
 
 	bool Stream::IsSyncCounterValueCompleted(std::uint64_t counterValue) const
 	{
-		return  _specificStreamContext->GetFence(_passControl)->GetCompletedValue() >= counterValue;
+		return  _specificStreamContext->GetFence(_passControl)->GetActualValue() >= counterValue;
 	}
 
 }

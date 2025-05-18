@@ -10,7 +10,7 @@ namespace MMPEngine::Backend::Dx12
 		Microsoft::WRL::ComPtr<ID3D12CommandQueue>,
 		Microsoft::WRL::ComPtr<ID3D12CommandAllocator>,
 		Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>,
-		Microsoft::WRL::ComPtr<ID3D12Fence>>
+		std::shared_ptr<Wrapper::Fence>>
 	{
 	private:
 		using Super = Shared::Stream<
@@ -18,14 +18,9 @@ namespace MMPEngine::Backend::Dx12
 			Microsoft::WRL::ComPtr<ID3D12CommandQueue>,
 			Microsoft::WRL::ComPtr<ID3D12CommandAllocator>,
 			Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>,
-			Microsoft::WRL::ComPtr<ID3D12Fence>>;
+			std::shared_ptr<Wrapper::Fence>>;
 	public:
 		Stream(const std::shared_ptr<GlobalContext>& globalContext, const std::shared_ptr<StreamContext>& streamContext);
-		Stream(const Stream&) = delete;
-		Stream(Stream&&) noexcept = delete;
-		Stream& operator=(const Stream&) = delete;
-		Stream& operator=(Stream&&) noexcept = delete;
-		~Stream() override;
 		bool IsSyncCounterValueCompleted(std::uint64_t counterValue) const override;
 	protected:
 		bool ExecutionMonitorCompleted() override;
@@ -34,8 +29,6 @@ namespace MMPEngine::Backend::Dx12
 		void UpdateExecutionMonitor() override;
 		void WaitForExecutionMonitor() override;
 	private:
-		std::uint64_t _fenceSignalValue = 0;
-		HANDLE _waitHandle;
 		std::vector<ID3D12DescriptorHeap*> _heaps;
 	};
 }

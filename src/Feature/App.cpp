@@ -6,6 +6,7 @@
 #ifdef MMPENGINE_BACKEND_DX12
 #include <Backend/Dx12/Stream.hpp>
 #include <Backend/Dx12/Math.hpp>
+#include <Backend/Dx12/Wrapper.hpp>
 #endif
 
 #ifdef MMPENGINE_BACKEND_VULKAN
@@ -278,7 +279,7 @@ namespace MMPEngine::Feature
 				}
 			);
 
-			Microsoft::WRL::ComPtr<ID3D12Fence> fence;
+			std::shared_ptr<Backend::Dx12::Wrapper::Fence> fence;
 			Microsoft::WRL::ComPtr<ID3D12CommandAllocator> allocator;
 			Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> list;
 			Microsoft::WRL::ComPtr<ID3D12CommandQueue> queue;
@@ -289,8 +290,7 @@ namespace MMPEngine::Feature
 			_rootContext->device->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(queue.GetAddressOf()));
 
 
-			_rootContext->device->CreateFence(0, D3D12_FENCE_FLAG_NONE,
-				IID_PPV_ARGS(fence.GetAddressOf()));
+			fence = std::make_shared<Backend::Dx12::Wrapper::Fence>(_rootContext->device);
 
 			_rootContext->device->CreateCommandAllocator(
 				D3D12_COMMAND_LIST_TYPE_DIRECT,
