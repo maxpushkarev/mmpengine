@@ -142,6 +142,11 @@ namespace MMPEngine::Backend::Dx12
 
 		const auto screen = GetTaskContext()->entity;
 
+		D3D12_COMMAND_QUEUE_DESC queueDesc = {};
+		queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
+		queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
+		_specificGlobalContext->device->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(screen->_scQueue.GetAddressOf()));
+
 		DXGI_SWAP_CHAIN_DESC swapChainDescription;
 		swapChainDescription.BufferDesc.Width = _specificGlobalContext->windowSize.x;
 		swapChainDescription.BufferDesc.Height = _specificGlobalContext->windowSize.y;
