@@ -28,11 +28,11 @@ namespace MMPEngine::Backend::Dx12
 		~Stream() override;
 		bool IsSyncCounterValueCompleted(std::uint64_t counterValue) const override;
 	protected:
-		bool IsFenceCompleted() override;
-		void ResetCommandBufferAndAllocator() override;
-		void ScheduleCommandBufferForExecution() override;
-		void UpdateFence() override;
-		void WaitFence() override;
+		bool ExecutionMonitorCompleted() override;
+		void ResetAll() override;
+		void ScheduleCommandsForExecution() override;
+		void UpdateExecutionMonitor() override;
+		void WaitForExecutionMonitor() override;
 	private:
 		std::uint64_t _fenceSignalValue = 0;
 		HANDLE _waitHandle;

@@ -9,17 +9,17 @@ namespace MMPEngine::Backend::Vulkan
 
 	Stream::~Stream() = default;
 
-	bool Stream::IsFenceCompleted()
+	bool Stream::ExecutionMonitorCompleted()
 	{
 		return vkGetFenceStatus(_specificGlobalContext->device->GetNativeLogical(), _specificStreamContext->GetFence(_passControl)->GetNative()) == VK_SUCCESS;
 	}
 
-	void Stream::ResetCommandBufferAndAllocator()
+	void Stream::ResetAll()
 	{
 		vkResetCommandBuffer(_specificStreamContext->GetCommandBuffer(_passControl)->GetNative(), VK_COMMAND_BUFFER_RESET_RELEASE_RESOURCES_BIT);
 	}
 
-	void Stream::ScheduleCommandBufferForExecution()
+	void Stream::ScheduleCommandsForExecution()
 	{
 		const auto cb = _specificStreamContext->GetCommandBuffer(_passControl)->GetNative();
 
@@ -46,7 +46,7 @@ namespace MMPEngine::Backend::Vulkan
 		);
 	}
 
-	void Stream::UpdateFence()
+	void Stream::UpdateExecutionMonitor()
 	{
 		VkSubmitInfo submitInfo;
 		submitInfo.pNext = nullptr;
@@ -73,7 +73,7 @@ namespace MMPEngine::Backend::Vulkan
 		);
 	}
 
-	void Stream::WaitFence()
+	void Stream::WaitForExecutionMonitor()
 	{
 		const auto vkFence = _specificStreamContext->GetFence(_passControl)->GetNative();
 		vkWaitForFences(

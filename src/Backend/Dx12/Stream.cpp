@@ -15,25 +15,25 @@ namespace MMPEngine::Backend::Dx12
 		CloseHandle(_waitHandle);
 	}
 
-	bool Stream::IsFenceCompleted()
+	bool Stream::ExecutionMonitorCompleted()
 	{
 		return _specificStreamContext->GetFence(_passControl)->GetCompletedValue() == _fenceSignalValue;
 	}
 
-	void Stream::ResetCommandBufferAndAllocator()
+	void Stream::ResetAll()
 	{
 		_specificStreamContext->GetAllocator(_passControl)->Reset();
 		_specificStreamContext->GetCommandBuffer(_passControl)->Reset(_specificStreamContext->GetAllocator(_passControl).Get(), nullptr);
 	}
 
-	void Stream::ScheduleCommandBufferForExecution()
+	void Stream::ScheduleCommandsForExecution()
 	{
 		_specificStreamContext->GetCommandBuffer(_passControl)->Close();
 		ID3D12CommandList* cmdLists[]{ _specificStreamContext->GetCommandBuffer(_passControl).Get() };
 		_specificStreamContext->GetQueue()->ExecuteCommandLists(static_cast<std::uint32_t>(std::size(cmdLists)), cmdLists);
 	}
 
-	void Stream::UpdateFence()
+	void Stream::UpdateExecutionMonitor()
 	{
 		const auto fence = _specificStreamContext->GetFence(_passControl);
 		const auto counterValue = GetSyncCounterValue();
@@ -43,7 +43,7 @@ namespace MMPEngine::Backend::Dx12
 		_specificStreamContext->GetQueue()->Signal(fence.Get(), _fenceSignalValue);
 	}
 
-	void Stream::WaitFence()
+	void Stream::WaitForExecutionMonitor()
 	{
 		if (_specificStreamContext->GetFence(_passControl)->GetCompletedValue() < _fenceSignalValue)
 		{

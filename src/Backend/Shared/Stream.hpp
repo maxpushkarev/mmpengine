@@ -18,11 +18,11 @@ namespace MMPEngine::Backend::Shared
 		void SubmitInternal() final;
 		void SyncInternal() final;
 
-		virtual bool IsFenceCompleted() = 0;
-		virtual void ResetCommandBufferAndAllocator() = 0;
-		virtual void ScheduleCommandBufferForExecution() = 0;
-		virtual void UpdateFence() = 0;
-		virtual void WaitFence() = 0;
+		virtual bool ExecutionMonitorCompleted() = 0;
+		virtual void ResetAll() = 0;
+		virtual void ScheduleCommandsForExecution() = 0;
+		virtual void UpdateExecutionMonitor() = 0;
+		virtual void WaitForExecutionMonitor() = 0;
 	protected:
 		PassControl _passControl;
 	};
@@ -38,9 +38,9 @@ namespace MMPEngine::Backend::Shared
 	{
 		Super::RestartInternal();
 
-		if (IsFenceCompleted() && this->_specificStreamContext->IsCommandsClosed(_passControl))
+		if (ExecutionMonitorCompleted() && this->_specificStreamContext->IsCommandsClosed(_passControl))
 		{
-			ResetCommandBufferAndAllocator();
+			ResetAll();
 			this->_specificStreamContext->SetCommandsClosed(_passControl, false);
 		}
 	}
@@ -54,12 +54,12 @@ namespace MMPEngine::Backend::Shared
 		{
 			if (!this->_specificStreamContext->IsCommandsClosed(_passControl))
 			{
-				ScheduleCommandBufferForExecution();
+				ScheduleCommandsForExecution();
 				this->_specificStreamContext->SetCommandsClosed(_passControl, true);
 			}
 
 
-			UpdateFence();
+			UpdateExecutionMonitor();
 			this->_specificStreamContext->SetCommandsPopulated(_passControl, false);
 		}
 	}
@@ -68,6 +68,6 @@ namespace MMPEngine::Backend::Shared
 	void Stream<TGlobalContext, TQueue, TCommandBufferAllocator, TCommandBuffer, TFence>::SyncInternal()
 	{
 		Super::SyncInternal();
-		WaitFence();
+		WaitForExecutionMonitor();
 	}
 }

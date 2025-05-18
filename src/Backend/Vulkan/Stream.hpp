@@ -28,10 +28,10 @@ namespace MMPEngine::Backend::Vulkan
 		Stream& operator=(Stream&&) noexcept = delete;
 		~Stream() override;
 	protected:
-		bool IsFenceCompleted() override;
-		void ResetCommandBufferAndAllocator() override;
-		void ScheduleCommandBufferForExecution() override;
-		void UpdateFence() override;
-		void WaitFence() override;
+		bool ExecutionMonitorCompleted() override;
+		void ResetAll() override;
+		void ScheduleCommandsForExecution() override;
+		void UpdateExecutionMonitor() override;
+		void WaitForExecutionMonitor() override;
 	};
 }
