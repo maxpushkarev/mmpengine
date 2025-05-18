@@ -89,5 +89,6 @@ namespace MMPEngine::Backend::Dx12
 	private:
 		std::shared_ptr<BackBuffer> _backBuffer;
 		Microsoft::WRL::ComPtr<IDXGISwapChain> _swapChain;
+		std::uint64_t _targetSync = 0;
 	};
 }
