@@ -88,7 +88,5 @@ namespace MMPEngine::Backend::Dx12
 	private:
 		std::shared_ptr<BackBuffer> _backBuffer;
 		Microsoft::WRL::ComPtr<IDXGISwapChain> _swapChain;
-		Microsoft::WRL::ComPtr<ID3D12CommandQueue> _scQueue;
-		std::shared_ptr<Wrapper::Fence> _fence;
 	};
 }

@@ -134,11 +134,6 @@ namespace MMPEngine::Backend::Dx12
 
 		const auto screen = GetTaskContext()->entity;
 
-		D3D12_COMMAND_QUEUE_DESC queueDesc = {};
-		queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
-		queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
-		_specificGlobalContext->device->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(screen->_scQueue.GetAddressOf()));
-
 		DXGI_SWAP_CHAIN_DESC swapChainDescription;
 		swapChainDescription.BufferDesc.Width = _specificGlobalContext->windowSize.x;
 		swapChainDescription.BufferDesc.Height = _specificGlobalContext->windowSize.y;
@@ -193,8 +188,6 @@ namespace MMPEngine::Backend::Dx12
 				screen->_settings.clearColor,
 			{ Core::TargetTexture::Settings::Antialiasing::MSAA_0, _specificGlobalContext->windowSize, "Screen::BackBuffer" }
 		}, std::move(buffers));
-
-		screen->_fence = std::make_shared<Wrapper::Fence>(_specificGlobalContext->device);
 	}
 
 	Screen::PresentTask::PresentTask(const std::shared_ptr<ScreenTaskContext>& ctx) : Task(ctx)
