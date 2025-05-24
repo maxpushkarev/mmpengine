@@ -1,12 +1,35 @@
+#include <cassert>
 #include <Backend/Vulkan/Screen.hpp>
 #include <Core/Texture.hpp>
 #include <Backend/Vulkan/Entity.hpp>
+
+#ifdef MMPENGINE_WIN
+#include <vulkan/vulkan_win32.h>
+#define GLFW_INCLUDE_VULKAN
+#include <GLFW/glfw3.h>
+#define GLFW_EXPOSE_NATIVE_WIN32
+#include <GLFW/glfw3native.h>
+#endif
 
 namespace MMPEngine::Backend::Vulkan
 {
 	Screen::Screen(const Settings& settings) : Core::Screen(settings)
 	{
 	}
+
+	Screen::~Screen()
+	{
+		if (_swapChain && _device)
+		{
+			vkDestroySwapchainKHR(_device->GetNativeLogical(), _swapChain, nullptr);
+		}
+
+		if (_surface && _instance)
+		{
+			vkDestroySurfaceKHR(_instance->GetNative(), _surface, nullptr);
+		}
+	}
+
 
 	std::shared_ptr<Core::BaseTask> Screen::CreateInitializationTaskInternal()
 	{
@@ -133,7 +156,44 @@ namespace MMPEngine::Backend::Vulkan
 	{
 		Task::Run(stream);
 
-		/*const auto screen = GetTaskContext()->entity;
+		const auto screen = GetTaskContext()->entity;
+		screen->_device = _specificGlobalContext->device;
+		screen->_instance = _specificGlobalContext->instance;
+
+#ifdef MMPENGINE_WIN
+		VkWin32SurfaceCreateInfoKHR createInfo{};
+		createInfo.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
+		createInfo.hwnd = _specificGlobalContext->nativeWindow;
+		createInfo.hinstance = GetModuleHandle(nullptr);
+		createInfo.pNext = nullptr;
+		createInfo.flags = 0;
+
+		const auto surfaceCreationRes= vkCreateWin32SurfaceKHR(_specificGlobalContext->instance->GetNative(), &createInfo, nullptr, &screen->_surface);
+		assert(surfaceCreationRes == VK_SUCCESS);
+#endif
+
+		VkSwapchainCreateInfoKHR swapChainInfo = {};
+		swapChainInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
+		swapChainInfo.pNext = nullptr;
+		swapChainInfo.flags = 0;
+		swapChainInfo.clipped = VK_FALSE;
+		swapChainInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+		swapChainInfo.imageArrayLayers = 1;
+		swapChainInfo.imageColorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
+		swapChainInfo.imageFormat = screen->_settings.gammaCorrection ? VK_FORMAT_R8G8B8A8_SRGB : VK_FORMAT_R8G8B8A8_UNORM;
+		swapChainInfo.imageExtent = {_specificGlobalContext->windowSize.x, _specificGlobalContext->windowSize.y };
+		swapChainInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
+		swapChainInfo.imageUsage = VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+		swapChainInfo.oldSwapchain = VK_NULL_HANDLE;
+		swapChainInfo.minImageCount = screen->_settings.buffersCount;
+		swapChainInfo.queueFamilyIndexCount = 0;
+		swapChainInfo.pQueueFamilyIndices = nullptr;
+		swapChainInfo.presentMode = VK_PRESENT_MODE_FIFO_KHR;
+		//swapChainInfo.surface = 
+
+		//vkCreateSwapchainKHR(_specificGlobalContext->device->GetNativeLogical(), &swapChainInfo, nullptr, &screen->_swapChain);
+
+		/*
 
 		DXGI_SWAP_CHAIN_DESC swapChainDescription;
 		swapChainDescription.BufferDesc.Width = _specificGlobalContext->windowSize.x;

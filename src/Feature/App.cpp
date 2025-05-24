@@ -336,7 +336,11 @@ namespace MMPEngine::Feature
 			createInstanceInfo.pApplicationInfo = &appInfo;
 			createInstanceInfo.flags |= VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
 
-			std::vector<const char*> requiredExtensions {VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME, VK_KHR_SURFACE_EXTENSION_NAME};
+			std::vector<const char*> requiredExtensions {VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME, VK_KHR_SURFACE_EXTENSION_NAME };
+
+#ifdef MMPENGINE_WIN
+		requiredExtensions.push_back("VK_KHR_win32_surface");
+#endif
 
 			if(_rootContext->settings.isDebug)
 			{

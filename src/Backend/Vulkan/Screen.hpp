@@ -74,12 +74,20 @@ namespace MMPEngine::Backend::Vulkan
 		
 	public:
 		Screen(const Settings& settings);
+		Screen(const Screen&) = delete;
+		Screen(Screen&&) noexcept = delete;
+		Screen& operator=(const Screen&) = delete;
+		Screen& operator=(Screen&&) noexcept = delete;
+		~Screen() override;
 		std::shared_ptr<Core::ColorTargetTexture> GetBackBuffer() const override;
 	protected:
 		std::shared_ptr<Core::BaseTask> CreateInitializationTaskInternal() override;
 		std::shared_ptr<Core::BaseTask> CreateTaskToSwapBufferInternal() override;
 	private:
 		//std::shared_ptr<BackBuffer> _backBuffer;
-		//Microsoft::WRL::ComPtr<IDXGISwapChain> _swapChain;
+		VkSwapchainKHR _swapChain = VK_NULL_HANDLE;
+		VkSurfaceKHR _surface = VK_NULL_HANDLE;
+		std::shared_ptr<Wrapper::Device> _device;
+		std::shared_ptr<Wrapper::Instance> _instance;
 	};
 }

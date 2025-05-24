@@ -13,6 +13,11 @@ namespace MMPEngine::Backend::Vulkan
 			vkDestroyInstance(_instance, nullptr);
 		}
 
+		VkInstance Instance::GetNative() const
+		{
+			return _instance;
+		}
+
 		Device::Device(const std::shared_ptr<Instance>& instance, VkPhysicalDevice physicalDevice, VkDevice device) : _instance(instance), _physicalDevice(physicalDevice), _logicalDevice(device)
 		{
 		}

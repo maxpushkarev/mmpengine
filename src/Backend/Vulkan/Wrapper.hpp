@@ -15,6 +15,7 @@ namespace MMPEngine::Backend::Vulkan
 				Instance(Instance&&) noexcept = delete;
 				Instance& operator=(const Instance&) = delete;
 				Instance& operator=(Instance&&) noexcept = delete;
+				VkInstance GetNative() const;
 			private:
 				VkInstance _instance;
 		};
