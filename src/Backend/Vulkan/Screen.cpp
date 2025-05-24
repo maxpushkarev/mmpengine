@@ -5,10 +5,6 @@
 
 #ifdef MMPENGINE_WIN
 #include <vulkan/vulkan_win32.h>
-#define GLFW_INCLUDE_VULKAN
-#include <GLFW/glfw3.h>
-#define GLFW_EXPOSE_NATIVE_WIN32
-#include <GLFW/glfw3native.h>
 #endif
 
 namespace MMPEngine::Backend::Vulkan
@@ -189,66 +185,11 @@ namespace MMPEngine::Backend::Vulkan
 		swapChainInfo.queueFamilyIndexCount = 0;
 		swapChainInfo.pQueueFamilyIndices = nullptr;
 		swapChainInfo.presentMode = VK_PRESENT_MODE_FIFO_KHR;
-		//swapChainInfo.surface = 
+		swapChainInfo.surface = screen->_surface;
+		swapChainInfo.preTransform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
 
-		//vkCreateSwapchainKHR(_specificGlobalContext->device->GetNativeLogical(), &swapChainInfo, nullptr, &screen->_swapChain);
-
-		/*
-
-		DXGI_SWAP_CHAIN_DESC swapChainDescription;
-		swapChainDescription.BufferDesc.Width = _specificGlobalContext->windowSize.x;
-		swapChainDescription.BufferDesc.Height = _specificGlobalContext->windowSize.y;
-		swapChainDescription.BufferDesc.RefreshRate.Numerator = _specificGlobalContext->screenRefreshRate;
-		swapChainDescription.BufferDesc.RefreshRate.Denominator = 1;
-		swapChainDescription.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-		swapChainDescription.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
-		swapChainDescription.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
-		swapChainDescription.SampleDesc = { 1,0 };
-		swapChainDescription.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-		swapChainDescription.BufferCount = screen->_settings.buffersCount;
-		swapChainDescription.OutputWindow = _specificGlobalContext->nativeWindow;
-		swapChainDescription.Windowed = true;
-		swapChainDescription.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
-		swapChainDescription.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
-
-		_specificGlobalContext->factory->CreateSwapChain(
-			_specificStreamContext->GetQueue().Get(),
-			&swapChainDescription,
-			screen->_swapChain.GetAddressOf());
-
-
-		screen->_swapChain->ResizeBuffers(
-			screen->_settings.buffersCount,
-			_specificGlobalContext->windowSize.x, _specificGlobalContext->windowSize.y,
-			DXGI_FORMAT_R8G8B8A8_UNORM,
-			DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH);
-
-		std::vector<std::shared_ptr<Buffer>> buffers{};
-		buffers.resize(screen->_settings.buffersCount);
-
-		for (std::uint32_t i = 0; i < screen->_settings.buffersCount; ++i)
-		{
-			buffers[i] = std::make_shared<Buffer>();
-			Microsoft::WRL::ComPtr<ID3D12Resource> nativeResource{};
-			screen->_swapChain->GetBuffer(i, IID_PPV_ARGS(nativeResource.GetAddressOf()));
-
-			auto rtvHandle = _specificGlobalContext->rtvDescPool->Allocate();
-
-			D3D12_RENDER_TARGET_VIEW_DESC rtvDesc;
-			rtvDesc.Format = screen->_settings.gammaCorrection ? DXGI_FORMAT_R8G8B8A8_UNORM_SRGB : DXGI_FORMAT_R8G8B8A8_UNORM;
-			rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
-			rtvDesc.Texture2D.MipSlice = 0;
-			rtvDesc.Texture2D.PlaneSlice = 0;
-
-			_specificGlobalContext->device->CreateRenderTargetView(nativeResource.Get(), &rtvDesc, rtvHandle.GetCPUDescriptorHandle());
-			buffers[i]->SetUp(nativeResource, std::move(rtvHandle), rtvDesc.Format);
-		}
-
-		screen->_backBuffer = std::make_shared<BackBuffer>(Core::ColorTargetTexture::Settings{
-			Core::ColorTargetTexture::Settings::Format::R8G8B8A8_Float_01,
-				screen->_settings.clearColor,
-			{ Core::TargetTexture::Settings::Antialiasing::MSAA_0, _specificGlobalContext->windowSize, "Screen::BackBuffer" }
-			}, std::move(buffers));*/
+		const auto swapChainRes = vkCreateSwapchainKHR(_specificGlobalContext->device->GetNativeLogical(), &swapChainInfo, nullptr, &screen->_swapChain);
+		assert(swapChainRes == VK_SUCCESS);
 	}
 
 	Screen::PresentTask::PresentTask(const std::shared_ptr<ScreenTaskContext>& ctx) : Task(ctx)

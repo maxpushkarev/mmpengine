@@ -138,7 +138,7 @@ IF (NOT APPLE)
 		get_property(vulkan_name_tmp GLOBAL PROPERTY MMPENGINE_BACKEND_VULKAN_NAME)
 		get_property(vulkan_macro_tmp GLOBAL PROPERTY MMPENGINE_VULKAN_MACRO)
 		mmpengine_create_proj(${vulkan_name_tmp} src/Backend/Vulkan)
-		target_link_libraries(${vulkan_name_tmp} ${core_name_tmp} ${backend_shared_name_tmp} ${Vulkan_LIBRARIES} glfw)
+		target_link_libraries(${vulkan_name_tmp} ${core_name_tmp} ${backend_shared_name_tmp} ${Vulkan_LIBRARIES})
 		target_include_directories(${vulkan_name_tmp} PRIVATE ${Vulkan_INCLUDE_DIRS})
 
 		target_link_libraries(${frontend_name_tmp} PRIVATE ${vulkan_name_tmp})
