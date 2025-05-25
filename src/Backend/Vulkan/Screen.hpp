@@ -8,14 +8,7 @@ namespace MMPEngine::Backend::Vulkan
 	class Screen final : public Core::Screen
 	{
 	private:
-		/*class Buffer final : public Core::BaseEntity, public ResourceEntity, public IColorTargetTexture
-		{
-		public:
-			Buffer();
-		protected:
-			std::shared_ptr<DeviceMemoryHeap> GetMemoryHeap(const std::shared_ptr<GlobalContext>& globalContext) const override;
-		};
-
+		
 		class BackBuffer final : public Core::ColorTargetTexture, public BaseEntity, public IColorTargetTexture
 		{
 		private:
@@ -23,7 +16,7 @@ namespace MMPEngine::Backend::Vulkan
 			{
 			};
 
-			class SwitchStateTaskContext final : public BackBufferContext
+			/*class SwitchStateTaskContext final : public BackBufferContext
 			{
 			};
 
@@ -35,23 +28,18 @@ namespace MMPEngine::Backend::Vulkan
 				void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
 			private:
 				//std::vector<std::shared_ptr<ResourceEntity::SwitchStateTask>> _internalTasks;
-			};
+			};*/
 
 		public:
-			BackBuffer(const Settings& settings, std::vector<std::shared_ptr<Buffer>>&& buffers);
+			BackBuffer(const Settings& settings, VkSwapchainKHR swapChain, const std::shared_ptr<Wrapper::Device>& device);
 			void Swap();
-			std::shared_ptr<Buffer> GetCurrentBackBuffer() const;
-			//std::shared_ptr<Core::BaseTask> CreateSwitchStateTask() override;
-			//D3D12_GPU_VIRTUAL_ADDRESS GetNativeGPUAddressWithRequiredOffset() const override;
-			//Microsoft::WRL::ComPtr<ID3D12Resource> GetNativeResource() const override;
-			//const BaseDescriptorPool::Handle* GetRTVDescriptorHandle() const override;
-			//DXGI_SAMPLE_DESC GetSampleDesc() const override;
-			//DXGI_FORMAT GetRTVFormat() const override;
+			//std::shared_ptr<Buffer> GetCurrentImage() const;
+
 		private:
-			std::size_t _currentBackBufferIndex = 0;
-			std::vector<std::shared_ptr<Buffer>> _buffers;
+			std::size_t _currentImageIndex = 0;
+			std::vector<VkImage> _images;
 		};
-		*/
+		
 		class ScreenTaskContext final : public Core::EntityTaskContext<Screen>
 		{
 		};
@@ -84,7 +72,7 @@ namespace MMPEngine::Backend::Vulkan
 		std::shared_ptr<Core::BaseTask> CreateInitializationTaskInternal() override;
 		std::shared_ptr<Core::BaseTask> CreateTaskToSwapBufferInternal() override;
 	private:
-		//std::shared_ptr<BackBuffer> _backBuffer;
+		std::shared_ptr<BackBuffer> _backBuffer;
 		VkSwapchainKHR _swapChain = VK_NULL_HANDLE;
 		VkSurfaceKHR _surface = VK_NULL_HANDLE;
 		std::shared_ptr<Wrapper::Device> _device;

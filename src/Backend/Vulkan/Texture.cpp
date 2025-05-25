@@ -2,4 +2,6 @@
 
 namespace MMPEngine::Backend::Vulkan
 {
+	ITargetTexture::ITargetTexture() = default;
+	ITargetTexture::~ITargetTexture() = default;
 }

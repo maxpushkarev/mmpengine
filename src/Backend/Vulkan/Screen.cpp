@@ -53,7 +53,7 @@ namespace MMPEngine::Backend::Vulkan
 		return nullptr;
 	}
 
-	/*Screen::Buffer::Buffer() = default;
+	/*
 
 	void Screen::Buffer::SetUp(const Microsoft::WRL::ComPtr<ID3D12Resource>& nativeResource, BaseDescriptorPool::Handle&& rtvHandle, DXGI_FORMAT rtvFormat)
 	{
@@ -62,31 +62,9 @@ namespace MMPEngine::Backend::Vulkan
 		_rtvFormat = rtvFormat;
 	}
 
-	DXGI_SAMPLE_DESC Screen::Buffer::GetSampleDesc() const
-	{
-		return { 1, 0 };
-	}
-
-
-	const BaseDescriptorPool::Handle* Screen::Buffer::GetRTVDescriptorHandle() const
-	{
-		return &_rtvHandle;
-	}
-
-	DXGI_FORMAT Screen::Buffer::GetRTVFormat() const
-	{
-		return _rtvFormat;
-	}
-
 	Screen::BackBuffer::BackBuffer(const Settings& settings, std::vector<std::shared_ptr<Buffer>>&& buffers)
 		: Core::ColorTargetTexture(settings), _buffers(std::move(buffers))
 	{
-	}
-
-	void Screen::BackBuffer::Swap()
-	{
-		++_currentBackBufferIndex;
-		_currentBackBufferIndex %= _buffers.size();
 	}
 
 	std::shared_ptr<Screen::Buffer> Screen::BackBuffer::GetCurrentBackBuffer() const
@@ -144,6 +122,23 @@ namespace MMPEngine::Backend::Vulkan
 		_internalTasks.at(GetTaskContext()->entity->_currentBackBufferIndex)->Run(stream);
 	}*/
 
+	Screen::BackBuffer::BackBuffer(const Settings& settings, VkSwapchainKHR swapChain, const std::shared_ptr<Wrapper::Device>& device)
+		: Core::ColorTargetTexture(settings)
+	{
+		std::uint32_t imageCount {};
+		vkGetSwapchainImagesKHR(device->GetNativeLogical(), swapChain, &imageCount, nullptr);
+		std::vector<VkImage> swapChainImages(imageCount);
+		vkGetSwapchainImagesKHR(device->GetNativeLogical(), swapChain, &imageCount, swapChainImages.data());
+		_images = std::move(swapChainImages);
+	}
+
+	void Screen::BackBuffer::Swap()
+	{
+		++_currentImageIndex;
+		_currentImageIndex %= _images.size();
+	}
+
+
 	Screen::InitTask::InitTask(const std::shared_ptr<ScreenTaskContext>& ctx) : Task(ctx)
 	{
 	}
@@ -190,6 +185,12 @@ namespace MMPEngine::Backend::Vulkan
 
 		const auto swapChainRes = vkCreateSwapchainKHR(_specificGlobalContext->device->GetNativeLogical(), &swapChainInfo, nullptr, &screen->_swapChain);
 		assert(swapChainRes == VK_SUCCESS);
+
+		screen->_backBuffer = std::make_shared<BackBuffer>(Core::ColorTargetTexture::Settings{
+			Core::ColorTargetTexture::Settings::Format::R8G8B8A8_Float_01,
+				screen->_settings.clearColor,
+			{ Core::TargetTexture::Settings::Antialiasing::MSAA_0, _specificGlobalContext->windowSize, "Screen::BackBuffer" }
+			}, screen->_swapChain, _specificGlobalContext->device);
 	}
 
 	Screen::PresentTask::PresentTask(const std::shared_ptr<ScreenTaskContext>& ctx) : Task(ctx)
@@ -202,7 +203,7 @@ namespace MMPEngine::Backend::Vulkan
 
 		const auto screen = GetTaskContext()->entity;
 		//screen->_swapChain->Present(screen->_settings.vSync, 0);
-		//screen->_backBuffer->Swap();
+		screen->_backBuffer->Swap();
 		_specificStreamContext->PopulateCommandsInBuffer();
 	}
 
