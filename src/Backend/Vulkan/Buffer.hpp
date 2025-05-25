@@ -97,7 +97,6 @@ namespace MMPEngine::Backend::Vulkan
 		std::shared_ptr<Wrapper::Device> _device;
 		VkBufferUsageFlags _usage;
 		VkDescriptorBufferInfo _info;
-		std::optional<std::uint32_t> _queueFamilyIndexOwnerShip;
 	};
 
 	class UploadBuffer final : public Core::UploadBuffer, public Buffer

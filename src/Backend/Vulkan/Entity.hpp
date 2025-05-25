@@ -21,5 +21,6 @@ namespace MMPEngine::Backend::Vulkan
 		virtual std::shared_ptr<DeviceMemoryHeap> GetMemoryHeap(const std::shared_ptr<GlobalContext>& globalContext) const = 0;
 	protected:
 		DeviceMemoryHeap::Handle _deviceMemoryHeapHandle;
+		std::optional<std::uint32_t> _queueFamilyIndexOwnerShip = std::nullopt;
 	};
 }
