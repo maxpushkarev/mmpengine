@@ -49,78 +49,17 @@ namespace MMPEngine::Backend::Vulkan
 
 	std::shared_ptr<Core::ColorTargetTexture> Screen::GetBackBuffer() const
 	{
-		//return _backBuffer;
-		return nullptr;
+		return _backBuffer;
 	}
 
-	/*
 
-	void Screen::Buffer::SetUp(const Microsoft::WRL::ComPtr<ID3D12Resource>& nativeResource, BaseDescriptorPool::Handle&& rtvHandle, DXGI_FORMAT rtvFormat)
+	Screen::Image::Image(VkImage image) : _image(image)
 	{
-		SetNativeResource(nativeResource, 0);
-		_rtvHandle = std::move(rtvHandle);
-		_rtvFormat = rtvFormat;
+		
 	}
 
-	Screen::BackBuffer::BackBuffer(const Settings& settings, std::vector<std::shared_ptr<Buffer>>&& buffers)
-		: Core::ColorTargetTexture(settings), _buffers(std::move(buffers))
-	{
-	}
+	Screen::Image::~Image() = default;
 
-	std::shared_ptr<Screen::Buffer> Screen::BackBuffer::GetCurrentBackBuffer() const
-	{
-		return _buffers[_currentBackBufferIndex];
-	}
-
-	Microsoft::WRL::ComPtr<ID3D12Resource> Screen::BackBuffer::GetNativeResource() const
-	{
-		return GetCurrentBackBuffer()->GetNativeResource();
-	}
-
-	D3D12_GPU_VIRTUAL_ADDRESS Screen::BackBuffer::GetNativeGPUAddressWithRequiredOffset() const
-	{
-		return GetCurrentBackBuffer()->GetNativeGPUAddressWithRequiredOffset();
-	}
-
-	const BaseDescriptorPool::Handle* Screen::BackBuffer::GetRTVDescriptorHandle() const
-	{
-		return GetCurrentBackBuffer()->GetRTVDescriptorHandle();
-	}
-
-	DXGI_FORMAT Screen::BackBuffer::GetRTVFormat() const
-	{
-		return GetCurrentBackBuffer()->GetRTVFormat();
-	}
-
-	DXGI_SAMPLE_DESC Screen::BackBuffer::GetSampleDesc() const
-	{
-		return GetCurrentBackBuffer()->GetSampleDesc();
-	}
-
-	std::shared_ptr<Core::BaseTask> Screen::BackBuffer::CreateSwitchStateTask(D3D12_RESOURCE_STATES nextStateMask)
-	{
-		const auto ctx = std::make_shared<SwitchStateTaskContext>();
-		ctx->newStateMask = nextStateMask;
-		ctx->entity = std::dynamic_pointer_cast<BackBuffer>(shared_from_this());
-		return std::make_shared<SwitchStateTask>(ctx);
-	}
-
-	Screen::BackBuffer::SwitchStateTask::SwitchStateTask(const std::shared_ptr<SwitchStateTaskContext>& ctx) : Task(ctx)
-	{
-		for (const auto& b : ctx->entity->_buffers)
-		{
-			const auto c = std::make_shared<ResourceEntity::SwitchStateTaskContext>();
-			c->entity = b;
-			c->nextStateMask = ctx->newStateMask;
-			_internalTasks.push_back(std::make_shared<ResourceEntity::SwitchStateTask>(c));
-		}
-	}
-
-	void Screen::BackBuffer::SwitchStateTask::Run(const std::shared_ptr<Core::BaseStream>& stream)
-	{
-		Task::Run(stream);
-		_internalTasks.at(GetTaskContext()->entity->_currentBackBufferIndex)->Run(stream);
-	}*/
 
 	Screen::BackBuffer::BackBuffer(const Settings& settings, VkSwapchainKHR swapChain, const std::shared_ptr<Wrapper::Device>& device)
 		: Core::ColorTargetTexture(settings)
@@ -129,7 +68,12 @@ namespace MMPEngine::Backend::Vulkan
 		vkGetSwapchainImagesKHR(device->GetNativeLogical(), swapChain, &imageCount, nullptr);
 		std::vector<VkImage> swapChainImages(imageCount);
 		vkGetSwapchainImagesKHR(device->GetNativeLogical(), swapChain, &imageCount, swapChainImages.data());
-		_images = std::move(swapChainImages);
+
+		_images.reserve(imageCount);
+		for (const auto img : swapChainImages)
+		{
+			_images.push_back(std::make_shared<Image>(img));
+		}
 	}
 
 	void Screen::BackBuffer::Swap()
@@ -138,6 +82,10 @@ namespace MMPEngine::Backend::Vulkan
 		_currentImageIndex %= _images.size();
 	}
 
+	std::shared_ptr<Screen::Image> Screen::BackBuffer::GetCurrentImage() const
+	{
+		return _images[_currentImageIndex];
+	}
 
 	Screen::InitTask::InitTask(const std::shared_ptr<ScreenTaskContext>& ctx) : Task(ctx)
 	{
@@ -202,7 +150,18 @@ namespace MMPEngine::Backend::Vulkan
 		Task::Run(stream);
 
 		const auto screen = GetTaskContext()->entity;
-		//screen->_swapChain->Present(screen->_settings.vSync, 0);
+
+		VkPresentInfoKHR presentInfo {};
+		presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+		presentInfo.pNext = nullptr;
+		presentInfo.pResults = nullptr;
+		presentInfo.swapchainCount = 1;
+		presentInfo.pSwapchains = &screen->_swapChain;
+		presentInfo.pWaitSemaphores = nullptr;
+		presentInfo.waitSemaphoreCount = 0;
+		presentInfo.pImageIndices = &screen->_currentBackBufferIndex;
+		//vkQueuePresentKHR(_specificStreamContext->GetQueue()->GetNative(), &presentInfo);
+
 		screen->_backBuffer->Swap();
 		_specificStreamContext->PopulateCommandsInBuffer();
 	}

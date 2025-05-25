@@ -8,7 +8,20 @@ namespace MMPEngine::Backend::Vulkan
 	class Screen final : public Core::Screen
 	{
 	private:
-		
+
+		class Image final : public Core::BaseEntity, public IColorTargetTexture
+		{
+		public:
+			Image(VkImage image);
+			Image(const Image&) = delete;
+			Image(Image&&) noexcept = delete;
+			Image& operator=(const Image&) = delete;
+			Image& operator=(Image&&) noexcept = delete;
+			~Image() override;
+		private:
+			VkImage _image = VK_NULL_HANDLE;
+		};
+
 		class BackBuffer final : public Core::ColorTargetTexture, public BaseEntity, public IColorTargetTexture
 		{
 		private:
@@ -33,11 +46,11 @@ namespace MMPEngine::Backend::Vulkan
 		public:
 			BackBuffer(const Settings& settings, VkSwapchainKHR swapChain, const std::shared_ptr<Wrapper::Device>& device);
 			void Swap();
-			//std::shared_ptr<Buffer> GetCurrentImage() const;
+			std::shared_ptr<Image> GetCurrentImage() const;
 
 		private:
 			std::size_t _currentImageIndex = 0;
-			std::vector<VkImage> _images;
+			std::vector<std::shared_ptr<Image>> _images;
 		};
 		
 		class ScreenTaskContext final : public Core::EntityTaskContext<Screen>
