@@ -8,7 +8,6 @@ namespace MMPEngine::Backend::Vulkan
 	class Screen final : public Core::Screen
 	{
 	private:
-
 		class Image final : public Core::BaseEntity, public BaseTexture, public IColorTargetTexture
 		{
 		public:
@@ -44,20 +43,11 @@ namespace MMPEngine::Backend::Vulkan
 				std::vector<std::shared_ptr<MemoryBarrierTask>> _internalTasks;
 			};
 
-			/*class MemoryBarrierTaskInternal final : public Task<MemoryBarrierContextInternal>
-			{
-			public:
-				MemoryBarrierTaskInternal(const std::shared_ptr<MemoryBarrierContextInternal>& ctx);
-			protected:
-				void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
-			private:
-				std::vector<std::shared_ptr<Core::BaseTask>> _internalTasks;
-			};*/
-
 		public:
 			BackBuffer(const Settings& settings, VkSwapchainKHR swapChain, const std::shared_ptr<Wrapper::Device>& device);
 			void Swap();
 			std::shared_ptr<Image> GetCurrentImage() const;
+			std::size_t GetCurrentImageIndex() const;
 			std::shared_ptr<Core::BaseTask> CreateMemoryBarrierTask(VkAccessFlags srcAccess, VkAccessFlags dstAccess, VkImageLayout newLayout, const VkImageSubresourceRange& subResourceRange, VkPipelineStageFlags srcStage, VkPipelineStageFlags dstStage) override;
 		protected:
 			std::shared_ptr<DeviceMemoryHeap> GetMemoryHeap(const std::shared_ptr<GlobalContext>& globalContext) const override;
@@ -74,6 +64,14 @@ namespace MMPEngine::Backend::Vulkan
 		{
 		public:
 			InitTask(const std::shared_ptr<ScreenTaskContext>& ctx);
+		protected:
+			void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
+		};
+
+		class StartFrameTask final : public Task<ScreenTaskContext>
+		{
+		public:
+			StartFrameTask(const std::shared_ptr<ScreenTaskContext>& ctx);
 		protected:
 			void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
 		};
@@ -96,12 +94,16 @@ namespace MMPEngine::Backend::Vulkan
 		std::shared_ptr<Core::ColorTargetTexture> GetBackBuffer() const override;
 	protected:
 		std::shared_ptr<Core::BaseTask> CreateInitializationTaskInternal() override;
-		std::shared_ptr<Core::BaseTask> CreateTaskToSwapBufferInternal() override;
+		std::shared_ptr<Core::BaseTask> CreateStartFrameTaskInternal() override;
+		std::shared_ptr<Core::BaseTask> CreatePresentationTaskInternal() override;
 	private:
+		std::size_t GetCurrentImageIndex() const;
 		std::shared_ptr<BackBuffer> _backBuffer;
 		VkSwapchainKHR _swapChain = VK_NULL_HANDLE;
 		VkSurfaceKHR _surface = VK_NULL_HANDLE;
+		VkSemaphore _semaphore = VK_NULL_HANDLE;
 		std::shared_ptr<Wrapper::Device> _device;
 		std::shared_ptr<Wrapper::Instance> _instance;
+		std::uint32_t _acquireNextImageIndex = 0;
 	};
 }

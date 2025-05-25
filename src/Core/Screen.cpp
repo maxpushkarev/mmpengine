@@ -31,6 +31,7 @@ namespace MMPEngine::Core
 		}
 	}
 
+
 	std::shared_ptr<BaseTask> Screen::CreateInitializationTask()
 	{
 		const auto ctx = std::make_shared<TaskContext>();
@@ -42,14 +43,58 @@ namespace MMPEngine::Core
 		});
 	}
 
-	std::shared_ptr<BaseTask> Screen::CreateTaskToSwapBuffer()
+	std::shared_ptr<BaseTask> Screen::CreatePresentationTask()
 	{
 		const auto ctx = std::make_shared<TaskContext>();
 		ctx->screen = std::dynamic_pointer_cast<Screen>(shared_from_this());
 
 		return std::make_shared<BatchTask>(std::initializer_list<std::shared_ptr<BaseTask>>{
 			std::make_shared<StreamValidationTask>(ctx),
-			CreateTaskToSwapBufferInternal()
+				std::make_shared<FunctionalTask>(
+					[](const auto&)
+					{
+					},
+					[ctx](const auto&)
+					{
+						if (!ctx->screen->_readyForPresentation)
+						{
+							throw std::runtime_error("screen not ready for presentation");
+						}
+					},
+					[](const auto&) {}
+				),
+			CreatePresentationTaskInternal(),
+				std::make_shared<FunctionalTask>(
+					[](const auto&)
+					{
+					},
+					[ctx](const auto&)
+					{
+						ctx->screen->_readyForPresentation = false;
+					},
+					[](const auto&) {}
+				),
+		});
+	}
+
+	std::shared_ptr<BaseTask> Screen::CreateStartFrameTask()
+	{
+		const auto ctx = std::make_shared<TaskContext>();
+		ctx->screen = std::dynamic_pointer_cast<Screen>(shared_from_this());
+
+		return std::make_shared<BatchTask>(std::initializer_list<std::shared_ptr<BaseTask>>{
+			std::make_shared<StreamValidationTask>(ctx),
+			std::make_shared<FunctionalTask>(
+			[](const auto&)
+			{
+			},
+				[ctx](const auto&)
+				{
+					ctx->screen->_readyForPresentation = true;
+				},
+				[](const auto&) {}
+			),
+			CreateStartFrameTaskInternal()
 		});
 	}
 

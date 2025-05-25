@@ -37,9 +37,14 @@ namespace MMPEngine::Frontend
 		return _impl->CreateInitializationTask();
 	}
 
-	std::shared_ptr<Core::BaseTask> Screen::CreateTaskToSwapBuffer()
+	std::shared_ptr<Core::BaseTask> Screen::CreateStartFrameTask()
 	{
-		return _impl->CreateTaskToSwapBuffer();
+		return _impl->CreateStartFrameTask();
+	}
+
+	std::shared_ptr<Core::BaseTask> Screen::CreatePresentationTask()
+	{
+		return _impl->CreatePresentationTask();
 	}
 
 	std::shared_ptr<Core::ColorTargetTexture> Screen::GetBackBuffer() const
@@ -52,8 +57,14 @@ namespace MMPEngine::Frontend
 		throw std::logic_error {"impossible"};
 	}
 
-	std::shared_ptr<Core::BaseTask> Screen::CreateTaskToSwapBufferInternal()
+	std::shared_ptr<Core::BaseTask> Screen::CreatePresentationTaskInternal()
 	{
 		throw std::logic_error {"impossible"};
 	}
+
+	std::shared_ptr<Core::BaseTask> Screen::CreateStartFrameTaskInternal()
+	{
+		throw std::logic_error{ "impossible" };
+	}
+
 }

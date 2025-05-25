@@ -31,7 +31,8 @@ namespace MMPEngine::Core
 		};
 
 		std::shared_ptr<BaseTask> CreateInitializationTask() override;
-		virtual std::shared_ptr<BaseTask> CreateTaskToSwapBuffer();
+		virtual std::shared_ptr<BaseTask> CreatePresentationTask();
+		virtual std::shared_ptr<BaseTask> CreateStartFrameTask();
 
 
 		virtual std::shared_ptr<ColorTargetTexture> GetBackBuffer() const = 0;
@@ -39,12 +40,13 @@ namespace MMPEngine::Core
 	protected:
 
 		virtual std::shared_ptr<BaseTask> CreateInitializationTaskInternal() = 0;
-		virtual std::shared_ptr<BaseTask> CreateTaskToSwapBufferInternal() = 0;
+		virtual std::shared_ptr<BaseTask> CreatePresentationTaskInternal() = 0;
+		virtual std::shared_ptr<BaseTask> CreateStartFrameTaskInternal() = 0;
 
 		Screen(const Settings& settings);
 		Settings _settings;
-		std::uint32_t _currentBackBufferIndex = 0;
 	private:
 		Core::BaseStream* _streamPtr;
+		bool _readyForPresentation = false;
 	};
 }

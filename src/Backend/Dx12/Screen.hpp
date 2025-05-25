@@ -84,7 +84,8 @@ namespace MMPEngine::Backend::Dx12
 		std::shared_ptr<Core::ColorTargetTexture> GetBackBuffer() const override;
 	protected:
 		std::shared_ptr<Core::BaseTask> CreateInitializationTaskInternal() override;
-		std::shared_ptr<Core::BaseTask> CreateTaskToSwapBufferInternal() override;
+		std::shared_ptr<Core::BaseTask> CreatePresentationTaskInternal() override;
+		std::shared_ptr<Core::BaseTask> CreateStartFrameTaskInternal() override;
 	private:
 		std::shared_ptr<BackBuffer> _backBuffer;
 		Microsoft::WRL::ComPtr<IDXGISwapChain> _swapChain;
