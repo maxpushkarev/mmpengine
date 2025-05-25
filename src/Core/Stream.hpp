@@ -35,7 +35,7 @@ namespace MMPEngine::Core
 		virtual void ScheduleInternal(const std::shared_ptr<BaseTask>& task);
 		virtual void SyncInternal();
 		virtual void SubmitInternal();
-		void Flush();
+		virtual void Flush();
 
 	public:
 		

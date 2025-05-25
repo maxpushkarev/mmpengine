@@ -229,7 +229,6 @@ namespace MMPEngine::Backend::Vulkan
 		vkQueuePresentKHR(_specificStreamContext->GetQueue()->GetNative(), &presentInfo);*/
 		
 		screen->_backBuffer->Swap();
-		_specificStreamContext->MarkCommandBufferAsPopulated();
 	}
 
 }

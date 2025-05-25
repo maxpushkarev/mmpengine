@@ -42,8 +42,6 @@ namespace MMPEngine::Core
 
 	void BaseStream::Flush()
 	{
-		SubmitInternal();
-		RestartInternal();
 	}
 
 	std::uint64_t BaseStream::GetSyncCounterValue() const

@@ -17,6 +17,7 @@ namespace MMPEngine::Backend::Shared
 		void RestartInternal() final;
 		void SubmitInternal() final;
 		void SyncInternal() final;
+		void Flush() final;
 
 		virtual bool ExecutionMonitorCompleted() = 0;
 		virtual void ResetAll() = 0;
@@ -62,6 +63,22 @@ namespace MMPEngine::Backend::Shared
 			UpdateExecutionMonitor();
 			this->_specificStreamContext->SetCommandsPopulated(_passControl, false);
 		}
+	}
+
+	template <typename TGlobalContext, typename TQueue, typename TCommandBufferAllocator, typename TCommandBuffer, typename TFence>
+	void Stream<TGlobalContext, TQueue, TCommandBufferAllocator, TCommandBuffer, TFence>::Flush()
+	{
+		Super::Flush();
+
+		if (this->_specificStreamContext->IsCommandsPopulated(_passControl))
+		{
+			if (!this->_specificStreamContext->IsCommandsClosed(_passControl))
+			{
+				ScheduleCommandsForExecution();
+				this->_specificStreamContext->SetCommandsClosed(_passControl, true);
+			}
+		}
+		this->_specificStreamContext->SetCommandsPopulated(_passControl, true);
 	}
 
 	template <typename TGlobalContext, typename TQueue, typename TCommandBufferAllocator, typename TCommandBuffer, typename TFence>

@@ -37,10 +37,4 @@ namespace MMPEngine::Backend::Vulkan
 
 		return _cmdBuffer;
 	}
-
-	void StreamContext::MarkCommandBufferAsPopulated()
-	{
-		_commandsPopulated = true;
-	}
-
 }
