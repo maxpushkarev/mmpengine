@@ -41,7 +41,7 @@ namespace MMPEngine::Backend::Vulkan
 		b.srcAccessMask = tc->srcAccess;
 		b.dstAccessMask = tc->dstAccess;
 
-		b.srcQueueFamilyIndex = _specificStreamContext->GetQueue()->GetFamilyIndex();
+		b.srcQueueFamilyIndex = tc->entity->_queueFamilyIndexOwnerShip.value_or(_specificStreamContext->GetQueue()->GetFamilyIndex());
 		b.dstQueueFamilyIndex = _specificStreamContext->GetQueue()->GetFamilyIndex();
 
 		vkCmdPipelineBarrier(
@@ -53,6 +53,8 @@ namespace MMPEngine::Backend::Vulkan
 			1, &b,
 			0, nullptr
 		);
+
+		tc->entity->_queueFamilyIndexOwnerShip = _specificStreamContext->GetQueue()->GetFamilyIndex();
 	}
 
 	std::shared_ptr<Core::BaseTask> Buffer::CreateMemoryBarrierTask(VkAccessFlags srcAccess, VkAccessFlags dstAccess)
