@@ -63,7 +63,7 @@ namespace MMPEngine::Backend::Vulkan
 		submitInfo.pSignalSemaphores = nullptr;
 
 		const auto vkFence = _specificStreamContext->GetFence()->GetNative();
-
+		
 		vkResetFences(_specificGlobalContext->device->GetNativeLogical(), 1, &vkFence);
 		vkQueueSubmit(
 			_specificStreamContext->GetQueue()->GetNative(),

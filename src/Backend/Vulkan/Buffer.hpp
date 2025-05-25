@@ -16,14 +16,16 @@ namespace MMPEngine::Backend::Vulkan
 		Buffer& operator=(Buffer&&) noexcept = delete;
 
 		const VkDescriptorBufferInfo& GetDescriptorBufferInfo() const;
-		virtual std::shared_ptr<Core::BaseTask> CreateMemoryBarrierTask(VkAccessFlags srcAccess, VkAccessFlags dstAccess);
+		virtual std::shared_ptr<Core::BaseTask> CreateMemoryBarrierTask(VkAccessFlags srcAccess, VkAccessFlags dstAccess, VkPipelineStageFlags srcStage = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VkPipelineStageFlags dstStage = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT);
 	protected:
 
 		class MemoryBarrierContext final : public Core::EntityTaskContext<Buffer>
 		{
 		public:
-			VkAccessFlags srcAccess = VkAccessFlagBits::VK_ACCESS_MEMORY_READ_BIT;
-			VkAccessFlags dstAccess = VkAccessFlagBits::VK_ACCESS_MEMORY_WRITE_BIT;
+			VkAccessFlags srcAccess = VK_ACCESS_MEMORY_READ_BIT;
+			VkAccessFlags dstAccess = VK_ACCESS_MEMORY_WRITE_BIT;
+			VkPipelineStageFlags srcStage = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
+			VkPipelineStageFlags dstStage = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
 		};
 
 		class MemoryBarrierTask final : public Task<MemoryBarrierContext>
@@ -190,7 +192,7 @@ namespace MMPEngine::Backend::Vulkan
 		std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;
 		std::shared_ptr<Core::BaseTask> CreateCopyCounterTask(const std::shared_ptr<Core::Buffer>& dst, std::size_t dstByteOffset) override;
 		std::shared_ptr<Core::BaseTask> CreateResetCounterTask() override;
-		std::shared_ptr<Core::BaseTask> CreateMemoryBarrierTask(VkAccessFlags srcAccess, VkAccessFlags dstAccess) override;
+		std::shared_ptr<Core::BaseTask> CreateMemoryBarrierTask(VkAccessFlags srcAccess, VkAccessFlags dstAccess, VkPipelineStageFlags srcStage, VkPipelineStageFlags dstStage) override;
 		std::shared_ptr<Vulkan::Buffer> GetCounterBuffer() const;
 	protected:
 		std::shared_ptr<DeviceMemoryHeap> GetMemoryHeap(const std::shared_ptr<GlobalContext>& globalContext) const override;

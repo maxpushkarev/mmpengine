@@ -30,27 +30,32 @@ namespace MMPEngine::Backend::Vulkan
 			VkAccessFlags srcAccess, 
 			VkAccessFlags dstAccess,
 			VkImageLayout newLayout,
-			VkImageSubresourceRange subResourceRange
+			const VkImageSubresourceRange& subResourceRange,
+			VkPipelineStageFlags srcStage = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VkPipelineStageFlags dstStage = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT
 		);
-	protected:
 
 		class MemoryBarrierContext final : public Core::EntityTaskContext<BaseTexture>
 		{
 		public:
-			VkAccessFlags srcAccess = VK_ACCESS_MEMORY_READ_BIT;
-			VkAccessFlags dstAccess = VK_ACCESS_MEMORY_WRITE_BIT;
-			VkImageLayout imageLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-			VkImageSubresourceRange subresourceRange = {};
+			struct Data final
+			{
+				VkAccessFlags srcAccess = VK_ACCESS_MEMORY_READ_BIT;
+				VkAccessFlags dstAccess = VK_ACCESS_MEMORY_WRITE_BIT;
+				VkImageLayout imageLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+				VkPipelineStageFlags srcStage = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
+				VkPipelineStageFlags dstStage = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
+				VkImageSubresourceRange subresourceRange = {};
+			};
+			Data data;
 		};
 
 		class MemoryBarrierTask final : public Task<MemoryBarrierContext>
 		{
 		public:
 			MemoryBarrierTask(const std::shared_ptr<MemoryBarrierContext>& ctx);
-		protected:
 			void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
 		};
-
+	protected:
 		VkImage _nativeImage = VK_NULL_HANDLE;
 		VkImageLayout _layout = VK_IMAGE_LAYOUT_UNDEFINED;
 	};

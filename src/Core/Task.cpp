@@ -33,9 +33,7 @@ namespace MMPEngine::Core
 	void StreamFlushTask::Run(const std::shared_ptr<BaseStream>& stream)
 	{
 		BaseTask::Run(stream);
-
-		stream->SubmitInternal();
-		stream->RestartInternal();
+		stream->Flush();
 	}
 
 	std::shared_ptr<StreamFlushTask> StreamFlushTask::kInstance = std::make_shared<StreamFlushTask>();

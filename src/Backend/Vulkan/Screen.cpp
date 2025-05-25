@@ -3,6 +3,9 @@
 #include <Core/Texture.hpp>
 #include <Backend/Vulkan/Entity.hpp>
 
+#include "Texture.hpp"
+#include "Texture.hpp"
+
 #ifdef MMPENGINE_WIN
 #include <vulkan/vulkan_win32.h>
 #endif
@@ -41,7 +44,16 @@ namespace MMPEngine::Backend::Vulkan
 		ctx->entity = std::dynamic_pointer_cast<Screen>(shared_from_this());
 
 		return std::make_shared<Core::BatchTask>(std::initializer_list<std::shared_ptr<Core::BaseTask>> {
-			//ctx->entity->_backBuffer->CreateSwitchStateTask(D3D12_RESOURCE_STATE_PRESENT),
+				ctx->entity->_backBuffer->CreateMemoryBarrierTask(
+					VK_ACCESS_MEMORY_WRITE_BIT | VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_TRANSFER_WRITE_BIT | VK_ACCESS_TRANSFER_READ_BIT,
+					0,
+					VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+					VkImageSubresourceRange{
+						VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1
+					},
+					VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
+					VK_PIPELINE_STAGE_ALL_COMMANDS_BIT
+				),
 				Core::StreamFlushTask::kInstance,
 				std::make_shared<PresentTask>(ctx)
 		});
@@ -53,9 +65,14 @@ namespace MMPEngine::Backend::Vulkan
 	}
 
 
-	Screen::Image::Image(VkImage image) : _image(image)
+	Screen::Image::Image(VkImage image)
 	{
-		
+		_nativeImage = image;
+	}
+
+	std::shared_ptr<DeviceMemoryHeap> Screen::Image::GetMemoryHeap(const std::shared_ptr<GlobalContext>& globalContext) const
+	{
+		return nullptr;
 	}
 
 	Screen::Image::~Image() = default;
@@ -85,6 +102,43 @@ namespace MMPEngine::Backend::Vulkan
 	std::shared_ptr<Screen::Image> Screen::BackBuffer::GetCurrentImage() const
 	{
 		return _images[_currentImageIndex];
+	}
+
+	std::shared_ptr<DeviceMemoryHeap> Screen::BackBuffer::GetMemoryHeap(const std::shared_ptr<GlobalContext>& globalContext) const
+	{
+		return nullptr;
+	}
+
+	std::shared_ptr<Core::BaseTask> Screen::BackBuffer::CreateMemoryBarrierTask(VkAccessFlags srcAccess, VkAccessFlags dstAccess, VkImageLayout newLayout, const VkImageSubresourceRange& subResourceRange, VkPipelineStageFlags srcStage, VkPipelineStageFlags dstStage)
+	{
+		const auto ctx = std::make_shared<MemoryBarrierContextInternal>();
+		ctx->entity = std::dynamic_pointer_cast<BackBuffer>(shared_from_this());
+
+		ctx->data.srcAccess = srcAccess;
+		ctx->data.dstAccess = dstAccess;
+		ctx->data.srcStage = srcStage;
+		ctx->data.dstStage = dstStage;
+		ctx->data.imageLayout = newLayout;
+		ctx->data.subresourceRange = subResourceRange;
+
+		return std::make_shared<MemoryBarrierTaskInternal>(ctx);
+	}
+
+	Screen::BackBuffer::MemoryBarrierTaskInternal::MemoryBarrierTaskInternal(const std::shared_ptr<MemoryBarrierContextInternal>& ctx) : Task<MMPEngine::Backend::Vulkan::Screen::BackBuffer::MemoryBarrierContextInternal>(ctx)
+	{
+		for (const auto& i : ctx->entity->_images)
+		{
+			const auto c = std::make_shared<MemoryBarrierContext>();
+			c->entity = i;
+			c->data = ctx->data;
+			_internalTasks.push_back(std::make_shared<MemoryBarrierTask>(c));
+		}
+	}
+
+	void Screen::BackBuffer::MemoryBarrierTaskInternal::Run(const std::shared_ptr<Core::BaseStream>& stream)
+	{
+		Task::Run(stream);
+		_internalTasks.at(GetTaskContext()->entity->_currentImageIndex)->Run(stream);
 	}
 
 	Screen::InitTask::InitTask(const std::shared_ptr<ScreenTaskContext>& ctx) : Task(ctx)
@@ -151,7 +205,19 @@ namespace MMPEngine::Backend::Vulkan
 
 		const auto screen = GetTaskContext()->entity;
 
-		VkPresentInfoKHR presentInfo {};
+		/*std::uint32_t nextIndex {};
+		vkAcquireNextImageKHR(
+			_specificGlobalContext->device->GetNativeLogical(), 
+			screen->_swapChain, 
+			(std::numeric_limits<std::uint64_t>::max)(), 
+			VK_NULL_HANDLE, 
+			_specificStreamContext->GetFence()->GetNative(),
+			&nextIndex
+		);
+
+		assert(nextIndex == screen->_currentBackBufferIndex);*/
+
+		/*VkPresentInfoKHR presentInfo {};
 		presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
 		presentInfo.pNext = nullptr;
 		presentInfo.pResults = nullptr;
@@ -160,10 +226,10 @@ namespace MMPEngine::Backend::Vulkan
 		presentInfo.pWaitSemaphores = nullptr;
 		presentInfo.waitSemaphoreCount = 0;
 		presentInfo.pImageIndices = &screen->_currentBackBufferIndex;
-		//vkQueuePresentKHR(_specificStreamContext->GetQueue()->GetNative(), &presentInfo);
-
+		vkQueuePresentKHR(_specificStreamContext->GetQueue()->GetNative(), &presentInfo);*/
+		
 		screen->_backBuffer->Swap();
-		_specificStreamContext->PopulateCommandsInBuffer();
+		_specificStreamContext->MarkCommandBufferAsPopulated();
 	}
 
 }

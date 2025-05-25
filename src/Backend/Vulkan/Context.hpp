@@ -39,5 +39,6 @@ namespace MMPEngine::Backend::Vulkan
 			const std::shared_ptr<Wrapper::Fence>& fence
 		);
 		std::shared_ptr<Wrapper::CommandBuffer>& PopulateCommandsInBuffer() override;
+		void MarkCommandBufferAsPopulated();
 	};
 }

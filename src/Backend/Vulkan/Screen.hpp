@@ -9,7 +9,7 @@ namespace MMPEngine::Backend::Vulkan
 	{
 	private:
 
-		class Image final : public Core::BaseEntity, public IColorTargetTexture
+		class Image final : public Core::BaseEntity, public BaseTexture, public IColorTargetTexture
 		{
 		public:
 			Image(VkImage image);
@@ -18,36 +18,49 @@ namespace MMPEngine::Backend::Vulkan
 			Image& operator=(const Image&) = delete;
 			Image& operator=(Image&&) noexcept = delete;
 			~Image() override;
-		private:
-			VkImage _image = VK_NULL_HANDLE;
+			std::shared_ptr<DeviceMemoryHeap> GetMemoryHeap(const std::shared_ptr<GlobalContext>& globalContext) const override;
 		};
 
-		class BackBuffer final : public Core::ColorTargetTexture, public BaseEntity, public IColorTargetTexture
+		class BackBuffer final : public Core::ColorTargetTexture, public Vulkan::BaseTexture, public IColorTargetTexture
 		{
 		private:
 			class BackBufferContext : public Core::EntityTaskContext<BackBuffer>
 			{
 			};
 
-			/*class SwitchStateTaskContext final : public BackBufferContext
-			{
-			};
-
-			class SwitchStateTask final : public Task<SwitchStateTaskContext>
+			class MemoryBarrierContextInternal final : public BackBufferContext
 			{
 			public:
-				SwitchStateTask(const std::shared_ptr<SwitchStateTaskContext>& ctx);
+				MemoryBarrierContext::Data data;
+			};
+
+			class MemoryBarrierTaskInternal final : public Task<MemoryBarrierContextInternal>
+			{
+			public:
+				MemoryBarrierTaskInternal(const std::shared_ptr<MemoryBarrierContextInternal>& ctx);
 			protected:
 				void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
 			private:
-				//std::vector<std::shared_ptr<ResourceEntity::SwitchStateTask>> _internalTasks;
+				std::vector<std::shared_ptr<MemoryBarrierTask>> _internalTasks;
+			};
+
+			/*class MemoryBarrierTaskInternal final : public Task<MemoryBarrierContextInternal>
+			{
+			public:
+				MemoryBarrierTaskInternal(const std::shared_ptr<MemoryBarrierContextInternal>& ctx);
+			protected:
+				void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
+			private:
+				std::vector<std::shared_ptr<Core::BaseTask>> _internalTasks;
 			};*/
 
 		public:
 			BackBuffer(const Settings& settings, VkSwapchainKHR swapChain, const std::shared_ptr<Wrapper::Device>& device);
 			void Swap();
 			std::shared_ptr<Image> GetCurrentImage() const;
-
+			std::shared_ptr<Core::BaseTask> CreateMemoryBarrierTask(VkAccessFlags srcAccess, VkAccessFlags dstAccess, VkImageLayout newLayout, const VkImageSubresourceRange& subResourceRange, VkPipelineStageFlags srcStage, VkPipelineStageFlags dstStage) override;
+		protected:
+			std::shared_ptr<DeviceMemoryHeap> GetMemoryHeap(const std::shared_ptr<GlobalContext>& globalContext) const override;
 		private:
 			std::size_t _currentImageIndex = 0;
 			std::vector<std::shared_ptr<Image>> _images;

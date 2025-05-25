@@ -26,7 +26,7 @@ namespace MMPEngine::Backend::Vulkan
 		{
 			_commandsPopulated = true;
 
-			VkCommandBufferBeginInfo beginInfo {};
+			VkCommandBufferBeginInfo beginInfo{};
 			beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 			beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 			beginInfo.pInheritanceInfo = nullptr;
@@ -36,6 +36,11 @@ namespace MMPEngine::Backend::Vulkan
 		}
 
 		return _cmdBuffer;
+	}
+
+	void StreamContext::MarkCommandBufferAsPopulated()
+	{
+		_commandsPopulated = true;
 	}
 
 }

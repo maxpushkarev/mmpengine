@@ -5,14 +5,21 @@ namespace MMPEngine::Backend::Vulkan
 	ITargetTexture::ITargetTexture() = default;
 	ITargetTexture::~ITargetTexture() = default;
 
-	std::shared_ptr<Core::BaseTask> BaseTexture::CreateMemoryBarrierTask(VkAccessFlags srcAccess, VkAccessFlags dstAccess, VkImageLayout newLayout, VkImageSubresourceRange subResourceRange)
+	std::shared_ptr<Core::BaseTask> BaseTexture::CreateMemoryBarrierTask(
+		VkAccessFlags srcAccess, 
+		VkAccessFlags dstAccess, 
+		VkImageLayout newLayout, 
+		const VkImageSubresourceRange& subResourceRange,
+		VkPipelineStageFlags srcStage, VkPipelineStageFlags dstStage)
 	{
 		const auto ctx = std::make_shared<MemoryBarrierContext>();
 		ctx->entity = std::dynamic_pointer_cast<BaseTexture>(shared_from_this());
-		ctx->srcAccess = srcAccess;
-		ctx->dstAccess = dstAccess;
-		ctx->imageLayout = newLayout;
-		ctx->subresourceRange = subResourceRange;
+		ctx->data.srcAccess = srcAccess;
+		ctx->data.dstAccess = dstAccess;
+		ctx->data.srcStage = srcStage;
+		ctx->data.dstStage = dstStage;
+		ctx->data.imageLayout = newLayout;
+		ctx->data.subresourceRange = subResourceRange;
 
 		return std::make_shared<MemoryBarrierTask>(ctx);
 	}
@@ -33,21 +40,21 @@ namespace MMPEngine::Backend::Vulkan
 		barrier.pNext = nullptr;
 
 		barrier.oldLayout = entity->_layout;
-		barrier.newLayout = ctx->imageLayout;
+		barrier.newLayout = ctx->data.imageLayout;
 
-		barrier.srcAccessMask = ctx->srcAccess;
-		barrier.dstAccessMask = ctx->dstAccess;
+		barrier.srcAccessMask = ctx->data.srcAccess;
+		barrier.dstAccessMask = ctx->data.dstAccess;
 
 		barrier.image = entity->_nativeImage;
-		barrier.subresourceRange = ctx->subresourceRange;
+		barrier.subresourceRange = ctx->data.subresourceRange;
 
 		barrier.srcQueueFamilyIndex = ctx->entity->_queueFamilyIndexOwnerShip.value_or(_specificStreamContext->GetQueue()->GetFamilyIndex());
 		barrier.dstQueueFamilyIndex = _specificStreamContext->GetQueue()->GetFamilyIndex();
 
 		vkCmdPipelineBarrier(
 			_specificStreamContext->PopulateCommandsInBuffer()->GetNative(),
-			VkPipelineStageFlagBits::VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
-			VkPipelineStageFlagBits::VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
+			ctx->data.srcStage,
+			ctx->data.dstStage,
 			0,
 			0, nullptr,
 			0, nullptr,
@@ -55,7 +62,7 @@ namespace MMPEngine::Backend::Vulkan
 		);
 
 		ctx->entity->_queueFamilyIndexOwnerShip = _specificStreamContext->GetQueue()->GetFamilyIndex();
-		ctx->entity->_layout = ctx->imageLayout;
+		ctx->entity->_layout = ctx->data.imageLayout;
 	}
 
 

@@ -92,6 +92,7 @@ namespace MMPEngine::Backend::Vulkan
 
 		Fence::~Fence()
 		{
+			vkWaitForFences(_device->GetNativeLogical(), 1, &_fence, true,(std::numeric_limits<std::uint64_t>::max)());
 			vkDestroyFence(_device->GetNativeLogical(), _fence, nullptr);
 		}
 
