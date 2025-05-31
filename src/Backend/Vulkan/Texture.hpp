@@ -59,4 +59,25 @@ namespace MMPEngine::Backend::Vulkan
 		VkImage _nativeImage = VK_NULL_HANDLE;
 		VkImageLayout _layout = VK_IMAGE_LAYOUT_UNDEFINED;
 	};
+
+
+	class DepthStencilTargetTexture final : public Core::DepthStencilTargetTexture, public BaseTexture, public IDepthStencilTexture
+	{
+	private:
+		class InitTaskContext final : public Core::EntityTaskContext<DepthStencilTargetTexture>
+		{
+		};
+		class InitTask final : public Task<InitTaskContext>
+		{
+		public:
+			InitTask(const std::shared_ptr<InitTaskContext>& ctx);
+		protected:
+			void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
+		};
+	protected:
+		std::shared_ptr<DeviceMemoryHeap> GetMemoryHeap(const std::shared_ptr<GlobalContext>& globalContext) const override;
+	public:
+		DepthStencilTargetTexture(const Settings& settings);
+		std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;
+	};
 }

@@ -94,7 +94,7 @@ namespace MMPEngine::Frontend
 
 		if (globalContext->settings.backend == Core::BackendType::Vulkan)
 		{
-#ifdef MMPENGINE_BACKEND_DX12
+#ifdef MMPENGINE_BACKEND_VULKAN
 			_impl = std::make_shared<Backend::Vulkan::Mesh::Renderer>(settings, mesh, node);
 #else
 			throw Core::UnsupportedException("unable to create mesh renderer for Vulkan backend");

@@ -4,6 +4,10 @@
 #include <Backend/Dx12/Texture.hpp>
 #endif
 
+#ifdef MMPENGINE_BACKEND_VULKAN
+#include <Backend/Vulkan/Texture.hpp>
+#endif
+
 namespace MMPEngine::Frontend
 {
 	DepthStencilTargetTexture::DepthStencilTargetTexture(const std::shared_ptr<Core::GlobalContext>& globalContext, const Settings& settings) : Core::DepthStencilTargetTexture(settings)
@@ -14,6 +18,15 @@ namespace MMPEngine::Frontend
 			_impl = std::make_shared<Backend::Dx12::DepthStencilTargetTexture>(this->_settings);
 #else
 			throw Core::UnsupportedException("unable to create depth/stencil texture for DX12 backend");
+#endif
+		}
+
+		if (globalContext->settings.backend == Core::BackendType::Vulkan)
+		{
+#ifdef MMPENGINE_BACKEND_VULKAN
+			_impl = std::make_shared<Backend::Vulkan::DepthStencilTargetTexture>(this->_settings);
+#else
+			throw Core::UnsupportedException("unable to create depth/stencil texture for Vulkan backend");
 #endif
 		}
 	}
