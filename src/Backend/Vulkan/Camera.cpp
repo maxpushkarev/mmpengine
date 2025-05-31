@@ -36,7 +36,7 @@ namespace MMPEngine::Backend::Vulkan
 
 		const auto center = *camPosVec + *camFwdVec;
 
-		glm::mat4 viewMat = glm::lookAtLH(*camPosVec, center, *camUpVec);
+		glm::mat4 viewMat = glm::transpose(glm::lookAtLH(*camPosVec, center, *camUpVec));
 		std::memcpy(&data.viewMatrix, &viewMat, sizeof(data.viewMatrix));
 	}
 
@@ -86,13 +86,13 @@ namespace MMPEngine::Backend::Vulkan
 		const auto nearPlane = _baseSettings.nearPlane;
 		const auto farPlane = _baseSettings.farPlane;
 
-		const auto proj = glm::perspectiveFovLH_ZO(
+		const auto proj = glm::transpose(glm::perspectiveFovLH_ZO(
 			_perspectiveSettings.fov,
 			static_cast<std::float_t>(size.x),
 			static_cast<std::float_t>(size.y),
 			nearPlane,
 			farPlane
-		);
+		));
 
 		std::memcpy(&data.projMatrix, &proj, sizeof(data.projMatrix));
 	}
@@ -127,11 +127,11 @@ namespace MMPEngine::Backend::Vulkan
 	{
 		FillNonProjectionData(globalContext, _node, data);
 
-		const auto proj = glm::orthoLH_ZO(
+		const auto proj = glm::transpose(glm::orthoLH_ZO(
 			0.0f, _orthographicSettings.size.x,0.0f, _orthographicSettings.size.y,
 			_baseSettings.nearPlane,
 			_baseSettings.farPlane
-		);
+		));
 
 		std::memcpy(&data.projMatrix, &proj, sizeof(data.projMatrix));
 	}
