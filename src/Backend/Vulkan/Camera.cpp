@@ -128,7 +128,8 @@ namespace MMPEngine::Backend::Vulkan
 		FillNonProjectionData(globalContext, _node, data);
 
 		const auto proj = glm::transpose(glm::orthoLH_ZO(
-			0.0f, _orthographicSettings.size.x,0.0f, _orthographicSettings.size.y,
+			-_orthographicSettings.size.x * 0.5f, _orthographicSettings.size.x * 0.5f, 
+			-_orthographicSettings.size.y * 0.5f, _orthographicSettings.size.y * 0.5f,
 			_baseSettings.nearPlane,
 			_baseSettings.farPlane
 		));
