@@ -4,6 +4,10 @@
 #include <Backend/Dx12/Mesh.hpp>
 #endif
 
+#ifdef MMPENGINE_BACKEND_VULKAN
+#include <Backend/Vulkan/Mesh.hpp>
+#endif
+
 
 namespace MMPEngine::Frontend
 {
@@ -15,6 +19,13 @@ namespace MMPEngine::Frontend
 			_impl = std::make_shared<Backend::Dx12::Mesh>(std::move(proto));
 #else
 			throw Core::UnsupportedException("unable to create mesh for DX12 backend");
+#endif
+		} else if (globalContext->settings.backend == Core::BackendType::Vulkan)
+		{
+#ifdef MMPENGINE_BACKEND_VULKAN
+			_impl = std::make_shared<Backend::Vulkan::Mesh>(std::move(proto));
+#else
+			throw Core::UnsupportedException("unable to create mesh for Vulkan backend");
 #endif
 		}
 	}
@@ -78,6 +89,15 @@ namespace MMPEngine::Frontend
 			_impl = std::make_shared<Backend::Dx12::Mesh::Renderer>(settings, mesh, node);
 #else
 			throw Core::UnsupportedException("unable to create mesh renderer for DX12 backend");
+#endif
+		}
+
+		if (globalContext->settings.backend == Core::BackendType::Vulkan)
+		{
+#ifdef MMPENGINE_BACKEND_DX12
+			_impl = std::make_shared<Backend::Vulkan::Mesh::Renderer>(settings, mesh, node);
+#else
+			throw Core::UnsupportedException("unable to create mesh renderer for Vulkan backend");
 #endif
 		}
 	}
