@@ -5,6 +5,10 @@
 #include <Backend/Dx12/Camera.hpp>
 #endif
 
+#ifdef MMPENGINE_BACKEND_VULKAN
+#include <Backend/Vulkan/Camera.hpp>
+#endif
+
 namespace MMPEngine::Frontend
 {
 	class Camera
@@ -54,6 +58,15 @@ namespace MMPEngine::Frontend
 				throw Core::UnsupportedException("unable to create perspective camera for DX12 backend");
 #endif
 			}
+
+			if (globalContext->settings.backend == Core::BackendType::Vulkan)
+			{
+#ifdef MMPENGINE_BACKEND_VULKAN
+				_impl = std::make_shared<Backend::Vulkan::PerspectiveCamera>(settings, node, target);
+#else
+				throw Core::UnsupportedException("unable to create perspective camera for Vulkan backend");
+#endif
+			}
 		}
 
 		if constexpr (std::is_same_v<TCoreCamera, Core::OrthographicCamera>)
@@ -64,6 +77,15 @@ namespace MMPEngine::Frontend
 				_impl = std::make_shared<Backend::Dx12::OrthographicCamera>(settings, node, target);
 #else
 				throw Core::UnsupportedException("unable to create orthographic camera for DX12 backend");
+#endif
+			}
+
+			if (globalContext->settings.backend == Core::BackendType::Vulkan)
+			{
+#ifdef MMPENGINE_BACKEND_VULKAN
+				_impl = std::make_shared<Backend::Vulkan::OrthographicCamera>(settings, node, target);
+#else
+				throw Core::UnsupportedException("unable to create orthographic camera for Vulkan backend");
 #endif
 			}
 		}

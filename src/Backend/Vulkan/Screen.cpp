@@ -2,9 +2,7 @@
 #include <Backend/Vulkan/Screen.hpp>
 #include <Core/Texture.hpp>
 #include <Backend/Vulkan/Entity.hpp>
-
-#include "Texture.hpp"
-#include "Texture.hpp"
+#include <Backend/Vulkan/Texture.hpp>
 
 #ifdef MMPENGINE_WIN
 #include <vulkan/vulkan_win32.h>
