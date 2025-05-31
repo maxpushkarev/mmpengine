@@ -1,5 +1,7 @@
 #include <Backend/Vulkan/Camera.hpp>
 #include <Backend/Vulkan/Buffer.hpp>
+#include <glm/glm.hpp>
+#include <glm/ext/matrix_transform.hpp>
 
 namespace MMPEngine::Backend::Vulkan
 {
@@ -12,7 +14,7 @@ namespace MMPEngine::Backend::Vulkan
 
 	void Camera::FillNonProjectionData(const std::shared_ptr<Core::GlobalContext>& globalContext, const std::shared_ptr<Core::Node>& node, Core::Camera::Data& data)
 	{
-		/*Core::Matrix4x4 l2w{};
+		Core::Matrix4x4 l2w{};
 		globalContext->math->CalculateLocalToWorldSpaceMatrix(l2w, node);
 		globalContext->math->GetColumn(data.worldPosition, 3, l2w);
 
@@ -22,12 +24,15 @@ namespace MMPEngine::Backend::Vulkan
 		globalContext->math->GetColumn(cameraFwd, 2, l2w);
 		globalContext->math->GetColumn(cameraUp, 1, l2w);
 
-		const auto camFwdVec = DirectX::XMLoadFloat3(reinterpret_cast<const DirectX::XMFLOAT3*>(&cameraFwd));
-		const auto camUpVec = DirectX::XMLoadFloat3(reinterpret_cast<const DirectX::XMFLOAT3*>(&cameraUp));
-		const auto camPosVec = DirectX::XMLoadFloat3(reinterpret_cast<const DirectX::XMFLOAT3*>(&data.worldPosition));
 
-		const auto view = DirectX::XMMatrixLookToLH(camPosVec, camFwdVec, camUpVec);
-		XMStoreFloat4x4(reinterpret_cast<DirectX::XMFLOAT4X4*>(&data.viewMatrix), DirectX::XMMatrixTranspose(view));*/
+		const auto camFwdVec = reinterpret_cast<const glm::vec3*>(&cameraFwd);
+		const auto camUpVec = reinterpret_cast<const glm::vec3*>(&cameraUp);
+		const auto camPosVec = reinterpret_cast<const glm::vec3*>(&data.worldPosition);
+
+		const auto center = *camPosVec + *camFwdVec;
+
+		glm::mat4 viewMat = glm::lookAtLH(*camPosVec, center, *camUpVec);
+		std::memcpy(&data.viewMatrix, &viewMat, sizeof(data.viewMatrix));
 	}
 
 	void Camera::InitTask::OnScheduled(const std::shared_ptr<Core::BaseStream>& stream)
