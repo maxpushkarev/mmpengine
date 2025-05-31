@@ -1,6 +1,11 @@
 #include <Backend/Vulkan/Camera.hpp>
 #include <Backend/Vulkan/Buffer.hpp>
+
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
+#define GLM_FORCE_LEFT_HANDED
+
 #include <glm/glm.hpp>
+#include <glm/ext/matrix_clip_space.inl>
 #include <glm/ext/matrix_transform.hpp>
 
 namespace MMPEngine::Backend::Vulkan
@@ -77,13 +82,19 @@ namespace MMPEngine::Backend::Vulkan
 	{
 		FillNonProjectionData(globalContext, _node, data);
 
-		/*const auto size = _target.color.front().tex->GetSettings().base.size;
-		const auto aspect = static_cast<std::float_t>(size.x) / static_cast<std::float_t>(size.y);
-
+		const auto size = _target.color.front().tex->GetSettings().base.size;
 		const auto nearPlane = _baseSettings.nearPlane;
 		const auto farPlane = _baseSettings.farPlane;
-		const auto proj = DirectX::XMMatrixPerspectiveFovLH(_perspectiveSettings.fov, aspect, nearPlane, farPlane);
-		XMStoreFloat4x4(reinterpret_cast<DirectX::XMFLOAT4X4*>(&data.projMatrix), DirectX::XMMatrixTranspose(proj));*/
+
+		const auto proj = glm::perspectiveFovLH_ZO(
+			_perspectiveSettings.fov,
+			static_cast<std::float_t>(size.x),
+			static_cast<std::float_t>(size.y),
+			nearPlane,
+			farPlane
+		);
+
+		std::memcpy(&data.projMatrix, &proj, sizeof(data.projMatrix));
 	}
 
 	std::shared_ptr<Core::UniformBuffer<Core::Camera::Data>>& PerspectiveCamera::GetUniformBufferRef()
@@ -116,14 +127,13 @@ namespace MMPEngine::Backend::Vulkan
 	{
 		FillNonProjectionData(globalContext, _node, data);
 
-		/*const auto proj = DirectX::XMMatrixOrthographicLH(
-			_orthographicSettings.size.x,
-			_orthographicSettings.size.y,
+		const auto proj = glm::orthoLH_ZO(
+			0.0f, _orthographicSettings.size.x,0.0f, _orthographicSettings.size.y,
 			_baseSettings.nearPlane,
 			_baseSettings.farPlane
 		);
 
-		XMStoreFloat4x4(reinterpret_cast<DirectX::XMFLOAT4X4*>(&data.projMatrix), DirectX::XMMatrixTranspose(proj));*/
+		std::memcpy(&data.projMatrix, &proj, sizeof(data.projMatrix));
 	}
 
 	std::shared_ptr<Core::UniformBuffer<Core::Camera::Data>>& OrthographicCamera::GetUniformBufferRef()
