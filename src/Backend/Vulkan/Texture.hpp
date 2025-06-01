@@ -56,12 +56,30 @@ namespace MMPEngine::Backend::Vulkan
 			void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
 		};
 	protected:
+
+		static VkSampleCountFlagBits GetSampleCount(Core::TargetTexture::Settings::Antialiasing aa);
+
 		VkImage _nativeImage = VK_NULL_HANDLE;
+		VkImageView _view = VK_NULL_HANDLE;
 		VkImageLayout _layout = VK_IMAGE_LAYOUT_UNDEFINED;
 	};
 
+	class ResourceTexture : public BaseTexture
+	{
+	public:
+		ResourceTexture();
+		~ResourceTexture() override;
+		ResourceTexture(const ResourceTexture&) = delete;
+		ResourceTexture(ResourceTexture&&) noexcept = delete;
+		ResourceTexture& operator=(const ResourceTexture&) = delete;
+		ResourceTexture& operator=(ResourceTexture&&) noexcept = delete;
+	protected:
+		std::shared_ptr<DeviceMemoryHeap> GetMemoryHeap(const std::shared_ptr<GlobalContext>& globalContext) const override;
 
-	class DepthStencilTargetTexture final : public Core::DepthStencilTargetTexture, public BaseTexture, public IDepthStencilTexture
+		std::shared_ptr<Wrapper::Device> _device;
+	};
+
+	class DepthStencilTargetTexture final : public Core::DepthStencilTargetTexture, public ResourceTexture, public IDepthStencilTexture
 	{
 	private:
 		class InitTaskContext final : public Core::EntityTaskContext<DepthStencilTargetTexture>
@@ -74,8 +92,6 @@ namespace MMPEngine::Backend::Vulkan
 		protected:
 			void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
 		};
-	protected:
-		std::shared_ptr<DeviceMemoryHeap> GetMemoryHeap(const std::shared_ptr<GlobalContext>& globalContext) const override;
 	public:
 		DepthStencilTargetTexture(const Settings& settings);
 		std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;

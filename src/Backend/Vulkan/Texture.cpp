@@ -1,4 +1,5 @@
 #include <Backend/Vulkan/Texture.hpp>
+#include <cassert>
 
 namespace MMPEngine::Backend::Vulkan
 {
@@ -27,6 +28,24 @@ namespace MMPEngine::Backend::Vulkan
 	BaseTexture::MemoryBarrierTask::MemoryBarrierTask(const std::shared_ptr<MemoryBarrierContext>& ctx) : Task<MMPEngine::Backend::Vulkan::BaseTexture::MemoryBarrierContext>(ctx)
 	{
 	}
+
+	VkSampleCountFlagBits BaseTexture::GetSampleCount(Core::TargetTexture::Settings::Antialiasing aa)
+	{
+		switch (aa)
+		{
+		case Core::TargetTexture::Settings::Antialiasing::MSAA_0:
+			return VK_SAMPLE_COUNT_1_BIT;
+		case Core::TargetTexture::Settings::Antialiasing::MSAA_2:
+			return VK_SAMPLE_COUNT_2_BIT;
+		case Core::TargetTexture::Settings::Antialiasing::MSAA_4:
+			return VK_SAMPLE_COUNT_4_BIT;
+		case Core::TargetTexture::Settings::Antialiasing::MSAA_8:
+			return VK_SAMPLE_COUNT_8_BIT;
+		}
+
+		throw Core::UnsupportedException("MSAA type unknown");
+	}
+
 
 	void BaseTexture::MemoryBarrierTask::Run(const std::shared_ptr<Core::BaseStream>& stream)
 	{
@@ -65,14 +84,27 @@ namespace MMPEngine::Backend::Vulkan
 		ctx->entity->_layout = ctx->data.imageLayout;
 	}
 
+	ResourceTexture::ResourceTexture() = default;
+	ResourceTexture::~ResourceTexture()
+	{
+		if (_view && _device)
+		{
+			vkDestroyImageView(_device->GetNativeLogical(), _view, nullptr);
+		}
+
+		if (_nativeImage && _device)
+		{
+			vkDestroyImage(_device->GetNativeLogical(), _nativeImage, nullptr);
+		}
+	}
+
+	std::shared_ptr<DeviceMemoryHeap> ResourceTexture::GetMemoryHeap(const std::shared_ptr<GlobalContext>& globalContext) const
+	{
+		return globalContext->residentBufferHeap;
+	}
 
 	DepthStencilTargetTexture::DepthStencilTargetTexture(const Settings& settings) : Core::DepthStencilTargetTexture(settings)
 	{
-	}
-
-	std::shared_ptr<DeviceMemoryHeap> DepthStencilTargetTexture::GetMemoryHeap(const std::shared_ptr<GlobalContext>& globalContext) const
-	{
-		return nullptr;
 	}
 
 	std::shared_ptr<Core::BaseTask> DepthStencilTargetTexture::CreateInitializationTask()
@@ -89,7 +121,46 @@ namespace MMPEngine::Backend::Vulkan
 	void DepthStencilTargetTexture::InitTask::Run(const std::shared_ptr<Core::BaseStream>& stream)
 	{
 		Task::Run(stream);
-		//const auto dsTex = GetTaskContext()->entity;
+
+		const auto dsTex = GetTaskContext()->entity;
+		dsTex->_device = _specificGlobalContext->device;
+
+		const auto& settings = dsTex->GetSettings();
+		const auto& size = settings.base.size;
+
+		VkImageCreateInfo imageInfo{};
+		imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+		imageInfo.pNext = nullptr;
+		imageInfo.imageType = VK_IMAGE_TYPE_2D;
+		imageInfo.extent.width = size.x;
+		imageInfo.extent.height = size.y;
+		imageInfo.extent.depth = 1;
+		imageInfo.mipLevels = 1;
+		imageInfo.arrayLayers = 1;
+		imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+		imageInfo.initialLayout = dsTex->_layout;
+		imageInfo.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+		imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+		imageInfo.pQueueFamilyIndices = nullptr;
+		imageInfo.queueFamilyIndexCount = 0;
+		
+		imageInfo.samples = GetSampleCount(settings.base.antialiasing);
+
+		switch (settings.format)
+		{
+		case Settings::Format::Depth16:
+			imageInfo.format = VK_FORMAT_D16_UNORM;
+			break;
+		case Settings::Format::Depth32:
+			imageInfo.format = VK_FORMAT_D32_SFLOAT;
+			break;
+		case Settings::Format::Depth24_Stencil8:
+			imageInfo.format = VK_FORMAT_D24_UNORM_S8_UINT;
+			break;
+		}
+
+		const auto createDsImage = vkCreateImage(dsTex->_device->GetNativeLogical(), &imageInfo, nullptr, &dsTex->_nativeImage);
+		assert(createDsImage == VK_SUCCESS);
 	}
 
 
