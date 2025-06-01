@@ -76,6 +76,7 @@ namespace MMPEngine::Core
 			TargetTexture::Settings base;
 		};
 		const Settings& GetSettings() const;
+		bool StencilIncluded() const;
 	protected:
 		DepthStencilTargetTexture(const Settings& settings);
 	protected:

@@ -36,6 +36,11 @@ namespace MMPEngine::Core
 		return _settings;
 	}
 
+	bool DepthStencilTargetTexture::StencilIncluded() const
+	{
+		return _settings.format == Settings::Format::Depth24_Stencil8;
+	}
+
 	DepthStencilTargetTexture::DepthStencilTargetTexture(const Settings& settings) : TargetTexture(settings.base.name), _settings(settings)
 	{
 	}
