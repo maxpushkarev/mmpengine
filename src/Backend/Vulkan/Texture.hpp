@@ -74,6 +74,19 @@ namespace MMPEngine::Backend::Vulkan
 		ResourceTexture& operator=(const ResourceTexture&) = delete;
 		ResourceTexture& operator=(ResourceTexture&&) noexcept = delete;
 	protected:
+
+		class TaskContext final : public Core::EntityTaskContext<ResourceTexture>
+		{
+		};
+
+		class BindTask final : public Task<TaskContext>
+		{
+		public:
+			BindTask(const std::shared_ptr<TaskContext>& context);
+		protected:
+			void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
+		};
+
 		std::shared_ptr<DeviceMemoryHeap> GetMemoryHeap(const std::shared_ptr<GlobalContext>& globalContext) const override;
 
 		std::shared_ptr<Wrapper::Device> _device;
@@ -87,10 +100,17 @@ namespace MMPEngine::Backend::Vulkan
 		};
 		class InitTask final : public Task<InitTaskContext>
 		{
+		private:
+			class Create final : public Task<InitTaskContext>
+			{
+			public:
+				Create(const std::shared_ptr<InitTaskContext>& context);
+				void OnScheduled(const std::shared_ptr<Core::BaseStream>& stream) override;
+			};
 		public:
 			InitTask(const std::shared_ptr<InitTaskContext>& ctx);
 		protected:
-			void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
+			void OnScheduled(const std::shared_ptr<Core::BaseStream>& stream) override;
 		};
 	public:
 		DepthStencilTargetTexture(const Settings& settings);

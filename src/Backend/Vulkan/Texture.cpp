@@ -103,6 +103,30 @@ namespace MMPEngine::Backend::Vulkan
 		return globalContext->residentBufferHeap;
 	}
 
+
+	ResourceTexture::BindTask::BindTask(const std::shared_ptr<TaskContext>& context) : Task<MMPEngine::Backend::Vulkan::ResourceTexture::TaskContext>(context)
+	{
+	}
+
+
+	void ResourceTexture::BindTask::Run(const std::shared_ptr<Core::BaseStream>& stream)
+	{
+		Task::Run(stream);
+
+		const auto tc = GetTaskContext();
+
+		const auto res = vkBindImageMemory(
+			tc->entity->_device->GetNativeLogical(),
+			tc->entity->_nativeImage,
+			tc->entity->_deviceMemoryHeapHandle.GetMemoryBlock()->GetNative(),
+			static_cast<VkDeviceSize>(tc->entity->_deviceMemoryHeapHandle.GetOffset())
+		);
+
+		assert(res == VK_SUCCESS);
+	}
+
+
+
 	DepthStencilTargetTexture::DepthStencilTargetTexture(const Settings& settings) : Core::DepthStencilTargetTexture(settings)
 	{
 	}
@@ -118,9 +142,26 @@ namespace MMPEngine::Backend::Vulkan
 	{
 	}
 
-	void DepthStencilTargetTexture::InitTask::Run(const std::shared_ptr<Core::BaseStream>& stream)
+	void DepthStencilTargetTexture::InitTask::OnScheduled(const std::shared_ptr<Core::BaseStream>& stream)
 	{
-		Task::Run(stream);
+		Task::OnScheduled(stream);
+
+		stream->Schedule(std::make_shared<Create>(GetTaskContext()));
+		stream->Schedule(GetTaskContext()->entity->GetMemoryHeap(_specificGlobalContext)->CreateTaskToInitializeBlocks());
+
+		const auto resTexTaskContext = std::make_shared<ResourceTexture::TaskContext>();
+		resTexTaskContext->entity = GetTaskContext()->entity;
+		stream->Schedule(std::make_shared<BindTask>(resTexTaskContext));
+	}
+
+	DepthStencilTargetTexture::InitTask::Create::Create(const std::shared_ptr<InitTaskContext>& context)
+		: Task<MMPEngine::Backend::Vulkan::DepthStencilTargetTexture::InitTaskContext>(context)
+	{
+	}
+
+	void DepthStencilTargetTexture::InitTask::Create::OnScheduled(const std::shared_ptr<Core::BaseStream>& stream)
+	{
+		Task::OnScheduled(stream);
 
 		const auto dsTex = GetTaskContext()->entity;
 		dsTex->_device = _specificGlobalContext->device;
@@ -143,7 +184,7 @@ namespace MMPEngine::Backend::Vulkan
 		imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 		imageInfo.pQueueFamilyIndices = nullptr;
 		imageInfo.queueFamilyIndexCount = 0;
-		
+
 		imageInfo.samples = GetSampleCount(settings.base.antialiasing);
 
 		switch (settings.format)
@@ -161,8 +202,14 @@ namespace MMPEngine::Backend::Vulkan
 
 		const auto createDsImage = vkCreateImage(dsTex->_device->GetNativeLogical(), &imageInfo, nullptr, &dsTex->_nativeImage);
 		assert(createDsImage == VK_SUCCESS);
+
+		const auto memHeap = dsTex->GetMemoryHeap(_specificGlobalContext);
+		VkMemoryRequirements memRequirements;
+		vkGetImageMemoryRequirements(dsTex->_device->GetNativeLogical(), dsTex->_nativeImage, &memRequirements);
+
+		dsTex->_deviceMemoryHeapHandle = memHeap->Allocate(Core::Heap::Request{
+			static_cast<std::size_t>(memRequirements.size),
+			static_cast<std::size_t>(memRequirements.alignment)
+		});
 	}
-
-
-
 }
