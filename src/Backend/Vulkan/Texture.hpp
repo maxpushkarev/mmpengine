@@ -101,17 +101,26 @@ namespace MMPEngine::Backend::Vulkan
 		class InitTask final : public Task<InitTaskContext>
 		{
 		private:
-			class Create final : public Task<InitTaskContext>
+			class CreateImage final : public Task<InitTaskContext>
 			{
 			public:
-				Create(const std::shared_ptr<InitTaskContext>& context);
+				CreateImage(const std::shared_ptr<InitTaskContext>& context);
 				void OnScheduled(const std::shared_ptr<Core::BaseStream>& stream) override;
 			};
+
+			class CreateView final : public Task<InitTaskContext>
+			{
+			public:
+				CreateView(const std::shared_ptr<InitTaskContext>& context);
+				void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
+			};
+
 		public:
 			InitTask(const std::shared_ptr<InitTaskContext>& ctx);
 		protected:
 			void OnScheduled(const std::shared_ptr<Core::BaseStream>& stream) override;
 		};
+		VkFormat GetFormat() const;
 	public:
 		DepthStencilTargetTexture(const Settings& settings);
 		std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;

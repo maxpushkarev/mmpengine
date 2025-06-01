@@ -131,6 +131,24 @@ namespace MMPEngine::Backend::Vulkan
 	{
 	}
 
+	VkFormat DepthStencilTargetTexture::GetFormat() const
+	{
+		const auto& settings = GetSettings();
+
+		switch (settings.format)
+		{
+		case Settings::Format::Depth16:
+			return VK_FORMAT_D16_UNORM;
+		case Settings::Format::Depth32:
+			return VK_FORMAT_D32_SFLOAT;
+		case Settings::Format::Depth24_Stencil8:
+			return VK_FORMAT_D24_UNORM_S8_UINT;
+		}
+
+		throw Core::UnsupportedException("unknown depth/stencil format");
+	}
+
+
 	std::shared_ptr<Core::BaseTask> DepthStencilTargetTexture::CreateInitializationTask()
 	{
 		const auto ctx = std::make_shared<InitTaskContext>();
@@ -146,20 +164,21 @@ namespace MMPEngine::Backend::Vulkan
 	{
 		Task::OnScheduled(stream);
 
-		stream->Schedule(std::make_shared<Create>(GetTaskContext()));
+		stream->Schedule(std::make_shared<CreateImage>(GetTaskContext()));
 		stream->Schedule(GetTaskContext()->entity->GetMemoryHeap(_specificGlobalContext)->CreateTaskToInitializeBlocks());
 
 		const auto resTexTaskContext = std::make_shared<ResourceTexture::TaskContext>();
 		resTexTaskContext->entity = GetTaskContext()->entity;
 		stream->Schedule(std::make_shared<BindTask>(resTexTaskContext));
+		stream->Schedule(std::make_shared<CreateView>(GetTaskContext()));
 	}
 
-	DepthStencilTargetTexture::InitTask::Create::Create(const std::shared_ptr<InitTaskContext>& context)
+	DepthStencilTargetTexture::InitTask::CreateImage::CreateImage(const std::shared_ptr<InitTaskContext>& context)
 		: Task<MMPEngine::Backend::Vulkan::DepthStencilTargetTexture::InitTaskContext>(context)
 	{
 	}
 
-	void DepthStencilTargetTexture::InitTask::Create::OnScheduled(const std::shared_ptr<Core::BaseStream>& stream)
+	void DepthStencilTargetTexture::InitTask::CreateImage::OnScheduled(const std::shared_ptr<Core::BaseStream>& stream)
 	{
 		Task::OnScheduled(stream);
 
@@ -184,21 +203,9 @@ namespace MMPEngine::Backend::Vulkan
 		imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 		imageInfo.pQueueFamilyIndices = nullptr;
 		imageInfo.queueFamilyIndexCount = 0;
-
+		imageInfo.format = dsTex->GetFormat();
 		imageInfo.samples = GetSampleCount(settings.base.antialiasing);
-
-		switch (settings.format)
-		{
-		case Settings::Format::Depth16:
-			imageInfo.format = VK_FORMAT_D16_UNORM;
-			break;
-		case Settings::Format::Depth32:
-			imageInfo.format = VK_FORMAT_D32_SFLOAT;
-			break;
-		case Settings::Format::Depth24_Stencil8:
-			imageInfo.format = VK_FORMAT_D24_UNORM_S8_UINT;
-			break;
-		}
+		imageInfo.flags = 0;
 
 		const auto createDsImage = vkCreateImage(dsTex->_device->GetNativeLogical(), &imageInfo, nullptr, &dsTex->_nativeImage);
 		assert(createDsImage == VK_SUCCESS);
@@ -212,4 +219,39 @@ namespace MMPEngine::Backend::Vulkan
 			static_cast<std::size_t>(memRequirements.alignment)
 		});
 	}
+
+	DepthStencilTargetTexture::InitTask::CreateView::CreateView(const std::shared_ptr<InitTaskContext>& context)
+		: Task<MMPEngine::Backend::Vulkan::DepthStencilTargetTexture::InitTaskContext>(context)
+	{
+	}
+
+	void DepthStencilTargetTexture::InitTask::CreateView::Run(const std::shared_ptr<Core::BaseStream>& stream)
+	{
+		Task::Run(stream);
+
+		const auto dsTex = GetTaskContext()->entity;
+
+		VkImageViewCreateInfo viewInfo{};
+		viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+		viewInfo.pNext = nullptr;
+		viewInfo.flags = 0;
+		viewInfo.image = dsTex->_nativeImage;
+		viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+		viewInfo.format = dsTex->GetFormat();
+		viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
+
+		viewInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+		viewInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+		viewInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+		viewInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+
+		viewInfo.subresourceRange.baseMipLevel = 0;
+		viewInfo.subresourceRange.levelCount = 1;
+		viewInfo.subresourceRange.baseArrayLayer = 0;
+		viewInfo.subresourceRange.layerCount = 1;
+
+		const auto imgViewRes = vkCreateImageView(dsTex->_device->GetNativeLogical(), &viewInfo, nullptr, &dsTex->_view);
+		assert(imgViewRes == VK_SUCCESS);
+	}
+
 }
