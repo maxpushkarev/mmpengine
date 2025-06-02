@@ -17,28 +17,46 @@ namespace MMPEngine::Backend::Vulkan
 		{
 		public:
 			std::shared_ptr<DrawCallsJob> job;
-			std::vector<std::shared_ptr<BaseEntity>> colorRenderTargets;
-			std::shared_ptr<BaseEntity> depthStencil;
+			std::vector<std::shared_ptr<BaseTexture>> colorRenderTargets;
+			std::shared_ptr<BaseTexture> depthStencil;
 		};
 
-		class PrepareRenderTargetsTask final : public Task<InternalTaskContext>
+		class InternalInitTask final : public Task<InternalTaskContext>
 		{
 		public:
-			PrepareRenderTargetsTask(const std::shared_ptr<InternalTaskContext>& ctx);
+			InternalInitTask(const std::shared_ptr<InternalTaskContext>& ctx);
 		protected:
 			void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
 		};
 
-		class PrepareTask final : public Task<InternalTaskContext>
+		class BeginPass final : public Task<InternalTaskContext>
 		{
 		public:
-			PrepareTask(const std::shared_ptr<InternalTaskContext>& ctx);
+			BeginPass(const std::shared_ptr<InternalTaskContext>& ctx);
+		protected:
+			void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
+		};
+
+		class EndPass final : public Task<InternalTaskContext>
+		{
+		public:
+			EndPass(const std::shared_ptr<InternalTaskContext>& ctx);
+		protected:
+			void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
+		};
+
+		class Start final : public Task<InternalTaskContext>
+		{
+		public:
+			Start(const std::shared_ptr<InternalTaskContext>& ctx);
 		protected:
 			void OnScheduled(const std::shared_ptr<Core::BaseStream>& stream) override;
 		private:
-			std::shared_ptr<PrepareRenderTargetsTask> _prepareRenderTargets;
+			std::shared_ptr<BeginPass> _beginPassTask;
 			std::vector<std::shared_ptr<Core::BaseTask>> _memoryBarrierTasks;
 		};
+
+		std::shared_ptr<InternalTaskContext> BuildInternalContext();
 
 		/*template<typename TCoreMaterial>
 		class IterationJob final : public Iteration, public Vulkan::Job<TCoreMaterial>
@@ -98,7 +116,9 @@ namespace MMPEngine::Backend::Vulkan
 		DrawCallsJob(const std::shared_ptr<Core::Camera>& camera, std::vector<Item>&& items);
 	protected:
 		std::shared_ptr<Iteration> BuildIteration(const Item& item) const override;
+		std::shared_ptr<Core::BaseTask> CreateInitializationTaskInternal() override;
 		std::shared_ptr<Core::BaseTask> CreateTaskForIterationsStart() override;
+		std::shared_ptr<Core::BaseTask> CreateTaskForIterationsFinish() override;
 	};
 
 

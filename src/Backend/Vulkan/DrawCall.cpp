@@ -8,6 +8,28 @@ namespace MMPEngine::Backend::Vulkan
 	{
 	}
 
+	std::shared_ptr<Camera::DrawCallsJob::InternalTaskContext> Camera::DrawCallsJob::BuildInternalContext()
+	{
+		const auto ctx = std::make_shared<InternalTaskContext>();
+		ctx->job = std::dynamic_pointer_cast<DrawCallsJob>(shared_from_this());
+
+		ctx->colorRenderTargets.clear();
+		ctx->colorRenderTargets.reserve(ctx->job->_camera->GetTarget().color.size());
+
+		const auto ds = ctx->job->_camera->GetTarget().depthStencil;
+		if (ds.tex)
+		{
+			ctx->depthStencil = std::dynamic_pointer_cast<BaseTexture>(ds.tex->GetUnderlyingTexture());
+		}
+
+		for (const auto& crt : ctx->job->_camera->GetTarget().color)
+		{
+			ctx->colorRenderTargets.push_back(std::dynamic_pointer_cast<BaseTexture>(crt.tex->GetUnderlyingTexture()));
+		}
+
+		return ctx;
+	}
+
 
 	std::shared_ptr<Camera::DrawCallsJob::Iteration> Camera::DrawCallsJob::BuildIteration(const Item& item) const
 	{
@@ -19,33 +41,26 @@ namespace MMPEngine::Backend::Vulkan
 		return nullptr;
 	}
 
+	std::shared_ptr<Core::BaseTask> Camera::DrawCallsJob::CreateInitializationTaskInternal()
+	{
+		return std::make_shared<InternalInitTask>(BuildInternalContext());
+	}
+
 	std::shared_ptr<Core::BaseTask> Camera::DrawCallsJob::CreateTaskForIterationsStart()
 	{
-		const auto ctx = std::make_shared<InternalTaskContext>();
-		ctx->job = std::dynamic_pointer_cast<DrawCallsJob>(shared_from_this());
-
-		ctx->colorRenderTargets.clear();
-		ctx->colorRenderTargets.reserve(ctx->job->_camera->GetTarget().color.size());
-
-		const auto ds = ctx->job->_camera->GetTarget().depthStencil;
-		if (ds.tex)
-		{
-			ctx->depthStencil = std::dynamic_pointer_cast<BaseEntity>(ds.tex->GetUnderlyingTexture());
-		}
-
-		for (const auto& crt : ctx->job->_camera->GetTarget().color)
-		{
-			ctx->colorRenderTargets.push_back(std::dynamic_pointer_cast<BaseEntity>(crt.tex->GetUnderlyingTexture()));
-		}
-
-		return std::make_shared<PrepareTask>(ctx);
+		return std::make_shared<Start>(BuildInternalContext());
 	}
 
-	Camera::DrawCallsJob::PrepareRenderTargetsTask::PrepareRenderTargetsTask(const std::shared_ptr<InternalTaskContext>& ctx) : Task(ctx)
+	std::shared_ptr<Core::BaseTask> Camera::DrawCallsJob::CreateTaskForIterationsFinish()
+	{
+		return std::make_shared<EndPass>(BuildInternalContext());
+	}
+
+	Camera::DrawCallsJob::BeginPass::BeginPass(const std::shared_ptr<InternalTaskContext>& ctx) : Task(ctx)
 	{
 	}
 
-	void Camera::DrawCallsJob::PrepareRenderTargetsTask::Run(const std::shared_ptr<Core::BaseStream>& stream)
+	void Camera::DrawCallsJob::BeginPass::Run(const std::shared_ptr<Core::BaseStream>& stream)
 	{
 		Task::Run(stream);
 
@@ -116,9 +131,28 @@ namespace MMPEngine::Backend::Vulkan
 			dsHandlePtr);*/
 	}
 
-	Camera::DrawCallsJob::PrepareTask::PrepareTask(const std::shared_ptr<InternalTaskContext>& ctx) : Task(ctx)
+	Camera::DrawCallsJob::EndPass::EndPass(const std::shared_ptr<InternalTaskContext>& ctx) : Task<MMPEngine::Backend::Vulkan::Camera::DrawCallsJob::InternalTaskContext>(ctx)
 	{
-		_prepareRenderTargets = std::make_shared<PrepareRenderTargetsTask>(ctx);
+	}
+
+	void Camera::DrawCallsJob::EndPass::Run(const std::shared_ptr<Core::BaseStream>& stream)
+	{
+		Task::Run(stream);
+	}
+
+	Camera::DrawCallsJob::InternalInitTask::InternalInitTask(const std::shared_ptr<InternalTaskContext>& ctx) : Task<MMPEngine::Backend::Vulkan::Camera::DrawCallsJob::InternalTaskContext>(ctx)
+	{
+	}
+
+	void Camera::DrawCallsJob::InternalInitTask::Run(const std::shared_ptr<Core::BaseStream>& stream)
+	{
+		Task::Run(stream);
+	}
+
+
+	Camera::DrawCallsJob::Start::Start(const std::shared_ptr<InternalTaskContext>& ctx) : Task(ctx)
+	{
+		_beginPassTask = std::make_shared<BeginPass>(ctx);
 
 		const auto ds = ctx->job->_camera->GetTarget().depthStencil;
 
@@ -156,7 +190,7 @@ namespace MMPEngine::Backend::Vulkan
 		}
 	}
 
-	void Camera::DrawCallsJob::PrepareTask::OnScheduled(const std::shared_ptr<Core::BaseStream>& stream)
+	void Camera::DrawCallsJob::Start::OnScheduled(const std::shared_ptr<Core::BaseStream>& stream)
 	{
 		Task::OnScheduled(stream);
 
@@ -165,6 +199,6 @@ namespace MMPEngine::Backend::Vulkan
 			stream->Schedule(sst);
 		}
 
-		stream->Schedule(_prepareRenderTargets);
+		stream->Schedule(_beginPassTask);
 	}
 }
