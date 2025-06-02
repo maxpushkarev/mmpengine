@@ -190,6 +190,7 @@ namespace MMPEngine::Backend::Vulkan
 	void Camera::DrawCallsJob::EndPass::Run(const std::shared_ptr<Core::BaseStream>& stream)
 	{
 		Task::Run(stream);
+		//vkCmdEndRenderPass(_specificStreamContext->PopulateCommandsInBuffer()->GetNative());
 	}
 
 	Camera::DrawCallsJob::Start::Start(const std::shared_ptr<InternalTaskContext>& ctx) : Task(ctx)
