@@ -17,8 +17,9 @@ namespace MMPEngine::Backend::Vulkan
 		{
 		public:
 			std::shared_ptr<DrawCallsJob> job;
-			std::vector<std::shared_ptr<BaseTexture>> colorRenderTargets;
-			std::shared_ptr<BaseTexture> depthStencil;
+			std::vector<std::shared_ptr<IColorTargetTexture>> colorRenderTargets;
+			std::vector<VkImageView> attachments;
+			std::shared_ptr<IDepthStencilTexture> depthStencil;
 		};
 
 		class InternalInitTask final : public Task<InternalTaskContext>
@@ -123,8 +124,21 @@ namespace MMPEngine::Backend::Vulkan
 		std::shared_ptr<Core::BaseTask> CreateTaskForIterationsStart() override;
 		std::shared_ptr<Core::BaseTask> CreateTaskForIterationsFinish() override;
 	private:
+
+		class Pass final
+		{
+		public:
+			Pass(const std::shared_ptr<DrawCallsJob>& dc);
+			Pass(const Pass&) = delete;
+			Pass(Pass&&) noexcept;
+			Pass& operator=(const Pass&) = delete;
+			Pass& operator=(Pass&&) noexcept = delete;
+			~Pass();
+		};
+
 		std::shared_ptr<InternalTaskContext> BuildInternalContext();
 		std::shared_ptr<Wrapper::Device> _device;
+		std::vector<std::tuple<std::vector<VkImageView>, Pass>> _cachedPasses;
 	};
 
 

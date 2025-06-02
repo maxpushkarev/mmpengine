@@ -10,6 +10,17 @@ namespace MMPEngine::Backend::Vulkan
 
 	Camera::DrawCallsJob::~DrawCallsJob() = default;
 
+	Camera::DrawCallsJob::Pass::Pass(Pass&&) noexcept = default;
+
+	Camera::DrawCallsJob::Pass::Pass(const std::shared_ptr<DrawCallsJob>& dc)
+	{
+	}
+
+	Camera::DrawCallsJob::Pass::~Pass()
+	{
+	}
+
+
 	std::shared_ptr<Camera::DrawCallsJob::InternalTaskContext> Camera::DrawCallsJob::BuildInternalContext()
 	{
 		const auto ctx = std::make_shared<InternalTaskContext>();
@@ -18,15 +29,18 @@ namespace MMPEngine::Backend::Vulkan
 		ctx->colorRenderTargets.clear();
 		ctx->colorRenderTargets.reserve(ctx->job->_camera->GetTarget().color.size());
 
+		ctx->attachments.clear();
+		ctx->attachments.resize(ctx->job->_camera->GetTarget().color.size() + 1);
+
 		const auto ds = ctx->job->_camera->GetTarget().depthStencil;
 		if (ds.tex)
 		{
-			ctx->depthStencil = std::dynamic_pointer_cast<BaseTexture>(ds.tex->GetUnderlyingTexture());
+			ctx->depthStencil = std::dynamic_pointer_cast<IDepthStencilTexture>(ds.tex->GetUnderlyingTexture());
 		}
 
 		for (const auto& crt : ctx->job->_camera->GetTarget().color)
 		{
-			ctx->colorRenderTargets.push_back(std::dynamic_pointer_cast<BaseTexture>(crt.tex->GetUnderlyingTexture()));
+			ctx->colorRenderTargets.push_back(std::dynamic_pointer_cast<IColorTargetTexture>(crt.tex->GetUnderlyingTexture()));
 		}
 
 		return ctx;
@@ -69,6 +83,43 @@ namespace MMPEngine::Backend::Vulkan
 		const auto tc = GetTaskContext();
 		const auto ds = tc->job->_camera->GetTarget().depthStencil;
 		const auto crts = tc->job->_camera->GetTarget().color;
+
+		tc->attachments.clear();
+
+		for (std::size_t i = 0; i < crts.size(); ++i)
+		{
+			const auto& crt = crts[i];
+			const auto c = tc->colorRenderTargets.at(i);
+			tc->attachments.push_back(c->GetImageView());
+		}
+
+		if (ds.tex)
+		{
+			tc->attachments.push_back(tc->depthStencil->GetImageView());
+		}
+
+		const Pass* pass = nullptr;
+
+		for (const auto& p : tc->job->_cachedPasses)
+		{
+			const auto& views = std::get<0>(p);
+
+			if (views == tc->attachments)
+			{
+				pass = &(std::get<1>(p));
+				break;
+			}
+		}
+
+		if (!pass)
+		{
+			tc->job->_cachedPasses.emplace_back(
+				tc->attachments,
+				Pass( tc->job )
+			);
+			pass = &(std::get<1>(tc->job->_cachedPasses.back()));
+		}
+
 
 		/*const D3D12_CPU_DESCRIPTOR_HANDLE* dsHandlePtr = nullptr;
 
