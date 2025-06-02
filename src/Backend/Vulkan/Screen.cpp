@@ -112,6 +112,11 @@ namespace MMPEngine::Backend::Vulkan
 		return _layout;
 	}
 
+	void Screen::Image::SetLayout(VkImageLayout layout)
+	{
+		_layout = layout;	
+	}
+
 	Screen::Image::~Image()
 	{
 		if (_view && _device)
@@ -119,7 +124,6 @@ namespace MMPEngine::Backend::Vulkan
 			vkDestroyImageView(_device->GetNativeLogical(), _view, nullptr);
 		}
 	}
-
 
 	Screen::BackBuffer::BackBuffer(const Settings& settings, VkSwapchainKHR swapChain, VkFormat format, const std::shared_ptr<Wrapper::Device>& device)
 		: Core::ColorTargetTexture(settings)
@@ -194,6 +198,11 @@ namespace MMPEngine::Backend::Vulkan
 	VkImageLayout Screen::BackBuffer::GetLayout() const
 	{
 		return GetCurrentImage()->GetLayout();
+	}
+
+	void Screen::BackBuffer::SetLayout(VkImageLayout layout)
+	{
+		GetCurrentImage()->SetLayout(layout);
 	}
 
 	VkSampleCountFlagBits Screen::BackBuffer::GetSamplesCount() const

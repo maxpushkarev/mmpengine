@@ -104,6 +104,11 @@ namespace MMPEngine::Backend::Vulkan
 		VkResult result = vkCreateFramebuffer(device, &fbInfo, nullptr, &framebuffer);*/
 	}
 
+	const std::vector<VkAttachmentDescription>& Camera::DrawCallsJob::Pass::GetAttachmentDescriptions() const
+	{
+		return _attachmentDescriptions;
+	}
+
 	Camera::DrawCallsJob::Pass::~Pass()
 	{
 		if (_renderPass && _device)
@@ -143,6 +148,23 @@ namespace MMPEngine::Backend::Vulkan
 
 		return pass;
 	}
+
+	void Camera::DrawCallsJob::InternalTaskContext::UpdateAttachments()
+	{
+		attachments.clear();
+
+		for (std::size_t i = 0; i < job->_camera->GetTarget().color.size(); ++i)
+		{
+			const auto c = colorRenderTargets.at(i);
+			attachments.push_back(c->GetImageView());
+		}
+
+		if (depthStencil)
+		{
+			attachments.push_back(depthStencil->GetImageView());
+		}
+	}
+
 
 	std::shared_ptr<Camera::DrawCallsJob::InternalTaskContext> Camera::DrawCallsJob::BuildInternalContext()
 	{
@@ -202,20 +224,7 @@ namespace MMPEngine::Backend::Vulkan
 		const auto ds = tc->job->_camera->GetTarget().depthStencil;
 		const auto crts = tc->job->_camera->GetTarget().color;
 
-		tc->attachments.clear();
-
-		for (std::size_t i = 0; i < crts.size(); ++i)
-		{
-			const auto& crt = crts[i];
-			const auto c = tc->colorRenderTargets.at(i);
-			tc->attachments.push_back(c->GetImageView());
-		}
-
-		if (ds.tex)
-		{
-			tc->attachments.push_back(tc->depthStencil->GetImageView());
-		}
-
+		tc->UpdateAttachments();
 		const auto pass = tc->GetOrCreatePass(_specificGlobalContext->device);
 
 		/*const D3D12_CPU_DESCRIPTOR_HANDLE* dsHandlePtr = nullptr;
@@ -288,7 +297,21 @@ namespace MMPEngine::Backend::Vulkan
 	void Camera::DrawCallsJob::EndPass::Run(const std::shared_ptr<Core::BaseStream>& stream)
 	{
 		Task::Run(stream);
+		const auto tc = GetTaskContext();
 		//vkCmdEndRenderPass(_specificStreamContext->PopulateCommandsInBuffer()->GetNative());
+		tc->UpdateAttachments();
+		const auto pass = tc->GetOrCreatePass(_specificGlobalContext->device);
+
+		for (std::size_t i = 0; i < tc->colorRenderTargets.size(); ++i)
+		{
+			const auto crt = tc->colorRenderTargets.at(i);
+			crt->SetLayout(pass->GetAttachmentDescriptions().at(i).finalLayout);
+		}
+
+		if (tc->depthStencil)
+		{
+			tc->depthStencil->SetLayout(pass->GetAttachmentDescriptions().back().finalLayout);
+		}
 	}
 
 	Camera::DrawCallsJob::Start::Start(const std::shared_ptr<InternalTaskContext>& ctx) : Task(ctx)

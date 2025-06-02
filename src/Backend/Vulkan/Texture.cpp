@@ -172,6 +172,11 @@ namespace MMPEngine::Backend::Vulkan
 		return _layout;
 	}
 
+	void DepthStencilTargetTexture::SetLayout(VkImageLayout layout)
+	{
+		_layout = layout;
+	}
+
 	DepthStencilTargetTexture::InitTask::InitTask(const std::shared_ptr<InitTaskContext>& ctx) : Task(ctx)
 	{
 	}

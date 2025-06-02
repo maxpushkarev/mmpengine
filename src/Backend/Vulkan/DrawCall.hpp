@@ -24,6 +24,8 @@ namespace MMPEngine::Backend::Vulkan
 			Pass& operator=(const Pass&) = delete;
 			Pass& operator=(Pass&&) noexcept = delete;
 			~Pass();
+
+			const std::vector<VkAttachmentDescription>& GetAttachmentDescriptions() const;
 		private:
 			VkRenderPass _renderPass = VK_NULL_HANDLE;
 			VkFramebuffer _frameBuffer = VK_NULL_HANDLE;
@@ -42,6 +44,7 @@ namespace MMPEngine::Backend::Vulkan
 			std::vector<std::tuple<std::vector<VkImageView>, Pass>> _cachedPasses;
 
 			const Pass* GetOrCreatePass(const std::shared_ptr<Wrapper::Device>& device);
+			void UpdateAttachments();
 		};
 
 		class BeginPass final : public Task<InternalTaskContext>

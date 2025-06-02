@@ -22,6 +22,7 @@ namespace MMPEngine::Backend::Vulkan
 			VkFormat GetFormat() const override;
 			VkSampleCountFlagBits GetSamplesCount() const override;
 			VkImageLayout GetLayout() const override;
+			void SetLayout(VkImageLayout layout) override;
 		private:
 			std::shared_ptr<Wrapper::Device> _device;
 			VkFormat _format = VK_FORMAT_UNDEFINED;
@@ -60,6 +61,7 @@ namespace MMPEngine::Backend::Vulkan
 			VkFormat GetFormat() const override;
 			VkSampleCountFlagBits GetSamplesCount() const override;
 			VkImageLayout GetLayout() const override;
+			void SetLayout(VkImageLayout layout) override;
 		protected:
 			std::shared_ptr<DeviceMemoryHeap> GetMemoryHeap(const std::shared_ptr<GlobalContext>& globalContext) const override;
 		private:
