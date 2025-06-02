@@ -149,6 +149,12 @@ namespace MMPEngine::Backend::Vulkan
 	}
 
 
+	VkSampleCountFlagBits DepthStencilTargetTexture::GetSamplesCount() const
+	{
+		return GetSampleCount(GetSettings().base.antialiasing);
+	}
+
+
 	std::shared_ptr<Core::BaseTask> DepthStencilTargetTexture::CreateInitializationTask()
 	{
 		const auto ctx = std::make_shared<InitTaskContext>();
@@ -159,6 +165,11 @@ namespace MMPEngine::Backend::Vulkan
 	VkImageView DepthStencilTargetTexture::GetImageView() const
 	{
 		return _view;
+	}
+
+	VkImageLayout DepthStencilTargetTexture::GetLayout() const
+	{
+		return _layout;
 	}
 
 	DepthStencilTargetTexture::InitTask::InitTask(const std::shared_ptr<InitTaskContext>& ctx) : Task(ctx)

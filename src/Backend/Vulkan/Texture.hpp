@@ -15,6 +15,9 @@ namespace MMPEngine::Backend::Vulkan
 		virtual ~ITargetTexture();
 
 		virtual VkImageView GetImageView() const = 0;
+		virtual VkFormat GetFormat() const = 0;
+		virtual VkSampleCountFlagBits GetSamplesCount() const = 0;
+		virtual VkImageLayout GetLayout() const = 0;
 	};
 
 	class IDepthStencilTexture : public ITargetTexture
@@ -122,7 +125,9 @@ namespace MMPEngine::Backend::Vulkan
 		protected:
 			void OnScheduled(const std::shared_ptr<Core::BaseStream>& stream) override;
 		};
-		VkFormat GetFormat() const;
+		VkFormat GetFormat() const override;
+		VkSampleCountFlagBits GetSamplesCount() const override;
+		VkImageLayout GetLayout() const override;
 	public:
 		DepthStencilTargetTexture(const Settings& settings);
 		std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;

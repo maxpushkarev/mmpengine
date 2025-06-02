@@ -13,13 +13,35 @@ namespace MMPEngine::Backend::Vulkan
 	class Camera::DrawCallsJob final : public Core::Camera::DrawCallsJob
 	{
 	private:
-		class InternalTaskContext final : public Core::TaskContext
+		class InternalTaskContext;
+
+		class Pass final
+		{
+		public:
+			explicit Pass(const std::shared_ptr<const InternalTaskContext>& ctx, const std::shared_ptr<Wrapper::Device>& device);
+			Pass(const Pass&) = delete;
+			Pass(Pass&&) noexcept;
+			Pass& operator=(const Pass&) = delete;
+			Pass& operator=(Pass&&) noexcept = delete;
+			~Pass();
+		private:
+			VkRenderPass _renderPass = VK_NULL_HANDLE;
+			VkFramebuffer _frameBuffer = VK_NULL_HANDLE;
+			std::shared_ptr<Wrapper::Device> _device;
+
+			std::vector<VkAttachmentDescription> _attachmentDescriptions;
+		};
+
+		class InternalTaskContext final : public Core::TaskContext, public std::enable_shared_from_this<InternalTaskContext>
 		{
 		public:
 			std::shared_ptr<DrawCallsJob> job;
 			std::vector<std::shared_ptr<IColorTargetTexture>> colorRenderTargets;
 			std::vector<VkImageView> attachments;
 			std::shared_ptr<IDepthStencilTexture> depthStencil;
+			std::vector<std::tuple<std::vector<VkImageView>, Pass>> _cachedPasses;
+
+			const Pass* GetOrCreatePass(const std::shared_ptr<Wrapper::Device>& device);
 		};
 
 		class BeginPass final : public Task<InternalTaskContext>
@@ -115,23 +137,7 @@ namespace MMPEngine::Backend::Vulkan
 		std::shared_ptr<Core::BaseTask> CreateTaskForIterationsStart() override;
 		std::shared_ptr<Core::BaseTask> CreateTaskForIterationsFinish() override;
 	private:
-
-		class Pass final
-		{
-		public:
-			explicit Pass(const std::shared_ptr<const InternalTaskContext>& ctx, const std::shared_ptr<Wrapper::Device>& device);
-			Pass(const Pass&) = delete;
-			Pass(Pass&&) noexcept;
-			Pass& operator=(const Pass&) = delete;
-			Pass& operator=(Pass&&) noexcept = delete;
-			~Pass();
-		private:
-			VkFramebuffer _frameBuffer = VK_NULL_HANDLE;
-			std::shared_ptr<Wrapper::Device> _device;
-		};
-
 		std::shared_ptr<InternalTaskContext> BuildInternalContext();
-		std::vector<std::tuple<std::vector<VkImageView>, Pass>> _cachedPasses;
 	};
 
 

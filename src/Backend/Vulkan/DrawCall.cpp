@@ -14,16 +14,131 @@ namespace MMPEngine::Backend::Vulkan
 
 	Camera::DrawCallsJob::Pass::Pass(const std::shared_ptr<const InternalTaskContext>& ctx, const std::shared_ptr<Wrapper::Device>& device) : _device(device)
 	{
+		VkRenderPassCreateInfo rpInfo {};
+		rpInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+		rpInfo.pNext = nullptr;
+		rpInfo.flags = 0;
+
+		rpInfo.subpassCount = 0;
+		rpInfo.pSubpasses = nullptr;
+
+		rpInfo.dependencyCount = 0;
+		rpInfo.pDependencies = nullptr;
+
+		for (std::size_t i = 0; i < ctx->colorRenderTargets.size(); ++i)
+		{
+			const auto& crt = ctx->colorRenderTargets[i];
+
+			VkAttachmentDescription colorAttachment{};
+			colorAttachment.format = crt->GetFormat();
+			colorAttachment.samples = crt->GetSamplesCount();
+			colorAttachment.flags = 0;
+			colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+			if (ctx->job->_camera->GetTarget().color[i].clear)
+			{
+				colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+			}
+			colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+			colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+			colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+			colorAttachment.initialLayout = crt->GetLayout();
+			colorAttachment.finalLayout = colorAttachment.initialLayout;
+
+			_attachmentDescriptions.push_back(colorAttachment);
+		}
+
+		if (ctx->depthStencil)
+		{
+			VkAttachmentDescription dsAttachment{};
+			dsAttachment.format = ctx->depthStencil->GetFormat();
+			dsAttachment.samples = ctx->depthStencil->GetSamplesCount();
+			dsAttachment.flags = 0;
+
+			dsAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+			if (ctx->job->_camera->GetTarget().depthStencil.clear)
+			{
+				dsAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+			}
+			dsAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+
+			dsAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+			dsAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+
+			if (ctx->job->_camera->GetTarget().depthStencil.tex->StencilIncluded())
+			{
+				if (ctx->job->_camera->GetTarget().depthStencil.clear)
+				{
+					dsAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+				}
+				dsAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_STORE;
+			}
+
+			dsAttachment.initialLayout = ctx->depthStencil->GetLayout();
+			dsAttachment.finalLayout = ctx->depthStencil->GetLayout();
+
+			_attachmentDescriptions.push_back(dsAttachment);
+		}
+
+		rpInfo.attachmentCount = static_cast<std::uint32_t>(_attachmentDescriptions.size());
+		rpInfo.pAttachments = _attachmentDescriptions.data();
+
+
+		//vkCreateRenderPass(_device->GetNativeLogical(), &rpInfo, nullptr, &_renderPass);
+
+		/*VkFramebufferCreateInfo fbInfo = {
+			.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
+			.pNext = nullptr,
+			.renderPass = renderPass,
+			.attachmentCount = 2,
+			.pAttachments = attachments,
+			.width = framebufferWidth,
+			.height = framebufferHeight,
+			.layers = 1
+		};
+
+		VkFramebuffer framebuffer;
+		VkResult result = vkCreateFramebuffer(device, &fbInfo, nullptr, &framebuffer);*/
 	}
 
 	Camera::DrawCallsJob::Pass::~Pass()
 	{
+		if (_renderPass && _device)
+		{
+			vkDestroyRenderPass(_device->GetNativeLogical(), _renderPass, nullptr);
+		}
+
 		if (_frameBuffer && _device)
 		{
 			vkDestroyFramebuffer(_device->GetNativeLogical(), _frameBuffer, nullptr);
 		}
 	}
 
+	const Camera::DrawCallsJob::Pass* Camera::DrawCallsJob::InternalTaskContext::GetOrCreatePass(const std::shared_ptr<Wrapper::Device>& device)
+	{
+		const Pass* pass = nullptr;
+
+		for (const auto& p : _cachedPasses)
+		{
+			const auto& views = std::get<0>(p);
+
+			if (views == attachments)
+			{
+				pass = &(std::get<1>(p));
+				break;
+			}
+		}
+
+		if (!pass)
+		{
+			_cachedPasses.emplace_back(
+				attachments,
+				Pass{ shared_from_this(), device }
+			);
+			pass = &(std::get<1>(_cachedPasses.back()));
+		}
+
+		return pass;
+	}
 
 	std::shared_ptr<Camera::DrawCallsJob::InternalTaskContext> Camera::DrawCallsJob::BuildInternalContext()
 	{
@@ -97,28 +212,7 @@ namespace MMPEngine::Backend::Vulkan
 			tc->attachments.push_back(tc->depthStencil->GetImageView());
 		}
 
-		const Pass* pass = nullptr;
-
-		for (const auto& p : tc->job->_cachedPasses)
-		{
-			const auto& views = std::get<0>(p);
-
-			if (views == tc->attachments)
-			{
-				pass = &(std::get<1>(p));
-				break;
-			}
-		}
-
-		if (!pass)
-		{
-			tc->job->_cachedPasses.emplace_back(
-				tc->attachments,
-				Pass{ tc, _specificGlobalContext->device }
-			);
-			pass = &(std::get<1>(tc->job->_cachedPasses.back()));
-		}
-
+		const auto pass = tc->GetOrCreatePass(_specificGlobalContext->device);
 
 		/*const D3D12_CPU_DESCRIPTOR_HANDLE* dsHandlePtr = nullptr;
 
@@ -201,21 +295,21 @@ namespace MMPEngine::Backend::Vulkan
 
 		if (ds.tex)
 		{
-			VkImageAspectFlags aspectBit = VK_IMAGE_ASPECT_DEPTH_BIT;
-			VkImageLayout layout = VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL;
+			VkImageAspectFlags depthAspectBit = VK_IMAGE_ASPECT_DEPTH_BIT;
+			VkImageLayout depthLayoutBit = VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL;
 
 			if (ds.tex->StencilIncluded())
 			{
-				aspectBit |= VK_IMAGE_ASPECT_STENCIL_BIT;
-				layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+				depthAspectBit |= VK_IMAGE_ASPECT_STENCIL_BIT;
+				depthLayoutBit = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 			}
 
 			_memoryBarrierTasks.push_back(std::dynamic_pointer_cast<BaseTexture>(ds.tex->GetUnderlyingTexture())->CreateMemoryBarrierTask(
 				VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
 				VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
-				layout,
+				depthLayoutBit,
 				VkImageSubresourceRange{
-					aspectBit, 0, 1, 0, 1
+					depthAspectBit, 0, 1, 0, 1
 				}
 			));
 		}
