@@ -49,11 +49,6 @@ namespace MMPEngine::Backend::Vulkan
 		return nullptr;
 	}
 
-	std::shared_ptr<Core::BaseTask> Camera::DrawCallsJob::CreateInitializationTaskInternal()
-	{
-		return std::make_shared<InternalInitTask>(BuildInternalContext());
-	}
-
 	std::shared_ptr<Core::BaseTask> Camera::DrawCallsJob::CreateTaskForIterationsStart()
 	{
 		return std::make_shared<Start>(BuildInternalContext());
@@ -62,6 +57,11 @@ namespace MMPEngine::Backend::Vulkan
 	std::shared_ptr<Core::BaseTask> Camera::DrawCallsJob::CreateTaskForIterationsFinish()
 	{
 		return std::make_shared<EndPass>(BuildInternalContext());
+	}
+
+	std::shared_ptr<Core::BaseTask> Camera::DrawCallsJob::CreateInitializationTaskInternal()
+	{
+		return std::make_shared<InternalInitTask>(BuildInternalContext());
 	}
 
 	Camera::DrawCallsJob::BeginPass::BeginPass(const std::shared_ptr<InternalTaskContext>& ctx) : Task(ctx)
@@ -156,27 +156,7 @@ namespace MMPEngine::Backend::Vulkan
 	{
 		Task::Run(stream);
 		const auto job = GetTaskContext()->job;
-
 		job->_device = _specificGlobalContext->device;
-
-		/*
-		VkImageView attachments[] = {
-		colorImageView, // индекс 0 Ч color
-		depthImageView  // индекс 1 Ч depth
-		};
-		*/
-
-		/*VkFramebufferCreateInfo fbInfo = {
-			.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
-			.renderPass = renderPass,
-			.attachmentCount = 2,
-			.pAttachments = attachments,
-			.width = framebufferWidth,
-			.height = framebufferHeight,
-			.layers = 1
-		};*/
-
-		//const auto frameBufferRes = vkCreateFramebuffer(device, &fbInfo, nullptr, &framebuffer);
 	}
 
 
