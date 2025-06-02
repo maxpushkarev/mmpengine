@@ -124,9 +124,7 @@ namespace MMPEngine::Backend::Vulkan
 		std::shared_ptr<Core::BaseTask> CreateTaskForIterationsFinish() override;
 	private:
 		std::shared_ptr<InternalTaskContext> BuildInternalContext();
-
 		std::shared_ptr<Wrapper::Device> _device;
-		VkFramebuffer _frameBuffer = VK_NULL_HANDLE;
 	};
 
 

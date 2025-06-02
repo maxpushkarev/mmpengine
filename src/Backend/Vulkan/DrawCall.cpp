@@ -8,13 +8,7 @@ namespace MMPEngine::Backend::Vulkan
 	{
 	}
 
-	Camera::DrawCallsJob::~DrawCallsJob()
-	{
-		if (_frameBuffer && _device)
-		{
-			vkDestroyFramebuffer(_device->GetNativeLogical(), _frameBuffer, nullptr);
-		}
-	}
+	Camera::DrawCallsJob::~DrawCallsJob() = default;
 
 	std::shared_ptr<Camera::DrawCallsJob::InternalTaskContext> Camera::DrawCallsJob::BuildInternalContext()
 	{
