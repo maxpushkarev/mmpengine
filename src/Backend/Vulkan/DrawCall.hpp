@@ -56,8 +56,6 @@ namespace MMPEngine::Backend::Vulkan
 			std::vector<std::shared_ptr<Core::BaseTask>> _memoryBarrierTasks;
 		};
 
-		std::shared_ptr<InternalTaskContext> BuildInternalContext();
-
 		/*template<typename TCoreMaterial>
 		class IterationJob final : public Iteration, public Vulkan::Job<TCoreMaterial>
 		{
@@ -114,11 +112,21 @@ namespace MMPEngine::Backend::Vulkan
 
 	public:
 		DrawCallsJob(const std::shared_ptr<Core::Camera>& camera, std::vector<Item>&& items);
+		~DrawCallsJob() override;
+		DrawCallsJob(const DrawCallsJob&) = delete;
+		DrawCallsJob(DrawCallsJob&&) noexcept = delete;
+		DrawCallsJob& operator=(const DrawCallsJob&) = delete;
+		DrawCallsJob& operator=(DrawCallsJob&&) noexcept = delete;
 	protected:
 		std::shared_ptr<Iteration> BuildIteration(const Item& item) const override;
 		std::shared_ptr<Core::BaseTask> CreateInitializationTaskInternal() override;
 		std::shared_ptr<Core::BaseTask> CreateTaskForIterationsStart() override;
 		std::shared_ptr<Core::BaseTask> CreateTaskForIterationsFinish() override;
+	private:
+		std::shared_ptr<InternalTaskContext> BuildInternalContext();
+
+		std::shared_ptr<Wrapper::Device> _device;
+		VkFramebuffer _frameBuffer = VK_NULL_HANDLE;
 	};
 
 

@@ -8,6 +8,14 @@ namespace MMPEngine::Backend::Vulkan
 	{
 	}
 
+	Camera::DrawCallsJob::~DrawCallsJob()
+	{
+		if (_frameBuffer && _device)
+		{
+			vkDestroyFramebuffer(_device->GetNativeLogical(), _frameBuffer, nullptr);
+		}
+	}
+
 	std::shared_ptr<Camera::DrawCallsJob::InternalTaskContext> Camera::DrawCallsJob::BuildInternalContext()
 	{
 		const auto ctx = std::make_shared<InternalTaskContext>();
@@ -147,6 +155,28 @@ namespace MMPEngine::Backend::Vulkan
 	void Camera::DrawCallsJob::InternalInitTask::Run(const std::shared_ptr<Core::BaseStream>& stream)
 	{
 		Task::Run(stream);
+		const auto job = GetTaskContext()->job;
+
+		job->_device = _specificGlobalContext->device;
+
+		/*
+		VkImageView attachments[] = {
+		colorImageView, // индекс 0 Ч color
+		depthImageView  // индекс 1 Ч depth
+		};
+		*/
+
+		/*VkFramebufferCreateInfo fbInfo = {
+			.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
+			.renderPass = renderPass,
+			.attachmentCount = 2,
+			.pAttachments = attachments,
+			.width = framebufferWidth,
+			.height = framebufferHeight,
+			.layers = 1
+		};*/
+
+		//const auto frameBufferRes = vkCreateFramebuffer(device, &fbInfo, nullptr, &framebuffer);
 	}
 
 
