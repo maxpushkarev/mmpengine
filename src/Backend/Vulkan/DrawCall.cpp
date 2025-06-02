@@ -33,7 +33,7 @@ namespace MMPEngine::Backend::Vulkan
 			colorAttachment.format = crt->GetFormat();
 			colorAttachment.samples = crt->GetSamplesCount();
 			colorAttachment.flags = 0;
-			colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+			colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
 			if (ctx->job->_camera->GetTarget().color[i].clear)
 			{
 				colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
@@ -54,7 +54,7 @@ namespace MMPEngine::Backend::Vulkan
 			dsAttachment.samples = ctx->depthStencil->GetSamplesCount();
 			dsAttachment.flags = 0;
 
-			dsAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+			dsAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
 			if (ctx->job->_camera->GetTarget().depthStencil.clear)
 			{
 				dsAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
@@ -69,6 +69,10 @@ namespace MMPEngine::Backend::Vulkan
 				if (ctx->job->_camera->GetTarget().depthStencil.clear)
 				{
 					dsAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+				}
+				else
+				{
+					dsAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
 				}
 				dsAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_STORE;
 			}
