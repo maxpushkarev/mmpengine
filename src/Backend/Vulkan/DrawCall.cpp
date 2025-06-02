@@ -145,7 +145,14 @@ namespace MMPEngine::Backend::Vulkan
 
 		for (const auto& crt : ctx->job->_camera->GetTarget().color)
 		{
-			//_switchStateTasks.push_back(std::dynamic_pointer_cast<BaseEntity>(crt.tex->GetUnderlyingTexture())->CreateSwitchStateTask(D3D12_RESOURCE_STATE_RENDER_TARGET));
+			_memoryBarrierTasks.push_back(std::dynamic_pointer_cast<BaseTexture>(crt.tex->GetUnderlyingTexture())->CreateMemoryBarrierTask(
+				VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+				VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+				VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+				VkImageSubresourceRange{
+					VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1
+				}
+			));
 		}
 	}
 
