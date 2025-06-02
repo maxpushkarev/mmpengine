@@ -21,6 +21,7 @@ namespace MMPEngine::Core
 		std::shared_ptr<BaseTask> CreateInitializationTask() override;
 		std::shared_ptr<BaseTask> CreateExecutionTask() override;
 	protected:
+		virtual std::shared_ptr<BaseTask> CreateInitializationTaskInternal();
 		virtual std::shared_ptr<BaseTask> CreateTaskForIterationsStart() = 0;
 		virtual std::shared_ptr<Iteration> BuildIteration(const Item& item) const = 0;
 		virtual std::shared_ptr<BaseTask> CreateTaskForIterationsFinish();

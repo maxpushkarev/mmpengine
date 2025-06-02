@@ -30,6 +30,11 @@ namespace MMPEngine::Frontend
 		}
 	}
 
+	std::shared_ptr<Core::BaseTask> Camera::DrawCallsJob::CreateInitializationTaskInternal()
+	{
+		throw std::logic_error("impossible");
+	}
+
 	std::shared_ptr<Camera::DrawCallsJob::Iteration> Camera::DrawCallsJob::BuildIteration(const Item& item) const
 	{
 		throw std::logic_error("impossible");

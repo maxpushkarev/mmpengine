@@ -11,27 +11,31 @@ namespace MMPEngine::Core
 	std::shared_ptr<BaseTask> Camera::DrawCallsJob::CreateInitializationTask()
 	{
 		const auto thisJob = std::dynamic_pointer_cast<DrawCallsJob>(shared_from_this());
-		return std::make_shared<FunctionalTask>(
-			[thisJob](const auto& stream)
-			{
-				thisJob->_iterations.clear();
 
-				for(const auto& item : thisJob->_items)
+		return std::make_shared<BatchTask>(std::initializer_list<std::shared_ptr<BaseTask>>{
+			CreateInitializationTaskInternal(),
+			std::make_shared<FunctionalTask>(
+				[thisJob](const auto& stream)
 				{
-					if(const auto mr = std::dynamic_pointer_cast<Mesh::Renderer>(item.renderer))
+					thisJob->_iterations.clear();
+
+					for (const auto& item : thisJob->_items)
 					{
-						assert(std::dynamic_pointer_cast<Core::MeshMaterial>(item.material) != nullptr);
+						if (const auto mr = std::dynamic_pointer_cast<Mesh::Renderer>(item.renderer))
+						{
+							assert(std::dynamic_pointer_cast<Core::MeshMaterial>(item.material) != nullptr);
+						}
+
+						thisJob->_iterations.push_back(thisJob->BuildIteration(item));
+						stream->Schedule(thisJob->_iterations.back()->CreateInitializationTask());
 					}
 
-					thisJob->_iterations.push_back(thisJob->BuildIteration(item));
-					stream->Schedule(thisJob->_iterations.back()->CreateInitializationTask());
-				}
-
-				thisJob->_items.clear();
-			},
-			FunctionalTask::Handler {},
-			FunctionalTask::Handler {}
-		);
+					thisJob->_items.clear();
+				},
+				FunctionalTask::Handler{},
+				FunctionalTask::Handler{}
+			)
+		});
 	}
 
 	std::shared_ptr<BaseTask> Camera::DrawCallsJob::CreateExecutionTask()
@@ -55,4 +59,8 @@ namespace MMPEngine::Core
 		return BaseTask::kEmpty;
 	}
 
+	std::shared_ptr<BaseTask> Camera::DrawCallsJob::CreateInitializationTaskInternal()
+	{
+		return BaseTask::kEmpty;
+	}
 }
