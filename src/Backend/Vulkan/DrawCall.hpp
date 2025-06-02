@@ -22,14 +22,6 @@ namespace MMPEngine::Backend::Vulkan
 			std::shared_ptr<IDepthStencilTexture> depthStencil;
 		};
 
-		class InternalInitTask final : public Task<InternalTaskContext>
-		{
-		public:
-			InternalInitTask(const std::shared_ptr<InternalTaskContext>& ctx);
-		protected:
-			void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
-		};
-
 		class BeginPass final : public Task<InternalTaskContext>
 		{
 		public:
@@ -120,7 +112,6 @@ namespace MMPEngine::Backend::Vulkan
 		DrawCallsJob& operator=(DrawCallsJob&&) noexcept = delete;
 	protected:
 		std::shared_ptr<Iteration> BuildIteration(const Item& item) const override;
-		std::shared_ptr<Core::BaseTask> CreateInitializationTaskInternal() override;
 		std::shared_ptr<Core::BaseTask> CreateTaskForIterationsStart() override;
 		std::shared_ptr<Core::BaseTask> CreateTaskForIterationsFinish() override;
 	private:
@@ -128,16 +119,18 @@ namespace MMPEngine::Backend::Vulkan
 		class Pass final
 		{
 		public:
-			explicit Pass(const std::shared_ptr<InternalTaskContext>& ctx);
+			explicit Pass(const std::shared_ptr<const InternalTaskContext>& ctx, const std::shared_ptr<Wrapper::Device>& device);
 			Pass(const Pass&) = delete;
 			Pass(Pass&&) noexcept;
 			Pass& operator=(const Pass&) = delete;
 			Pass& operator=(Pass&&) noexcept = delete;
 			~Pass();
+		private:
+			VkFramebuffer _frameBuffer = VK_NULL_HANDLE;
+			std::shared_ptr<Wrapper::Device> _device;
 		};
 
 		std::shared_ptr<InternalTaskContext> BuildInternalContext();
-		std::shared_ptr<Wrapper::Device> _device;
 		std::vector<std::tuple<std::vector<VkImageView>, Pass>> _cachedPasses;
 	};
 

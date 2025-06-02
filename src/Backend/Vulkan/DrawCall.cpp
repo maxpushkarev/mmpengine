@@ -12,12 +12,16 @@ namespace MMPEngine::Backend::Vulkan
 
 	Camera::DrawCallsJob::Pass::Pass(Pass&&) noexcept = default;
 
-	Camera::DrawCallsJob::Pass::Pass(const std::shared_ptr<InternalTaskContext>& ctx)
+	Camera::DrawCallsJob::Pass::Pass(const std::shared_ptr<const InternalTaskContext>& ctx, const std::shared_ptr<Wrapper::Device>& device) : _device(device)
 	{
 	}
 
 	Camera::DrawCallsJob::Pass::~Pass()
 	{
+		if (_frameBuffer && _device)
+		{
+			vkDestroyFramebuffer(_device->GetNativeLogical(), _frameBuffer, nullptr);
+		}
 	}
 
 
@@ -67,11 +71,6 @@ namespace MMPEngine::Backend::Vulkan
 		return std::make_shared<EndPass>(BuildInternalContext());
 	}
 
-	std::shared_ptr<Core::BaseTask> Camera::DrawCallsJob::CreateInitializationTaskInternal()
-	{
-		return std::make_shared<InternalInitTask>(BuildInternalContext());
-	}
-
 	Camera::DrawCallsJob::BeginPass::BeginPass(const std::shared_ptr<InternalTaskContext>& ctx) : Task(ctx)
 	{
 	}
@@ -115,7 +114,7 @@ namespace MMPEngine::Backend::Vulkan
 		{
 			tc->job->_cachedPasses.emplace_back(
 				tc->attachments,
-				Pass{ tc }
+				Pass{ tc, _specificGlobalContext->device }
 			);
 			pass = &(std::get<1>(tc->job->_cachedPasses.back()));
 		}
@@ -192,18 +191,6 @@ namespace MMPEngine::Backend::Vulkan
 	{
 		Task::Run(stream);
 	}
-
-	Camera::DrawCallsJob::InternalInitTask::InternalInitTask(const std::shared_ptr<InternalTaskContext>& ctx) : Task<MMPEngine::Backend::Vulkan::Camera::DrawCallsJob::InternalTaskContext>(ctx)
-	{
-	}
-
-	void Camera::DrawCallsJob::InternalInitTask::Run(const std::shared_ptr<Core::BaseStream>& stream)
-	{
-		Task::Run(stream);
-		const auto job = GetTaskContext()->job;
-		job->_device = _specificGlobalContext->device;
-	}
-
 
 	Camera::DrawCallsJob::Start::Start(const std::shared_ptr<InternalTaskContext>& ctx) : Task(ctx)
 	{
