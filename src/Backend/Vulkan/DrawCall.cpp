@@ -12,7 +12,7 @@ namespace MMPEngine::Backend::Vulkan
 
 	Camera::DrawCallsJob::Pass::Pass(Pass&&) noexcept = default;
 
-	Camera::DrawCallsJob::Pass::Pass(const std::shared_ptr<DrawCallsJob>& dc)
+	Camera::DrawCallsJob::Pass::Pass(const std::shared_ptr<InternalTaskContext>& ctx)
 	{
 	}
 
@@ -115,7 +115,7 @@ namespace MMPEngine::Backend::Vulkan
 		{
 			tc->job->_cachedPasses.emplace_back(
 				tc->attachments,
-				Pass( tc->job )
+				Pass{ tc }
 			);
 			pass = &(std::get<1>(tc->job->_cachedPasses.back()));
 		}

@@ -128,7 +128,7 @@ namespace MMPEngine::Backend::Vulkan
 		class Pass final
 		{
 		public:
-			Pass(const std::shared_ptr<DrawCallsJob>& dc);
+			explicit Pass(const std::shared_ptr<InternalTaskContext>& ctx);
 			Pass(const Pass&) = delete;
 			Pass(Pass&&) noexcept;
 			Pass& operator=(const Pass&) = delete;
