@@ -120,24 +120,40 @@ namespace MMPEngine::Backend::Vulkan
 	{
 		_prepareRenderTargets = std::make_shared<PrepareRenderTargetsTask>(ctx);
 
-		//const auto ds = ctx->job->_camera->GetTarget().depthStencil;
+		const auto ds = ctx->job->_camera->GetTarget().depthStencil;
 
-		/*if (ds.tex)
+		if (ds.tex)
 		{
-			_switchStateTasks.push_back(std::dynamic_pointer_cast<BaseEntity>(ds.tex->GetUnderlyingTexture())->CreateSwitchStateTask(D3D12_RESOURCE_STATE_DEPTH_WRITE));
+			VkImageAspectFlags aspectBit = VK_IMAGE_ASPECT_DEPTH_BIT;
+			VkImageLayout layout = VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL;
+
+			if (ds.tex->StencilIncluded())
+			{
+				aspectBit |= VK_IMAGE_ASPECT_STENCIL_BIT;
+				layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+			}
+
+			_memoryBarrierTasks.push_back(std::dynamic_pointer_cast<BaseTexture>(ds.tex->GetUnderlyingTexture())->CreateMemoryBarrierTask(
+				VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
+				VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
+				layout,
+				VkImageSubresourceRange{
+					aspectBit, 0, 1, 0, 1
+				}
+			));
 		}
 
 		for (const auto& crt : ctx->job->_camera->GetTarget().color)
 		{
-			_switchStateTasks.push_back(std::dynamic_pointer_cast<BaseEntity>(crt.tex->GetUnderlyingTexture())->CreateSwitchStateTask(D3D12_RESOURCE_STATE_RENDER_TARGET));
-		}*/
+			//_switchStateTasks.push_back(std::dynamic_pointer_cast<BaseEntity>(crt.tex->GetUnderlyingTexture())->CreateSwitchStateTask(D3D12_RESOURCE_STATE_RENDER_TARGET));
+		}
 	}
 
 	void Camera::DrawCallsJob::PrepareTask::OnScheduled(const std::shared_ptr<Core::BaseStream>& stream)
 	{
 		Task::OnScheduled(stream);
 
-		for (const auto& sst : _switchStateTasks)
+		for (const auto& sst : _memoryBarrierTasks)
 		{
 			stream->Schedule(sst);
 		}

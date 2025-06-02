@@ -37,7 +37,7 @@ namespace MMPEngine::Backend::Vulkan
 			void OnScheduled(const std::shared_ptr<Core::BaseStream>& stream) override;
 		private:
 			std::shared_ptr<PrepareRenderTargetsTask> _prepareRenderTargets;
-			std::vector<std::shared_ptr<Core::BaseTask>> _switchStateTasks;
+			std::vector<std::shared_ptr<Core::BaseTask>> _memoryBarrierTasks;
 		};
 
 		/*template<typename TCoreMaterial>
