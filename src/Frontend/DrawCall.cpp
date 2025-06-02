@@ -40,6 +40,11 @@ namespace MMPEngine::Frontend
 		throw std::logic_error("impossible");
 	}
 
+	std::shared_ptr<Core::BaseTask> Camera::DrawCallsJob::CreateTaskForIterationsFinish()
+	{
+		throw std::logic_error("impossible");
+	}
+
 	std::shared_ptr<Core::BaseTask> Camera::DrawCallsJob::CreateInitializationTask()
 	{
 		return _impl->CreateInitializationTask();	

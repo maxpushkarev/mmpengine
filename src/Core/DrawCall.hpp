@@ -23,6 +23,7 @@ namespace MMPEngine::Core
 	protected:
 		virtual std::shared_ptr<BaseTask> CreateTaskForIterationsStart() = 0;
 		virtual std::shared_ptr<Iteration> BuildIteration(const Item& item) const = 0;
+		virtual std::shared_ptr<BaseTask> CreateTaskForIterationsFinish();
 		std::shared_ptr<Camera> _camera;
 		std::vector<Item> _items;
 		std::vector<std::shared_ptr<Iteration>> _iterations;

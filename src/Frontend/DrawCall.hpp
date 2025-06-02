@@ -13,6 +13,7 @@ namespace MMPEngine::Frontend
 	protected:
 		std::shared_ptr<Iteration> BuildIteration(const Item& item) const override;
 		std::shared_ptr<Core::BaseTask> CreateTaskForIterationsStart() override;
+		std::shared_ptr<Core::BaseTask> CreateTaskForIterationsFinish() override;
 	private:
 		std::shared_ptr<Core::Camera::DrawCallsJob> _impl;
 	};

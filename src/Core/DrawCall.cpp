@@ -45,9 +45,14 @@ namespace MMPEngine::Core
 
 		return std::make_shared<BatchTask>(std::initializer_list<std::shared_ptr<BaseTask>>{
 			CreateTaskForIterationsStart(),
-			std::make_shared<BatchTask>(std::move(iterationExecutionTasks))
+			std::make_shared<BatchTask>(std::move(iterationExecutionTasks)),
+			CreateTaskForIterationsFinish()
 		});
 	}
 
+	std::shared_ptr<BaseTask> Camera::DrawCallsJob::CreateTaskForIterationsFinish()
+	{
+		return BaseTask::kEmpty;
+	}
 
 }
