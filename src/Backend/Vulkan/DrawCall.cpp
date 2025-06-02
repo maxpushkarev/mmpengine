@@ -19,9 +19,6 @@ namespace MMPEngine::Backend::Vulkan
 		rpInfo.pNext = nullptr;
 		rpInfo.flags = 0;
 
-		rpInfo.subpassCount = 0;
-		rpInfo.pSubpasses = nullptr;
-
 		rpInfo.dependencyCount = 0;
 		rpInfo.pDependencies = nullptr;
 
@@ -86,6 +83,14 @@ namespace MMPEngine::Backend::Vulkan
 		rpInfo.attachmentCount = static_cast<std::uint32_t>(_attachmentDescriptions.size());
 		rpInfo.pAttachments = _attachmentDescriptions.data();
 
+		rpInfo.subpassCount = 0;
+		rpInfo.pSubpasses = nullptr;
+
+		/*VkSubpassDescription subpass{};
+		subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+		subpass.colorAttachmentCount = static_cast<std::uint32_t>(_colorAttachmentRefs.size());
+		subpass.pColorAttachments = _colorAttachmentRefs.data();*/
+
 
 		//vkCreateRenderPass(_device->GetNativeLogical(), &rpInfo, nullptr, &_renderPass);
 
@@ -122,15 +127,29 @@ namespace MMPEngine::Backend::Vulkan
 		}
 	}
 
-	const Camera::DrawCallsJob::Pass* Camera::DrawCallsJob::InternalTaskContext::GetOrCreatePass(const std::shared_ptr<Wrapper::Device>& device)
+	const Camera::DrawCallsJob::Pass* Camera::DrawCallsJob::GetOrCreatePass(const std::shared_ptr<InternalTaskContext>& ctx, const std::shared_ptr<Wrapper::Device>& device)
 	{
+
+		ctx->attachments.clear();
+
+		for (std::size_t i = 0; i < ctx->colorRenderTargets.size(); ++i)
+		{
+			const auto c = ctx->colorRenderTargets.at(i);
+			ctx->attachments.push_back(c->GetImageView());
+		}
+
+		if (ctx->depthStencil)
+		{
+			ctx->attachments.push_back(ctx->depthStencil->GetImageView());
+		}
+
 		const Pass* pass = nullptr;
 
 		for (const auto& p : _cachedPasses)
 		{
-			const auto& views = std::get<0>(p);
+			const auto& v = std::get<0>(p);
 
-			if (views == attachments)
+			if (v == ctx->attachments)
 			{
 				pass = &(std::get<1>(p));
 				break;
@@ -140,29 +159,13 @@ namespace MMPEngine::Backend::Vulkan
 		if (!pass)
 		{
 			_cachedPasses.emplace_back(
-				attachments,
-				Pass{ shared_from_this(), device }
+				ctx->attachments,
+				Pass{ctx, device }
 			);
 			pass = &(std::get<1>(_cachedPasses.back()));
 		}
 
 		return pass;
-	}
-
-	void Camera::DrawCallsJob::InternalTaskContext::UpdateAttachments()
-	{
-		attachments.clear();
-
-		for (std::size_t i = 0; i < job->_camera->GetTarget().color.size(); ++i)
-		{
-			const auto c = colorRenderTargets.at(i);
-			attachments.push_back(c->GetImageView());
-		}
-
-		if (depthStencil)
-		{
-			attachments.push_back(depthStencil->GetImageView());
-		}
 	}
 
 
@@ -224,8 +227,7 @@ namespace MMPEngine::Backend::Vulkan
 		const auto ds = tc->job->_camera->GetTarget().depthStencil;
 		const auto crts = tc->job->_camera->GetTarget().color;
 
-		tc->UpdateAttachments();
-		const auto pass = tc->GetOrCreatePass(_specificGlobalContext->device);
+		const auto pass = tc->job->GetOrCreatePass(tc, _specificGlobalContext->device);
 
 		/*const D3D12_CPU_DESCRIPTOR_HANDLE* dsHandlePtr = nullptr;
 
@@ -299,8 +301,7 @@ namespace MMPEngine::Backend::Vulkan
 		Task::Run(stream);
 		const auto tc = GetTaskContext();
 		//vkCmdEndRenderPass(_specificStreamContext->PopulateCommandsInBuffer()->GetNative());
-		tc->UpdateAttachments();
-		const auto pass = tc->GetOrCreatePass(_specificGlobalContext->device);
+		const auto pass = tc->job->GetOrCreatePass(tc, _specificGlobalContext->device);
 
 		for (std::size_t i = 0; i < tc->colorRenderTargets.size(); ++i)
 		{

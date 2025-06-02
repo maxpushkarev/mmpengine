@@ -41,10 +41,6 @@ namespace MMPEngine::Backend::Vulkan
 			std::vector<std::shared_ptr<IColorTargetTexture>> colorRenderTargets;
 			std::vector<VkImageView> attachments;
 			std::shared_ptr<IDepthStencilTexture> depthStencil;
-			std::vector<std::tuple<std::vector<VkImageView>, Pass>> _cachedPasses;
-
-			const Pass* GetOrCreatePass(const std::shared_ptr<Wrapper::Device>& device);
-			void UpdateAttachments();
 		};
 
 		class BeginPass final : public Task<InternalTaskContext>
@@ -141,6 +137,8 @@ namespace MMPEngine::Backend::Vulkan
 		std::shared_ptr<Core::BaseTask> CreateTaskForIterationsFinish() override;
 	private:
 		std::shared_ptr<InternalTaskContext> BuildInternalContext();
+		const Pass* GetOrCreatePass(const std::shared_ptr<InternalTaskContext>& ctx, const std::shared_ptr<Wrapper::Device>& device);
+		std::vector<std::tuple<std::vector<VkImageView>, Pass>> _cachedPasses;
 	};
 
 
