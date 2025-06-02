@@ -156,6 +156,11 @@ namespace MMPEngine::Backend::Vulkan
 		return std::make_shared<InitTask>(ctx);
 	}
 
+	VkImageView DepthStencilTargetTexture::GetImageView() const
+	{
+		return _view;
+	}
+
 	DepthStencilTargetTexture::InitTask::InitTask(const std::shared_ptr<InitTaskContext>& ctx) : Task(ctx)
 	{
 	}

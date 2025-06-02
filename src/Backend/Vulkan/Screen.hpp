@@ -11,13 +11,16 @@ namespace MMPEngine::Backend::Vulkan
 		class Image final : public Core::BaseEntity, public BaseTexture, public IColorTargetTexture
 		{
 		public:
-			Image(VkImage image);
+			Image(VkImage image, VkImageView imageView, const std::shared_ptr<Wrapper::Device>& device);
 			Image(const Image&) = delete;
 			Image(Image&&) noexcept = delete;
 			Image& operator=(const Image&) = delete;
 			Image& operator=(Image&&) noexcept = delete;
 			~Image() override;
 			std::shared_ptr<DeviceMemoryHeap> GetMemoryHeap(const std::shared_ptr<GlobalContext>& globalContext) const override;
+			VkImageView GetImageView() const override;
+		private:
+			std::shared_ptr<Wrapper::Device> _device;
 		};
 
 		class BackBuffer final : public Core::ColorTargetTexture, public Vulkan::BaseTexture, public IColorTargetTexture
@@ -44,11 +47,12 @@ namespace MMPEngine::Backend::Vulkan
 			};
 
 		public:
-			BackBuffer(const Settings& settings, VkSwapchainKHR swapChain, const std::shared_ptr<Wrapper::Device>& device);
+			BackBuffer(const Settings& settings, VkSwapchainKHR swapChain, const VkSwapchainCreateInfoKHR& swapChainInfo, const std::shared_ptr<Wrapper::Device>& device);
 			void Swap();
 			std::shared_ptr<Image> GetCurrentImage() const;
 			std::size_t GetCurrentImageIndex() const;
 			std::shared_ptr<Core::BaseTask> CreateMemoryBarrierTask(VkAccessFlags srcAccess, VkAccessFlags dstAccess, VkImageLayout newLayout, const VkImageSubresourceRange& subResourceRange, VkPipelineStageFlags srcStage, VkPipelineStageFlags dstStage) override;
+			VkImageView GetImageView() const override;
 		protected:
 			std::shared_ptr<DeviceMemoryHeap> GetMemoryHeap(const std::shared_ptr<GlobalContext>& globalContext) const override;
 		private:

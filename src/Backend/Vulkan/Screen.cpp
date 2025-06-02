@@ -81,9 +81,10 @@ namespace MMPEngine::Backend::Vulkan
 	}
 
 
-	Screen::Image::Image(VkImage image)
+	Screen::Image::Image(VkImage image, VkImageView imageView, const std::shared_ptr<Wrapper::Device>& device) : _device(device)
 	{
 		_nativeImage = image;
+		_view = imageView;
 	}
 
 	std::shared_ptr<DeviceMemoryHeap> Screen::Image::GetMemoryHeap(const std::shared_ptr<GlobalContext>& globalContext) const
@@ -91,10 +92,21 @@ namespace MMPEngine::Backend::Vulkan
 		return nullptr;
 	}
 
-	Screen::Image::~Image() = default;
+	VkImageView Screen::Image::GetImageView() const
+	{
+		return _view;
+	}
+
+	Screen::Image::~Image()
+	{
+		if (_view && _device)
+		{
+			vkDestroyImageView(_device->GetNativeLogical(), _view, nullptr);
+		}
+	}
 
 
-	Screen::BackBuffer::BackBuffer(const Settings& settings, VkSwapchainKHR swapChain, const std::shared_ptr<Wrapper::Device>& device)
+	Screen::BackBuffer::BackBuffer(const Settings& settings, VkSwapchainKHR swapChain, const VkSwapchainCreateInfoKHR& swapChainInfo, const std::shared_ptr<Wrapper::Device>& device)
 		: Core::ColorTargetTexture(settings)
 	{
 		std::uint32_t imageCount {};
@@ -105,7 +117,31 @@ namespace MMPEngine::Backend::Vulkan
 		_images.reserve(imageCount);
 		for (const auto img : swapChainImages)
 		{
-			_images.push_back(std::make_shared<Image>(img));
+			VkImageViewCreateInfo viewInfo{};
+			viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+			viewInfo.pNext = nullptr;
+			viewInfo.flags = 0;
+			viewInfo.image = img;
+			viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+			viewInfo.format = swapChainInfo.imageFormat;
+			viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+
+
+			viewInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+			viewInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+			viewInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+			viewInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+
+			viewInfo.subresourceRange.baseMipLevel = 0;
+			viewInfo.subresourceRange.levelCount = 1;
+			viewInfo.subresourceRange.baseArrayLayer = 0;
+			viewInfo.subresourceRange.layerCount = 1;
+
+			VkImageView imgView;
+			const auto imgViewRes = vkCreateImageView(device->GetNativeLogical(), &viewInfo, nullptr, &imgView);
+			assert(imgViewRes == VK_SUCCESS);
+
+			_images.push_back(std::make_shared<Image>(img, imgView, device));
 		}
 	}
 
@@ -129,6 +165,11 @@ namespace MMPEngine::Backend::Vulkan
 	std::shared_ptr<DeviceMemoryHeap> Screen::BackBuffer::GetMemoryHeap(const std::shared_ptr<GlobalContext>& globalContext) const
 	{
 		return nullptr;
+	}
+
+	VkImageView Screen::BackBuffer::GetImageView() const
+	{
+		return GetCurrentImage()->GetImageView();
 	}
 
 	std::shared_ptr<Core::BaseTask> Screen::BackBuffer::CreateMemoryBarrierTask(VkAccessFlags srcAccess, VkAccessFlags dstAccess, VkImageLayout newLayout, const VkImageSubresourceRange& subResourceRange, VkPipelineStageFlags srcStage, VkPipelineStageFlags dstStage)
@@ -220,7 +261,7 @@ namespace MMPEngine::Backend::Vulkan
 			Core::ColorTargetTexture::Settings::Format::R8G8B8A8_Float_01,
 				screen->_settings.clearColor,
 			{ Core::TargetTexture::Settings::Antialiasing::MSAA_0, _specificGlobalContext->windowSize, "Screen::BackBuffer" }
-			}, screen->_swapChain, _specificGlobalContext->device);
+			}, screen->_swapChain, swapChainInfo, _specificGlobalContext->device);
 	}
 
 	Screen::StartFrameTask::StartFrameTask(const std::shared_ptr<ScreenTaskContext>& ctx) : Task<MMPEngine::Backend::Vulkan::Screen::ScreenTaskContext>(ctx)

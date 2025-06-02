@@ -13,6 +13,8 @@ namespace MMPEngine::Backend::Vulkan
 		ITargetTexture& operator=(const ITargetTexture&) = delete;
 		ITargetTexture& operator=(ITargetTexture&&) noexcept = delete;
 		virtual ~ITargetTexture();
+
+		virtual VkImageView GetImageView() const = 0;
 	};
 
 	class IDepthStencilTexture : public ITargetTexture
@@ -124,5 +126,6 @@ namespace MMPEngine::Backend::Vulkan
 	public:
 		DepthStencilTargetTexture(const Settings& settings);
 		std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;
+		VkImageView GetImageView() const override;
 	};
 }
