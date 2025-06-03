@@ -34,7 +34,7 @@ namespace MMPEngine::Backend::Vulkan
 			colorAttachment.samples = crt->GetSamplesCount();
 			colorAttachment.flags = 0;
 			colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
-			if (ctx->job->_camera->GetTarget().color[i].clear)
+			if (ctx->job->_camera->GetTarget().color[i].clear && ctx->job->_camera->GetTarget().color[i].tex->GetSettings().clearColor.has_value())
 			{
 				colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 			}
@@ -56,7 +56,7 @@ namespace MMPEngine::Backend::Vulkan
 			dsAttachment.flags = 0;
 
 			dsAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
-			if (ctx->job->_camera->GetTarget().depthStencil.clear)
+			if (ctx->job->_camera->GetTarget().depthStencil.clear && ctx->job->_camera->GetTarget().depthStencil.tex->GetSettings().clearValue.has_value())
 			{
 				dsAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 			}
@@ -67,7 +67,7 @@ namespace MMPEngine::Backend::Vulkan
 
 			if (ctx->job->_camera->GetTarget().depthStencil.tex->StencilIncluded())
 			{
-				if (ctx->job->_camera->GetTarget().depthStencil.clear)
+				if (ctx->job->_camera->GetTarget().depthStencil.clear && ctx->job->_camera->GetTarget().depthStencil.tex->GetSettings().clearValue.has_value())
 				{
 					dsAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 				}
@@ -248,14 +248,30 @@ namespace MMPEngine::Backend::Vulkan
 		ctx->attachments.resize(ctx->job->_camera->GetTarget().color.size() + 1);
 
 		const auto ds = ctx->job->_camera->GetTarget().depthStencil;
-		if (ds.tex)
-		{
-			ctx->depthStencil = std::dynamic_pointer_cast<IDepthStencilTexture>(ds.tex->GetUnderlyingTexture());
-		}
+		ctx->clearValues.clear();
 
 		for (const auto& crt : ctx->job->_camera->GetTarget().color)
 		{
 			ctx->colorRenderTargets.push_back(std::dynamic_pointer_cast<IColorTargetTexture>(crt.tex->GetUnderlyingTexture()));
+
+			ctx->clearValues.push_back(VkClearValue{});
+			const auto clearColor = crt.tex->GetSettings().clearColor;
+			if (crt.clear && clearColor.has_value())
+			{
+				std::memcpy(&ctx->clearValues.back().color, &(clearColor.value()), sizeof(clearColor.value()));
+			}
+		}
+
+		if (ds.tex)
+		{
+			ctx->depthStencil = std::dynamic_pointer_cast<IDepthStencilTexture>(ds.tex->GetUnderlyingTexture());
+
+			ctx->clearValues.push_back(VkClearValue {});
+			const auto clearValue = ds.tex->GetSettings().clearValue;
+			if (ds.clear && clearValue.has_value())
+			{
+				ctx->clearValues.back().depthStencil = {std::get<0>(clearValue.value()), std::get<1>(clearValue.value()) };
+			}
 		}
 
 		return ctx;
@@ -308,77 +324,10 @@ namespace MMPEngine::Backend::Vulkan
 		rpBeginInfo.renderArea.offset = { 0, 0 };
 		rpBeginInfo.renderArea.extent = { size.x, size.y };
 
-		VkClearValue clearValues[2];
-		clearValues[0].color = { 1.0f, 0.0f, 0.0f, 1.0f };
-		clearValues[1].depthStencil = { 1.0f, 0 };
-
-		rpBeginInfo.clearValueCount = 2;
-		rpBeginInfo.pClearValues = clearValues;
+		rpBeginInfo.clearValueCount = static_cast<std::uint32_t>(tc->clearValues.size());
+		rpBeginInfo.pClearValues = tc->clearValues.data();
 
 		vkCmdBeginRenderPass(_specificStreamContext->PopulateCommandsInBuffer()->GetNative(), &rpBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
-		
-
-		/*const D3D12_CPU_DESCRIPTOR_HANDLE* dsHandlePtr = nullptr;
-
-		if (ds.tex)
-		{
-			dsHandlePtr = &(tc->depthStencil->GetDSVDescriptorHandle()->GetCPUDescriptorHandle());
-		}
-
-		if (ds.tex && ds.clear)
-		{
-			const auto& clearValue = ds.tex->GetSettings().clearValue;
-			if (clearValue.has_value())
-			{
-				_specificStreamContext->PopulateCommandsInBuffer()->ClearDepthStencilView(
-					*dsHandlePtr,
-					D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL,
-					std::get<std::float_t>(clearValue.value()), std::get<std::uint8_t>(clearValue.value()),
-					0, nullptr
-				);
-			}
-		}
-
-		tc->colorRenderTargetHandles.clear();
-
-		for (std::size_t i = 0; i < crts.size(); ++i)
-		{
-			const auto& crt = crts[i];
-			const auto h = tc->colorRenderTargets.at(i)->GetRTVDescriptorHandle()->GetCPUDescriptorHandle();
-
-			tc->colorRenderTargetHandles.push_back(h);
-
-			if (crt.clear)
-			{
-				const auto& clearValue = crt.tex->GetSettings().clearColor;
-
-				if (clearValue.has_value())
-				{
-					const auto cv = clearValue.value();
-					_specificStreamContext->PopulateCommandsInBuffer()->ClearRenderTargetView(h, &(cv.x), 0, nullptr);
-				}
-			}
-		}
-
-		D3D12_VIEWPORT viewport{};
-		const auto size = crts.begin()->tex->GetSettings().base.size;
-		viewport.TopLeftX = 0;
-		viewport.TopLeftY = 0;
-		viewport.Width = static_cast<std::float_t>(size.x);
-		viewport.Height = static_cast<std::float_t>(size.y);
-		viewport.MinDepth = 0.0f;
-		viewport.MaxDepth = 1.0f;
-
-		const D3D12_RECT scissorsRect = { 0, 0, static_cast<decltype(scissorsRect.right)>(size.x), static_cast<decltype(scissorsRect.bottom)>(size.y) };
-
-		_specificStreamContext->PopulateCommandsInBuffer()->RSSetViewports(1, &viewport);
-		_specificStreamContext->PopulateCommandsInBuffer()->RSSetScissorRects(1, &scissorsRect);
-
-		_specificStreamContext->PopulateCommandsInBuffer()->OMSetRenderTargets(
-			static_cast<std::uint32_t>(tc->colorRenderTargetHandles.size()),
-			tc->colorRenderTargetHandles.data(),
-			false,
-			dsHandlePtr);*/
 	}
 
 	Camera::DrawCallsJob::EndPass::EndPass(const std::shared_ptr<InternalTaskContext>& ctx) : Task<MMPEngine::Backend::Vulkan::Camera::DrawCallsJob::InternalTaskContext>(ctx)

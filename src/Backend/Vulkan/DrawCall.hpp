@@ -44,6 +44,7 @@ namespace MMPEngine::Backend::Vulkan
 			std::vector<std::shared_ptr<IColorTargetTexture>> colorRenderTargets;
 			std::vector<VkImageView> attachments;
 			std::shared_ptr<IDepthStencilTexture> depthStencil;
+			std::vector<VkClearValue> clearValues;
 		};
 
 		class BeginPass final : public Task<InternalTaskContext>
