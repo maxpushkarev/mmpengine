@@ -364,12 +364,11 @@ namespace MMPEngine::Backend::Vulkan
 		if (ds.tex)
 		{
 			VkImageAspectFlags depthAspectBit = VK_IMAGE_ASPECT_DEPTH_BIT;
-			VkImageLayout depthLayoutBit = VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL;
+			VkImageLayout depthLayoutBit = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
 			if (ds.tex->StencilIncluded())
 			{
 				depthAspectBit |= VK_IMAGE_ASPECT_STENCIL_BIT;
-				depthLayoutBit = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 			}
 
 			_memoryBarrierTasks.push_back(std::dynamic_pointer_cast<BaseTexture>(ds.tex->GetUnderlyingTexture())->CreateMemoryBarrierTask(
