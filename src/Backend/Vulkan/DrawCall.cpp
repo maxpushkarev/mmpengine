@@ -83,30 +83,66 @@ namespace MMPEngine::Backend::Vulkan
 		rpInfo.attachmentCount = static_cast<std::uint32_t>(_attachmentDescriptions.size());
 		rpInfo.pAttachments = _attachmentDescriptions.data();
 
-		rpInfo.subpassCount = 0;
-		rpInfo.pSubpasses = nullptr;
+		std::vector<VkAttachmentReference> colorRefs;
 
-		/*VkSubpassDescription subpass{};
-		subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-		subpass.colorAttachmentCount = static_cast<std::uint32_t>(_colorAttachmentRefs.size());
-		subpass.pColorAttachments = _colorAttachmentRefs.data();*/
+		for (std::size_t i = 0; i < ctx->colorRenderTargets.size(); ++i)
+		{
+			const auto& crt = ctx->colorRenderTargets[i];
+			VkAttachmentReference cRef = {};
+			cRef.layout = crt->GetLayout();
+			cRef.attachment = static_cast<std::uint32_t>(i);
 
+			colorRefs.push_back(cRef);
+		}
 
-		//vkCreateRenderPass(_device->GetNativeLogical(), &rpInfo, nullptr, &_renderPass);
+		VkAttachmentReference dsRef{};
 
-		/*VkFramebufferCreateInfo fbInfo = {
-			.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
-			.pNext = nullptr,
-			.renderPass = renderPass,
-			.attachmentCount = 2,
-			.pAttachments = attachments,
-			.width = framebufferWidth,
-			.height = framebufferHeight,
-			.layers = 1
+		if (ctx->depthStencil)
+		{
+			dsRef.layout = ctx->depthStencil->GetLayout();
+			dsRef.attachment = static_cast<std::uint32_t>(_attachmentDescriptions.size() - 1);
+		}
+
+		auto buildVkSubPassSubscription = [ctx, this, &colorRefs, &dsRef]() -> auto
+		{
+			VkSubpassDescription subPass{};
+
+			subPass.inputAttachmentCount = 0;
+			subPass.pInputAttachments = nullptr;
+
+			subPass.preserveAttachmentCount = 0;
+			subPass.pPreserveAttachments = nullptr;
+			subPass.pResolveAttachments = nullptr;
+
+			subPass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+			subPass.flags = 0;
+
+			subPass.colorAttachmentCount = static_cast<std::uint32_t>(colorRefs.size());
+			subPass.pColorAttachments = colorRefs.data();
+
+			if (ctx->depthStencil)
+			{
+				subPass.pDepthStencilAttachment = &dsRef;
+			}
+
+			return subPass;
 		};
 
-		VkFramebuffer framebuffer;
-		VkResult result = vkCreateFramebuffer(device, &fbInfo, nullptr, &framebuffer);*/
+		std::vector<VkSubpassDescription> subPassDescriptions {};
+		subPassDescriptions.push_back(buildVkSubPassSubscription());
+
+		for (std::size_t i = 0; i < ctx->job->_iterations.size(); ++i)
+		{
+			subPassDescriptions.push_back(buildVkSubPassSubscription());
+		}
+
+		rpInfo.subpassCount = static_cast<std::uint32_t>(subPassDescriptions.size());
+		rpInfo.pSubpasses = subPassDescriptions.data();
+
+		vkCreateRenderPass(_device->GetNativeLogical(), &rpInfo, nullptr, &_renderPass);
+
+		//VkFramebuffer framebuffer;
+		//VkResult result = vkCreateFramebuffer(device, &fbInfo, nullptr, &framebuffer);*/
 	}
 
 	const std::vector<VkAttachmentDescription>& Camera::DrawCallsJob::Pass::GetAttachmentDescriptions() const
@@ -129,7 +165,6 @@ namespace MMPEngine::Backend::Vulkan
 
 	const Camera::DrawCallsJob::Pass* Camera::DrawCallsJob::GetOrCreatePass(const std::shared_ptr<InternalTaskContext>& ctx, const std::shared_ptr<Wrapper::Device>& device)
 	{
-
 		ctx->attachments.clear();
 
 		for (std::size_t i = 0; i < ctx->colorRenderTargets.size(); ++i)
