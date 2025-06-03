@@ -172,6 +172,16 @@ namespace MMPEngine::Backend::Vulkan
 		return _attachmentDescriptions;
 	}
 
+	VkFramebuffer Camera::DrawCallsJob::Pass::GetFrameBuffer() const
+	{
+		return _frameBuffer;
+	}
+
+	VkRenderPass Camera::DrawCallsJob::Pass::GetRenderPass() const
+	{
+		return _renderPass;
+	}
+
 	Camera::DrawCallsJob::Pass::~Pass()
 	{
 		if (_renderPass && _device)
@@ -285,6 +295,28 @@ namespace MMPEngine::Backend::Vulkan
 		const auto crts = tc->job->_camera->GetTarget().color;
 
 		const auto pass = tc->job->GetOrCreatePass(tc, _specificGlobalContext->device);
+		const auto size = tc->job->_camera->GetTarget().color.front().tex->GetSettings().base.size;
+
+		VkRenderPassBeginInfo rpBeginInfo {};
+
+		rpBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+		rpBeginInfo.pNext = nullptr;
+
+		rpBeginInfo.framebuffer = pass->GetFrameBuffer();
+		rpBeginInfo.renderPass = pass->GetRenderPass();
+
+		rpBeginInfo.renderArea.offset = { 0, 0 };
+		rpBeginInfo.renderArea.extent = { size.x, size.y };
+
+		VkClearValue clearValues[2];
+		clearValues[0].color = { 1.0f, 0.0f, 0.0f, 1.0f };
+		clearValues[1].depthStencil = { 1.0f, 0 };
+
+		rpBeginInfo.clearValueCount = 2;
+		rpBeginInfo.pClearValues = clearValues;
+
+		vkCmdBeginRenderPass(_specificStreamContext->PopulateCommandsInBuffer()->GetNative(), &rpBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+		
 
 		/*const D3D12_CPU_DESCRIPTOR_HANDLE* dsHandlePtr = nullptr;
 
@@ -357,7 +389,9 @@ namespace MMPEngine::Backend::Vulkan
 	{
 		Task::Run(stream);
 		const auto tc = GetTaskContext();
-		//vkCmdEndRenderPass(_specificStreamContext->PopulateCommandsInBuffer()->GetNative());
+
+		vkCmdEndRenderPass(_specificStreamContext->PopulateCommandsInBuffer()->GetNative());
+
 		const auto pass = tc->job->GetOrCreatePass(tc, _specificGlobalContext->device);
 
 		for (std::size_t i = 0; i < tc->colorRenderTargets.size(); ++i)

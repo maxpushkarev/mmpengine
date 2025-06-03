@@ -25,7 +25,10 @@ namespace MMPEngine::Backend::Vulkan
 			Pass& operator=(Pass&&) noexcept = delete;
 			~Pass();
 
+			VkFramebuffer GetFrameBuffer() const;
+			VkRenderPass GetRenderPass() const;
 			const std::vector<VkAttachmentDescription>& GetAttachmentDescriptions() const;
+
 		private:
 			VkRenderPass _renderPass = VK_NULL_HANDLE;
 			VkFramebuffer _frameBuffer = VK_NULL_HANDLE;
