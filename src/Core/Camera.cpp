@@ -15,7 +15,11 @@ namespace MMPEngine::Core
 			return (t.tex->GetSettings().base.antialiasing == firstColorTarget.tex->GetSettings().base.antialiasing) && (t.tex->GetSettings().base.size == firstColorTarget.tex->GetSettings().base.size);
 		}));
 
-		assert((firstColorTarget.tex->GetSettings().base.antialiasing == _target.depthStencil.tex->GetSettings().base.antialiasing) && (firstColorTarget.tex->GetSettings().base.size == _target.depthStencil.tex->GetSettings().base.size));
+		if (_target.depthStencil.tex)
+		{
+			assert((firstColorTarget.tex->GetSettings().base.size == _target.depthStencil.tex->GetSettings().base.size));
+			assert((firstColorTarget.tex->GetSettings().base.antialiasing == _target.depthStencil.tex->GetSettings().base.antialiasing));
+		}
 	}
 
 	std::shared_ptr<const Node> Camera::GetNode() const
