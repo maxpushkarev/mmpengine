@@ -15,12 +15,15 @@ namespace MMPEngine::Backend::Vulkan
 	Camera::DrawCallsJob::Pass::Pass(const std::shared_ptr<const InternalTaskContext>& ctx, const std::shared_ptr<Wrapper::Device>& device) : _device(device)
 	{
 		VkRenderPassCreateInfo rpInfo {};
+
 		rpInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
 		rpInfo.pNext = nullptr;
 		rpInfo.flags = 0;
 
 		rpInfo.dependencyCount = 0;
 		rpInfo.pDependencies = nullptr;
+
+		std::vector<VkImageView> attachmentViews;
 
 		for (std::size_t i = 0; i < ctx->colorRenderTargets.size(); ++i)
 		{
@@ -42,6 +45,7 @@ namespace MMPEngine::Backend::Vulkan
 			colorAttachment.finalLayout = colorAttachment.initialLayout;
 
 			_attachmentDescriptions.push_back(colorAttachment);
+			attachmentViews.push_back(crt->GetImageView());
 		}
 
 		if (ctx->depthStencil)
@@ -78,6 +82,7 @@ namespace MMPEngine::Backend::Vulkan
 			dsAttachment.finalLayout = ctx->depthStencil->GetLayout();
 
 			_attachmentDescriptions.push_back(dsAttachment);
+			attachmentViews.push_back(ctx->depthStencil->GetImageView());
 		}
 
 		rpInfo.attachmentCount = static_cast<std::uint32_t>(_attachmentDescriptions.size());
@@ -139,10 +144,27 @@ namespace MMPEngine::Backend::Vulkan
 		rpInfo.subpassCount = static_cast<std::uint32_t>(subPassDescriptions.size());
 		rpInfo.pSubpasses = subPassDescriptions.data();
 
-		vkCreateRenderPass(_device->GetNativeLogical(), &rpInfo, nullptr, &_renderPass);
+		const auto rpRes = vkCreateRenderPass(_device->GetNativeLogical(), &rpInfo, nullptr, &_renderPass);
+		assert(rpRes == VK_SUCCESS);
 
-		//VkFramebuffer framebuffer;
-		//VkResult result = vkCreateFramebuffer(device, &fbInfo, nullptr, &framebuffer);*/
+		const auto size = ctx->job->_camera->GetTarget().color.front().tex->GetSettings().base.size;
+
+		VkFramebufferCreateInfo fbInfo {};
+
+		fbInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+		fbInfo.pNext = nullptr;
+		fbInfo.renderPass = _renderPass;
+		fbInfo.flags = 0;
+
+		fbInfo.layers = 1;
+		fbInfo.width = size.x;
+		fbInfo.height = size.y;
+
+		fbInfo.attachmentCount = static_cast<std::uint32_t>(attachmentViews.size());
+		fbInfo.pAttachments = attachmentViews.data();
+
+		const auto fbRes = vkCreateFramebuffer(_device->GetNativeLogical(), &fbInfo, nullptr, &_frameBuffer);
+		assert(fbRes == VK_SUCCESS);
 	}
 
 	const std::vector<VkAttachmentDescription>& Camera::DrawCallsJob::Pass::GetAttachmentDescriptions() const
