@@ -236,12 +236,17 @@ namespace MMPEngine::Core
 				{
 					auto newBlockSize = (std::max)(_settings.initialSize, request.size);
 
-					if(_lastInstantiatedBlockSize.has_value())
-					{
-						newBlockSize = (std::max)(_lastInstantiatedBlockSize.value() * _settings.growthFactor, request.size);
-					}
+					const auto blockWithMaxSize = std::max_element(_blocks.cbegin(), _blocks.cend(),
+						[](const auto& b1, const auto& b2) {
+							const auto b1Size = b1 ? b1->GetSize() : 0;
+							const auto b2Size = b2 ? b2->GetSize() : 0;
+							return b1Size < b2Size;
+						});
 
-					_lastInstantiatedBlockSize = newBlockSize;
+					if (blockWithMaxSize != _blocks.cend())
+					{
+						newBlockSize = (std::max)(newBlockSize, blockWithMaxSize->get()->GetSize() * _settings.growthFactor);
+					}
 
 					if(blockIndex == _blocks.size())
 					{

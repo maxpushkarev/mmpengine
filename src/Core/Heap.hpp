@@ -120,8 +120,6 @@ namespace MMPEngine::Core
 			std::shared_ptr<InitBlocksTaskContext> _ctx;
 		};
 
-
-		std::optional<std::size_t> _lastInstantiatedBlockSize = std::nullopt;
 		std::unordered_set<std::uint64_t> _initializedBlockEntityIds;
 	};
 }

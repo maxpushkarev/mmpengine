@@ -438,7 +438,7 @@ namespace MMPEngine::Feature
 			constexpr std::size_t initialSize = 4096;
 
 			_rootContext->uploadBufferHeap = std::make_shared<Backend::Vulkan::DeviceMemoryHeap>(
-				Core::Heap::Settings {initialSize, growthFactor, false},
+				Core::Heap::Settings {initialSize, growthFactor, true},
 				static_cast<VkMemoryPropertyFlagBits>(
 					VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT |
 					VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_HOST_COHERENT_BIT |
@@ -448,7 +448,7 @@ namespace MMPEngine::Feature
 			);
 
 			_rootContext->readBackBufferHeap = std::make_shared<Backend::Vulkan::DeviceMemoryHeap>(
-				Core::Heap::Settings {initialSize, growthFactor, false},
+				Core::Heap::Settings {initialSize, growthFactor, true},
 				static_cast<VkMemoryPropertyFlagBits>(
 					VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT |
 					VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_HOST_COHERENT_BIT |
@@ -458,13 +458,13 @@ namespace MMPEngine::Feature
 			);
 
 			_rootContext->residentBufferHeap = std::make_shared<Backend::Vulkan::DeviceMemoryHeap>(
-				Core::Heap::Settings {initialSize, growthFactor, false},
+				Core::Heap::Settings {initialSize, growthFactor, true},
 				static_cast<VkMemoryPropertyFlagBits>(VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT),
 				static_cast<VkMemoryPropertyFlagBits>(VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT)
 			);
 
 			_rootContext->uniformBufferHeap = std::make_shared<Backend::Vulkan::DeviceMemoryHeap>(
-				Core::Heap::Settings {initialSize, growthFactor, false},
+				Core::Heap::Settings {initialSize, growthFactor, true},
 				static_cast<VkMemoryPropertyFlagBits>(
 					VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT |
 					VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_HOST_COHERENT_BIT |
