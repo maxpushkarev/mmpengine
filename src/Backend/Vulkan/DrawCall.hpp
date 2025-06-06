@@ -131,6 +131,7 @@ namespace MMPEngine::Backend::Vulkan
 			std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;
 			std::shared_ptr<Core::BaseTask> CreateExecutionTask() override;
 		private:
+			VkGraphicsPipelineCreateInfo _pipelineCreateInfo {};
 		};
 
 
@@ -258,6 +259,30 @@ namespace MMPEngine::Backend::Vulkan
 			vkCreateShaderModule(this->_specificGlobalContext->device->GetNativeLogical(), &shaderModelInfo, nullptr, &pixelShader);
 			assert(pixelShader);
 			iteration->_shaderModules.push_back(pixelShader);
+
+
+
+			VkPipelineShaderStageCreateInfo vertStage{};
+			vertStage.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+			vertStage.pNext = nullptr;
+			vertStage.flags = 0;
+			vertStage.pSpecializationInfo = VK_NULL_HANDLE;
+			vertStage.stage = VK_SHADER_STAGE_VERTEX_BIT;
+			vertStage.module = vertexShader;
+			vertStage.pName = Core::Shader::ENTRY_POINT_NAME;
+
+			VkPipelineShaderStageCreateInfo pixelStage{};
+			pixelStage.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+			pixelStage.pNext = nullptr;
+			pixelStage.flags = 0;
+			pixelStage.pSpecializationInfo = VK_NULL_HANDLE;
+			pixelStage.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+			pixelStage.module = pixelShader;
+			pixelStage.pName = Core::Shader::ENTRY_POINT_NAME;
+
+			VkPipelineShaderStageCreateInfo shaderStages[] = { vertStage, pixelStage };
+
+
 		}
 	}
 
