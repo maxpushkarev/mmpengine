@@ -282,20 +282,88 @@ namespace MMPEngine::Backend::Vulkan
 	{
 		if (std::dynamic_pointer_cast<Core::MeshMaterial>(item.material))
 		{
-			return std::make_shared<IterationJob<Core::MeshMaterial>>(_camera, item);
+			return std::make_shared<IterationJob<Core::MeshMaterial>>(std::const_pointer_cast<DrawCallsJob>(std::dynamic_pointer_cast<const DrawCallsJob>(shared_from_this())), _camera, item);
 		}
 
 		return nullptr;
 	}
 
+	std::shared_ptr<Core::BaseTask> Camera::DrawCallsJob::CreateInitializationTaskInternal()
+	{
+		return std::make_shared<InitInternalTask>(BuildInternalContext());
+	}
+
 	std::shared_ptr<Core::BaseTask> Camera::DrawCallsJob::CreateTaskForIterationsStart()
 	{
-		return std::make_shared<Start>(BuildInternalContext());
+		return std::make_shared<StartTask>(BuildInternalContext());
 	}
 
 	std::shared_ptr<Core::BaseTask> Camera::DrawCallsJob::CreateTaskForIterationsFinish()
 	{
 		return std::make_shared<EndPass>(BuildInternalContext());
+	}
+
+	Camera::DrawCallsJob::InitInternalTask::InitInternalTask(const std::shared_ptr<InternalTaskContext>& ctx) : Task<MMPEngine::Backend::Vulkan::Camera::DrawCallsJob::InternalTaskContext>(ctx)
+	{
+	}
+
+	void Camera::DrawCallsJob::InitInternalTask::Run(const std::shared_ptr<Core::BaseStream>& stream)
+	{
+		Task::Run(stream);
+
+		const auto ctx = GetTaskContext();
+
+		if (ctx->job->_camera->GetTarget().depthStencil.tex)
+		{
+			VkImageAspectFlags depthAspectBit = VK_IMAGE_ASPECT_DEPTH_BIT;
+			VkImageLayout depthLayoutBit = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+			if (ctx->job->_camera->GetTarget().depthStencil.tex->StencilIncluded())
+			{
+				depthAspectBit |= VK_IMAGE_ASPECT_STENCIL_BIT;
+			}
+
+			ctx->job->_memoryBarrierTasks.push_back(std::dynamic_pointer_cast<BaseTexture>(ctx->job->_camera->GetTarget().depthStencil.tex->GetUnderlyingTexture())->CreateMemoryBarrierTask(
+				VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
+				VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
+				depthLayoutBit,
+				VkImageSubresourceRange{
+					depthAspectBit, 0, 1, 0, 1
+				}
+			));
+		}
+
+		for (const auto& crt : ctx->job->_camera->GetTarget().color)
+		{
+			ctx->job->_memoryBarrierTasks.push_back(std::dynamic_pointer_cast<BaseTexture>(crt.tex->GetUnderlyingTexture())->CreateMemoryBarrierTask(
+				VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+				VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+				VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+				VkImageSubresourceRange{
+					VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1
+				}
+			));
+		}
+	}
+
+
+	Camera::DrawCallsJob::StartTask::StartTask(const std::shared_ptr<InternalTaskContext>& ctx) : Task<MMPEngine::Backend::Vulkan::Camera::DrawCallsJob::InternalTaskContext>(ctx)
+	{
+		_beginPass = std::make_shared<BeginPass>(ctx);
+	}
+
+	void Camera::DrawCallsJob::StartTask::OnScheduled(const std::shared_ptr<Core::BaseStream>& stream)
+	{
+		Task::OnScheduled(stream);
+
+		const auto job = GetTaskContext()->job;
+
+		for (const auto& mbt : job->_memoryBarrierTasks)
+		{
+			stream->Schedule(mbt);
+		}
+
+		stream->Schedule(_beginPass);
 	}
 
 	Camera::DrawCallsJob::BeginPass::BeginPass(const std::shared_ptr<InternalTaskContext>& ctx) : Task(ctx)
@@ -355,54 +423,7 @@ namespace MMPEngine::Backend::Vulkan
 		}
 	}
 
-	Camera::DrawCallsJob::Start::Start(const std::shared_ptr<InternalTaskContext>& ctx) : Task(ctx)
+	Camera::DrawCallsJob::IterationImpl::IterationImpl(const std::shared_ptr<DrawCallsJob>& job, const std::shared_ptr<Core::Camera>& camera, const Item& item) : _camera(camera), _item(item), _drawCallsJob(job)
 	{
-		_beginPassTask = std::make_shared<BeginPass>(ctx);
-
-		const auto ds = ctx->job->_camera->GetTarget().depthStencil;
-
-		if (ds.tex)
-		{
-			VkImageAspectFlags depthAspectBit = VK_IMAGE_ASPECT_DEPTH_BIT;
-			VkImageLayout depthLayoutBit = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-
-			if (ds.tex->StencilIncluded())
-			{
-				depthAspectBit |= VK_IMAGE_ASPECT_STENCIL_BIT;
-			}
-
-			_memoryBarrierTasks.push_back(std::dynamic_pointer_cast<BaseTexture>(ds.tex->GetUnderlyingTexture())->CreateMemoryBarrierTask(
-				VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
-				VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
-				depthLayoutBit,
-				VkImageSubresourceRange{
-					depthAspectBit, 0, 1, 0, 1
-				}
-			));
-		}
-
-		for (const auto& crt : ctx->job->_camera->GetTarget().color)
-		{
-			_memoryBarrierTasks.push_back(std::dynamic_pointer_cast<BaseTexture>(crt.tex->GetUnderlyingTexture())->CreateMemoryBarrierTask(
-				VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-				VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-				VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-				VkImageSubresourceRange{
-					VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1
-				}
-			));
-		}
-	}
-
-	void Camera::DrawCallsJob::Start::OnScheduled(const std::shared_ptr<Core::BaseStream>& stream)
-	{
-		Task::OnScheduled(stream);
-
-		for (const auto& sst : _memoryBarrierTasks)
-		{
-			stream->Schedule(sst);
-		}
-
-		stream->Schedule(_beginPassTask);
 	}
 }

@@ -6,7 +6,7 @@
 #include <Backend/Vulkan/Camera.hpp>
 #include <Backend/Vulkan/Task.hpp>
 #include <Backend/Vulkan/Texture.hpp>
-
+#include <Backend/Vulkan/Buffer.hpp>
 
 namespace MMPEngine::Backend::Vulkan
 {
@@ -14,6 +14,15 @@ namespace MMPEngine::Backend::Vulkan
 	{
 	private:
 		class InternalTaskContext;
+
+		class IterationImpl
+		{
+		public:
+			IterationImpl(const std::shared_ptr<DrawCallsJob>& job, const std::shared_ptr<Core::Camera>& camera, const Item& item);
+			std::shared_ptr<Core::Camera> _camera;
+			Item _item;
+			std::shared_ptr<DrawCallsJob> _drawCallsJob;
+		};
 
 		class Pass final
 		{
@@ -47,12 +56,30 @@ namespace MMPEngine::Backend::Vulkan
 			std::vector<VkClearValue> clearValues;
 		};
 
+		class InitInternalTask final : public Task<InternalTaskContext>
+		{
+		public:
+			InitInternalTask(const std::shared_ptr<InternalTaskContext>& ctx);
+		protected:
+			void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
+		};
+
 		class BeginPass final : public Task<InternalTaskContext>
 		{
 		public:
 			BeginPass(const std::shared_ptr<InternalTaskContext>& ctx);
 		protected:
 			void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
+		};
+
+		class StartTask final : public Task<InternalTaskContext>
+		{
+		public:
+			StartTask(const std::shared_ptr<InternalTaskContext>& ctx);
+		protected:
+			void OnScheduled(const std::shared_ptr<Core::BaseStream>& stream) override;
+		private:
+			std::shared_ptr<Core::BaseTask> _beginPass;
 		};
 
 		class EndPass final : public Task<InternalTaskContext>
@@ -63,19 +90,8 @@ namespace MMPEngine::Backend::Vulkan
 			void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
 		};
 
-		class Start final : public Task<InternalTaskContext>
-		{
-		public:
-			Start(const std::shared_ptr<InternalTaskContext>& ctx);
-		protected:
-			void OnScheduled(const std::shared_ptr<Core::BaseStream>& stream) override;
-		private:
-			std::shared_ptr<BeginPass> _beginPassTask;
-			std::vector<std::shared_ptr<Core::BaseTask>> _memoryBarrierTasks;
-		};
-
 		template<typename TCoreMaterial>
-		class IterationJob final : public Iteration, public Vulkan::Job<TCoreMaterial>
+		class IterationJob final : public Iteration, public IterationImpl, public Vulkan::Job<TCoreMaterial>
 		{
 		private:
 			class TaskContext final : public Core::TaskContext
@@ -97,30 +113,16 @@ namespace MMPEngine::Backend::Vulkan
 
 			class ExecutionTask final : public Task<TaskContext>
 			{
-			private:
-				class Impl final : public Task<TaskContext>
-				{
-				public:
-					Impl(const std::shared_ptr<TaskContext>& ctx);
-					void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
-				};
 			public:
 				ExecutionTask(const std::shared_ptr<TaskContext>& ctx);
-				void OnScheduled(const std::shared_ptr<Core::BaseStream>& stream) override;
-			private:
-				std::shared_ptr<Core::BaseTask> _applyMaterial;
-				std::shared_ptr<Core::BaseTask> _setPipelineState;
-				std::shared_ptr<Core::BaseTask> _impl;
-				std::vector<std::shared_ptr<Core::BaseTask>> _barrierTasks;
+			protected:
+				void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
 			};
 
 		public:
-			IterationJob(const std::shared_ptr<Core::Camera>& camera, const Item& item);
+			IterationJob(const std::shared_ptr<DrawCallsJob>& job, const std::shared_ptr<Core::Camera>& camera, const Item& item);
 			std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;
 			std::shared_ptr<Core::BaseTask> CreateExecutionTask() override;
-		private:
-			std::shared_ptr<Core::Camera> _camera;
-			Item _item;
 		};
 
 
@@ -134,17 +136,19 @@ namespace MMPEngine::Backend::Vulkan
 	protected:
 		std::shared_ptr<Iteration> BuildIteration(const Item& item) const override;
 		std::shared_ptr<Core::BaseTask> CreateTaskForIterationsStart() override;
+		std::shared_ptr<Core::BaseTask> CreateInitializationTaskInternal() override;
 		std::shared_ptr<Core::BaseTask> CreateTaskForIterationsFinish() override;
 	private:
 		std::shared_ptr<InternalTaskContext> BuildInternalContext();
 		const Pass* GetOrCreatePass(const std::shared_ptr<InternalTaskContext>& ctx, const std::shared_ptr<Wrapper::Device>& device);
 		std::vector<std::tuple<std::vector<VkImageView>, Pass>> _cachedPasses;
+		std::vector<std::shared_ptr<Core::BaseTask>> _memoryBarrierTasks;
 	};
 
 
 	template<typename TCoreMaterial>
-	Camera::DrawCallsJob::IterationJob<TCoreMaterial>::IterationJob(const std::shared_ptr<Core::Camera>& camera, const Item& item)
-		: _camera(camera), _item(item)
+	Camera::DrawCallsJob::IterationJob<TCoreMaterial>::IterationJob(const std::shared_ptr<DrawCallsJob>& job, const std::shared_ptr<Core::Camera>& camera, const Item& item)
+		: IterationImpl(job, camera, item)
 	{
 	}
 
@@ -171,21 +175,17 @@ namespace MMPEngine::Backend::Vulkan
 	void Camera::DrawCallsJob::IterationJob<TCoreMaterial>::InitTask::Run(const std::shared_ptr<Core::BaseStream>& stream)
 	{
 		Task<typename Vulkan::Camera::DrawCallsJob::IterationJob<TCoreMaterial>::TaskContext>::Run(stream);
-	}
 
-	template <typename TCoreMaterial>
-	Camera::DrawCallsJob::IterationJob<TCoreMaterial>::ExecutionTask::ExecutionTask(const std::shared_ptr<TaskContext>& ctx) : Task<TaskContext>(ctx)
-	{
-		const auto baseJobCtx = std::make_shared<Vulkan::BaseJob::TaskContext>();
-		baseJobCtx->job = std::dynamic_pointer_cast<Vulkan::BaseJob>(ctx->job);
-
-		//_applyMaterial = std::make_shared<Vulkan::BaseJob::ApplyParametersTask>(baseJobCtx);
-		//_setPipelineState = std::make_shared<typename Vulkan::Job<TCoreMaterial>::SetPipelineStateTask>(baseJobCtx);
+		const auto ctx = this->GetTaskContext();
+		const auto iteration = ctx->job;
 
 		if constexpr (std::is_base_of_v<Core::MeshMaterial, TCoreMaterial>)
 		{
-			/*const auto& ibInfo = ctx->mesh->GetIndexBufferInfo();
-			_switchStateTasks.push_back(std::dynamic_pointer_cast<Vulkan::BaseEntity>(ibInfo.ptr->GetUnderlyingBuffer())->CreateSwitchStateTask(D3D12_RESOURCE_STATE_GENERIC_READ));
+			const auto& ibInfo = ctx->mesh->GetIndexBufferInfo();
+			iteration->_drawCallsJob->_memoryBarrierTasks.push_back(std::dynamic_pointer_cast<Vulkan::Buffer>(ibInfo.ptr->GetUnderlyingBuffer())->CreateMemoryBarrierTask(
+				VK_ACCESS_MEMORY_WRITE_BIT | VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_TRANSFER_WRITE_BIT | VK_ACCESS_TRANSFER_READ_BIT,
+				VK_ACCESS_INDEX_READ_BIT
+			));
 
 			const auto& allBufferInfos = ctx->mesh->GetAllVertexBufferInfos();
 
@@ -193,37 +193,22 @@ namespace MMPEngine::Backend::Vulkan
 			{
 				for (const auto& vbInfo : s2vbs.second)
 				{
-					_switchStateTasks.push_back(std::dynamic_pointer_cast<Vulkan::BaseEntity>(vbInfo.ptr->GetUnderlyingBuffer())->CreateSwitchStateTask(D3D12_RESOURCE_STATE_GENERIC_READ));
+					iteration->_drawCallsJob->_memoryBarrierTasks.push_back(std::dynamic_pointer_cast<Vulkan::Buffer>(vbInfo.ptr->GetUnderlyingBuffer())->CreateMemoryBarrierTask(
+						VK_ACCESS_MEMORY_WRITE_BIT | VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_TRANSFER_WRITE_BIT | VK_ACCESS_TRANSFER_READ_BIT,
+						VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT
+					));
 				}
-			}*/
-
-			_impl = std::make_shared<Impl>(ctx);
+			}
 		}
 	}
 
 	template <typename TCoreMaterial>
-	void Camera::DrawCallsJob::IterationJob<TCoreMaterial>::ExecutionTask::OnScheduled(const std::shared_ptr<Core::BaseStream>& stream)
-	{
-		Task<TaskContext>::OnScheduled(stream);
-
-		//stream->Schedule(_setPipelineState);
-		//stream->Schedule(_applyMaterial);
-
-		for (const auto& bt : _barrierTasks)
-		{
-			stream->Schedule(bt);
-		}
-
-		stream->Schedule(_impl);
-	}
-
-	template <typename TCoreMaterial>
-	Camera::DrawCallsJob::IterationJob<TCoreMaterial>::ExecutionTask::Impl::Impl(const std::shared_ptr<TaskContext>& ctx) : Task<TaskContext>(ctx)
+	Camera::DrawCallsJob::IterationJob<TCoreMaterial>::ExecutionTask::ExecutionTask(const std::shared_ptr<TaskContext>& ctx) : Task<TaskContext>(ctx)
 	{
 	}
 
 	template <typename TCoreMaterial>
-	void Camera::DrawCallsJob::IterationJob<TCoreMaterial>::ExecutionTask::Impl::Run(const std::shared_ptr<Core::BaseStream>& stream)
+	void Camera::DrawCallsJob::IterationJob<TCoreMaterial>::ExecutionTask::Run(const std::shared_ptr<Core::BaseStream>& stream)
 	{
 		Task<TaskContext>::Run(stream);
 

@@ -213,16 +213,18 @@ namespace MMPEngine::Backend::Vulkan
 	};
 
 
-	class InputAssemblerBuffer
+	class InputAssemblerBuffer : public Vulkan::Buffer
 	{
 	public:
 		InputAssemblerBuffer(const InputAssemblerBuffer&) = delete;
 		InputAssemblerBuffer(InputAssemblerBuffer&&) noexcept = delete;
 		InputAssemblerBuffer& operator=(const InputAssemblerBuffer&) = delete;
 		InputAssemblerBuffer& operator=(InputAssemblerBuffer&&) noexcept = delete;
+		std::shared_ptr<Core::BaseTask> CreateMemoryBarrierTask(VkAccessFlags srcAccess, VkAccessFlags dstAccess, VkPipelineStageFlags srcStage = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VkPipelineStageFlags dstStage = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT) override;
 	protected:
-		InputAssemblerBuffer(const Core::InputAssemblerBuffer::Settings& settings, const std::shared_ptr<UploadBuffer>& upload, const std::shared_ptr<Core::Buffer>& storage);
-		virtual ~InputAssemblerBuffer();
+		InputAssemblerBuffer(VkBufferUsageFlags usage, const Core::InputAssemblerBuffer::Settings& settings, const std::shared_ptr<UploadBuffer>& upload, const std::shared_ptr<Core::Buffer>& storage);
+		std::shared_ptr<DeviceMemoryHeap> GetMemoryHeap(const std::shared_ptr<GlobalContext>& globalContext) const override;
+		~InputAssemblerBuffer() override;
 
 		class TaskContext final : public Core::EntityTaskContext<InputAssemblerBuffer>
 		{

@@ -372,9 +372,19 @@ namespace MMPEngine::Backend::Vulkan
 		return globalContext->residentBufferHeap;
 	}
 
-	InputAssemblerBuffer::InputAssemblerBuffer(const Core::InputAssemblerBuffer::Settings& settings, const std::shared_ptr<UploadBuffer>& upload, const std::shared_ptr<Core::Buffer>& storage)
-		: _upload(upload), _storage(storage), _ia(settings.ia)
+	InputAssemblerBuffer::InputAssemblerBuffer(VkBufferUsageFlags usage, const Core::InputAssemblerBuffer::Settings& settings, const std::shared_ptr<UploadBuffer>& upload, const std::shared_ptr<Core::Buffer>& storage)
+		: Vulkan::Buffer(usage), _upload(upload), _storage(storage), _ia(settings.ia)
 	{
+	}
+
+	std::shared_ptr<DeviceMemoryHeap> InputAssemblerBuffer::GetMemoryHeap(const std::shared_ptr<GlobalContext>& globalContext) const
+	{
+		return globalContext->residentBufferHeap;
+	}
+
+	std::shared_ptr<Core::BaseTask> InputAssemblerBuffer::CreateMemoryBarrierTask(VkAccessFlags srcAccess, VkAccessFlags dstAccess, VkPipelineStageFlags srcStage, VkPipelineStageFlags dstStage)
+	{
+		return std::dynamic_pointer_cast<Vulkan::Buffer>(_storage)->CreateMemoryBarrierTask(srcAccess, dstAccess, srcStage, dstStage);
 	}
 
 	InputAssemblerBuffer::~InputAssemblerBuffer() = default;
@@ -407,7 +417,7 @@ namespace MMPEngine::Backend::Vulkan
 		}
 	}
 
-	IndexBuffer::IndexBuffer(const Core::InputAssemblerBuffer::Settings& settings) : Core::IndexBuffer(settings), Vulkan::InputAssemblerBuffer(settings, std::make_shared<UploadBuffer>(settings.base), std::make_shared<Internal>(settings.base))
+	IndexBuffer::IndexBuffer(const Core::InputAssemblerBuffer::Settings& settings) : Core::IndexBuffer(settings), Vulkan::InputAssemblerBuffer(VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, settings, std::make_shared<UploadBuffer>(settings.base), std::make_shared<Internal>(settings.base))
 	{
 	}
 
@@ -462,7 +472,7 @@ namespace MMPEngine::Backend::Vulkan
 	}
 
 
-	VertexBuffer::VertexBuffer(const Core::InputAssemblerBuffer::Settings& settings) : Core::VertexBuffer(settings), Vulkan::InputAssemblerBuffer(settings, std::make_shared<UploadBuffer>(settings.base), std::make_shared<Internal>(settings.base))
+	VertexBuffer::VertexBuffer(const Core::InputAssemblerBuffer::Settings& settings) : Core::VertexBuffer(settings), Vulkan::InputAssemblerBuffer(VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, settings, std::make_shared<UploadBuffer>(settings.base), std::make_shared<Internal>(settings.base))
 	{
 	}
 
