@@ -10,7 +10,7 @@
 
 namespace MMPEngine::Backend::Vulkan
 {
-	class Camera::DrawCallsJob final : public Core::Camera::DrawCallsJob
+	class Camera::DrawCallsJob final : public Core::Camera::DrawCallsJob, public Vulkan::Job<Core::MeshMaterial>
 	{
 	private:
 		class InternalTaskContext;
@@ -79,6 +79,7 @@ namespace MMPEngine::Backend::Vulkan
 		protected:
 			void OnScheduled(const std::shared_ptr<Core::BaseStream>& stream) override;
 		private:
+			std::shared_ptr<Core::BaseTask> _memBarriersTasks;
 			std::shared_ptr<Core::BaseTask> _beginPass;
 		};
 
@@ -133,6 +134,7 @@ namespace MMPEngine::Backend::Vulkan
 		DrawCallsJob(DrawCallsJob&&) noexcept = delete;
 		DrawCallsJob& operator=(const DrawCallsJob&) = delete;
 		DrawCallsJob& operator=(DrawCallsJob&&) noexcept = delete;
+		std::vector<std::shared_ptr<Core::BaseTask>>& GetMemoryBarrierTasks(Core::PassControl<true, IterationImpl>);
 	protected:
 		std::shared_ptr<Iteration> BuildIteration(const Item& item) const override;
 		std::shared_ptr<Core::BaseTask> CreateTaskForIterationsStart() override;
@@ -142,7 +144,6 @@ namespace MMPEngine::Backend::Vulkan
 		std::shared_ptr<InternalTaskContext> BuildInternalContext();
 		const Pass* GetOrCreatePass(const std::shared_ptr<InternalTaskContext>& ctx, const std::shared_ptr<Wrapper::Device>& device);
 		std::vector<std::tuple<std::vector<VkImageView>, Pass>> _cachedPasses;
-		std::vector<std::shared_ptr<Core::BaseTask>> _memoryBarrierTasks;
 	};
 
 
@@ -182,7 +183,7 @@ namespace MMPEngine::Backend::Vulkan
 		if constexpr (std::is_base_of_v<Core::MeshMaterial, TCoreMaterial>)
 		{
 			const auto& ibInfo = ctx->mesh->GetIndexBufferInfo();
-			iteration->_drawCallsJob->_memoryBarrierTasks.push_back(std::dynamic_pointer_cast<Vulkan::Buffer>(ibInfo.ptr->GetUnderlyingBuffer())->CreateMemoryBarrierTask(
+			iteration->_drawCallsJob->GetMemoryBarrierTasks(Core::PassKey{ iteration.get() }).push_back(std::dynamic_pointer_cast<Vulkan::Buffer>(ibInfo.ptr->GetUnderlyingBuffer())->CreateMemoryBarrierTask(
 				VK_ACCESS_MEMORY_WRITE_BIT | VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_TRANSFER_WRITE_BIT | VK_ACCESS_TRANSFER_READ_BIT,
 				VK_ACCESS_INDEX_READ_BIT
 			));
@@ -193,7 +194,7 @@ namespace MMPEngine::Backend::Vulkan
 			{
 				for (const auto& vbInfo : s2vbs.second)
 				{
-					iteration->_drawCallsJob->_memoryBarrierTasks.push_back(std::dynamic_pointer_cast<Vulkan::Buffer>(vbInfo.ptr->GetUnderlyingBuffer())->CreateMemoryBarrierTask(
+					iteration->_drawCallsJob->GetMemoryBarrierTasks(Core::PassKey{ iteration.get() }).push_back(std::dynamic_pointer_cast<Vulkan::Buffer>(vbInfo.ptr->GetUnderlyingBuffer())->CreateMemoryBarrierTask(
 						VK_ACCESS_MEMORY_WRITE_BIT | VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_TRANSFER_WRITE_BIT | VK_ACCESS_TRANSFER_READ_BIT,
 						VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT
 					));

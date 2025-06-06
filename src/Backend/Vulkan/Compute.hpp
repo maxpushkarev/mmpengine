@@ -40,7 +40,7 @@ namespace MMPEngine::Backend::Vulkan
 			ExecutionTask(const std::shared_ptr<ExecutionContext>& ctx);
 			void OnScheduled(const std::shared_ptr<Core::BaseStream>& stream) override;
 		private:
-			std::shared_ptr<BaseTask> _switchStates;
+			std::shared_ptr<BaseTask> _memoryBarriers;
 			std::shared_ptr<Impl> _impl;
 		};
 

@@ -70,7 +70,7 @@ namespace MMPEngine::Backend::Vulkan
 		const auto baseJobCtx = std::make_shared<TaskContext>();
 		baseJobCtx->job = std::dynamic_pointer_cast<Vulkan::BaseJob>(ctx->job);
 
-		_switchStates = std::make_shared<SwitchState>(baseJobCtx);
+		_memoryBarriers = std::make_shared<MemBarriersTask>(baseJobCtx);
 		_impl = std::make_shared<Impl>(ctx);
 	}
 
@@ -78,7 +78,7 @@ namespace MMPEngine::Backend::Vulkan
 	{
 		Task::OnScheduled(stream);
 
-		stream->Schedule(_switchStates);
+		stream->Schedule(_memoryBarriers);
 		stream->Schedule(_impl);
 	}
 

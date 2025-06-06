@@ -22,7 +22,7 @@ namespace MMPEngine::Backend::Vulkan
 		void PrepareMaterialParameters(const std::shared_ptr<GlobalContext>& globalContext, const Core::BaseMaterial::Parameters& params);
 		virtual VkShaderStageFlags GetStageFlags() const = 0;
 
-		std::vector<std::shared_ptr<Core::BaseTask>> _switchMaterialParametersStateTasks;
+		std::vector<std::shared_ptr<Core::BaseTask>> _memoryBarrierTasks;
 		std::vector<DescriptorPool::Allocation> _setAllocations;
 		std::vector<VkDescriptorSet> _sets;
 		VkPipelineLayout _pipelineLayout = VK_NULL_HANDLE;
@@ -35,10 +35,10 @@ namespace MMPEngine::Backend::Vulkan
 			std::shared_ptr<BaseJob> job;
 		};
 
-		class SwitchState final : public Task<TaskContext>
+		class MemBarriersTask final : public Task<TaskContext>
 		{
 		public:
-			SwitchState(const std::shared_ptr<TaskContext>& context);
+			MemBarriersTask(const std::shared_ptr<TaskContext>& context);
 			void OnScheduled(const std::shared_ptr<Core::BaseStream>& stream) override;
 		};
 	};
@@ -53,6 +53,8 @@ namespace MMPEngine::Backend::Vulkan
 
 	template<>
 	VkShaderStageFlags Job<Core::ComputeMaterial>::GetStageFlags() const;
+	template<>
+	VkShaderStageFlags Job<Core::MeshMaterial>::GetStageFlags() const;
 
 	template<typename TCoreMaterial>
 	inline VkShaderStageFlags Job<TCoreMaterial>::GetStageFlags() const

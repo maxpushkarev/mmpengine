@@ -8,6 +8,12 @@ namespace MMPEngine::Backend::Vulkan
 	{
 	}
 
+	std::vector<std::shared_ptr<Core::BaseTask>>& Camera::DrawCallsJob::GetMemoryBarrierTasks(Core::PassControl<true, IterationImpl>)
+	{
+		return _memoryBarrierTasks;
+	}
+
+
 	Camera::DrawCallsJob::~DrawCallsJob() = default;
 
 	Camera::DrawCallsJob::Pass::Pass(Pass&&) noexcept = default;
@@ -349,6 +355,9 @@ namespace MMPEngine::Backend::Vulkan
 
 	Camera::DrawCallsJob::StartTask::StartTask(const std::shared_ptr<InternalTaskContext>& ctx) : Task<MMPEngine::Backend::Vulkan::Camera::DrawCallsJob::InternalTaskContext>(ctx)
 	{
+		const auto baseJobCtx = std::make_shared<TaskContext>();
+		baseJobCtx->job = ctx->job;
+		_memBarriersTasks = std::make_shared<MemBarriersTask>(baseJobCtx);
 		_beginPass = std::make_shared<BeginPass>(ctx);
 	}
 
@@ -356,13 +365,7 @@ namespace MMPEngine::Backend::Vulkan
 	{
 		Task::OnScheduled(stream);
 
-		const auto job = GetTaskContext()->job;
-
-		for (const auto& mbt : job->_memoryBarrierTasks)
-		{
-			stream->Schedule(mbt);
-		}
-
+		stream->Schedule(_memBarriersTasks);
 		stream->Schedule(_beginPass);
 	}
 

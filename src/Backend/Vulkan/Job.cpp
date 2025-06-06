@@ -128,7 +128,7 @@ namespace MMPEngine::Backend::Vulkan
 						const auto& castedBufferInfo = castedBuffer->GetDescriptorBufferInfo();
 
 						writeSet.pBufferInfo = &castedBufferInfo;
-						_switchMaterialParametersStateTasks.push_back(const_cast<Buffer*>(castedBuffer.get())->CreateMemoryBarrierTask(srcAccess, dstAccess));
+						_memoryBarrierTasks.push_back(const_cast<Buffer*>(castedBuffer.get())->CreateMemoryBarrierTask(srcAccess, dstAccess));
 					}
 					else
 					{
@@ -216,17 +216,17 @@ namespace MMPEngine::Backend::Vulkan
 		assert(_pipelineLayout);
 	}
 	
-	BaseJob::SwitchState::SwitchState(const std::shared_ptr<TaskContext>& context) : Task<TaskContext>(context)
+	BaseJob::MemBarriersTask::MemBarriersTask(const std::shared_ptr<TaskContext>& context) : Task<TaskContext>(context)
 	{
 	}
 
-	void BaseJob::SwitchState::OnScheduled(const std::shared_ptr<Core::BaseStream>& stream)
+	void BaseJob::MemBarriersTask::OnScheduled(const std::shared_ptr<Core::BaseStream>& stream)
 	{
 		Task::OnScheduled(stream);
 
 		if (const auto job = this->GetTaskContext()->job)
 		{
-			for (const auto& sst : job->_switchMaterialParametersStateTasks)
+			for (const auto& sst : job->_memoryBarrierTasks)
 			{
 				stream->Schedule(sst);
 			}
@@ -237,5 +237,11 @@ namespace MMPEngine::Backend::Vulkan
 	VkShaderStageFlags Job<Core::ComputeMaterial>::GetStageFlags() const
 	{
 		return VK_SHADER_STAGE_COMPUTE_BIT;
+	}
+
+	template<>
+	VkShaderStageFlags Job<Core::MeshMaterial>::GetStageFlags() const
+	{
+		return VK_SHADER_STAGE_ALL_GRAPHICS;
 	}
 }
