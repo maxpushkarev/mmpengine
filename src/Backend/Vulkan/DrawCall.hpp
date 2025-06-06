@@ -161,7 +161,7 @@ namespace MMPEngine::Backend::Vulkan
 	}
 
 	template <typename TCoreMaterial>
-	Camera::DrawCallsJob::IterationJob<TCoreMaterial>::~IterationJob()
+	Camera::DrawCallsJob::IterationJob<TCoreMaterial>::~IterationJob<TCoreMaterial>()
 	{
 		if(this->_device)
 		{
