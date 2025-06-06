@@ -21,11 +21,6 @@ namespace MMPEngine::Backend::Vulkan
 
 	Screen::~Screen()
 	{
-		if (_semaphore && _device)
-		{
-			vkDestroySemaphore(_device->GetNativeLogical(), _semaphore, nullptr);	
-		}
-
 		if (_timelineSemaphore && _device)
 		{
 			constexpr auto waitTime = (std::numeric_limits<std::uint64_t>::max)();
@@ -40,6 +35,12 @@ namespace MMPEngine::Backend::Vulkan
 
 			vkWaitSemaphores(_device->GetNativeLogical(), &waitInfo, waitTime);
 			vkDestroySemaphore(_device->GetNativeLogical(), _timelineSemaphore, nullptr);
+
+			for (const auto& [_, s] : _timelineValue2BinarySemaphoreMap)
+			{
+				vkDestroySemaphore(_device->GetNativeLogical(), s, nullptr);
+			}
+
 		}
 
 		if (_swapChain && _device)
@@ -270,12 +271,6 @@ namespace MMPEngine::Backend::Vulkan
 		screen->_device = _specificGlobalContext->device;
 		screen->_instance = _specificGlobalContext->instance;
 
-		VkSemaphoreCreateInfo semInfo {};
-		semInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-		semInfo.pNext = nullptr;
-		semInfo.flags = 0;
-		vkCreateSemaphore(_specificGlobalContext->device->GetNativeLogical(), &semInfo, nullptr, &screen->_semaphore);
-
 
 		VkSemaphoreTypeCreateInfo timelineCreateInfo{};
 		timelineCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_TYPE_CREATE_INFO;
@@ -285,7 +280,7 @@ namespace MMPEngine::Backend::Vulkan
 		VkSemaphoreCreateInfo semaphoreInfo{};
 		semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 		semaphoreInfo.pNext = &timelineCreateInfo;
-		semInfo.flags = 0;
+		semaphoreInfo.flags = 0;
 
 		vkCreateSemaphore(screen->_device->GetNativeLogical(), &semaphoreInfo, nullptr, &screen->_timelineSemaphore);
 
@@ -343,11 +338,39 @@ namespace MMPEngine::Backend::Vulkan
 
 		const auto screen = GetTaskContext()->entity;
 		std::uint64_t waitTime = (std::numeric_limits<std::uint64_t>::max)();
+
+		std::uint64_t lastTimelineValue = 0;
+		vkGetSemaphoreCounterValue(_specificGlobalContext->device->GetNativeLogical(), screen->_timelineSemaphore, &lastTimelineValue);
+
+		screen->_currentBinSemaphoreMapIt = screen->_timelineValue2BinarySemaphoreMap.cend();
+
+		for (auto it = screen->_timelineValue2BinarySemaphoreMap.cbegin(); it != screen->_timelineValue2BinarySemaphoreMap.cend(); ++it)
+		{
+			if (it->first <= lastTimelineValue)
+			{
+				screen->_currentBinSemaphoreMapIt = it;
+				break;
+			}
+		}
+
+		if (screen->_currentBinSemaphoreMapIt == screen->_timelineValue2BinarySemaphoreMap.cend())
+		{
+			VkSemaphoreCreateInfo semInfo{};
+			semInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+			semInfo.pNext = nullptr;
+			semInfo.flags = 0;
+			VkSemaphore newSem;
+			vkCreateSemaphore(_specificGlobalContext->device->GetNativeLogical(), &semInfo, nullptr, &newSem);
+
+			screen->_timelineValue2BinarySemaphoreMap.emplace(lastTimelineValue, newSem);
+			screen->_currentBinSemaphoreMapIt = screen->_timelineValue2BinarySemaphoreMap.find(lastTimelineValue);
+		}
+
 		vkAcquireNextImageKHR(
 			_specificGlobalContext->device->GetNativeLogical(), 
 			screen->_swapChain, 
 			waitTime, 
-			screen->_semaphore, 
+			screen->_currentBinSemaphoreMapIt->second,
 			VK_NULL_HANDLE, 
 			&screen->_acquireNextImageIndex
 		);
@@ -365,18 +388,21 @@ namespace MMPEngine::Backend::Vulkan
 		const auto screen = GetTaskContext()->entity;
 		const auto currentImageIndex = static_cast<std::uint32_t>(screen->GetCurrentImageIndex());
 
+		const auto currentBinSem = screen->_currentBinSemaphoreMapIt->second;
+
 		VkPresentInfoKHR presentInfo {};
 		presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
 		presentInfo.pNext = nullptr;
 		presentInfo.pResults = nullptr;
 		presentInfo.swapchainCount = 1;
 		presentInfo.pSwapchains = &screen->_swapChain;
-		presentInfo.pWaitSemaphores = &screen->_semaphore;
+		presentInfo.pWaitSemaphores = &currentBinSem;
 		presentInfo.waitSemaphoreCount = 1;
 		presentInfo.pImageIndices = &currentImageIndex;
 		vkQueuePresentKHR(_specificStreamContext->GetQueue()->GetNative(), &presentInfo);
 
-		++screen->_timelineSemaphoreValue;
+		screen->_timelineValue2BinarySemaphoreMap.erase(screen->_currentBinSemaphoreMapIt);
+		screen->_timelineValue2BinarySemaphoreMap.emplace(++screen->_timelineSemaphoreValue, currentBinSem);
 
 		VkTimelineSemaphoreSubmitInfo timelineInfo{};
 		timelineInfo.sType = VK_STRUCTURE_TYPE_TIMELINE_SEMAPHORE_SUBMIT_INFO;

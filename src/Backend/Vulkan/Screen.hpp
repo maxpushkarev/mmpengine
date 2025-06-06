@@ -114,7 +114,8 @@ namespace MMPEngine::Backend::Vulkan
 		std::shared_ptr<BackBuffer> _backBuffer;
 		VkSwapchainKHR _swapChain = VK_NULL_HANDLE;
 		VkSurfaceKHR _surface = VK_NULL_HANDLE;
-		VkSemaphore _semaphore = VK_NULL_HANDLE;
+		std::unordered_map<std::uint64_t, VkSemaphore> _timelineValue2BinarySemaphoreMap {};
+		std::unordered_map<std::uint64_t, VkSemaphore>::const_iterator _currentBinSemaphoreMapIt {};
 		VkSemaphore _timelineSemaphore = VK_NULL_HANDLE;
 		std::uint64_t _timelineSemaphoreValue = 0;
 		std::shared_ptr<Wrapper::Device> _device;
