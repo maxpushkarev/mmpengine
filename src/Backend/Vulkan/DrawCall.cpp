@@ -13,7 +13,6 @@ namespace MMPEngine::Backend::Vulkan
 		return _memoryBarrierTasks;
 	}
 
-
 	Camera::DrawCallsJob::~DrawCallsJob() = default;
 
 	Camera::DrawCallsJob::Pass::Pass(Pass&&) noexcept = default;
