@@ -17,11 +17,12 @@ namespace MMPEngine::Backend::Vulkan
 
 		class IterationImpl
 		{
-		public:
+		protected:
 			IterationImpl(const std::shared_ptr<DrawCallsJob>& job, const std::shared_ptr<Core::Camera>& camera, const Item& item);
 			std::shared_ptr<Core::Camera> _camera;
 			Item _item;
-			std::shared_ptr<DrawCallsJob> _drawCallsJob;
+			DrawCallsJob* _drawCallsJob;
+			std::vector<VkShaderModule> _shaderModules;
 		};
 
 		class Pass final
@@ -122,8 +123,14 @@ namespace MMPEngine::Backend::Vulkan
 
 		public:
 			IterationJob(const std::shared_ptr<DrawCallsJob>& job, const std::shared_ptr<Core::Camera>& camera, const Item& item);
+			IterationJob(const IterationJob&) = delete;
+			IterationJob(IterationJob&&) noexcept = delete;
+			IterationJob& operator=(const IterationJob&) = delete;
+			IterationJob& operator=(IterationJob&&) noexcept = delete;
+			~IterationJob() override;
 			std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;
 			std::shared_ptr<Core::BaseTask> CreateExecutionTask() override;
+		private:
 		};
 
 
@@ -153,6 +160,18 @@ namespace MMPEngine::Backend::Vulkan
 	{
 	}
 
+	template <typename TCoreMaterial>
+	Camera::DrawCallsJob::IterationJob<TCoreMaterial>::~IterationJob()
+	{
+		if(this->_device)
+		{
+			for (const auto& sm : this->_shaderModules)
+			{
+				vkDestroyShaderModule(this->_device->GetNativeLogical(), sm, nullptr);
+			}
+		}
+	}
+
 	template<typename TCoreMaterial>
 	std::shared_ptr<Core::BaseTask> Camera::DrawCallsJob::IterationJob<TCoreMaterial>::CreateInitializationTask()
 	{
@@ -179,13 +198,14 @@ namespace MMPEngine::Backend::Vulkan
 
 		const auto ctx = this->GetTaskContext();
 		const auto iteration = ctx->job;
-
+		const auto drawCallsJob = iteration->_drawCallsJob;
 		const auto pc = Core::PassKey {iteration.get()};
+		const auto material = std::dynamic_pointer_cast<TCoreMaterial>(iteration->_item.material);
 
 		if constexpr (std::is_base_of_v<Core::MeshMaterial, TCoreMaterial>)
 		{
 			const auto& ibInfo = ctx->mesh->GetIndexBufferInfo();
-			iteration->_drawCallsJob->GetMemoryBarrierTasks(pc).push_back(std::dynamic_pointer_cast<Vulkan::Buffer>(ibInfo.ptr->GetUnderlyingBuffer())->CreateMemoryBarrierTask(
+			drawCallsJob->GetMemoryBarrierTasks(pc).push_back(std::dynamic_pointer_cast<Vulkan::Buffer>(ibInfo.ptr->GetUnderlyingBuffer())->CreateMemoryBarrierTask(
 				VK_ACCESS_MEMORY_WRITE_BIT | VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_TRANSFER_WRITE_BIT | VK_ACCESS_TRANSFER_READ_BIT,
 				VK_ACCESS_INDEX_READ_BIT
 			));
@@ -196,7 +216,7 @@ namespace MMPEngine::Backend::Vulkan
 			{
 				for (const auto& vbInfo : s2vbs.second)
 				{
-					iteration->_drawCallsJob->GetMemoryBarrierTasks(pc).push_back(std::dynamic_pointer_cast<Vulkan::Buffer>(vbInfo.ptr->GetUnderlyingBuffer())->CreateMemoryBarrierTask(
+					drawCallsJob->GetMemoryBarrierTasks(pc).push_back(std::dynamic_pointer_cast<Vulkan::Buffer>(vbInfo.ptr->GetUnderlyingBuffer())->CreateMemoryBarrierTask(
 						VK_ACCESS_MEMORY_WRITE_BIT | VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_TRANSFER_WRITE_BIT | VK_ACCESS_TRANSFER_READ_BIT,
 						VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT
 					));
@@ -209,7 +229,35 @@ namespace MMPEngine::Backend::Vulkan
 
 		for (const auto& mbt : iteration->_memoryBarrierTasks)
 		{
-			iteration->_drawCallsJob->GetMemoryBarrierTasks(pc).push_back(mbt);
+			drawCallsJob->GetMemoryBarrierTasks(pc).push_back(mbt);
+		}
+
+
+		if constexpr (std::is_base_of_v<Core::MeshMaterial, TCoreMaterial>)
+		{
+			VkShaderModule vertexShader;
+			VkShaderModule pixelShader;
+
+
+			VkShaderModuleCreateInfo shaderModelInfo{};
+			shaderModelInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+			shaderModelInfo.pNext = nullptr;
+			shaderModelInfo.flags = 0;
+
+
+			shaderModelInfo.codeSize = material->GetVertexShader()->GetCompiledBinaryLength();
+			shaderModelInfo.pCode = static_cast<const std::uint32_t*>(material->GetVertexShader()->GetCompiledBinaryData());
+
+			vkCreateShaderModule(this->_specificGlobalContext->device->GetNativeLogical(), &shaderModelInfo, nullptr, &vertexShader);
+			assert(vertexShader);
+			iteration->_shaderModules.push_back(vertexShader);
+
+			shaderModelInfo.codeSize = material->GetPixelShader()->GetCompiledBinaryLength();
+			shaderModelInfo.pCode = static_cast<const std::uint32_t*>(material->GetPixelShader()->GetCompiledBinaryData());
+
+			vkCreateShaderModule(this->_specificGlobalContext->device->GetNativeLogical(), &shaderModelInfo, nullptr, &pixelShader);
+			assert(pixelShader);
+			iteration->_shaderModules.push_back(pixelShader);
 		}
 	}
 

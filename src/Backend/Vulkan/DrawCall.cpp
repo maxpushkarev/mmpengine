@@ -425,7 +425,7 @@ namespace MMPEngine::Backend::Vulkan
 		}
 	}
 
-	Camera::DrawCallsJob::IterationImpl::IterationImpl(const std::shared_ptr<DrawCallsJob>& job, const std::shared_ptr<Core::Camera>& camera, const Item& item) : _camera(camera), _item(item), _drawCallsJob(job)
+	Camera::DrawCallsJob::IterationImpl::IterationImpl(const std::shared_ptr<DrawCallsJob>& job, const std::shared_ptr<Core::Camera>& camera, const Item& item) : _camera(camera), _item(item), _drawCallsJob(job.get())
 	{
 	}
 }
