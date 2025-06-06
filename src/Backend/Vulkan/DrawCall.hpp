@@ -180,10 +180,12 @@ namespace MMPEngine::Backend::Vulkan
 		const auto ctx = this->GetTaskContext();
 		const auto iteration = ctx->job;
 
+		const auto pc = Core::PassKey {iteration.get()};
+
 		if constexpr (std::is_base_of_v<Core::MeshMaterial, TCoreMaterial>)
 		{
 			const auto& ibInfo = ctx->mesh->GetIndexBufferInfo();
-			iteration->_drawCallsJob->GetMemoryBarrierTasks(Core::PassKey{ iteration.get() }).push_back(std::dynamic_pointer_cast<Vulkan::Buffer>(ibInfo.ptr->GetUnderlyingBuffer())->CreateMemoryBarrierTask(
+			iteration->_drawCallsJob->GetMemoryBarrierTasks(pc).push_back(std::dynamic_pointer_cast<Vulkan::Buffer>(ibInfo.ptr->GetUnderlyingBuffer())->CreateMemoryBarrierTask(
 				VK_ACCESS_MEMORY_WRITE_BIT | VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_TRANSFER_WRITE_BIT | VK_ACCESS_TRANSFER_READ_BIT,
 				VK_ACCESS_INDEX_READ_BIT
 			));
@@ -194,12 +196,20 @@ namespace MMPEngine::Backend::Vulkan
 			{
 				for (const auto& vbInfo : s2vbs.second)
 				{
-					iteration->_drawCallsJob->GetMemoryBarrierTasks(Core::PassKey{ iteration.get() }).push_back(std::dynamic_pointer_cast<Vulkan::Buffer>(vbInfo.ptr->GetUnderlyingBuffer())->CreateMemoryBarrierTask(
+					iteration->_drawCallsJob->GetMemoryBarrierTasks(pc).push_back(std::dynamic_pointer_cast<Vulkan::Buffer>(vbInfo.ptr->GetUnderlyingBuffer())->CreateMemoryBarrierTask(
 						VK_ACCESS_MEMORY_WRITE_BIT | VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_TRANSFER_WRITE_BIT | VK_ACCESS_TRANSFER_READ_BIT,
 						VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT
 					));
 				}
 			}
+		}
+
+		iteration->_device = this->_specificGlobalContext->device;
+		iteration->PrepareMaterialParameters(this->_specificGlobalContext, iteration->_item.material->GetParameters());
+
+		for (const auto& mbt : iteration->_memoryBarrierTasks)
+		{
+			iteration->_drawCallsJob->GetMemoryBarrierTasks(pc).push_back(mbt);
 		}
 	}
 

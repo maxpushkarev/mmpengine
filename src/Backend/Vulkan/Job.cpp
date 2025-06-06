@@ -177,7 +177,6 @@ namespace MMPEngine::Backend::Vulkan
 			buildSets();
 		}
 
-
 		vkUpdateDescriptorSets(
 			_device->GetNativeLogical(), 
 			static_cast<std::uint32_t>(writeSets.size()),
