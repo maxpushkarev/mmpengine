@@ -26,6 +26,22 @@ namespace MMPEngine::Backend::Vulkan
 			vkDestroySemaphore(_device->GetNativeLogical(), _semaphore, nullptr);	
 		}
 
+		if (_timelineSemaphore && _device)
+		{
+			constexpr auto waitTime = (std::numeric_limits<std::uint64_t>::max)();
+
+			VkSemaphoreWaitInfo waitInfo {};
+			waitInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_WAIT_INFO;
+			waitInfo.pNext = nullptr;
+			waitInfo.flags = VK_SEMAPHORE_WAIT_ANY_BIT;
+			waitInfo.pSemaphores = &_timelineSemaphore;
+			waitInfo.semaphoreCount = 1;
+			waitInfo.pValues = &_timelineSemaphoreValue;
+
+			vkWaitSemaphores(_device->GetNativeLogical(), &waitInfo, waitTime);
+			vkDestroySemaphore(_device->GetNativeLogical(), _timelineSemaphore, nullptr);
+		}
+
 		if (_swapChain && _device)
 		{
 			vkDestroySwapchainKHR(_device->GetNativeLogical(), _swapChain, nullptr);
@@ -260,6 +276,21 @@ namespace MMPEngine::Backend::Vulkan
 		semInfo.flags = 0;
 		vkCreateSemaphore(_specificGlobalContext->device->GetNativeLogical(), &semInfo, nullptr, &screen->_semaphore);
 
+
+		VkSemaphoreTypeCreateInfo timelineCreateInfo{};
+		timelineCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_TYPE_CREATE_INFO;
+		timelineCreateInfo.semaphoreType = VK_SEMAPHORE_TYPE_TIMELINE;
+		timelineCreateInfo.initialValue = 0;
+
+		VkSemaphoreCreateInfo semaphoreInfo{};
+		semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+		semaphoreInfo.pNext = &timelineCreateInfo;
+		semInfo.flags = 0;
+
+		vkCreateSemaphore(screen->_device->GetNativeLogical(), &semaphoreInfo, nullptr, &screen->_timelineSemaphore);
+
+
+
 #ifdef MMPENGINE_WIN
 		VkWin32SurfaceCreateInfoKHR createInfo{};
 		createInfo.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
@@ -344,7 +375,33 @@ namespace MMPEngine::Backend::Vulkan
 		presentInfo.waitSemaphoreCount = 1;
 		presentInfo.pImageIndices = &currentImageIndex;
 		vkQueuePresentKHR(_specificStreamContext->GetQueue()->GetNative(), &presentInfo);
-		
+
+		++screen->_timelineSemaphoreValue;
+
+		VkTimelineSemaphoreSubmitInfo timelineInfo{};
+		timelineInfo.sType = VK_STRUCTURE_TYPE_TIMELINE_SEMAPHORE_SUBMIT_INFO;
+		timelineInfo.pNext = nullptr;
+		timelineInfo.waitSemaphoreValueCount = 0;
+		timelineInfo.pWaitSemaphoreValues = nullptr;
+		timelineInfo.signalSemaphoreValueCount = 1;
+		timelineInfo.pSignalSemaphoreValues = &screen->_timelineSemaphoreValue;
+
+		VkSubmitInfo submitInfo {};
+		submitInfo.pNext = &timelineInfo;
+		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+
+		submitInfo.commandBufferCount = 0;
+		submitInfo.pCommandBuffers = nullptr;
+
+		submitInfo.waitSemaphoreCount = 0;
+		submitInfo.pWaitSemaphores = nullptr;
+		submitInfo.pWaitDstStageMask = nullptr;
+
+		submitInfo.signalSemaphoreCount = 1;
+		submitInfo.pSignalSemaphores = &screen->_timelineSemaphore;
+
+		vkQueueSubmit(_specificStreamContext->GetQueue()->GetNative(), 1, &submitInfo, VK_NULL_HANDLE);
+
 		screen->_backBuffer->Swap();
 	}
 

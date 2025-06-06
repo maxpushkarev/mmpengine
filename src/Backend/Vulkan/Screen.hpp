@@ -115,6 +115,8 @@ namespace MMPEngine::Backend::Vulkan
 		VkSwapchainKHR _swapChain = VK_NULL_HANDLE;
 		VkSurfaceKHR _surface = VK_NULL_HANDLE;
 		VkSemaphore _semaphore = VK_NULL_HANDLE;
+		VkSemaphore _timelineSemaphore = VK_NULL_HANDLE;
+		std::uint64_t _timelineSemaphoreValue = 0;
 		std::shared_ptr<Wrapper::Device> _device;
 		std::shared_ptr<Wrapper::Instance> _instance;
 		std::uint32_t _acquireNextImageIndex = 0;

@@ -417,6 +417,12 @@ namespace MMPEngine::Feature
 
 			VkDeviceCreateInfo createDeviceInfo{};
 			createDeviceInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+
+			VkPhysicalDeviceTimelineSemaphoreFeatures timelineFeatures{};
+			timelineFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TIMELINE_SEMAPHORE_FEATURES;
+			timelineFeatures.timelineSemaphore = VK_TRUE;
+
+			createDeviceInfo.pNext = &timelineFeatures;
 			createDeviceInfo.pQueueCreateInfos = &queueCreateInfo;
 			createDeviceInfo.queueCreateInfoCount = 1;
 
