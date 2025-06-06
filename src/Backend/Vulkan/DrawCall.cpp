@@ -280,10 +280,10 @@ namespace MMPEngine::Backend::Vulkan
 
 	std::shared_ptr<Camera::DrawCallsJob::Iteration> Camera::DrawCallsJob::BuildIteration(const Item& item) const
 	{
-		/*if (std::dynamic_pointer_cast<Core::MeshMaterial>(item.material))
+		if (std::dynamic_pointer_cast<Core::MeshMaterial>(item.material))
 		{
 			return std::make_shared<IterationJob<Core::MeshMaterial>>(_camera, item);
-		}*/
+		}
 
 		return nullptr;
 	}
