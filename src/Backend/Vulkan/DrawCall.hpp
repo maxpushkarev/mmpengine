@@ -155,6 +155,8 @@ namespace MMPEngine::Backend::Vulkan
 		DrawCallsJob& operator=(const DrawCallsJob&) = delete;
 		DrawCallsJob& operator=(DrawCallsJob&&) noexcept = delete;
 		std::vector<std::shared_ptr<Core::BaseTask>>& GetMemoryBarrierTasks(Core::PassControl<true, IterationImpl>);
+		std::shared_ptr<Pass> GetPass(Core::PassControl<true, IterationImpl>) const;
+		const std::vector<std::shared_ptr<Core::Camera::DrawCallsJob::Iteration>>& GetIterations(Core::PassControl<true, IterationImpl>) const;
 	protected:
 		std::shared_ptr<Iteration> BuildIteration(const Item& item) const override;
 		std::shared_ptr<Core::BaseTask> CreateTaskForIterationsStart() override;
@@ -571,6 +573,32 @@ namespace MMPEngine::Backend::Vulkan
 			viewportState.pViewports = &viewport;
 			viewportState.scissorCount = 1;
 			viewportState.pScissors = &scissor;
+
+			VkGraphicsPipelineCreateInfo pipelineInfo{};
+
+			pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+			pipelineInfo.pNext = nullptr;
+			pipelineInfo.flags = 0;
+			pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
+			pipelineInfo.basePipelineIndex = -1;
+
+			pipelineInfo.stageCount = static_cast<std::uint32_t>(shaderStages.size());
+			pipelineInfo.pStages = shaderStages.data();
+
+			pipelineInfo.pVertexInputState = &vertexInput;
+			pipelineInfo.pInputAssemblyState = &inputAssembly;
+			pipelineInfo.pViewportState = &viewportState;
+			pipelineInfo.pRasterizationState = &rasterizer;
+			pipelineInfo.pMultisampleState = &multisampling;
+			pipelineInfo.pColorBlendState = &colorBlending;
+			pipelineInfo.pDepthStencilState = &depthStencil;
+			pipelineInfo.pDynamicState = VK_NULL_HANDLE;
+			pipelineInfo.pTessellationState = VK_NULL_HANDLE;
+			pipelineInfo.layout = iteration->_pipelineLayout;
+			pipelineInfo.renderPass = drawCallsJob->GetPass(pc)->GetRenderPass();
+
+			const auto iterationIt = std::find(drawCallsJob->GetIterations(pc).cbegin(), drawCallsJob->GetIterations(pc).cend(), iteration);
+			pipelineInfo.subpass = static_cast<std::uint32_t>(std::distance(drawCallsJob->GetIterations(pc).cbegin(), iterationIt) + 1);
 
 		}
 	}

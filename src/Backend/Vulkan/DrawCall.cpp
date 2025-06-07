@@ -13,6 +13,17 @@ namespace MMPEngine::Backend::Vulkan
 		return _memoryBarrierTasks;
 	}
 
+	std::shared_ptr<Camera::DrawCallsJob::Pass> Camera::DrawCallsJob::GetPass(Core::PassControl<true, IterationImpl>) const
+	{
+		return _pass;
+	}
+
+	const std::vector<std::shared_ptr<Core::Camera::DrawCallsJob::Iteration>>& Camera::DrawCallsJob::GetIterations(Core::PassControl<true, IterationImpl>) const
+	{
+		return _iterations;
+	}
+
+
 	Camera::DrawCallsJob::~DrawCallsJob() = default;
 
 	Camera::DrawCallsJob::Pass::Pass(const std::shared_ptr<const InternalTaskContext>& ctx, const std::shared_ptr<Wrapper::Device>& device) : _device(device)
