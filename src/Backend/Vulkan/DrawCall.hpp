@@ -440,6 +440,125 @@ namespace MMPEngine::Backend::Vulkan
 				depthStencil.back.reference = reference;
 			}
 
+			VkPipelineMultisampleStateCreateInfo multisampling{};
+			multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
+			multisampling.pNext = nullptr;
+			multisampling.flags = 0;
+			multisampling.rasterizationSamples = std::dynamic_pointer_cast<IColorTargetTexture>(iteration->_camera->GetTarget().color.front().tex->GetUnderlyingTexture())->GetSamplesCount();
+			multisampling.sampleShadingEnable = VK_FALSE;
+			multisampling.minSampleShading = 1.0f;
+			multisampling.pSampleMask = nullptr;
+			multisampling.alphaToCoverageEnable = static_cast<VkBool32>(settings.alphaToCoverage == Core::RenderingMaterial::Settings::AlphaToCoverage::On);
+			multisampling.alphaToOneEnable = VK_FALSE;
+
+			const auto getBlendOp = [](Core::RenderingMaterial::Settings::Blend::Op op) -> auto
+				{
+					switch (op)
+					{
+					case Core::RenderingMaterial::Settings::Blend::Op::Add:
+						return VK_BLEND_OP_ADD;
+					case Core::RenderingMaterial::Settings::Blend::Op::Max:
+						return VK_BLEND_OP_MAX;
+					case Core::RenderingMaterial::Settings::Blend::Op::Min:
+						return VK_BLEND_OP_MIN;
+					case Core::RenderingMaterial::Settings::Blend::Op::RevSub:
+						return VK_BLEND_OP_REVERSE_SUBTRACT;
+					case Core::RenderingMaterial::Settings::Blend::Op::Sub:
+						return VK_BLEND_OP_SUBTRACT;
+					default:
+						return VK_BLEND_OP_ADD;
+					}
+				};
+
+			const auto getBlendFactor = [](Core::RenderingMaterial::Settings::Blend::Factor factor) -> auto
+				{
+					switch (factor)
+					{
+					case Core::RenderingMaterial::Settings::Blend::Factor::Zero:
+						return VK_BLEND_FACTOR_ZERO;
+					case Core::RenderingMaterial::Settings::Blend::Factor::DstAlpha:
+						return VK_BLEND_FACTOR_DST_ALPHA;
+					case Core::RenderingMaterial::Settings::Blend::Factor::DstColor:
+						return VK_BLEND_FACTOR_DST_COLOR;
+					case Core::RenderingMaterial::Settings::Blend::Factor::One:
+						return VK_BLEND_FACTOR_ONE;
+					case Core::RenderingMaterial::Settings::Blend::Factor::OneMinusSrcAlpha:
+						return VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+					case Core::RenderingMaterial::Settings::Blend::Factor::OneMinusDstAlpha:
+						return VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA;
+					case Core::RenderingMaterial::Settings::Blend::Factor::OneMinusDstColor:
+						return VK_BLEND_FACTOR_ONE_MINUS_DST_COLOR;
+					case Core::RenderingMaterial::Settings::Blend::Factor::OneMinusSrcColor:
+						return VK_BLEND_FACTOR_ONE_MINUS_SRC_COLOR;
+					case Core::RenderingMaterial::Settings::Blend::Factor::SrcAlpha:
+						return VK_BLEND_FACTOR_SRC_ALPHA;
+					case Core::RenderingMaterial::Settings::Blend::Factor::SrcColor:
+						return VK_BLEND_FACTOR_SRC_COLOR;
+					default:
+						return VK_BLEND_FACTOR_ONE;
+					}
+				};
+
+			std::vector<VkPipelineColorBlendAttachmentState> blendAttachments;
+
+			for (std::size_t i = 0; i < settings.blend.targets.size(); ++i)
+			{
+				const auto& bt = settings.blend.targets.at(i);
+				VkPipelineColorBlendAttachmentState blendAttachment {};
+
+				blendAttachment.blendEnable = static_cast<VkBool32>(bt.op != Core::RenderingMaterial::Settings::Blend::Op::None);
+
+				blendAttachment.colorBlendOp = getBlendOp(bt.op);
+				blendAttachment.srcColorBlendFactor = getBlendFactor(bt.src);
+				blendAttachment.dstColorBlendFactor = getBlendFactor(bt.dst);
+
+				blendAttachment.alphaBlendOp = blendAttachment.colorBlendOp;
+				blendAttachment.srcAlphaBlendFactor = blendAttachment.srcColorBlendFactor;
+				blendAttachment.dstAlphaBlendFactor = blendAttachment.dstColorBlendFactor;
+
+				blendAttachment.colorWriteMask = 0;
+
+				if (static_cast<std::uint8_t>(bt.colorMask) & static_cast<std::uint8_t>(Core::RenderingMaterial::Settings::Blend::ColorMask::Red))
+				{
+					blendAttachment.colorWriteMask |= VK_COLOR_COMPONENT_R_BIT;
+				}
+
+				if (static_cast<std::uint8_t>(bt.colorMask) & static_cast<std::uint8_t>(Core::RenderingMaterial::Settings::Blend::ColorMask::Green))
+				{
+					blendAttachment.colorWriteMask |= VK_COLOR_COMPONENT_G_BIT;
+				}
+
+				if (static_cast<std::uint8_t>(bt.colorMask) & static_cast<std::uint8_t>(Core::RenderingMaterial::Settings::Blend::ColorMask::Blue))
+				{
+					blendAttachment.colorWriteMask |= VK_COLOR_COMPONENT_B_BIT;
+				}
+
+				if (static_cast<std::uint8_t>(bt.colorMask) & static_cast<std::uint8_t>(Core::RenderingMaterial::Settings::Blend::ColorMask::Alpha))
+				{
+					blendAttachment.colorWriteMask |= VK_COLOR_COMPONENT_A_BIT;
+				}
+
+
+				blendAttachments.push_back(blendAttachment);
+			}
+
+			VkPipelineColorBlendStateCreateInfo colorBlending{};
+			colorBlending.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
+			colorBlending.pNext = nullptr;
+			colorBlending.flags = 0;
+
+			colorBlending.logicOpEnable = VK_FALSE;
+			colorBlending.logicOp = VK_LOGIC_OP_COPY;
+
+			colorBlending.attachmentCount = static_cast<std::uint32_t>(iteration->_camera->GetTarget().color.size());
+			colorBlending.pAttachments = blendAttachments.data();
+
+			colorBlending.blendConstants[0] = 0.0f;
+			colorBlending.blendConstants[1] = 0.0f;
+			colorBlending.blendConstants[2] = 0.0f;
+			colorBlending.blendConstants[3] = 0.0f;
+
+
 			const auto size = iteration->_camera->GetTarget().color.front().tex->GetSettings().base.size;
 			VkViewport viewport = { 0.0f, 0.0f, static_cast<std::float_t>(size.x), static_cast<std::float_t>(size.y), 0.0f, 1.0f };
 			VkRect2D scissor = { {0, 0}, { size.x, size.y } };

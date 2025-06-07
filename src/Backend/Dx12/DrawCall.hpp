@@ -348,6 +348,8 @@ namespace MMPEngine::Backend::Dx12
 			psoDesc.BlendState.RenderTarget[i].SrcBlendAlpha = psoDesc.BlendState.RenderTarget[i].SrcBlend;
 			psoDesc.BlendState.RenderTarget[i].DestBlendAlpha = psoDesc.BlendState.RenderTarget[i].DestBlend;
 
+			psoDesc.BlendState.RenderTarget->LogicOpEnable = false;
+
 			psoDesc.BlendState.RenderTarget[i].RenderTargetWriteMask = 0;
 
 			if(static_cast<std::uint8_t>(bt.colorMask) & static_cast<std::uint8_t>(Core::RenderingMaterial::Settings::Blend::ColorMask::Red))
