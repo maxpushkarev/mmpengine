@@ -44,9 +44,19 @@ namespace MMPEngine::Backend::Vulkan
 		return _indexBuffer;
 	}
 
+	const std::vector<VkBuffer>& Mesh::GetVertexBuffers() const
+	{
+		return _vertexBuffers;
+	}
+
 	const std::vector<VkVertexInputAttributeDescription>& Mesh::GetVertexAttributeDescriptions() const
 	{
 		return _attributeDescriptions;
+	}
+
+	const std::vector<VkDeviceSize>& Mesh::GetVertexBuffersOffsets() const
+	{
+		return _vertexBufferOffsets;
 	}
 
 	Mesh::Renderer::Renderer(const Settings& settings, const std::shared_ptr<Core::Mesh>& mesh, const std::shared_ptr<Core::Node>& node) : Core::Mesh::Renderer(settings, mesh, node)
@@ -72,7 +82,6 @@ namespace MMPEngine::Backend::Vulkan
 		assert(mesh);
 
 		std::uint32_t bindingIndex = 0;
-
 		for (const auto& vbInfos : mesh->_vertexBufferInfos)
 		{
 			for (std::size_t semanticIndex = 0; semanticIndex < vbInfos.second.size(); ++semanticIndex)
@@ -80,6 +89,7 @@ namespace MMPEngine::Backend::Vulkan
 				const auto& vbInfo = vbInfos.second.at(semanticIndex);
 				const auto vb = std::dynamic_pointer_cast<Buffer>(vbInfo.ptr->GetUnderlyingBuffer());
 				assert(vb);
+				mesh->_vertexBuffers.push_back(vb->GetDescriptorBufferInfo().buffer);
 
 				VkVertexInputBindingDescription binding{};
 				binding.binding = bindingIndex++;
@@ -97,6 +107,8 @@ namespace MMPEngine::Backend::Vulkan
 				mesh->_attributeDescriptions.push_back(attr);
 			}
 		}
+
+		mesh->_vertexBufferOffsets.resize(mesh->_vertexBuffers.size(), 0);
 
 		const auto& ibInfo = mesh->_indexBufferInfo;
 		const auto ib = std::dynamic_pointer_cast<Buffer>(ibInfo.ptr->GetUnderlyingBuffer());

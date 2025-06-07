@@ -29,6 +29,8 @@ namespace MMPEngine::Backend::Vulkan
 		const std::vector<VkVertexInputAttributeDescription>& GetVertexAttributeDescriptions() const;
 		VkIndexType GetIndexType() const;
 		std::shared_ptr<Vulkan::Buffer> GetIndexBuffer() const;
+		const std::vector<VkBuffer>& GetVertexBuffers() const;
+		const std::vector<VkDeviceSize>& GetVertexBuffersOffsets() const;
 
 		class Renderer final : public Core::Mesh::Renderer
 		{
@@ -49,10 +51,11 @@ namespace MMPEngine::Backend::Vulkan
 
 		std::vector<VkVertexInputBindingDescription> _bindingDescriptions;
 		std::vector<VkVertexInputAttributeDescription> _attributeDescriptions;
+
 		VkIndexType _indexType;
-
 		std::shared_ptr<Vulkan::Buffer> _indexBuffer;
-
+		std::vector<VkBuffer> _vertexBuffers;
+		std::vector<VkDeviceSize> _vertexBufferOffsets;
 
 	};
 }

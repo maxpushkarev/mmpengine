@@ -621,7 +621,20 @@ namespace MMPEngine::Backend::Vulkan
 		vkCmdNextSubpass(this->_specificStreamContext->PopulateCommandsInBuffer()->GetNative(), VK_SUBPASS_CONTENTS_INLINE);
 		vkCmdBindPipeline(this->_specificStreamContext->PopulateCommandsInBuffer()->GetNative(), VK_PIPELINE_BIND_POINT_GRAPHICS, tc->job->_pipeline);
 
-		vkCmdBindIndexBuffer(this->_specificStreamContext->PopulateCommandsInBuffer()->GetNative(), tc->mesh->GetIndexBuffer()->GetDescriptorBufferInfo().buffer, 0, tc->mesh->GetIndexType());
+		vkCmdBindVertexBuffers(
+			this->_specificStreamContext->PopulateCommandsInBuffer()->GetNative(),
+			0, 
+			static_cast<std::uint32_t>(tc->mesh->GetVertexBuffers().size()), 
+			tc->mesh->GetVertexBuffers().data(),
+			tc->mesh->GetVertexBuffersOffsets().data()
+		);
+
+		vkCmdBindIndexBuffer(
+			this->_specificStreamContext->PopulateCommandsInBuffer()->GetNative(), 
+			tc->mesh->GetIndexBuffer()->GetDescriptorBufferInfo().buffer, 
+			0, 
+			tc->mesh->GetIndexType()
+		);
 	}
 
 	template<typename TCoreMaterial>
