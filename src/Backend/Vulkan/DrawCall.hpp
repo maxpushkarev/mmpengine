@@ -616,7 +616,10 @@ namespace MMPEngine::Backend::Vulkan
 	{
 		Task<TaskContext>::Run(stream);
 
+		const auto tc = this->GetTaskContext();
+
 		vkCmdNextSubpass(this->_specificStreamContext->PopulateCommandsInBuffer()->GetNative(), VK_SUBPASS_CONTENTS_INLINE);
+		vkCmdBindPipeline(this->_specificStreamContext->PopulateCommandsInBuffer()->GetNative(), VK_PIPELINE_BIND_POINT_GRAPHICS, tc->job->_pipeline);
 	}
 
 	template<typename TCoreMaterial>
