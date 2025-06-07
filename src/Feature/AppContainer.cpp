@@ -116,7 +116,7 @@ namespace MMPEngine::Feature
 		{
 			glfwInit();
 			glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-
+			
 			_window = glfwCreateWindow(_settings.initialWindowWidth, _settings.initialWindowHeight, _settings.windowCaption.c_str(), nullptr, nullptr);
 			glfwSetWindowUserPointer(_window, this);
 
@@ -388,7 +388,7 @@ namespace MMPEngine::Feature
 			RegisterClass(&wc);
 
 			RECT rect = { 0, 0, _settings.initialWindowWidth, _settings.initialWindowHeight };
-			AdjustWindowRect(&rect, WS_OVERLAPPEDWINDOW, false);
+			//AdjustWindowRect(&rect, WS_OVERLAPPEDWINDOW, false);
 			const auto w = rect.right - rect.left;
 			const auto h = rect.bottom - rect.top;
 
