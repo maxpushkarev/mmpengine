@@ -600,6 +600,9 @@ namespace MMPEngine::Backend::Vulkan
 			const auto iterationIt = std::find(drawCallsJob->GetIterations(pc).cbegin(), drawCallsJob->GetIterations(pc).cend(), iteration);
 			pipelineInfo.subpass = static_cast<std::uint32_t>(std::distance(drawCallsJob->GetIterations(pc).cbegin(), iterationIt) + 1);
 
+			const auto pipelineRes = vkCreateGraphicsPipelines(iteration->_device->GetNativeLogical(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &iteration->_pipeline);
+			assert(pipelineRes == VK_SUCCESS);
+			assert(iteration->_pipeline);
 		}
 	}
 
