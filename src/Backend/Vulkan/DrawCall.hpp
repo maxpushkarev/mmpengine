@@ -30,21 +30,35 @@ namespace MMPEngine::Backend::Vulkan
 		public:
 			explicit Pass(const std::shared_ptr<const InternalTaskContext>& ctx, const std::shared_ptr<Wrapper::Device>& device);
 			Pass(const Pass&) = delete;
-			Pass(Pass&&) noexcept;
+			Pass(Pass&&) noexcept = delete;
 			Pass& operator=(const Pass&) = delete;
 			Pass& operator=(Pass&&) noexcept = delete;
 			~Pass();
 
-			VkFramebuffer GetFrameBuffer() const;
 			VkRenderPass GetRenderPass() const;
 			const std::vector<VkAttachmentDescription>& GetAttachmentDescriptions() const;
 
 		private:
 			VkRenderPass _renderPass = VK_NULL_HANDLE;
-			VkFramebuffer _frameBuffer = VK_NULL_HANDLE;
 			std::shared_ptr<Wrapper::Device> _device;
 
 			std::vector<VkAttachmentDescription> _attachmentDescriptions;
+		};
+
+		class FrameBuffer final
+		{
+		public:
+			explicit FrameBuffer(const std::shared_ptr<const InternalTaskContext>& ctx, const std::shared_ptr<Wrapper::Device>& device);
+			FrameBuffer(const FrameBuffer&) = delete;
+			FrameBuffer(FrameBuffer&&) noexcept;
+			FrameBuffer& operator=(const FrameBuffer&) = delete;
+			FrameBuffer& operator=(FrameBuffer&&) noexcept = delete;
+			~FrameBuffer();
+
+			VkFramebuffer GetFrameBuffer() const;
+		private:
+			VkFramebuffer _frameBuffer = VK_NULL_HANDLE;
+			std::shared_ptr<Wrapper::Device> _device;
 		};
 
 		class InternalTaskContext final : public Core::TaskContext, public std::enable_shared_from_this<InternalTaskContext>
@@ -130,8 +144,6 @@ namespace MMPEngine::Backend::Vulkan
 			~IterationJob() override;
 			std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;
 			std::shared_ptr<Core::BaseTask> CreateExecutionTask() override;
-		private:
-			VkGraphicsPipelineCreateInfo _pipelineCreateInfo {};
 		};
 
 
@@ -150,8 +162,9 @@ namespace MMPEngine::Backend::Vulkan
 		std::shared_ptr<Core::BaseTask> CreateTaskForIterationsFinish() override;
 	private:
 		std::shared_ptr<InternalTaskContext> BuildInternalContext();
-		const Pass* GetOrCreatePass(const std::shared_ptr<InternalTaskContext>& ctx, const std::shared_ptr<Wrapper::Device>& device);
-		std::vector<std::tuple<std::vector<VkImageView>, Pass>> _cachedPasses;
+		const FrameBuffer* GetOrCreateFrameBuffer(const std::shared_ptr<InternalTaskContext>& ctx, const std::shared_ptr<Wrapper::Device>& device);
+		std::shared_ptr<Pass> _pass;
+		std::vector<std::tuple<std::vector<VkImageView>, FrameBuffer>> _cachedFrameBuffers;
 	};
 
 
@@ -259,7 +272,6 @@ namespace MMPEngine::Backend::Vulkan
 			vkCreateShaderModule(this->_specificGlobalContext->device->GetNativeLogical(), &shaderModelInfo, nullptr, &pixelShader);
 			assert(pixelShader);
 			iteration->_shaderModules.push_back(pixelShader);
-
 
 
 			VkPipelineShaderStageCreateInfo vertStage{};

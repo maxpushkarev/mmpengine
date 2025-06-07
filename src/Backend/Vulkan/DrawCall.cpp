@@ -15,8 +15,6 @@ namespace MMPEngine::Backend::Vulkan
 
 	Camera::DrawCallsJob::~DrawCallsJob() = default;
 
-	Camera::DrawCallsJob::Pass::Pass(Pass&&) noexcept = default;
-
 	Camera::DrawCallsJob::Pass::Pass(const std::shared_ptr<const InternalTaskContext>& ctx, const std::shared_ptr<Wrapper::Device>& device) : _device(device)
 	{
 		VkRenderPassCreateInfo rpInfo {};
@@ -27,8 +25,6 @@ namespace MMPEngine::Backend::Vulkan
 
 		rpInfo.dependencyCount = 0;
 		rpInfo.pDependencies = nullptr;
-
-		std::vector<VkImageView> attachmentViews;
 
 		for (std::size_t i = 0; i < ctx->colorRenderTargets.size(); ++i)
 		{
@@ -46,11 +42,10 @@ namespace MMPEngine::Backend::Vulkan
 			colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 			colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 			colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-			colorAttachment.initialLayout = crt->GetLayout();
-			colorAttachment.finalLayout = colorAttachment.initialLayout;
+			colorAttachment.initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+			colorAttachment.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
 			_attachmentDescriptions.push_back(colorAttachment);
-			attachmentViews.push_back(crt->GetImageView());
 		}
 
 		if (ctx->depthStencil)
@@ -83,11 +78,10 @@ namespace MMPEngine::Backend::Vulkan
 				dsAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_STORE;
 			}
 
-			dsAttachment.initialLayout = ctx->depthStencil->GetLayout();
-			dsAttachment.finalLayout = ctx->depthStencil->GetLayout();
+			dsAttachment.initialLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+			dsAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
 			_attachmentDescriptions.push_back(dsAttachment);
-			attachmentViews.push_back(ctx->depthStencil->GetImageView());
 		}
 
 		rpInfo.attachmentCount = static_cast<std::uint32_t>(_attachmentDescriptions.size());
@@ -99,7 +93,7 @@ namespace MMPEngine::Backend::Vulkan
 		{
 			const auto& crt = ctx->colorRenderTargets[i];
 			VkAttachmentReference cRef = {};
-			cRef.layout = crt->GetLayout();
+			cRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 			cRef.attachment = static_cast<std::uint32_t>(i);
 
 			colorRefs.push_back(cRef);
@@ -109,7 +103,7 @@ namespace MMPEngine::Backend::Vulkan
 
 		if (ctx->depthStencil)
 		{
-			dsRef.layout = ctx->depthStencil->GetLayout();
+			dsRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 			dsRef.attachment = static_cast<std::uint32_t>(_attachmentDescriptions.size() - 1);
 		}
 
@@ -151,35 +145,11 @@ namespace MMPEngine::Backend::Vulkan
 
 		const auto rpRes = vkCreateRenderPass(_device->GetNativeLogical(), &rpInfo, nullptr, &_renderPass);
 		assert(rpRes == VK_SUCCESS);
-
-		const auto size = ctx->job->_camera->GetTarget().color.front().tex->GetSettings().base.size;
-
-		VkFramebufferCreateInfo fbInfo {};
-
-		fbInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-		fbInfo.pNext = nullptr;
-		fbInfo.renderPass = _renderPass;
-		fbInfo.flags = 0;
-
-		fbInfo.layers = 1;
-		fbInfo.width = size.x;
-		fbInfo.height = size.y;
-
-		fbInfo.attachmentCount = static_cast<std::uint32_t>(attachmentViews.size());
-		fbInfo.pAttachments = attachmentViews.data();
-
-		const auto fbRes = vkCreateFramebuffer(_device->GetNativeLogical(), &fbInfo, nullptr, &_frameBuffer);
-		assert(fbRes == VK_SUCCESS);
 	}
 
 	const std::vector<VkAttachmentDescription>& Camera::DrawCallsJob::Pass::GetAttachmentDescriptions() const
 	{
 		return _attachmentDescriptions;
-	}
-
-	VkFramebuffer Camera::DrawCallsJob::Pass::GetFrameBuffer() const
-	{
-		return _frameBuffer;
 	}
 
 	VkRenderPass Camera::DrawCallsJob::Pass::GetRenderPass() const
@@ -193,14 +163,60 @@ namespace MMPEngine::Backend::Vulkan
 		{
 			vkDestroyRenderPass(_device->GetNativeLogical(), _renderPass, nullptr);
 		}
+	}
 
+	Camera::DrawCallsJob::FrameBuffer::FrameBuffer(const std::shared_ptr<const InternalTaskContext>& ctx, const std::shared_ptr<Wrapper::Device>& device) : _device(device)
+	{
+		std::vector<VkImageView> attachmentViews {};
+
+		for (std::size_t i = 0; i < ctx->colorRenderTargets.size(); ++i)
+		{
+			const auto& crt = ctx->colorRenderTargets[i];
+			attachmentViews.push_back(crt->GetImageView());
+		}
+
+		if (ctx->depthStencil)
+		{
+			attachmentViews.push_back(ctx->depthStencil->GetImageView());
+		}
+
+		const auto size = ctx->job->_camera->GetTarget().color.front().tex->GetSettings().base.size;
+
+		VkFramebufferCreateInfo fbInfo{};
+
+		fbInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+		fbInfo.pNext = nullptr;
+		fbInfo.renderPass = ctx->job->_pass->GetRenderPass();
+		fbInfo.flags = 0;
+
+		fbInfo.layers = 1;
+		fbInfo.width = size.x;
+		fbInfo.height = size.y;
+
+		fbInfo.attachmentCount = static_cast<std::uint32_t>(attachmentViews.size());
+		fbInfo.pAttachments = attachmentViews.data();
+
+		const auto fbRes = vkCreateFramebuffer(_device->GetNativeLogical(), &fbInfo, nullptr, &_frameBuffer);
+		assert(fbRes == VK_SUCCESS);
+	}
+
+	Camera::DrawCallsJob::FrameBuffer::~FrameBuffer()
+	{
 		if (_frameBuffer && _device)
 		{
 			vkDestroyFramebuffer(_device->GetNativeLogical(), _frameBuffer, nullptr);
 		}
 	}
 
-	const Camera::DrawCallsJob::Pass* Camera::DrawCallsJob::GetOrCreatePass(const std::shared_ptr<InternalTaskContext>& ctx, const std::shared_ptr<Wrapper::Device>& device)
+	Camera::DrawCallsJob::FrameBuffer::FrameBuffer(FrameBuffer&&) noexcept = default;
+
+	VkFramebuffer Camera::DrawCallsJob::FrameBuffer::GetFrameBuffer() const
+	{
+		return _frameBuffer;
+	}
+
+
+	const Camera::DrawCallsJob::FrameBuffer* Camera::DrawCallsJob::GetOrCreateFrameBuffer(const std::shared_ptr<InternalTaskContext>& ctx, const std::shared_ptr<Wrapper::Device>& device)
 	{
 		ctx->attachments.clear();
 
@@ -215,29 +231,29 @@ namespace MMPEngine::Backend::Vulkan
 			ctx->attachments.push_back(ctx->depthStencil->GetImageView());
 		}
 
-		const Pass* pass = nullptr;
+		const FrameBuffer* res = nullptr;
 
-		for (const auto& p : _cachedPasses)
+		for (const auto& fb : _cachedFrameBuffers)
 		{
-			const auto& v = std::get<0>(p);
+			const auto& v = std::get<0>(fb);
 
 			if (v == ctx->attachments)
 			{
-				pass = &(std::get<1>(p));
+				res = &(std::get<1>(fb));
 				break;
 			}
 		}
 
-		if (!pass)
+		if (!res)
 		{
-			_cachedPasses.emplace_back(
+			_cachedFrameBuffers.emplace_back(
 				ctx->attachments,
-				Pass{ctx, device }
+				FrameBuffer{ctx, device }
 			);
-			pass = &(std::get<1>(_cachedPasses.back()));
+			res = &(std::get<1>(_cachedFrameBuffers.back()));
 		}
 
-		return pass;
+		return res;
 	}
 
 
@@ -318,6 +334,8 @@ namespace MMPEngine::Backend::Vulkan
 
 		const auto ctx = GetTaskContext();
 
+		ctx->job->_pass = std::make_shared<Pass>(ctx, _specificGlobalContext->device);
+
 		if (ctx->job->_camera->GetTarget().depthStencil.tex)
 		{
 			VkImageAspectFlags depthAspectBit = VK_IMAGE_ASPECT_DEPTH_BIT;
@@ -331,7 +349,7 @@ namespace MMPEngine::Backend::Vulkan
 			ctx->job->_memoryBarrierTasks.push_back(std::dynamic_pointer_cast<BaseTexture>(ctx->job->_camera->GetTarget().depthStencil.tex->GetUnderlyingTexture())->CreateMemoryBarrierTask(
 				VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
 				VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
-				depthLayoutBit,
+				VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
 				VkImageSubresourceRange{
 					depthAspectBit, 0, 1, 0, 1
 				}
@@ -380,7 +398,8 @@ namespace MMPEngine::Backend::Vulkan
 		const auto ds = tc->job->_camera->GetTarget().depthStencil;
 		const auto crts = tc->job->_camera->GetTarget().color;
 
-		const auto pass = tc->job->GetOrCreatePass(tc, _specificGlobalContext->device);
+		const auto pass = tc->job->_pass;
+		const auto fb = tc->job->GetOrCreateFrameBuffer(tc, _specificGlobalContext->device);
 		const auto size = tc->job->_camera->GetTarget().color.front().tex->GetSettings().base.size;
 
 		VkRenderPassBeginInfo rpBeginInfo {};
@@ -388,7 +407,7 @@ namespace MMPEngine::Backend::Vulkan
 		rpBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
 		rpBeginInfo.pNext = nullptr;
 
-		rpBeginInfo.framebuffer = pass->GetFrameBuffer();
+		rpBeginInfo.framebuffer = fb->GetFrameBuffer();
 		rpBeginInfo.renderPass = pass->GetRenderPass();
 
 		rpBeginInfo.renderArea.offset = { 0, 0 };
@@ -411,7 +430,7 @@ namespace MMPEngine::Backend::Vulkan
 
 		vkCmdEndRenderPass(_specificStreamContext->PopulateCommandsInBuffer()->GetNative());
 
-		const auto pass = tc->job->GetOrCreatePass(tc, _specificGlobalContext->device);
+		const auto pass = tc->job->_pass;
 
 		for (std::size_t i = 0; i < tc->colorRenderTargets.size(); ++i)
 		{
