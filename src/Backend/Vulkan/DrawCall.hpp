@@ -252,7 +252,6 @@ namespace MMPEngine::Backend::Vulkan
 			VkShaderModule vertexShader;
 			VkShaderModule pixelShader;
 
-
 			VkShaderModuleCreateInfo shaderModelInfo{};
 			shaderModelInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
 			shaderModelInfo.pNext = nullptr;
@@ -293,8 +292,6 @@ namespace MMPEngine::Backend::Vulkan
 			pixelStage.pName = Core::Shader::ENTRY_POINT_NAME;
 
 			VkPipelineShaderStageCreateInfo shaderStages[] = { vertStage, pixelStage };
-
-
 		}
 	}
 
