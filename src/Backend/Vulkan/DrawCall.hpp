@@ -621,32 +621,48 @@ namespace MMPEngine::Backend::Vulkan
 		vkCmdNextSubpass(this->_specificStreamContext->PopulateCommandsInBuffer()->GetNative(), VK_SUBPASS_CONTENTS_INLINE);
 		vkCmdBindPipeline(this->_specificStreamContext->PopulateCommandsInBuffer()->GetNative(), VK_PIPELINE_BIND_POINT_GRAPHICS, tc->job->_pipeline);
 
-		vkCmdBindVertexBuffers(
-			this->_specificStreamContext->PopulateCommandsInBuffer()->GetNative(),
-			0, 
-			static_cast<std::uint32_t>(tc->mesh->GetVertexBuffers().size()), 
-			tc->mesh->GetVertexBuffers().data(),
-			tc->mesh->GetVertexBuffersOffsets().data()
-		);
+		if constexpr (std::is_base_of_v<Core::MeshMaterial, TCoreMaterial>)
+		{
+			vkCmdBindVertexBuffers(
+				this->_specificStreamContext->PopulateCommandsInBuffer()->GetNative(),
+				0, 
+				static_cast<std::uint32_t>(tc->mesh->GetVertexBuffers().size()), 
+				tc->mesh->GetVertexBuffers().data(),
+				tc->mesh->GetVertexBuffersOffsets().data()
+			);
 
-		vkCmdBindIndexBuffer(
-			this->_specificStreamContext->PopulateCommandsInBuffer()->GetNative(), 
-			tc->mesh->GetIndexBuffer()->GetDescriptorBufferInfo().buffer, 
-			0, 
-			tc->mesh->GetIndexType()
-		);
+			vkCmdBindIndexBuffer(
+				this->_specificStreamContext->PopulateCommandsInBuffer()->GetNative(), 
+				tc->mesh->GetIndexBuffer()->GetDescriptorBufferInfo().buffer, 
+				0, 
+				tc->mesh->GetIndexType()
+			);
 
-		vkCmdBindDescriptorSets(
-			this->_specificStreamContext->PopulateCommandsInBuffer()->GetNative(),
-			VK_PIPELINE_BIND_POINT_GRAPHICS,
-			tc->job->_pipelineLayout,
-			0,
-			static_cast<std::uint32_t>(tc->job->_sets.size()),
-			tc->job->_sets.data(),
-			0,
-			nullptr
-		);
+			vkCmdBindDescriptorSets(
+				this->_specificStreamContext->PopulateCommandsInBuffer()->GetNative(),
+				VK_PIPELINE_BIND_POINT_GRAPHICS,
+				tc->job->_pipelineLayout,
+				0,
+				static_cast<std::uint32_t>(tc->job->_sets.size()),
+				tc->job->_sets.data(),
+				0,
+				nullptr
+			);
 
+			const auto& subsets = tc->mesh->GetSubsets();
+
+			for (const auto& ss : subsets)
+			{
+				vkCmdDrawIndexed(
+					this->_specificStreamContext->PopulateCommandsInBuffer()->GetNative(), 
+					ss.indexCount,
+					static_cast<std::uint32_t>(tc->meshRenderer->GetSettings().dynamicData.instancesCount),
+					ss.indexStart, 
+					ss.baseVertex, 
+					0
+				);
+			}
+		}
 	}
 
 	template<typename TCoreMaterial>
