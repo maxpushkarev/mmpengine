@@ -272,6 +272,7 @@ namespace MMPEngine::Backend::Vulkan
 			assert(pixelShader);
 			iteration->_shaderModules.push_back(pixelShader);
 
+			std::vector<VkPipelineShaderStageCreateInfo> shaderStages {};
 
 			VkPipelineShaderStageCreateInfo vertStage{};
 			vertStage.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
@@ -291,7 +292,48 @@ namespace MMPEngine::Backend::Vulkan
 			pixelStage.module = pixelShader;
 			pixelStage.pName = Core::Shader::ENTRY_POINT_NAME;
 
-			VkPipelineShaderStageCreateInfo shaderStages[] = { vertStage, pixelStage };
+			shaderStages.push_back(vertStage);
+			shaderStages.push_back(pixelStage);
+
+			VkPipelineInputAssemblyStateCreateInfo inputAssembly{};
+			inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
+			inputAssembly.flags = 0;
+			inputAssembly.pNext = nullptr;
+			inputAssembly.primitiveRestartEnable = VK_FALSE;
+
+			switch (const auto topology = ctx->mesh->GetTopology())
+			{
+			case Core::GeometryPrototype::Topology::Triangles:
+				inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+				break;
+			default:
+				inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_MAX_ENUM;
+				break;
+			}
+
+
+			VkPipelineVertexInputStateCreateInfo vertexInput{};
+			vertexInput.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+			vertexInput.pNext = nullptr;
+			vertexInput.flags = 0;
+			vertexInput.vertexBindingDescriptionCount = static_cast<std::uint32_t>(ctx->mesh->GetVertexBindingDescriptions().size());
+			vertexInput.pVertexBindingDescriptions = ctx->mesh->GetVertexBindingDescriptions().data();
+			vertexInput.vertexAttributeDescriptionCount = static_cast<std::uint32_t>(ctx->mesh->GetVertexAttributeDescriptions().size());
+			vertexInput.pVertexAttributeDescriptions = ctx->mesh->GetVertexAttributeDescriptions().data();
+
+			const auto size = iteration->_camera->GetTarget().color.front().tex->GetSettings().base.size;
+			VkViewport viewport = { 0.0f, 0.0f, static_cast<std::float_t>(size.x), static_cast<std::float_t>(size.y), 0.0f, 1.0f };
+			VkRect2D scissor = { {0, 0}, { size.x, size.y } };
+
+			VkPipelineViewportStateCreateInfo viewportState{};
+			viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+			viewportState.pNext = nullptr;
+			viewportState.flags = 0;
+			viewportState.viewportCount = 1;
+			viewportState.pViewports = &viewport;
+			viewportState.scissorCount = 1;
+			viewportState.pScissors = &scissor;
+
 		}
 	}
 
