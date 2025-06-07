@@ -34,6 +34,16 @@ namespace MMPEngine::Backend::Vulkan
 		return _bindingDescriptions;
 	}
 
+	VkIndexType Mesh::GetIndexType() const
+	{
+		return _indexType;	
+	}
+
+	std::shared_ptr<Vulkan::Buffer> Mesh::GetIndexBuffer() const
+	{
+		return _indexBuffer;
+	}
+
 	const std::vector<VkVertexInputAttributeDescription>& Mesh::GetVertexAttributeDescriptions() const
 	{
 		return _attributeDescriptions;
@@ -88,23 +98,12 @@ namespace MMPEngine::Backend::Vulkan
 			}
 		}
 
-		/*const auto& ibInfo = mesh->_indexBufferInfo;
+		const auto& ibInfo = mesh->_indexBufferInfo;
 		const auto ib = std::dynamic_pointer_cast<Buffer>(ibInfo.ptr->GetUnderlyingBuffer());
-		assert(ib);*/
+		assert(ib);
 
-		/*mesh->_indexBufferView.Format = (ibInfo.format == Core::IndexBufferPrototype::Format::Uint16) ? DXGI_FORMAT_R16_UINT : DXGI_FORMAT_R32_UINT;
-		mesh->_indexBufferView.SizeInBytes = static_cast<std::uint32_t>(ibInfo.stride * ibInfo.elementsCount);
-		mesh->_indexBufferView.BufferLocation = ib->GetNativeGPUAddressWithRequiredOffset();
-
-		mesh->_vertexBufferViews.clear();
-		mesh->_vertexInputLayout.clear();
-
-		mesh->_vertexInputLayout.reserve(mesh->_vertexBufferInfos.size());
-		mesh->_vertexBufferViews.reserve(mesh->_vertexBufferInfos.size());
-
-		std::uint32_t currentBufferSlotIndex = 0;
-
-		*/
+		mesh->_indexType = (ibInfo.format == Core::IndexBufferPrototype::Format::Uint16) ? VK_INDEX_TYPE_UINT16 : VK_INDEX_TYPE_UINT32;
+		mesh->_indexBuffer = ib;
 	}
 
 

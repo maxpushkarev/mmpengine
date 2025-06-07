@@ -620,6 +620,8 @@ namespace MMPEngine::Backend::Vulkan
 
 		vkCmdNextSubpass(this->_specificStreamContext->PopulateCommandsInBuffer()->GetNative(), VK_SUBPASS_CONTENTS_INLINE);
 		vkCmdBindPipeline(this->_specificStreamContext->PopulateCommandsInBuffer()->GetNative(), VK_PIPELINE_BIND_POINT_GRAPHICS, tc->job->_pipeline);
+
+		vkCmdBindIndexBuffer(this->_specificStreamContext->PopulateCommandsInBuffer()->GetNative(), tc->mesh->GetIndexBuffer()->GetDescriptorBufferInfo().buffer, 0, tc->mesh->GetIndexType());
 	}
 
 	template<typename TCoreMaterial>

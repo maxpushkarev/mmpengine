@@ -1,6 +1,7 @@
 #pragma once
 #include <Core/Mesh.hpp>
 #include <Backend/Vulkan/Task.hpp>
+#include <Backend/Vulkan/Buffer.hpp>
 #include <Core/Node.hpp>
 
 namespace MMPEngine::Backend::Vulkan
@@ -26,6 +27,8 @@ namespace MMPEngine::Backend::Vulkan
 
 		const std::vector<VkVertexInputBindingDescription>& GetVertexBindingDescriptions() const;
 		const std::vector<VkVertexInputAttributeDescription>& GetVertexAttributeDescriptions() const;
+		VkIndexType GetIndexType() const;
+		std::shared_ptr<Vulkan::Buffer> GetIndexBuffer() const;
 
 		class Renderer final : public Core::Mesh::Renderer
 		{
@@ -46,6 +49,10 @@ namespace MMPEngine::Backend::Vulkan
 
 		std::vector<VkVertexInputBindingDescription> _bindingDescriptions;
 		std::vector<VkVertexInputAttributeDescription> _attributeDescriptions;
+		VkIndexType _indexType;
+
+		std::shared_ptr<Vulkan::Buffer> _indexBuffer;
+
 
 	};
 }
