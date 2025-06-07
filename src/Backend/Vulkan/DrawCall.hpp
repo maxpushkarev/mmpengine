@@ -321,6 +321,26 @@ namespace MMPEngine::Backend::Vulkan
 			vertexInput.vertexAttributeDescriptionCount = static_cast<std::uint32_t>(ctx->mesh->GetVertexAttributeDescriptions().size());
 			vertexInput.pVertexAttributeDescriptions = ctx->mesh->GetVertexAttributeDescriptions().data();
 
+			const auto& settings = material->GetSettings();
+
+			VkPipelineRasterizationStateCreateInfo rasterizer{};
+			rasterizer.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
+			rasterizer.pNext = nullptr;
+			rasterizer.flags = 0;
+			rasterizer.polygonMode = (settings.fillMode == Core::RenderingMaterial::Settings::FillMode::Solid ? VK_POLYGON_MODE_FILL : VK_POLYGON_MODE_LINE);
+			rasterizer.cullMode = (settings.cullMode == Core::RenderingMaterial::Settings::CullMode::Back
+				? VK_CULL_MODE_BACK_BIT :
+				(settings.cullMode == Core::RenderingMaterial::Settings::CullMode::Front ? VK_CULL_MODE_FRONT_BIT : VK_CULL_MODE_NONE)),
+			rasterizer.frontFace = VK_FRONT_FACE_CLOCKWISE;
+			rasterizer.lineWidth = 1.0f;
+			rasterizer.depthBiasClamp = 0.0f;
+			rasterizer.depthBiasConstantFactor = 0.0f;
+			rasterizer.depthBiasEnable = VK_FALSE;
+			rasterizer.depthBiasSlopeFactor = 0.0f;
+			rasterizer.depthClampEnable = VK_FALSE;
+			rasterizer.rasterizerDiscardEnable = VK_FALSE;
+
+
 			const auto size = iteration->_camera->GetTarget().color.front().tex->GetSettings().base.size;
 			VkViewport viewport = { 0.0f, 0.0f, static_cast<std::float_t>(size.x), static_cast<std::float_t>(size.y), 0.0f, 1.0f };
 			VkRect2D scissor = { {0, 0}, { size.x, size.y } };
