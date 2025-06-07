@@ -635,6 +635,18 @@ namespace MMPEngine::Backend::Vulkan
 			0, 
 			tc->mesh->GetIndexType()
 		);
+
+		vkCmdBindDescriptorSets(
+			this->_specificStreamContext->PopulateCommandsInBuffer()->GetNative(),
+			VK_PIPELINE_BIND_POINT_GRAPHICS,
+			tc->job->_pipelineLayout,
+			0,
+			static_cast<std::uint32_t>(tc->job->_sets.size()),
+			tc->job->_sets.data(),
+			0,
+			nullptr
+		);
+
 	}
 
 	template<typename TCoreMaterial>
