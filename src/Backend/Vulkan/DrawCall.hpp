@@ -341,6 +341,105 @@ namespace MMPEngine::Backend::Vulkan
 			rasterizer.rasterizerDiscardEnable = VK_FALSE;
 
 
+			const auto getCmpFunc = [](Core::RenderingMaterial::Settings::Comparision comparision) -> auto
+				{
+					switch (comparision)
+					{
+					case Core::RenderingMaterial::Settings::Comparision::Always:
+						return VK_COMPARE_OP_ALWAYS;
+					case Core::RenderingMaterial::Settings::Comparision::Equal:
+						return VK_COMPARE_OP_EQUAL;
+					case Core::RenderingMaterial::Settings::Comparision::Greater:
+						return VK_COMPARE_OP_GREATER;
+					case Core::RenderingMaterial::Settings::Comparision::GreaterEqual:
+						return VK_COMPARE_OP_GREATER_OR_EQUAL;
+					case Core::RenderingMaterial::Settings::Comparision::Less:
+						return VK_COMPARE_OP_LESS;
+					case Core::RenderingMaterial::Settings::Comparision::LessEqual:
+						return VK_COMPARE_OP_LESS_OR_EQUAL;
+					case Core::RenderingMaterial::Settings::Comparision::Never:
+						return VK_COMPARE_OP_NEVER;
+					case Core::RenderingMaterial::Settings::Comparision::NotEqual:
+						return VK_COMPARE_OP_NOT_EQUAL;
+					default:
+						return VK_COMPARE_OP_ALWAYS;
+					}
+				};
+
+			const auto getStencilOpFunc = [](Core::RenderingMaterial::Settings::Stencil::Op func) -> auto
+				{
+					switch (func)
+					{
+					case Core::RenderingMaterial::Settings::Stencil::Op::Keep:
+						return VK_STENCIL_OP_KEEP;
+					case Core::RenderingMaterial::Settings::Stencil::Op::DecrementAndSaturate:
+						return VK_STENCIL_OP_DECREMENT_AND_CLAMP;
+					case Core::RenderingMaterial::Settings::Stencil::Op::DecrementAndWrap:
+						return VK_STENCIL_OP_DECREMENT_AND_WRAP;
+					case Core::RenderingMaterial::Settings::Stencil::Op::IncrementAndSaturate:
+						return VK_STENCIL_OP_INCREMENT_AND_CLAMP;
+					case Core::RenderingMaterial::Settings::Stencil::Op::IncrementAndWrap:
+						return VK_STENCIL_OP_INCREMENT_AND_WRAP;
+					case Core::RenderingMaterial::Settings::Stencil::Op::Invert:
+						return VK_STENCIL_OP_INVERT;
+					case Core::RenderingMaterial::Settings::Stencil::Op::Replace:
+						return VK_STENCIL_OP_REPLACE;
+					case Core::RenderingMaterial::Settings::Stencil::Op::Zero:
+						return VK_STENCIL_OP_ZERO;
+					default:
+						return VK_STENCIL_OP_KEEP;
+					}
+				};
+
+
+			VkPipelineDepthStencilStateCreateInfo depthStencil{};
+			depthStencil.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+			depthStencil.pNext = nullptr;
+			depthStencil.flags = 0;
+
+			depthStencil.depthTestEnable = static_cast<VkBool32>(settings.depth.test == Core::RenderingMaterial::Settings::Depth::Test::On);
+			depthStencil.depthWriteEnable = static_cast<VkBool32>(settings.depth.write == Core::RenderingMaterial::Settings::Depth::Write::On);
+			depthStencil.depthCompareOp = getCmpFunc(settings.depth.comparision);
+
+			depthStencil.stencilTestEnable = VK_FALSE;
+			depthStencil.front = {};
+			depthStencil.back = {};
+
+			depthStencil.depthBoundsTestEnable = VK_FALSE;
+			depthStencil.minDepthBounds = 0.0f;
+			depthStencil.maxDepthBounds = 1.0f;
+
+			if (settings.stencil.has_value())
+			{
+				const auto& stencil = settings.stencil.value();
+				depthStencil.stencilTestEnable = VK_TRUE;
+
+				const auto allParamEntries = material->GetParameters().GetAll();
+
+				const auto stencilRefIt = std::find_if(allParamEntries.cbegin(), allParamEntries.cend(), [](const auto& e) {
+					return std::holds_alternative<Core::BaseMaterial::Parameters::StencilRef>(e.settings);
+				});
+
+				assert(stencilRefIt != allParamEntries.cend());
+				const auto reference = static_cast<std::uint32_t>(std::dynamic_pointer_cast<const Core::StencilRef>(stencilRefIt->entity)->value);
+
+				depthStencil.front.compareOp = getCmpFunc(stencil.front.comparision);
+				depthStencil.front.depthFailOp = getStencilOpFunc(stencil.front.depthFail);
+				depthStencil.front.failOp = getStencilOpFunc(stencil.front.stencilFail);
+				depthStencil.front.passOp = getStencilOpFunc(stencil.front.stencilPass);
+				depthStencil.front.compareMask = 0xff;
+				depthStencil.front.writeMask = 0xff;
+				depthStencil.front.reference = reference;
+
+				depthStencil.back.compareOp = getCmpFunc(stencil.back.comparision);
+				depthStencil.back.depthFailOp = getStencilOpFunc(stencil.back.depthFail);
+				depthStencil.back.failOp = getStencilOpFunc(stencil.back.stencilFail);
+				depthStencil.back.passOp = getStencilOpFunc(stencil.back.stencilPass);
+				depthStencil.back.compareMask = 0xff;
+				depthStencil.back.writeMask = 0xff;
+				depthStencil.back.reference = reference;
+			}
+
 			const auto size = iteration->_camera->GetTarget().color.front().tex->GetSettings().base.size;
 			VkViewport viewport = { 0.0f, 0.0f, static_cast<std::float_t>(size.x), static_cast<std::float_t>(size.y), 0.0f, 1.0f };
 			VkRect2D scissor = { {0, 0}, { size.x, size.y } };

@@ -98,6 +98,8 @@ namespace MMPEngine::Core
 	{
 		std::unordered_set<std::string> knownTags {};
 
+		std::uint32_t stencilRefCount = 0;
+
 		for (std::size_t i = 0; i < _entries.size(); ++i)
 		{
 			const auto& entry = _entries[i];
@@ -120,7 +122,14 @@ namespace MMPEngine::Core
 			entryView.index = static_cast<decltype(entryView.index)>(i);
 
 			_viewMap[name] = entryView;
+
+			if (std::holds_alternative<StencilRef>(entry.settings))
+			{
+				++stencilRefCount;
+			}
 		}
+
+		assert(stencilRefCount <= 1);
 	}
 
 	BaseMaterial::BaseMaterial(Parameters&& params) : _params(std::move(params))
