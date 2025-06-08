@@ -42,7 +42,10 @@ namespace MMPEngine::Backend::Vulkan
 
 	void Camera::FlipProjection(Core::Matrix4x4& proj)
 	{
+		proj.m[1][0] *= -1.0f;
 		proj.m[1][1] *= -1.0f;
+		proj.m[1][2] *= -1.0f;
+		proj.m[1][3] *= -1.0f;
 	}
 
 	void Camera::InitTask::OnScheduled(const std::shared_ptr<Core::BaseStream>& stream)
