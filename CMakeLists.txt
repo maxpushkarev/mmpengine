@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.7)
+cmake_minimum_required(VERSION 3.10)
 project(mmpengine VERSION 1.0.0 LANGUAGES C CXX)
 
 # Avoid warning about DOWNLOAD_EXTRACT_TIMESTAMP in CMake 2.24:
