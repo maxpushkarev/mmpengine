@@ -3,6 +3,7 @@
 #include <cmath>
 #include <memory>
 #include <stdexcept>
+#include <string_view>
 
 namespace MMPEngine::Core
 {
