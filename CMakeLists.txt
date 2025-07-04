@@ -108,6 +108,43 @@ function(mmpengine_create_test_proj projName folder)
 	gtest_discover_tests(${projName})
 endfunction()
 
+function(mmpengine_add_dependencies_and_macro projName)
+
+	get_property(core_name_tmp GLOBAL PROPERTY MMPENGINE_CORE_NAME)
+	get_property(frontend_name_tmp GLOBAL PROPERTY MMPENGINE_FRONTEND_NAME)
+	get_property(feature_name_tmp GLOBAL PROPERTY MMPENGINE_FEATURE_NAME)
+
+	target_link_libraries(${projName} PRIVATE ${core_name_tmp} ${frontend_name_tmp} ${feature_name_tmp})
+
+	IF (NOT APPLE)
+		IF(${Vulkan_FOUND})
+			get_property(vulkan_macro_tmp GLOBAL PROPERTY MMPENGINE_VULKAN_MACRO)
+			target_compile_definitions(${projName} PRIVATE ${vulkan_macro_tmp}=1)
+			target_compile_definitions(${projName} PRIVATE ${vulkan_macro_tmp}=1)
+			
+			target_link_libraries(${projName} PRIVATE ${Vulkan_LIBRARIES})
+			target_include_directories(${projName} PRIVATE ${Vulkan_INCLUDE_DIRS})
+		ENDIF()
+	ENDIF()
+
+	IF (WIN32)
+		get_property(win_macro_tmp GLOBAL PROPERTY MMPENGINE_WIN_MACRO)
+		get_property(dx12_macro_tmp GLOBAL PROPERTY MMPENGINE_DX12_MACRO)
+		target_compile_definitions(${projName} PRIVATE ${win_macro_tmp}=1)
+		target_compile_definitions(${projName} PRIVATE ${dx12_macro_tmp}=1)
+		
+	elseif(APPLE)
+		get_property(metal_macro_tmp GLOBAL PROPERTY MMPENGINE_METAL_MACRO)
+		target_compile_definitions(${projName} PRIVATE ${metal_macro_tmp}=1)
+		if(${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
+			get_property(macosx_macro_tmp GLOBAL PROPERTY MMPENGINE_MACOSX_MACRO)
+			target_compile_definitions(${projName} PRIVATE ${macosx_macro_tmp}=1)
+		endif()
+	ENDIF()
+
+
+endfunction()
+
 get_property(core_name_tmp GLOBAL PROPERTY MMPENGINE_CORE_NAME)
 get_property(frontend_name_tmp GLOBAL PROPERTY MMPENGINE_FRONTEND_NAME)
 get_property(feature_name_tmp GLOBAL PROPERTY MMPENGINE_FEATURE_NAME)
