@@ -16,6 +16,10 @@
 #include <Backend/Vulkan/Descriptor.hpp>
 #endif
 
+#ifdef MMPENGINE_BACKEND_METAL
+#include <Backend/Metal/Stream.hpp>
+#endif
+
 
 namespace MMPEngine::Feature
 {
@@ -560,6 +564,8 @@ namespace MMPEngine::Feature
 
         void RootApp::Initialize()
         {
+            const auto streamContext = std::make_shared<Backend::Metal::StreamContext>();
+            _defaultStream = std::make_shared<Backend::Metal::Stream>(_rootContext, streamContext);
             Feature::RootApp<Backend::Metal::GlobalContext>::Initialize();
         }
     }
