@@ -187,11 +187,25 @@ IF (WIN32)
 
 elseif(APPLE)
 
-	get_property(macosx_macro_tmp GLOBAL PROPERTY MMPENGINE_MACOSX_MACRO)
-	target_compile_definitions(${core_name_tmp} PRIVATE ${macosx_macro_tmp}=1)
-	target_compile_definitions(${frontend_name_tmp} PRIVATE ${macosx_macro_tmp}=1)
-	target_compile_definitions(${feature_name_tmp} PRIVATE ${macosx_macro_tmp}=1)
+	get_property(metal_macro_tmp GLOBAL PROPERTY MMPENGINE_METAL_MACRO)
+	get_property(metal_name_tmp GLOBAL PROPERTY MMPENGINE_BACKEND_METAL_NAME)
+	
+	mmpengine_create_proj(${metal_name_tmp} src/Backend/Metal)
+	target_link_libraries(${metal_name_tmp} ${core_name_tmp} ${backend_shared_name_tmp} glm)
 
-	#metal (TODO)
+	target_link_libraries(${frontend_name_tmp} PRIVATE ${metal_name_tmp})
+	target_compile_definitions(${frontend_name_tmp} PRIVATE ${metal_macro_tmp}=1)
+	target_link_libraries(${feature_name_tmp} PRIVATE ${metal_name_tmp})
+	target_compile_definitions(${feature_name_tmp} PRIVATE ${metal_macro_tmp}=1)
+
+	if(${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
+
+    		get_property(macosx_macro_tmp GLOBAL PROPERTY MMPENGINE_MACOSX_MACRO)
+		target_compile_definitions(${core_name_tmp} PRIVATE ${macosx_macro_tmp}=1)
+		target_compile_definitions(${frontend_name_tmp} PRIVATE ${macosx_macro_tmp}=1)
+		target_compile_definitions(${feature_name_tmp} PRIVATE ${macosx_macro_tmp}=1)
+		target_compile_definitions(${metal_name_tmp} PRIVATE ${macosx_macro_tmp}=1)
+
+	endif()
 
 ENDIF()
