@@ -22,6 +22,10 @@ set(ASSIMP_BUILD_ASSIMP_VIEW OFF CACHE BOOL "" FORCE)
 
 FetchContent_MakeAvailable(assimp)
 
+if(APPLE)
+    target_compile_options(assimp PRIVATE -Wno-shorten-64-to-32)
+endif()
+
 FetchContent_Declare(
   googletest
   GIT_REPOSITORY https://github.com/google/googletest.git
