@@ -52,4 +52,17 @@ namespace MMPEngine::Feature
 	}
 #endif
 
+#ifdef MMPENGINE_MAC
+    namespace Mac
+    {
+        class OutputLogger : public BaseLogger
+        {
+        public:
+            OutputLogger(std::string&&);
+        protected:
+            void LogInternal(const char*) const override;
+        };
+    }
+#endif
+
 }

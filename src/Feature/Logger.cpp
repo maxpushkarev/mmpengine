@@ -1,4 +1,5 @@
 #include <Feature/Logger.hpp>
+#include <iostream>
 #ifdef MMPENGINE_WIN
 #include <Windows.h>
 #endif
@@ -53,5 +54,19 @@ namespace MMPEngine::Feature
 			OutputDebugString(log);
 		}
 	}
+#endif
+
+#ifdef MMPENGINE_MAC
+    namespace Mac
+    {
+        OutputLogger::OutputLogger(std::string&& name) : BaseLogger(std::move(name))
+        {
+        }
+
+        void OutputLogger::LogInternal(const char* log) const
+        {
+            std::cout << log << std::endl;
+        }
+    }
 #endif
 }
