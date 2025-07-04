@@ -110,6 +110,17 @@ function(mmpengine_create_test_proj projName folder)
 	target_include_directories(${projName} PRIVATE ${PROJECT_SOURCE_DIR}/src)
 	target_link_libraries(${projName} PRIVATE GTest::gtest_main)
 	gtest_discover_tests(${projName})
+
+	IF(APPLE)
+		if(CMAKE_GENERATOR STREQUAL "Xcode")
+    			set_target_properties(${projName} PROPERTIES
+        		XCODE_ATTRIBUTE_CODE_SIGNING_REQUIRED "NO"
+        		XCODE_ATTRIBUTE_CODE_SIGNING_ALLOWED "NO"
+        		XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "")
+		endif()
+	
+	ENDIF()
+
 endfunction()
 
 function(mmpengine_add_dependencies_and_macro projName)

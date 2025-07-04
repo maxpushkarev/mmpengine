@@ -63,7 +63,7 @@ namespace MMPEngine::Core::Tests
 		Core::Vector3Float v1 {0.56f, -4.892f, 3.784f };
 		Core::Vector3Float v2 { -10.84f,-3.29f,0.61f };
 
-		EXPECT_EQ(this->GetDefaultMath()->Dot(v1, v2), this->GetMathImpl()->Dot(v1, v2));
+        ASSERT_FLOAT_EQ(this->GetDefaultMath()->Dot(v1, v2), this->GetMathImpl()->Dot(v1, v2));
 	}
 
 	TYPED_TEST_P(MathTests, Vector3_Cross)
@@ -484,7 +484,7 @@ namespace MMPEngine::Core::Tests
 		constexpr Core::Quaternion q1 {0.1f, 0.2f, 0.3f, 0.4f};
 		constexpr Core::Quaternion q2 {0.5f, 0.6f, 0.7f, 0.8f};
 
-		ASSERT_EQ(this->GetDefaultMath()->Dot(q1, q2), this->GetMathImpl()->Dot(q1, q2));
+		ASSERT_FLOAT_EQ(this->GetDefaultMath()->Dot(q1, q2), this->GetMathImpl()->Dot(q1, q2));
 	}
 
 	TYPED_TEST_P(MathTests, Quaternion_Multiply)
