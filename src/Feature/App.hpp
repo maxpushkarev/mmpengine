@@ -13,6 +13,10 @@
 #include <Backend/Vulkan/Context.hpp>
 #endif
 
+#ifdef MMPENGINE_BACKEND_METAL
+#include <Backend/Metal/Context.hpp>
+#endif
+
 namespace MMPEngine::Feature
 {
 	class BaseRootApp;
@@ -132,6 +136,18 @@ namespace MMPEngine::Feature
 			void Initialize() override;
 		};
 	}
+#endif
+
+#ifdef MMPENGINE_BACKEND_METAL
+    namespace Metal
+    {
+        class RootApp final : public Feature::RootApp<Backend::Metal::GlobalContext>
+        {
+        public:
+            RootApp(const std::shared_ptr<Backend::Metal::GlobalContext>& context, const std::shared_ptr<BaseLogger>& logger);
+            void Initialize() override;
+        };
+    }
 #endif
 
 	template<typename TRootContext>

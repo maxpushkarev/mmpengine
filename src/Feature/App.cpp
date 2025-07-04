@@ -86,6 +86,21 @@ namespace MMPEngine::Feature
 #endif
 		}
 
+        if (globalContextSettings.backend == Core::BackendType::Metal)
+        {
+#ifdef MMPENGINE_BACKEND_METAL
+            if (!math)
+            {
+                math = std::make_unique<Backend::Shared::GLMMath>();
+            }
+            auto rootApp = std::make_unique<Metal::RootApp>(std::make_shared<Backend::Metal::GlobalContext>(globalContextSettings, std::move(math)), logger);
+            rootApp->Attach(std::move(userApp));
+            return rootApp;
+#else
+            throw Core::UnsupportedException("unable to create root app for Metal backend");
+#endif
+        }
+        
 
 		throw std::runtime_error("unable to create root app");
 	}
@@ -534,5 +549,21 @@ namespace MMPEngine::Feature
 		}
 	}
 #endif
+
+#ifdef MMPENGINE_BACKEND_METAL
+    namespace Metal
+    {
+        RootApp::RootApp(const std::shared_ptr<Backend::Metal::GlobalContext>& context, const std::shared_ptr<BaseLogger>& logger)
+            : Feature::RootApp<Backend::Metal::GlobalContext>(context, logger)
+        {
+        }
+
+        void RootApp::Initialize()
+        {
+            Feature::RootApp<Backend::Metal::GlobalContext>::Initialize();
+        }
+    }
+#endif
+
 
 }

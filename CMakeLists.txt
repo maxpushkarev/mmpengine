@@ -96,6 +96,13 @@ function(mmpengine_create_proj projName folder)
 	target_compile_features(${projName}  PRIVATE cxx_std_17)
 	target_include_directories(${projName} PRIVATE ${PROJECT_SOURCE_DIR}/src)
 
+	IF(APPLE)
+		if(CMAKE_GENERATOR STREQUAL "Xcode")
+    			target_compile_definitions(${projName} PRIVATE $<$<CONFIG:Debug>:DEBUG=1>)
+		endif()
+	
+	ENDIF()
+
 endfunction()
 
 include(GoogleTest)
@@ -117,6 +124,7 @@ function(mmpengine_create_test_proj projName folder)
         		XCODE_ATTRIBUTE_CODE_SIGNING_REQUIRED "NO"
         		XCODE_ATTRIBUTE_CODE_SIGNING_ALLOWED "NO"
         		XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "")
+    			target_compile_definitions(${projName} PRIVATE $<$<CONFIG:Debug>:DEBUG=1>)
 		endif()
 	
 	ENDIF()
@@ -154,6 +162,9 @@ function(mmpengine_add_dependencies_and_macro projName)
 		if(${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
 			get_property(macosx_macro_tmp GLOBAL PROPERTY MMPENGINE_MACOSX_MACRO)
 			target_compile_definitions(${projName} PRIVATE ${macosx_macro_tmp}=1)
+		endif()
+		if(CMAKE_GENERATOR STREQUAL "Xcode")
+    			target_compile_definitions(${projName} PRIVATE $<$<CONFIG:Debug>:DEBUG=1>)
 		endif()
 	ENDIF()
 
