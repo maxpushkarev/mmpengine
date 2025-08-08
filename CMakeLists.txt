@@ -167,7 +167,15 @@ function(mmpengine_add_dependencies_and_macro projName)
 		endif()
 		if(CMAKE_GENERATOR STREQUAL "Xcode")
     			target_compile_definitions(${projName} PRIVATE $<$<CONFIG:Debug>:DEBUG=1>)
+
+			set_property(TARGET ${projName} PROPERTY XCODE_SCHEME_ENABLE_GPU_API_VALIDATION ON)
+
 		endif()
+		target_link_libraries(${projName} PRIVATE 
+        		"-framework Metal"
+        		"-framework Foundation"
+        		"-framework QuartzCore"
+        	)
 	ENDIF()
 
 
@@ -252,16 +260,12 @@ IF (WIN32)
 
 elseif(APPLE)
 
-	find_library(METAL_FRAMEWORK Metal)
-	find_library(FOUNDATION_FRAMEWORK Foundation)
-	find_library(QUARTZCORE_FRAMEWORK QuartzCore)
-
 	add_subdirectory(src/Backend/Metal/Thirdparty)
 	get_property(metal_macro_tmp GLOBAL PROPERTY MMPENGINE_METAL_MACRO)
 	get_property(metal_name_tmp GLOBAL PROPERTY MMPENGINE_BACKEND_METAL_NAME)
 	
 	mmpengine_create_proj(${metal_name_tmp} src/Backend/Metal)
-	target_link_libraries(${metal_name_tmp} ${core_name_tmp} ${backend_shared_name_tmp} glm metal_cpp)
+	target_link_libraries(${metal_name_tmp} PRIVATE ${core_name_tmp} ${backend_shared_name_tmp} glm metal_cpp)
 
 	target_link_libraries(${frontend_name_tmp} PRIVATE ${metal_name_tmp})
 	target_compile_definitions(${frontend_name_tmp} PRIVATE ${metal_macro_tmp}=1)
@@ -273,6 +277,24 @@ elseif(APPLE)
 	target_include_directories(${metal_name_tmp} PRIVATE ${mmpengine_metal_thirdparty_includes_tmp})
 	target_include_directories(${feature_name_tmp} PRIVATE ${mmpengine_metal_thirdparty_includes_tmp})
 	target_include_directories(${frontend_name_tmp} PRIVATE ${mmpengine_metal_thirdparty_includes_tmp})
+
+	target_link_libraries(${metal_name_tmp} PRIVATE 
+        		"-framework Metal"
+        		"-framework Foundation"
+        		"-framework QuartzCore"
+        )
+
+	target_link_libraries(${feature_name_tmp} PRIVATE 
+        		"-framework Metal"
+        		"-framework Foundation"
+        		"-framework QuartzCore"
+        )
+
+	target_link_libraries(${frontend_name_tmp} PRIVATE 
+        		"-framework Metal"
+        		"-framework Foundation"
+        		"-framework QuartzCore"
+        )
 
 	if(${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
 

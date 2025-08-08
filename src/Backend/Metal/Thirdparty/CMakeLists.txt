@@ -7,8 +7,8 @@ target_include_directories(metal_cpp PUBLIC ${mmpengine_metal_thirdparty_include
 target_compile_features(metal_cpp  PRIVATE cxx_std_17)
 
 
-target_link_libraries(metal_cpp
-    ${METAL_FRAMEWORK}
-    ${FOUNDATION_FRAMEWORK}
-    ${QUARTZCORE_FRAMEWORK}
+target_link_libraries(metal_cpp PRIVATE 
+	"-framework Metal"
+	"-framework Foundation"
+	"-framework QuartzCore"
 )
