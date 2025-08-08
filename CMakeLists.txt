@@ -250,11 +250,16 @@ IF (WIN32)
 
 elseif(APPLE)
 
+	find_library(METAL_FRAMEWORK Metal)
+	find_library(FOUNDATION_FRAMEWORK Foundation)
+	find_library(QUARTZCORE_FRAMEWORK QuartzCore)
+
+	add_subdirectory(src/Backend/Metal/Thirdparty)
 	get_property(metal_macro_tmp GLOBAL PROPERTY MMPENGINE_METAL_MACRO)
 	get_property(metal_name_tmp GLOBAL PROPERTY MMPENGINE_BACKEND_METAL_NAME)
 	
 	mmpengine_create_proj(${metal_name_tmp} src/Backend/Metal)
-	target_link_libraries(${metal_name_tmp} ${core_name_tmp} ${backend_shared_name_tmp} glm)
+	target_link_libraries(${metal_name_tmp} ${core_name_tmp} ${backend_shared_name_tmp} glm metal_cpp)
 
 	target_link_libraries(${frontend_name_tmp} PRIVATE ${metal_name_tmp})
 	target_compile_definitions(${frontend_name_tmp} PRIVATE ${metal_macro_tmp}=1)
