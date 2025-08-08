@@ -570,10 +570,6 @@ namespace MMPEngine::Feature
             const auto streamContext = std::make_shared<Backend::Metal::StreamContext>();
             _defaultStream = std::make_shared<Backend::Metal::Stream>(_rootContext, streamContext);
             
-            if(_rootContext->settings.isDebug)
-            {
-            }
-            
             Feature::RootApp<Backend::Metal::GlobalContext>::Initialize();
         }
     }

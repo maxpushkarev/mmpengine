@@ -1,9 +1,14 @@
 #include <thread>
 #include <Feature/AppContainer.hpp>
+
 #include <GLFW/glfw3.h>
 
 #ifdef MMPENGINE_WIN
 #define GLFW_EXPOSE_NATIVE_WIN32 1
+#endif
+
+#ifdef MMPENGINE_MAC
+#define GLFW_EXPOSE_NATIVE_COCOA 1
 #endif
 
 #include <GLFW/glfw3native.h>
@@ -125,6 +130,10 @@ namespace MMPEngine::Feature
 
 #ifdef MMPENGINE_WIN
 			_app->GetContext()->nativeWindow = glfwGetWin32Window(_window);
+#endif
+            
+#ifdef MMPENGINE_MAC
+            _app->GetContext()->nativeWindow = glfwGetCocoaWindow(_window);
 #endif
 		}
 

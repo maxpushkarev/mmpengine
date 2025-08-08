@@ -37,6 +37,10 @@ namespace MMPEngine::Core
 typedef HWND NativeWindow;
 #endif
 
+#ifdef MMPENGINE_MAC
+typedef void* NativeWindow;
+#endif
+
 	class GlobalContext : public Context
 	{
 	public:
@@ -54,7 +58,10 @@ typedef HWND NativeWindow;
 		const PlatformType platform;
 		const std::unique_ptr<Math> math;
 #ifdef MMPENGINE_WIN
-		NativeWindow nativeWindow;
+		NativeWindow nativeWindow = nullptr;
+#endif
+#ifdef MMPENGINE_MAC
+        NativeWindow nativeWindow = nullptr;
 #endif
 	};
 
