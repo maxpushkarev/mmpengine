@@ -1,8 +1,8 @@
+set_property(GLOBAL PROPERTY MMPENGINE_METAL_THIRDPARTY_INCLUDES "${CMAKE_CURRENT_SOURCE_DIR}/metal-cpp")
+get_property(mmpengine_metal_thirdparty_includes_tmp GLOBAL PROPERTY MMPENGINE_METAL_THIRDPARTY_INCLUDES)
 add_library(metal_cpp ${CMAKE_CURRENT_SOURCE_DIR}/metal_cpp.cpp)
 
-target_include_directories(metal_cpp PUBLIC
-        "${CMAKE_CURRENT_SOURCE_DIR}/metal-cpp"
-        )
+target_include_directories(metal_cpp PUBLIC ${mmpengine_metal_thirdparty_includes_tmp})
 
 target_compile_features(metal_cpp  PRIVATE cxx_std_17)
 

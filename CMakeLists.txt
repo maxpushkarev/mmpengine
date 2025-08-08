@@ -157,6 +157,8 @@ function(mmpengine_add_dependencies_and_macro projName)
 		target_compile_definitions(${projName} PRIVATE ${dx12_macro_tmp}=1)
 		
 	elseif(APPLE)
+		get_property(mmpengine_metal_thirdparty_includes_tmp GLOBAL PROPERTY MMPENGINE_METAL_THIRDPARTY_INCLUDES)
+		target_include_directories(${projName} PRIVATE ${mmpengine_metal_thirdparty_includes_tmp})
 		get_property(metal_macro_tmp GLOBAL PROPERTY MMPENGINE_METAL_MACRO)
 		target_compile_definitions(${projName} PRIVATE ${metal_macro_tmp}=1)
 		if(${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
@@ -265,6 +267,12 @@ elseif(APPLE)
 	target_compile_definitions(${frontend_name_tmp} PRIVATE ${metal_macro_tmp}=1)
 	target_link_libraries(${feature_name_tmp} PRIVATE ${metal_name_tmp})
 	target_compile_definitions(${feature_name_tmp} PRIVATE ${metal_macro_tmp}=1)
+
+	get_property(mmpengine_metal_thirdparty_includes_tmp GLOBAL PROPERTY MMPENGINE_METAL_THIRDPARTY_INCLUDES)
+
+	target_include_directories(${metal_name_tmp} PRIVATE ${mmpengine_metal_thirdparty_includes_tmp})
+	target_include_directories(${feature_name_tmp} PRIVATE ${mmpengine_metal_thirdparty_includes_tmp})
+	target_include_directories(${frontend_name_tmp} PRIVATE ${mmpengine_metal_thirdparty_includes_tmp})
 
 	if(${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
 

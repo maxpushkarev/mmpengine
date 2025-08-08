@@ -18,6 +18,7 @@
 
 #ifdef MMPENGINE_BACKEND_METAL
 #include <Backend/Metal/Stream.hpp>
+#include <Backend/Metal/Wrapper.hpp>
 #endif
 
 
@@ -564,8 +565,15 @@ namespace MMPEngine::Feature
 
         void RootApp::Initialize()
         {
+            _rootContext->device = std::make_shared<Backend::Metal::Wrapper::Device>();
+            
             const auto streamContext = std::make_shared<Backend::Metal::StreamContext>();
             _defaultStream = std::make_shared<Backend::Metal::Stream>(_rootContext, streamContext);
+            
+            if(_rootContext->settings.isDebug)
+            {
+            }
+            
             Feature::RootApp<Backend::Metal::GlobalContext>::Initialize();
         }
     }
