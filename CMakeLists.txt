@@ -167,9 +167,6 @@ function(mmpengine_add_dependencies_and_macro projName)
 		endif()
 		if(CMAKE_GENERATOR STREQUAL "Xcode")
     			target_compile_definitions(${projName} PRIVATE $<$<CONFIG:Debug>:DEBUG=1>)
-
-			set_property(TARGET ${projName} PROPERTY XCODE_SCHEME_ENABLE_GPU_API_VALIDATION ON)
-
 		endif()
 		target_link_libraries(${projName} PRIVATE 
         		"-framework Metal"
