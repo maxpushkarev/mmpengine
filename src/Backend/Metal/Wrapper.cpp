@@ -40,5 +40,23 @@ namespace MMPEngine::Backend::Metal
         {
             return  _queue;
         }
+    
+        CommandBuffer::CommandBuffer(const std::shared_ptr<Queue>& queue, MTL::CommandBufferDescriptor* cbDesc) : _queue(queue)
+        {
+            _commandBuffer = _queue->GetNative()->commandBuffer(cbDesc);
+        }
+
+        CommandBuffer::~CommandBuffer()
+        {
+            if(_commandBuffer)
+            {
+                _commandBuffer->release();
+            }
+        }
+
+        MTL::CommandBuffer* CommandBuffer::GetNative() const
+        {
+            return  _commandBuffer;
+        }
     }
 }

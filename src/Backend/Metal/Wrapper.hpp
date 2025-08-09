@@ -36,5 +36,21 @@ namespace MMPEngine::Backend::Metal
             std::shared_ptr<Device> _device;
             MTL::CommandQueue* _queue = nullptr;
         };
+    
+        class CommandBuffer final
+        {
+        public:
+            CommandBuffer(const std::shared_ptr<Queue>&, MTL::CommandBufferDescriptor*);
+            CommandBuffer(const CommandBuffer&) = delete;
+            CommandBuffer(CommandBuffer&&) noexcept = delete;
+            CommandBuffer& operator=(const CommandBuffer&) = delete;
+            CommandBuffer& operator=(CommandBuffer&&) noexcept = delete;
+            ~CommandBuffer();
+            
+            MTL::CommandBuffer* GetNative() const;
+        private:
+            std::shared_ptr<Queue> _queue;
+            MTL::CommandBuffer* _commandBuffer = nullptr;
+        };
     }
 }
