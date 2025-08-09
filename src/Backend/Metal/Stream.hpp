@@ -9,5 +9,11 @@ namespace MMPEngine::Backend::Metal
     {
     public:
         Stream(const std::shared_ptr<GlobalContext>& globalContext, const std::shared_ptr<StreamContext>& streamContext);
+    protected:
+        virtual void SyncInternal();
+        virtual void SubmitInternal();
+        virtual void Flush();
+    private:
+        std::shared_ptr<StreamContext> _specificStreamContext;
     };
 }

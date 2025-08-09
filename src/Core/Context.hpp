@@ -2,6 +2,7 @@
 #include <memory>
 #include <Core/Base.hpp>
 #include <Core/Math.hpp>
+#include <Core/Passkey.hpp>
 
 #ifdef MMPENGINE_WIN
 #include <Windows.h>
@@ -9,6 +10,8 @@
 
 namespace MMPEngine::Core
 {
+    class BaseStream;
+
 	class Context
 	{
 	protected:
@@ -67,6 +70,8 @@ typedef void* NativeWindow;
 
 	class StreamContext : public Context
 	{
+    public:
+        using PassControl = Core::PassControl<true, Core::BaseStream>;
 	};
 
 	class TaskContext : public Context

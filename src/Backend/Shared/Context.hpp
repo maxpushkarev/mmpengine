@@ -9,7 +9,6 @@ namespace MMPEngine::Backend::Shared
 	class StreamContext : public Core::StreamContext
 	{
 	public:
-		using PassControl = Core::PassControl<true, Core::BaseStream>;
 		StreamContext(
 			const TQueue& queue,
 			const TCommandBufferAllocator& allocator,
