@@ -68,13 +68,5 @@ namespace MMPEngine::Backend::Metal
             std::shared_ptr<Device> _device;
             MTL::LogState* _logState = nullptr;
         };
-    
-        class DummyCommandBufferAllocator final
-        {
-        };
-    
-        class DummyFence final
-        {
-        };
     }
 }

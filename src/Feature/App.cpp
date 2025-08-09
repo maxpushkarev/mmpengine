@@ -589,9 +589,8 @@ namespace MMPEngine::Feature
             const auto commandBuffer = std::make_shared<Backend::Metal::Wrapper::CommandBuffer>(queue, commandBufferDesc);
             commandBufferDesc->release();
             
-            const auto streamContext = std::make_shared<Backend::Metal::StreamContext>(queue,          std::make_shared<Backend::Metal::Wrapper::DummyCommandBufferAllocator>(),
-                commandBuffer,
-                std::make_shared<Backend::Metal::Wrapper::DummyFence>()
+            const auto streamContext = std::make_shared<Backend::Metal::StreamContext>(queue,
+                commandBuffer
             );
             
             _defaultStream = std::make_shared<Backend::Metal::Stream>(_rootContext, streamContext);

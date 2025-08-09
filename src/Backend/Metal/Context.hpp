@@ -1,6 +1,5 @@
 #pragma once
 #include <Core/Context.hpp>
-#include <Backend/Shared/Context.hpp>
 #include <Backend/Metal/Wrapper.hpp>
 
 namespace MMPEngine::Backend::Metal
@@ -13,18 +12,15 @@ namespace MMPEngine::Backend::Metal
         std::shared_ptr<Wrapper::LogState> logState;
     };
     
-    class StreamContext : public Shared::StreamContext<
-        std::shared_ptr<Wrapper::Queue>,
-        std::shared_ptr<Wrapper::DummyCommandBufferAllocator>,
-        std::shared_ptr<Wrapper::CommandBuffer>,
-        std::shared_ptr<Wrapper::DummyFence>>
+    class StreamContext : public Core::StreamContext
     {
     public:
         StreamContext(
             const std::shared_ptr<Wrapper::Queue>& queue,
-            const std::shared_ptr<Wrapper::DummyCommandBufferAllocator>& allocator,
-            const std::shared_ptr<Wrapper::CommandBuffer>& cmdBuffer,
-            const std::shared_ptr<Wrapper::DummyFence>& fence
+            const std::shared_ptr<Wrapper::CommandBuffer>& cmdBuffer
         );
+        
+        std::shared_ptr<Wrapper::Queue> queue;
+        std::shared_ptr<Wrapper::CommandBuffer> commandBuffer;
     };
 }
