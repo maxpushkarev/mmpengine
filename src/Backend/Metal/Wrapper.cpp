@@ -1,5 +1,6 @@
 #include <Backend/Metal/Wrapper.hpp>
 #include <iostream>
+#include <cassert>
 
 namespace MMPEngine::Backend::Metal
 {
@@ -21,6 +22,26 @@ namespace MMPEngine::Backend::Metal
         MTL::Device* Device::GetNative() const
         {
             return _device;
+        }
+    
+        LogState::LogState(const std::shared_ptr<Device>& device, MTL::LogStateDescriptor* desc) : _device(device)
+        {
+            NS::Error* err = nullptr;
+            _logState = _device->GetNative()->newLogState(desc, &err);
+            assert(err == nullptr);
+        }
+        
+        MTL::LogState* LogState::GetNative() const
+        {
+            return _logState;
+        }
+    
+        LogState::~LogState()
+        {
+            if(_logState)
+            {
+                _logState->release();
+            }
         }
     
         Queue::Queue(const std::shared_ptr<Device>& device, MTL::CommandQueueDescriptor* queueDesc) : _device(device)

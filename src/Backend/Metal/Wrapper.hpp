@@ -52,5 +52,29 @@ namespace MMPEngine::Backend::Metal
             std::shared_ptr<Queue> _queue;
             MTL::CommandBuffer* _commandBuffer = nullptr;
         };
+    
+        class LogState final
+        {
+        public:
+            LogState(const std::shared_ptr<Device>&, MTL::LogStateDescriptor*);
+            LogState(const LogState&) = delete;
+            LogState(LogState&&) noexcept = delete;
+            LogState& operator=(const LogState&) = delete;
+            LogState& operator=(LogState&&) noexcept = delete;
+            ~LogState();
+            
+            MTL::LogState* GetNative() const;
+        private:
+            std::shared_ptr<Device> _device;
+            MTL::LogState* _logState = nullptr;
+        };
+    
+        class DummyCommandBufferAllocator final
+        {
+        };
+    
+        class DummyFence final
+        {
+        };
     }
 }
