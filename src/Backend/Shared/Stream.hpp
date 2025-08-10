@@ -5,11 +5,12 @@
 
 namespace MMPEngine::Backend::Shared
 {
-	template<typename TGlobalContext, typename TQueue, typename TCommandBufferAllocator, typename TCommandBuffer, typename TFence>
-	class Stream : public Core::Stream<TGlobalContext, StreamContext<TQueue, TCommandBufferAllocator, TCommandBuffer, TFence>>
+	template<typename TGlobalContext, typename TStreamContext>
+	class Stream : public Core::Stream<TGlobalContext, TStreamContext>
 	{
+		static_assert(std::is_base_of_v<Shared::BaseStreamContext, TStreamContext>, "TStreamContext must be derived from Shared::BaseStreamContext");
 	protected:
-		using StreamContextType = StreamContext<TQueue, TCommandBufferAllocator, TCommandBuffer, TFence>;
+		using StreamContextType = TStreamContext;
 		using PassControl = typename StreamContextType::PassControl;
 		using Super = Core::Stream<TGlobalContext, StreamContextType>;
 
@@ -28,14 +29,14 @@ namespace MMPEngine::Backend::Shared
 		PassControl _passControl;
 	};
 
-	template <typename TGlobalContext, typename TQueue, typename TCommandBufferAllocator, typename TCommandBuffer, typename TFence>
-	Stream<TGlobalContext, TQueue, TCommandBufferAllocator, TCommandBuffer, TFence>::Stream(const std::shared_ptr<TGlobalContext>& globalContext, const std::shared_ptr<StreamContextType>& streamContext)
+	template<typename TGlobalContext, typename TStreamContext>
+	Stream<TGlobalContext, TStreamContext>::Stream(const std::shared_ptr<TGlobalContext>& globalContext, const std::shared_ptr<StreamContextType>& streamContext)
 		: Super(globalContext, streamContext), _passControl(PassControl {Core::PassKey {this}})
 	{
 	}
 
-	template <typename TGlobalContext, typename TQueue, typename TCommandBufferAllocator, typename TCommandBuffer, typename TFence>
-	void Stream<TGlobalContext, TQueue, TCommandBufferAllocator, TCommandBuffer, TFence>::RestartInternal()
+	template<typename TGlobalContext, typename TStreamContext>
+	void Stream<TGlobalContext, TStreamContext>::RestartInternal()
 	{
 		Super::RestartInternal();
 
@@ -46,8 +47,8 @@ namespace MMPEngine::Backend::Shared
 		}
 	}
 
-	template <typename TGlobalContext, typename TQueue, typename TCommandBufferAllocator, typename TCommandBuffer, typename TFence>
-	void Stream<TGlobalContext, TQueue, TCommandBufferAllocator, TCommandBuffer, TFence>::SubmitInternal()
+	template<typename TGlobalContext, typename TStreamContext>
+	void Stream<TGlobalContext, TStreamContext>::SubmitInternal()
 	{
 		Super::SubmitInternal();
 
@@ -65,8 +66,8 @@ namespace MMPEngine::Backend::Shared
 		}
 	}
 
-	template <typename TGlobalContext, typename TQueue, typename TCommandBufferAllocator, typename TCommandBuffer, typename TFence>
-	void Stream<TGlobalContext, TQueue, TCommandBufferAllocator, TCommandBuffer, TFence>::Flush()
+	template<typename TGlobalContext, typename TStreamContext>
+	void Stream<TGlobalContext, TStreamContext>::Flush()
 	{
 		Super::Flush();
 
@@ -81,8 +82,8 @@ namespace MMPEngine::Backend::Shared
 		this->_specificStreamContext->SetCommandsPopulated(_passControl, true);
 	}
 
-	template <typename TGlobalContext, typename TQueue, typename TCommandBufferAllocator, typename TCommandBuffer, typename TFence>
-	void Stream<TGlobalContext, TQueue, TCommandBufferAllocator, TCommandBuffer, TFence>::SyncInternal()
+	template<typename TGlobalContext, typename TStreamContext>
+	void Stream<TGlobalContext, TStreamContext>::SyncInternal()
 	{
 		Super::SyncInternal();
 		WaitForExecutionMonitor();
