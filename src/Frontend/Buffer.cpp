@@ -38,6 +38,15 @@ namespace MMPEngine::Frontend
 			throw Core::UnsupportedException("unable to create upload buffer for Vulkan backend");
 #endif
 		}
+        
+        if (globalContext->settings.backend == Core::BackendType::Metal)
+        {
+#ifdef MMPENGINE_BACKEND_METAL
+            return std::make_shared<Backend::Metal::UploadBuffer>(this->_settings);
+#else
+            throw Core::UnsupportedException("unable to create upload buffer for Metal backend");
+#endif
+        }
 
 		return nullptr;
 	}
@@ -63,6 +72,15 @@ namespace MMPEngine::Frontend
 #endif
 		}
 
+        if (globalContext->settings.backend == Core::BackendType::Metal)
+        {
+#ifdef MMPENGINE_BACKEND_METAL
+            return std::make_shared<Backend::Metal::ResidentBuffer>(this->_settings);
+#else
+            throw Core::UnsupportedException("unable to create resident buffer for Metal backend");
+#endif
+        }
+        
 		return nullptr;
 	}
 
@@ -134,6 +152,15 @@ namespace MMPEngine::Frontend
 			throw Core::UnsupportedException("unable to create readback buffer for Vulkan backend");
 #endif
 		}
+        
+        if (globalContext->settings.backend == Core::BackendType::Metal)
+        {
+#ifdef MMPENGINE_BACKEND_METAL
+            return std::make_shared<Backend::Metal::ReadBackBuffer>(this->_settings);
+#else
+            throw Core::UnsupportedException("unable to create readback buffer for Metal backend");
+#endif
+        }
 
 		return nullptr;
 	}
