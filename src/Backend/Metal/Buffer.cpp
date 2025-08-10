@@ -59,7 +59,7 @@ UploadBuffer::WriteTask::WriteTask(const std::shared_ptr<WriteTaskContext>& cont
     {
         Task::OnScheduled(stream);
 
-        //stream->Schedule(Core::StreamBarrierTask::kInstance);
+        stream->Schedule(Core::StreamBarrierTask::kInstance);
         stream->Schedule(_implTask);
     }
 
@@ -127,7 +127,7 @@ UploadBuffer::WriteTask::WriteTask(const std::shared_ptr<WriteTaskContext>& cont
     {
         Task::OnScheduled(stream);
 
-        //stream->Schedule(Core::StreamBarrierTask::kInstance);
+        stream->Schedule(Core::StreamBarrierTask::kInstance);
         stream->Schedule(_implTask);
     }
 
