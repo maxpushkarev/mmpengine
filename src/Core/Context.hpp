@@ -70,8 +70,6 @@ typedef void* NativeWindow;
 
 	class StreamContext : public Context
 	{
-    public:
-        using PassControl = Core::PassControl<true, Core::BaseStream>;
 	};
 
 	class TaskContext : public Context

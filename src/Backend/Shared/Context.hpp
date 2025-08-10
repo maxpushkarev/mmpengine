@@ -5,8 +5,24 @@
 
 namespace MMPEngine::Backend::Shared
 {
+    class BaseStreamContext : public Core::StreamContext
+    {
+    public:
+        using PassControl = Core::PassControl<true, Core::BaseStream>;
+        
+        bool IsCommandsPopulated(PassControl) const;
+        bool IsCommandsClosed(PassControl) const;
+
+        void SetCommandsPopulated(PassControl, bool value);
+        void SetCommandsClosed(PassControl, bool value);
+        
+    protected:
+        bool _commandsPopulated = false;
+        bool _commandsClosed = true;
+    };
+
 	template<typename TQueue, typename TCommandBufferAllocator, typename TCommandBuffer, typename TFence>
-	class StreamContext : public Core::StreamContext
+	class StreamContext : public BaseStreamContext
 	{
 	public:
 		StreamContext(
@@ -20,15 +36,8 @@ namespace MMPEngine::Backend::Shared
 		TCommandBufferAllocator& GetAllocator(PassControl);
 		TCommandBuffer& GetCommandBuffer(PassControl);
 		TFence& GetFence();
-
-		bool IsCommandsPopulated(PassControl) const;
-		bool IsCommandsClosed(PassControl) const;
-
-		void SetCommandsPopulated(PassControl, bool value);
-		void SetCommandsClosed(PassControl, bool value);
+        
 	protected:
-		bool _commandsPopulated = false;
-		bool _commandsClosed = true;
 		TQueue _queue;
 		TCommandBufferAllocator _allocator;
 		TCommandBuffer _cmdBuffer;
@@ -76,30 +85,4 @@ namespace MMPEngine::Backend::Shared
 	{
 		return _fence;
 	}
-
-	template <typename TQueue, typename TCommandBufferAllocator, typename TCommandBuffer, typename TFence>
-	bool StreamContext<TQueue, TCommandBufferAllocator, TCommandBuffer, TFence>::IsCommandsClosed(PassControl) const
-	{
-		return _commandsClosed;
-	}
-
-	template <typename TQueue, typename TCommandBufferAllocator, typename TCommandBuffer, typename TFence>
-	bool StreamContext<TQueue, TCommandBufferAllocator, TCommandBuffer, TFence>::IsCommandsPopulated(PassControl) const
-	{
-		return _commandsPopulated;
-	}
-
-	template <typename TQueue, typename TCommandBufferAllocator, typename TCommandBuffer, typename TFence>
-	void StreamContext<TQueue, TCommandBufferAllocator, TCommandBuffer, TFence>::SetCommandsClosed(PassControl, bool value)
-	{
-		_commandsClosed = value;
-	}
-
-
-	template <typename TQueue, typename TCommandBufferAllocator, typename TCommandBuffer, typename TFence>
-	void StreamContext<TQueue, TCommandBufferAllocator, TCommandBuffer, TFence>::SetCommandsPopulated(PassControl, bool value)
-	{
-		_commandsPopulated = value;
-	}
-
 }

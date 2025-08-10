@@ -8,6 +8,10 @@ namespace MMPEngine::Backend::Metal
     {
     }
 
+    void Stream::RestartInternal()
+    {
+    }
+
     void Stream::SyncInternal()
     {
         _specificStreamContext->commandBuffer->GetNative()->waitUntilCompleted();

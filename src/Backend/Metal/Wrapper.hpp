@@ -1,5 +1,6 @@
-
 #pragma once
+#include <Core/Passkey.hpp>
+#include <Core/Stream.hpp>
 #include <Metal/Metal.hpp>
 
 namespace MMPEngine::Backend::Metal
@@ -40,6 +41,9 @@ namespace MMPEngine::Backend::Metal
         class CommandBuffer final
         {
         public:
+            
+            using PassControl = Core::PassControl<true, Core::BaseStream>;
+            
             CommandBuffer(const std::shared_ptr<Queue>&, MTL::CommandBufferDescriptor*);
             CommandBuffer(const CommandBuffer&) = delete;
             CommandBuffer(CommandBuffer&&) noexcept = delete;
