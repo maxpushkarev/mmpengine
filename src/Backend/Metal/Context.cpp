@@ -12,4 +12,10 @@ namespace MMPEngine::Backend::Metal
         : queue(queue), commandBuffer(cmdBuffer)
     {
     }
+
+    std::shared_ptr<Wrapper::CommandBuffer>& StreamContext::PopulateCommandsInBuffer()
+    {
+        _commandsPopulated = true;
+        return commandBuffer;
+    }
 }
