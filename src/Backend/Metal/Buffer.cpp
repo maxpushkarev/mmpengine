@@ -24,7 +24,7 @@ namespace MMPEngine::Backend::Metal
         Task::Run(stream);
         
         const auto buffer = GetTaskContext()->entity;
-        buffer->_device = _specificGlobalContext->device;
+        buffer->_globalContext = _specificGlobalContext;
     }
 
     Buffer::CopyBufferTask::CopyBufferTask(const std::shared_ptr<CopyBufferTaskContext>& context) : Task<

@@ -5,16 +5,26 @@
 
 namespace MMPEngine::Backend::Metal
 {
-    class Stream : public Core::BaseStream
+    class Stream : public Shared::Stream<
+        GlobalContext,
+        StreamContext>
     {
+    private:
+        using Super = Shared::Stream<
+            GlobalContext,
+            StreamContext>;
     public:
         Stream(const std::shared_ptr<GlobalContext>& globalContext, const std::shared_ptr<StreamContext>& streamContext);
+        Stream(const Stream&) = delete;
+        Stream(Stream&&) noexcept = delete;
+        Stream& operator=(const Stream&) = delete;
+        Stream& operator=(Stream&&) noexcept = delete;
+        ~Stream() override;
     protected:
-        void RestartInternal() override;
-        void SyncInternal() override;
-        void SubmitInternal() override;
-        void Flush() override;
-    private:
-        std::shared_ptr<StreamContext> _specificStreamContext;
+        bool ExecutionMonitorCompleted() override;
+        void ResetAll() override;
+        void ScheduleCommandsForExecution() override;
+        void UpdateExecutionMonitor() override;
+        void WaitForExecutionMonitor() override;
     };
 }

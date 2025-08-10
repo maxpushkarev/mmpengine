@@ -18,7 +18,7 @@ namespace MMPEngine::Backend::Metal
         Buffer& operator=(Buffer&&) noexcept = delete;
     protected:
 
-        std::shared_ptr<Wrapper::Device> _device;
+        std::shared_ptr<GlobalContext> _globalContext;
         MTL::Buffer* _nativeBuffer = nullptr;
         
         class InitTaskContext final : public Core::EntityTaskContext<Buffer>

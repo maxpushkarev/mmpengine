@@ -5,6 +5,8 @@
 
 namespace MMPEngine::Backend::Metal
 {
+    class GlobalContext;
+
     namespace Wrapper
     {
         class Device final
@@ -25,7 +27,7 @@ namespace MMPEngine::Backend::Metal
         class Queue final
         {
         public:
-            Queue(const std::shared_ptr<Device>&, MTL::CommandQueueDescriptor*);
+            Queue(const std::shared_ptr<GlobalContext>&, std::uint32_t maxCmdBuffersCount);
             Queue(const Queue&) = delete;
             Queue(Queue&&) noexcept = delete;
             Queue& operator=(const Queue&) = delete;
@@ -34,7 +36,7 @@ namespace MMPEngine::Backend::Metal
             
             MTL::CommandQueue* GetNative() const;
         private:
-            std::shared_ptr<Device> _device;
+            std::shared_ptr<GlobalContext> _globalContext;
             MTL::CommandQueue* _queue = nullptr;
         };
     
@@ -44,7 +46,7 @@ namespace MMPEngine::Backend::Metal
             
             using PassControl = Core::PassControl<true, Core::BaseStream>;
             
-            CommandBuffer(const std::shared_ptr<Queue>&, MTL::CommandBufferDescriptor*);
+            CommandBuffer(const std::shared_ptr<GlobalContext>&, const std::shared_ptr<Queue>&);
             CommandBuffer(const CommandBuffer&) = delete;
             CommandBuffer(CommandBuffer&&) noexcept = delete;
             CommandBuffer& operator=(const CommandBuffer&) = delete;
@@ -52,15 +54,18 @@ namespace MMPEngine::Backend::Metal
             ~CommandBuffer();
             
             MTL::CommandBuffer* GetNative() const;
+            void Reset(PassControl);
         private:
             std::shared_ptr<Queue> _queue;
+            std::shared_ptr<GlobalContext> _globalContext;
             MTL::CommandBuffer* _commandBuffer = nullptr;
+            MTL::CommandBufferDescriptor* _commandBufferDescriptor = nullptr;
         };
     
         class LogState final
         {
         public:
-            LogState(const std::shared_ptr<Device>&, MTL::LogStateDescriptor*);
+            LogState(const std::shared_ptr<Device>&, std::uint32_t bufferSize, MTL::LogLevel logLevel);
             LogState(const LogState&) = delete;
             LogState(LogState&&) noexcept = delete;
             LogState& operator=(const LogState&) = delete;

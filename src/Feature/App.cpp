@@ -567,28 +567,12 @@ namespace MMPEngine::Feature
         {
             _rootContext->device = std::make_shared<Backend::Metal::Wrapper::Device>();
             
-            auto logStateDesc = MTL::LogStateDescriptor::alloc()->init();
-            logStateDesc->setBufferSize(_rootContext->settings.isDebug ? 8192 : 0);
-            logStateDesc->setLevel(_rootContext->settings.isDebug ? MTL::LogLevelDebug : MTL::LogLevelError);
+            _rootContext->logState = std::make_shared<Backend::Metal::Wrapper::LogState>(_rootContext->device, _rootContext->settings.isDebug ? 8192U : 0U, _rootContext->settings.isDebug ? MTL::LogLevelDebug : MTL::LogLevelError);
             
-            _rootContext->logState = std::make_shared<Backend::Metal::Wrapper::LogState>(_rootContext->device, logStateDesc);
-            logStateDesc->release();
+            const auto queue = std::make_shared<Backend::Metal::Wrapper::Queue>(_rootContext, 1U);
             
-            auto commandQueueDesc = MTL::CommandQueueDescriptor::alloc()->init();
-            commandQueueDesc->setLogState(_rootContext->logState->GetNative());
-            commandQueueDesc->setMaxCommandBufferCount(1);
-            
-            const auto queue = std::make_shared<Backend::Metal::Wrapper::Queue>(_rootContext->device, commandQueueDesc);
-            commandQueueDesc->release();
-            
-            auto commandBufferDesc = MTL::CommandBufferDescriptor::alloc()->init();
-            commandBufferDesc->setRetainedReferences(false);
-            commandBufferDesc->setLogState(_rootContext->logState->GetNative());
-            commandBufferDesc->setErrorOptions(_rootContext->settings.isDebug ? MTL::CommandBufferErrorOptionEncoderExecutionStatus : MTL::CommandBufferErrorOptionNone);
-            
-            const auto commandBuffer = std::make_shared<Backend::Metal::Wrapper::CommandBuffer>(queue, commandBufferDesc);
-            commandBufferDesc->release();
-            
+            const auto commandBuffer = std::make_shared<Backend::Metal::Wrapper::CommandBuffer>(_rootContext, queue);
+
             const auto streamContext = std::make_shared<Backend::Metal::StreamContext>(queue,
                 commandBuffer
             );

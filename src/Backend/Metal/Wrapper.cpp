@@ -1,4 +1,5 @@
 #include <Backend/Metal/Wrapper.hpp>
+#include <Backend/Metal/Context.hpp>
 #include <iostream>
 #include <cassert>
 
@@ -24,11 +25,17 @@ namespace MMPEngine::Backend::Metal
             return _device;
         }
     
-        LogState::LogState(const std::shared_ptr<Device>& device, MTL::LogStateDescriptor* desc) : _device(device)
+        LogState::LogState(const std::shared_ptr<Device>& device, std::uint32_t bufferSize, MTL::LogLevel logLevel) : _device(device)
         {
+            auto logStateDesc = MTL::LogStateDescriptor::alloc()->init();
+            logStateDesc->setBufferSize(static_cast<NS::Integer>(bufferSize));
+            logStateDesc->setLevel(logLevel);
+            
             NS::Error* err = nullptr;
-            _logState = _device->GetNative()->newLogState(desc, &err);
+            _logState = _device->GetNative()->newLogState(logStateDesc, &err);
             assert(err == nullptr);
+            
+            logStateDesc->release();
         }
         
         MTL::LogState* LogState::GetNative() const
@@ -44,9 +51,15 @@ namespace MMPEngine::Backend::Metal
             }
         }
     
-        Queue::Queue(const std::shared_ptr<Device>& device, MTL::CommandQueueDescriptor* queueDesc) : _device(device)
+        Queue::Queue(const std::shared_ptr<GlobalContext>& globalContext, std::uint32_t maxCmdBuffersCount) : _globalContext(globalContext)
         {
-            _queue = _device->GetNative()->newCommandQueue(queueDesc);
+            auto commandQueueDesc = MTL::CommandQueueDescriptor::alloc()->init();
+            commandQueueDesc->setLogState(_globalContext->logState->GetNative());
+            commandQueueDesc->setMaxCommandBufferCount(static_cast<NS::UInteger>(maxCmdBuffersCount));
+            
+            _queue = _globalContext->device->GetNative()->newCommandQueue(commandQueueDesc);
+            
+            commandQueueDesc->release();
         }
     
         Queue::~Queue()
@@ -62,9 +75,12 @@ namespace MMPEngine::Backend::Metal
             return  _queue;
         }
     
-        CommandBuffer::CommandBuffer(const std::shared_ptr<Queue>& queue, MTL::CommandBufferDescriptor* cbDesc) : _queue(queue)
+        CommandBuffer::CommandBuffer(const std::shared_ptr<GlobalContext>& globalContext, const std::shared_ptr<Queue>& queue) : _queue(queue), _globalContext(globalContext)
         {
-            _commandBuffer = _queue->GetNative()->commandBuffer(cbDesc);
+            _commandBufferDescriptor = MTL::CommandBufferDescriptor::alloc()->init();
+            _commandBufferDescriptor->setRetainedReferences(false);
+            _commandBufferDescriptor->setLogState(_globalContext->logState->GetNative());
+            _commandBufferDescriptor->setErrorOptions(_globalContext->settings.isDebug ? MTL::CommandBufferErrorOptionEncoderExecutionStatus : MTL::CommandBufferErrorOptionNone);
         }
 
         CommandBuffer::~CommandBuffer()
@@ -73,11 +89,27 @@ namespace MMPEngine::Backend::Metal
             {
                 _commandBuffer->release();
             }
+            
+            if(_commandBufferDescriptor)
+            {
+                _commandBufferDescriptor->release();
+            }
         }
 
         MTL::CommandBuffer* CommandBuffer::GetNative() const
         {
             return  _commandBuffer;
         }
+    
+        void CommandBuffer::Reset(PassControl)
+        {
+            if(_commandBuffer)
+            {
+                _commandBuffer->release();
+            }
+            
+            _commandBuffer = _queue->GetNative()->commandBuffer(_commandBufferDescriptor);
+        }
+    
     }
 }
