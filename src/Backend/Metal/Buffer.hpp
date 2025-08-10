@@ -9,15 +9,21 @@ namespace MMPEngine::Backend::Metal
 {
     class Buffer : public ResourceEntity
     {
+    protected:
+        struct MtlSettings final
+        {
+            
+        };
     public:
-        Buffer();
+        Buffer(const MtlSettings&);
         ~Buffer() override;
         Buffer(const Buffer&) = delete;
         Buffer(Buffer&&) noexcept = delete;
         Buffer& operator=(const Buffer&) = delete;
         Buffer& operator=(Buffer&&) noexcept = delete;
     protected:
-
+        
+        MtlSettings _mtlSettings;
         std::shared_ptr<GlobalContext> _globalContext;
         MTL::Buffer* _nativeBuffer = nullptr;
         

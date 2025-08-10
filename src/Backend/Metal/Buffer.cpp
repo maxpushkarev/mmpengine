@@ -3,7 +3,7 @@
 
 namespace MMPEngine::Backend::Metal
 {
-    Buffer::Buffer()
+    Buffer::Buffer(const MtlSettings& mtlSettings) : _mtlSettings(mtlSettings)
     {
     }
 
@@ -43,7 +43,7 @@ namespace MMPEngine::Backend::Metal
        
     }
 
-    UploadBuffer::UploadBuffer(const Settings& settings) : Core::UploadBuffer(settings), Metal::Buffer()
+UploadBuffer::UploadBuffer(const Settings& settings) : Core::UploadBuffer(settings), Metal::Buffer(MtlSettings {})
     {
     }
 
@@ -111,7 +111,7 @@ UploadBuffer::WriteTask::WriteTask(const std::shared_ptr<WriteTaskContext>& cont
         return std::make_shared<InitTask>(ctx);
     }
 
-    ReadBackBuffer::ReadBackBuffer(const Settings& settings) : Core::ReadBackBuffer(settings), Metal::Buffer()
+ReadBackBuffer::ReadBackBuffer(const Settings& settings) : Core::ReadBackBuffer(settings), Metal::Buffer(MtlSettings {})
     {
     }
 
@@ -180,7 +180,7 @@ UploadBuffer::WriteTask::WriteTask(const std::shared_ptr<WriteTaskContext>& cont
         return std::make_shared<InitTask>(ctx);
     }
 
-    ResidentBuffer::ResidentBuffer(const Settings& settings) : Core::ResidentBuffer(settings), Metal::Buffer()
+ResidentBuffer::ResidentBuffer(const Settings& settings) : Core::ResidentBuffer(settings), Metal::Buffer(MtlSettings {})
     {
     }
 
