@@ -1,4 +1,5 @@
 #include <Backend/Metal/Stream.hpp>
+#include <cassert>
 
 namespace MMPEngine::Backend::Metal
 {
@@ -11,78 +12,39 @@ namespace MMPEngine::Backend::Metal
 
     bool Stream::ExecutionMonitorCompleted()
     {
-        return true;
-        /*return vkGetFenceStatus(_specificGlobalContext->device->GetNativeLogical(), _specificStreamContext->GetFence()->GetNative()) == VK_SUCCESS;*/
+        const auto nativeCb = _specificStreamContext->commandBuffer->GetNative();
+        if(!nativeCb)
+        {
+            return true;
+        }
+        const auto status = nativeCb->status();
+        return status == MTL::CommandBufferStatusCompleted;
     }
 
     void Stream::ResetAll()
     {
-        /*vkResetCommandBuffer(_specificStreamContext->GetCommandBuffer(_passControl)->GetNative(), VK_COMMAND_BUFFER_RESET_RELEASE_RESOURCES_BIT);*/
+        _specificStreamContext->commandBuffer->Reset(_passControl);
     }
 
     void Stream::ScheduleCommandsForExecution()
     {
-        /*const auto cb = _specificStreamContext->GetCommandBuffer(_passControl)->GetNative();
-
-        VkSubmitInfo submitInfo;
-        submitInfo.pNext = nullptr;
-        submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-
-        submitInfo.commandBufferCount = 1;
-        submitInfo.pCommandBuffers = &cb;
-
-        submitInfo.waitSemaphoreCount = 0;
-        submitInfo.pWaitSemaphores = nullptr;
-        submitInfo.pWaitDstStageMask = nullptr;
-
-        submitInfo.signalSemaphoreCount = 0;
-        submitInfo.pSignalSemaphores = nullptr;
-
-        vkEndCommandBuffer(cb);
-        vkQueueSubmit(
-            _specificStreamContext->GetQueue()->GetNative(),
-            1,
-            &submitInfo,
-            nullptr
-        );*/
+        const auto nativeCb = _specificStreamContext->commandBuffer->GetNative();
+        assert(nativeCb);
+        nativeCb->commit();
     }
 
     void Stream::UpdateExecutionMonitor()
     {
-        /*VkSubmitInfo submitInfo;
-        submitInfo.pNext = nullptr;
-        submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-
-        submitInfo.commandBufferCount = 0;
-        submitInfo.pCommandBuffers = nullptr;
-
-        submitInfo.waitSemaphoreCount = 0;
-        submitInfo.pWaitSemaphores = nullptr;
-        submitInfo.pWaitDstStageMask = nullptr;
-
-        submitInfo.signalSemaphoreCount = 0;
-        submitInfo.pSignalSemaphores = nullptr;
-
-        const auto vkFence = _specificStreamContext->GetFence()->GetNative();
-        
-        vkResetFences(_specificGlobalContext->device->GetNativeLogical(), 1, &vkFence);
-        vkQueueSubmit(
-            _specificStreamContext->GetQueue()->GetNative(),
-            1,
-            &submitInfo,
-            vkFence
-        );*/
     }
 
     void Stream::WaitForExecutionMonitor()
     {
-        /*const auto vkFence = _specificStreamContext->GetFence()->GetNative();
-        vkWaitForFences(
-            _specificGlobalContext->device->GetNativeLogical(),
-            1,
-            &vkFence,
-            VK_TRUE,
-            (std::numeric_limits<std::uint64_t>::max)()
-        );*/
+        const auto nativeCb = _specificStreamContext->commandBuffer->GetNative();
+        assert(nativeCb);
+        const auto status = nativeCb->status();
+        if(status == MTL::CommandBufferStatusCommitted || status == MTL::CommandBufferStatusScheduled)
+        {
+            nativeCb->waitUntilCompleted();
+        }
     }
 }

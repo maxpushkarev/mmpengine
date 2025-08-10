@@ -106,9 +106,11 @@ namespace MMPEngine::Backend::Metal
             if(_commandBuffer)
             {
                 _commandBuffer->release();
+                _commandBuffer = nullptr;
             }
             
             _commandBuffer = _queue->GetNative()->commandBuffer(_commandBufferDescriptor);
+            assert(_commandBuffer != nullptr);
         }
     
     }
