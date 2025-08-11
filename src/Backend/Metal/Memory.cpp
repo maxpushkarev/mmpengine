@@ -34,11 +34,11 @@ namespace MMPEngine::Backend::Metal
         const auto desc = MTL::HeapDescriptor::alloc()->init();
         
         desc->setSize(static_cast<NS::UInteger>(entity->_settings.size));
-        desc->setType(entity->_settings.type);
-        desc->setStorageMode(entity->_settings.storageMode);
-        desc->setResourceOptions(entity->_settings.resourceOption);
-        desc->setCpuCacheMode(entity->_settings.cpuCacheMode);
-        desc->setSparsePageSize(entity->_settings.sparsePageSize);
+        desc->setType(entity->_settings.mtl.type);
+        desc->setStorageMode(entity->_settings.mtl.storageMode);
+        desc->setResourceOptions(entity->_settings.mtl.resourceOption);
+        desc->setCpuCacheMode(entity->_settings.mtl.cpuCacheMode);
+        desc->setSparsePageSize(entity->_settings.mtl.sparsePageSize);
         desc->setHazardTrackingMode(MTL::HazardTrackingModeTracked);
         
         entity->_nativeHeap = entity->_device->GetNative()->newHeap(desc);

@@ -9,14 +9,18 @@ namespace MMPEngine::Backend::Metal
     class DeviceMemoryBlock final : public Core::BaseEntity
     {
     public:
-        struct Settings final
+        struct MTLSettings final
         {
-            std::uint32_t size = 0;
             MTL::HeapType type = MTL::HeapTypePlacement;
             MTL::StorageMode storageMode = MTL::StorageModePrivate;
             MTL::ResourceOptions resourceOption = MTL::ResourceOptionCPUCacheModeDefault;
             MTL::CPUCacheMode cpuCacheMode = MTL::CPUCacheModeDefaultCache;
             MTL::SparsePageSize sparsePageSize = MTL::SparsePageSize16;
+        };
+        struct Settings final
+        {
+            std::size_t size = 0;
+            MTLSettings mtl {};
         };
 
         DeviceMemoryBlock(const Settings&);
