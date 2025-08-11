@@ -19,6 +19,8 @@
 #ifdef MMPENGINE_BACKEND_METAL
 #include <Backend/Metal/Stream.hpp>
 #include <Backend/Metal/Wrapper.hpp>
+#include <Backend/Metal/Heap.hpp>
+#include <Backend/Metal/Memory.hpp>
 #endif
 
 
@@ -568,6 +570,24 @@ namespace MMPEngine::Feature
             _rootContext->device = std::make_shared<Backend::Metal::Wrapper::Device>();
             
             _rootContext->logState = std::make_shared<Backend::Metal::Wrapper::LogState>(_rootContext->device, _rootContext->settings.isDebug ? 8192U : 0U, _rootContext->settings.isDebug ? MTL::LogLevelDebug : MTL::LogLevelError);
+            
+            constexpr std::size_t growthFactor = 2;
+            constexpr std::size_t initialSize = 4096;
+
+            _rootContext->uploadBufferHeap = std::make_shared<Backend::Metal::DeviceMemoryHeap>(
+                Core::Heap::Settings {initialSize, growthFactor, true},
+                Backend::Metal::DeviceMemoryBlock::MTLSettings {MTL::HeapTypePlacement, MTL::StorageModeShared, MTL::ResourceOptionCPUCacheModeWriteCombined, MTL::CPUCacheModeWriteCombined,MTL::SparsePageSize16}
+            );
+
+            _rootContext->readBackBufferHeap = std::make_shared<Backend::Metal::DeviceMemoryHeap>(
+                Core::Heap::Settings {initialSize, growthFactor, true},
+                Backend::Metal::DeviceMemoryBlock::MTLSettings {MTL::HeapTypePlacement, MTL::StorageModeShared, MTL::ResourceOptionCPUCacheModeDefault, MTL::CPUCacheModeDefaultCache,MTL::SparsePageSize16}
+            );
+
+            _rootContext->residentBufferHeap = std::make_shared<Backend::Metal::DeviceMemoryHeap>(
+                Core::Heap::Settings {initialSize, growthFactor, true},
+                Backend::Metal::DeviceMemoryBlock::MTLSettings {MTL::HeapTypePlacement, MTL::StorageModePrivate, MTL::ResourceOptionCPUCacheModeDefault, MTL::CPUCacheModeDefaultCache,MTL::SparsePageSize16}
+            );
             
             const auto queue = std::make_shared<Backend::Metal::Wrapper::Queue>(_rootContext, 1U);
             

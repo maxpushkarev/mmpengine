@@ -1,4 +1,5 @@
 #include <Backend/Metal/Context.hpp>
+#include <Backend/Metal/Heap.hpp>
 
 namespace MMPEngine::Backend::Metal
 {
