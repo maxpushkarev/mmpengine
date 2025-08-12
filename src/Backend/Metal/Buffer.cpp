@@ -43,7 +43,11 @@ namespace MMPEngine::Backend::Metal
         Task::Run(stream);
 
         const auto tc = GetTaskContext();
-        //TODO: create buffers
+        const auto memHeap = tc->entity->GetMemoryHeap(_specificGlobalContext);
+        
+        const auto sizeAndAlign = _specificGlobalContext->device->GetNative()->heapBufferSizeAndAlign(static_cast<NS::UInteger>(tc->byteSize), memHeap->GetMtlSettings().resourceOption);
+        
+        tc->entity->_nativeBuffer = tc->entity->_deviceMemoryHeapHandle.GetMemoryBlock()->GetNative()->newBuffer(sizeAndAlign.size, memHeap->GetMtlSettings().resourceOption, sizeAndAlign.align);
     }
 
 
