@@ -576,17 +576,18 @@ namespace MMPEngine::Feature
 
             _rootContext->uploadBufferHeap = std::make_shared<Backend::Metal::DeviceMemoryHeap>(
                 Core::Heap::Settings {initialSize, growthFactor, true},
-                Backend::Metal::DeviceMemoryBlock::MTLSettings {MTL::HeapTypePlacement, MTL::StorageModeShared, MTL::ResourceOptionCPUCacheModeWriteCombined, MTL::CPUCacheModeWriteCombined,MTL::SparsePageSize16}
+                Backend::Metal::DeviceMemoryBlock::MTLSettings {MTL::HeapTypePlacement, MTL::StorageModeShared, MTL::ResourceOptionCPUCacheModeWriteCombined |
+                    MTL::ResourceStorageModeShared | MTL::ResourceHazardTrackingModeTracked, MTL::CPUCacheModeWriteCombined,MTL::SparsePageSize16}
             );
 
             _rootContext->readBackBufferHeap = std::make_shared<Backend::Metal::DeviceMemoryHeap>(
                 Core::Heap::Settings {initialSize, growthFactor, true},
-                Backend::Metal::DeviceMemoryBlock::MTLSettings {MTL::HeapTypePlacement, MTL::StorageModeShared, MTL::ResourceOptionCPUCacheModeDefault, MTL::CPUCacheModeDefaultCache,MTL::SparsePageSize16}
+                Backend::Metal::DeviceMemoryBlock::MTLSettings {MTL::HeapTypePlacement, MTL::StorageModeShared, MTL::ResourceOptionCPUCacheModeDefault | MTL::ResourceStorageModeShared | MTL::ResourceHazardTrackingModeTracked, MTL::CPUCacheModeDefaultCache,MTL::SparsePageSize16}
             );
 
             _rootContext->residentBufferHeap = std::make_shared<Backend::Metal::DeviceMemoryHeap>(
                 Core::Heap::Settings {initialSize, growthFactor, true},
-                Backend::Metal::DeviceMemoryBlock::MTLSettings {MTL::HeapTypePlacement, MTL::StorageModePrivate, MTL::ResourceOptionCPUCacheModeDefault, MTL::CPUCacheModeDefaultCache,MTL::SparsePageSize16}
+                Backend::Metal::DeviceMemoryBlock::MTLSettings {MTL::HeapTypePlacement, MTL::StorageModePrivate, MTL::ResourceOptionCPUCacheModeDefault | MTL::ResourceStorageModePrivate | MTL::ResourceHazardTrackingModeTracked, MTL::CPUCacheModeDefaultCache,MTL::SparsePageSize16}
             );
             
             const auto queue = std::make_shared<Backend::Metal::Wrapper::Queue>(_rootContext, 1U);

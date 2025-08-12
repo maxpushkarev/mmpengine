@@ -34,6 +34,7 @@ namespace MMPEngine::Backend::Metal
 
         DeviceMemoryHeap(const Settings& settings, const DeviceMemoryBlock::MTLSettings& memBlockMtlSettings);
         Handle Allocate(const Request& request);
+        const DeviceMemoryBlock::MTLSettings& GetMtlSettings() const;
     protected:
         std::unique_ptr<Heap::Block> InstantiateBlock(std::size_t size) override;
     private:

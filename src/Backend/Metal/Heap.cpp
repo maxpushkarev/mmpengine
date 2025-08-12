@@ -12,7 +12,11 @@ namespace MMPEngine::Backend::Metal
         const auto block = dynamic_cast<Block*>(_blocks[entry.blockIndex].get());
         return { shared_from_this(), entry, block->GetEntityBlock() };
     }
-
+    
+    const DeviceMemoryBlock::MTLSettings& DeviceMemoryHeap::GetMtlSettings() const
+    {
+        return _memBlockMtlSettings;
+    }
 
     std::unique_ptr<Core::Heap::Block> DeviceMemoryHeap::InstantiateBlock(std::size_t size)
     {

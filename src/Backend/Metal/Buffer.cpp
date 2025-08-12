@@ -24,16 +24,14 @@ namespace MMPEngine::Backend::Metal
         Task::OnScheduled(stream);
 
         const auto tc = GetTaskContext();
-
-        //TODO: allocate memory for buffer
-        /*const auto memHeap = tc->entity->GetMemoryHeap(_specificGlobalContext);
-        VkMemoryRequirements memRequirements;
-        vkGetBufferMemoryRequirements(tc->entity->_device->GetNativeLogical(), tc->entity->_nativeBuffer, &memRequirements);
-
+        const auto memHeap = tc->entity->GetMemoryHeap(_specificGlobalContext);
+        
+        const auto sizeAndAlign = _specificGlobalContext->device->GetNative()->heapBufferSizeAndAlign(static_cast<NS::UInteger>(tc->byteSize), memHeap->GetMtlSettings().resourceOption);
+        
         tc->entity->_deviceMemoryHeapHandle = memHeap->Allocate(Core::Heap::Request {
-            static_cast<std::size_t>(memRequirements.size),
-                static_cast<std::size_t>(memRequirements.alignment)
-        });*/
+            static_cast<std::size_t>(sizeAndAlign.size),
+                static_cast<std::size_t>(sizeAndAlign.align)
+        });
     }
 
     Buffer::InitTask::Create::Create(const std::shared_ptr<InitTaskContext>& context) : Task<MMPEngine::Backend::Metal::Buffer::InitTaskContext>(context)
