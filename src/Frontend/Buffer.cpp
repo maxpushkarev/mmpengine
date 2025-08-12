@@ -188,6 +188,14 @@ namespace MMPEngine::Frontend
 #endif
 		}
 
+        if (globalContext->settings.backend == Core::BackendType::Metal)
+        {
+#ifdef MMPENGINE_BACKEND_METAL
+            return std::make_shared<Backend::Metal::VertexBuffer>(settings);
+#else
+            throw Core::UnsupportedException("unable to create vertex buffer for Metal backend");
+#endif
+        }
 		return nullptr;
 	}
 
@@ -214,7 +222,15 @@ namespace MMPEngine::Frontend
 #endif
 		}
 
-
+        if (globalContext->settings.backend == Core::BackendType::Metal)
+        {
+#ifdef MMPENGINE_BACKEND_METAL
+            return std::make_shared<Backend::Metal::IndexBuffer>(settings);
+#else
+            throw Core::UnsupportedException("unable to create index buffer for Metal backend");
+#endif
+        }
+        
 		return nullptr;
 	}
 

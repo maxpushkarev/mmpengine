@@ -271,4 +271,82 @@ namespace MMPEngine::Backend::Metal
         return globalContext->residentBufferHeap;
     }
 
+    InputAssemblerBuffer::InputAssemblerBuffer(const Core::InputAssemblerBuffer::Settings& settings) : _ia(settings.ia)
+    {
+        _upload = std::make_shared<UploadBuffer>(settings.base);
+        _resident = std::make_shared<ResidentBuffer>(settings.base);
+    }
+
+    InputAssemblerBuffer::~InputAssemblerBuffer() = default;
+
+    VertexBuffer::VertexBuffer(const Core::InputAssemblerBuffer::Settings& settings) : Core::VertexBuffer(settings), Metal::InputAssemblerBuffer(settings)
+    {
+    }
+
+    IndexBuffer::IndexBuffer(const Core::InputAssemblerBuffer::Settings& settings) : Core::IndexBuffer(settings), Metal::InputAssemblerBuffer(settings)
+    {
+    }
+
+    std::shared_ptr<Core::BaseTask> IndexBuffer::CreateInitializationTask()
+    {
+        const auto context = std::make_shared<TaskContext>();
+        context->entity = std::dynamic_pointer_cast<Metal::InputAssemblerBuffer>(shared_from_this());
+        return std::make_shared<InitTask>(context);
+    }
+
+    std::shared_ptr<Core::Buffer> IndexBuffer::GetUnderlyingBuffer()
+    {
+        return _resident;
+    }
+
+    std::shared_ptr<Core::BaseTask> IndexBuffer::CreateCopyToBufferTask(const std::shared_ptr<Core::Buffer>& dst, std::size_t byteLength, std::size_t srcByteOffset, std::size_t dstByteOffset) const
+    {
+        return _resident->CreateCopyToBufferTask(dst, byteLength, srcByteOffset, dstByteOffset);
+    }
+
+    std::shared_ptr<Core::BaseTask> VertexBuffer::CreateCopyToBufferTask(const std::shared_ptr<Core::Buffer>& dst, std::size_t byteLength, std::size_t srcByteOffset, std::size_t dstByteOffset) const
+    {
+        return _resident->CreateCopyToBufferTask(dst, byteLength, srcByteOffset, dstByteOffset);
+    }
+
+    std::shared_ptr<Core::BaseTask> VertexBuffer::CreateInitializationTask()
+    {
+        const auto context = std::make_shared<TaskContext>();
+        context->entity = std::dynamic_pointer_cast<Metal::InputAssemblerBuffer>(shared_from_this());
+        return std::make_shared<InitTask>(context);
+    }
+
+    std::shared_ptr<Core::Buffer> VertexBuffer::GetUnderlyingBuffer()
+    {
+        return _resident;
+    }
+
+    InputAssemblerBuffer::InitTask::InitTask(const std::shared_ptr<TaskContext>& context) : Task(context)
+    {
+    }
+
+    void InputAssemblerBuffer::InitTask::OnScheduled(const std::shared_ptr<Core::BaseStream>& stream)
+    {
+        Task::OnScheduled(stream);
+
+        if (const auto tc = GetTaskContext() ; const auto entity = tc->entity)
+        {
+            stream->Schedule(entity->_upload->CreateInitializationTask());
+            stream->Schedule(entity->_resident->CreateInitializationTask());
+            stream->Schedule(Core::StreamBarrierTask::kInstance);
+            stream->Schedule(entity->_upload->CreateWriteTask(entity->_ia.rawData, entity->_upload->GetSettings().byteLength, 0));
+            stream->Schedule(entity->_upload->CopyToBuffer(entity->_resident));
+        }
+    }
+
+    void InputAssemblerBuffer::InitTask::OnComplete(const std::shared_ptr<Core::BaseStream>& stream)
+    {
+        Task::OnComplete(stream);
+
+        if(const auto tc = GetTaskContext() ; const auto entity = tc->entity)
+        {
+            entity->_upload.reset();
+        }
+    }
+
 }

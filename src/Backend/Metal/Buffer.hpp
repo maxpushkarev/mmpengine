@@ -146,6 +146,53 @@ namespace MMPEngine::Backend::Metal
         std::shared_ptr<DeviceMemoryHeap> GetMemoryHeap(const std::shared_ptr<GlobalContext>& globalContext) const override;
     };
 
+    class InputAssemblerBuffer
+    {
+    public:
+        InputAssemblerBuffer(const InputAssemblerBuffer&) = delete;
+        InputAssemblerBuffer(InputAssemblerBuffer&&) noexcept = delete;
+        InputAssemblerBuffer& operator=(const InputAssemblerBuffer&) = delete;
+        InputAssemblerBuffer& operator=(InputAssemblerBuffer&&) noexcept = delete;
+    protected:
+        InputAssemblerBuffer(const Core::InputAssemblerBuffer::Settings& settings);
+        virtual ~InputAssemblerBuffer();
+
+        class TaskContext final : public Core::EntityTaskContext<InputAssemblerBuffer>
+        {
+        };
+
+        class InitTask final : public Task<TaskContext>
+        {
+        public:
+            InitTask(const std::shared_ptr<TaskContext>& context);
+            void OnScheduled(const std::shared_ptr<Core::BaseStream>& stream) override;
+            void OnComplete(const std::shared_ptr<Core::BaseStream>& stream) override;
+        };
+    protected:
+        std::shared_ptr<UploadBuffer> _upload;
+        std::shared_ptr<ResidentBuffer> _resident;
+    private:
+        Core::InputAssemblerBuffer::IASettings _ia;
+    };
+
+    class VertexBuffer final : public Core::VertexBuffer, public Metal::InputAssemblerBuffer
+    {
+    public:
+        VertexBuffer(const Core::InputAssemblerBuffer::Settings& settings);
+        std::shared_ptr<Core::Buffer> GetUnderlyingBuffer() override;
+        std::shared_ptr<Core::BaseTask> CreateCopyToBufferTask(const std::shared_ptr<Core::Buffer>& dst, std::size_t byteLength, std::size_t srcByteOffset, std::size_t dstByteOffset) const override;
+        std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;
+    };
+
+    class IndexBuffer final : public Core::IndexBuffer, public Metal::InputAssemblerBuffer
+    {
+    public:
+        IndexBuffer(const Core::InputAssemblerBuffer::Settings& settings);
+        std::shared_ptr<Core::Buffer> GetUnderlyingBuffer() override;
+        std::shared_ptr<Core::BaseTask> CreateCopyToBufferTask(const std::shared_ptr<Core::Buffer>& dst, std::size_t byteLength, std::size_t srcByteOffset, std::size_t dstByteOffset) const override;
+        std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;
+    };
+
     template<class TUniformBufferData>
     class UniformBuffer final : public Core::UniformBuffer<TUniformBufferData>, public Metal::Buffer
     {
