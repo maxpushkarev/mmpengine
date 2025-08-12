@@ -243,7 +243,7 @@ namespace MMPEngine::Core
 							return b1Size < b2Size;
 						});
 
-					if (blockWithMaxSize != _blocks.cend())
+					if (blockWithMaxSize != _blocks.cend() && (*blockWithMaxSize))
 					{
 						newBlockSize = (std::max)(newBlockSize, blockWithMaxSize->get()->GetSize() * _settings.growthFactor);
 					}
