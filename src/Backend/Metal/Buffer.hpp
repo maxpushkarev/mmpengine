@@ -31,17 +31,17 @@ namespace MMPEngine::Backend::Metal
         {
         public:
 
+            class Allocate final : public Task<InitTaskContext>
+            {
+            public:
+                Allocate(const std::shared_ptr<InitTaskContext>& context);
+                void OnScheduled(const std::shared_ptr<Core::BaseStream>& stream) override;
+            };
+
             class Create final : public Task<InitTaskContext>
             {
             public:
                 Create(const std::shared_ptr<InitTaskContext>& context);
-                void OnScheduled(const std::shared_ptr<Core::BaseStream>& stream) override;
-            };
-
-            class Bind final : public Task<InitTaskContext>
-            {
-            public:
-                Bind(const std::shared_ptr<InitTaskContext>& context);
                 void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
             };
 

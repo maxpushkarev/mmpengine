@@ -15,11 +15,11 @@ namespace MMPEngine::Backend::Metal
         }
     }
 
-    Buffer::InitTask::Create::Create(const std::shared_ptr<InitTaskContext>& context) : Task<MMPEngine::Backend::Metal::Buffer::InitTaskContext>(context)
+    Buffer::InitTask::Allocate::Allocate(const std::shared_ptr<InitTaskContext>& context) : Task<MMPEngine::Backend::Metal::Buffer::InitTaskContext>(context)
     {
     }
 
-    void Buffer::InitTask::Create::OnScheduled(const std::shared_ptr<Core::BaseStream>& stream)
+    void Buffer::InitTask::Allocate::OnScheduled(const std::shared_ptr<Core::BaseStream>& stream)
     {
         Task::OnScheduled(stream);
 
@@ -36,11 +36,11 @@ namespace MMPEngine::Backend::Metal
         });*/
     }
 
-    Buffer::InitTask::Bind::Bind(const std::shared_ptr<InitTaskContext>& context) : Task<MMPEngine::Backend::Metal::Buffer::InitTaskContext>(context)
+    Buffer::InitTask::Create::Create(const std::shared_ptr<InitTaskContext>& context) : Task<MMPEngine::Backend::Metal::Buffer::InitTaskContext>(context)
     {
     }
 
-    void Buffer::InitTask::Bind::Run(const std::shared_ptr<Core::BaseStream>& stream)
+    void Buffer::InitTask::Create::Run(const std::shared_ptr<Core::BaseStream>& stream)
     {
         Task::Run(stream);
 
@@ -56,9 +56,9 @@ namespace MMPEngine::Backend::Metal
     void Buffer::InitTask::OnScheduled(const std::shared_ptr<Core::BaseStream>& stream)
     {
         Task::OnScheduled(stream);
-        stream->Schedule(std::make_shared<Create>(GetTaskContext()));
+        stream->Schedule(std::make_shared<Allocate>(GetTaskContext()));
         stream->Schedule(GetTaskContext()->entity->GetMemoryHeap(_specificGlobalContext)->CreateTaskToInitializeBlocks());
-        stream->Schedule(std::make_shared<Bind>(GetTaskContext()));
+        stream->Schedule(std::make_shared<Create>(GetTaskContext()));
     }
 
     Buffer::CopyBufferTask::CopyBufferTask(const std::shared_ptr<CopyBufferTaskContext>& context) : Task<
