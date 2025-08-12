@@ -45,9 +45,7 @@ namespace MMPEngine::Backend::Metal
         const auto tc = GetTaskContext();
         const auto memHeap = tc->entity->GetMemoryHeap(_specificGlobalContext);
         
-        const auto sizeAndAlign = _specificGlobalContext->device->GetNative()->heapBufferSizeAndAlign(static_cast<NS::UInteger>(tc->byteSize), memHeap->GetMtlSettings().resourceOption);
-        
-        tc->entity->_nativeBuffer = tc->entity->_deviceMemoryHeapHandle.GetMemoryBlock()->GetNative()->newBuffer(sizeAndAlign.size, memHeap->GetMtlSettings().resourceOption, sizeAndAlign.align);
+        tc->entity->_nativeBuffer = tc->entity->_deviceMemoryHeapHandle.GetMemoryBlock()->GetNative()->newBuffer(static_cast<NS::UInteger>(tc->entity->_deviceMemoryHeapHandle.GetSize()), memHeap->GetMtlSettings().resourceOption, static_cast<NS::UInteger>(tc->entity->_deviceMemoryHeapHandle.GetOffset()));
     }
 
 
@@ -108,8 +106,7 @@ namespace MMPEngine::Backend::Metal
         Task::Run(stream);
         if (const auto tc = GetTaskContext(); const auto entity = tc->uploadBuffer)
         {
-            //TODO: write
-            /*std::memcpy(static_cast<char*>(entity->_deviceMemoryHeapHandle.GetMemoryBlock()->GetHost()) + entity->_deviceMemoryHeapHandle.GetOffset() + tc->byteOffset, tc->src, tc->byteLength);*/
+            std::memcpy(static_cast<char*>(entity->_nativeBuffer->contents()) + tc->byteOffset, tc->src, tc->byteLength);
         }
     }
 
@@ -184,8 +181,7 @@ namespace MMPEngine::Backend::Metal
 
         if (const auto tc = GetTaskContext(); const auto entity = tc->readBackBuffer)
         {
-            //TODO: read
-            /*std::memcpy(tc->dst, static_cast<char*>(entity->_deviceMemoryHeapHandle.GetMemoryBlock()->GetHost()) + entity->_deviceMemoryHeapHandle.GetOffset() + tc->byteOffset, tc->byteLength);*/
+            std::memcpy(tc->dst, static_cast<char*>(entity->_nativeBuffer->contents()) + tc->byteOffset, tc->byteLength);
         }
     }
 
