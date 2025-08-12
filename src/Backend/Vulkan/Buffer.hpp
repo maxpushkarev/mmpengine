@@ -320,14 +320,14 @@ namespace MMPEngine::Backend::Vulkan
 
 	template<class TUniformBufferData>
 	inline UniformBuffer<TUniformBufferData>::UniformBuffer(std::string_view name)
-		: Core::UniformBuffer<TUniformBufferData>(Core::Buffer::Settings {sizeof(UniformBuffer<TUniformBufferData>::TData), std::string {name}}),
+		: Core::UniformBuffer<TUniformBufferData>(Core::Buffer::Settings {sizeof(typename UniformBuffer<TUniformBufferData>::TData), std::string {name}}),
 		Vulkan::Buffer(VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT)
 	{
 	}
 
 	template<class TUniformBufferData>
 	inline UniformBuffer<TUniformBufferData>::UniformBuffer()
-		: Core::UniformBuffer<TUniformBufferData>(Core::Buffer::Settings {sizeof(UniformBuffer<TUniformBufferData>::TData), std::string {}}),
+		: Core::UniformBuffer<TUniformBufferData>(Core::Buffer::Settings {sizeof(typename UniformBuffer<TUniformBufferData>::TData), std::string {}}),
 		Vulkan::Buffer(VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT)
 	{
 	}

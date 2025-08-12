@@ -579,6 +579,12 @@ namespace MMPEngine::Feature
                 Backend::Metal::DeviceMemoryBlock::MTLSettings {MTL::HeapTypePlacement, MTL::StorageModeShared, MTL::ResourceOptionCPUCacheModeWriteCombined |
                     MTL::ResourceStorageModeShared | MTL::ResourceHazardTrackingModeTracked, MTL::CPUCacheModeWriteCombined,MTL::SparsePageSize16}
             );
+            
+            _rootContext->uniformBufferHeap = std::make_shared<Backend::Metal::DeviceMemoryHeap>(
+                Core::Heap::Settings {initialSize, growthFactor, true},
+                Backend::Metal::DeviceMemoryBlock::MTLSettings {MTL::HeapTypePlacement, MTL::StorageModeShared, MTL::ResourceOptionCPUCacheModeWriteCombined |
+                    MTL::ResourceStorageModeShared | MTL::ResourceHazardTrackingModeTracked, MTL::CPUCacheModeWriteCombined,MTL::SparsePageSize16}
+            );
 
             _rootContext->readBackBufferHeap = std::make_shared<Backend::Metal::DeviceMemoryHeap>(
                 Core::Heap::Settings {initialSize, growthFactor, true},

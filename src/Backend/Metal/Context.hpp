@@ -14,6 +14,7 @@ namespace MMPEngine::Backend::Metal
         std::shared_ptr<Wrapper::LogState> logState;
         
         std::shared_ptr<DeviceMemoryHeap> uploadBufferHeap;
+        std::shared_ptr<DeviceMemoryHeap> uniformBufferHeap;
         std::shared_ptr<DeviceMemoryHeap> readBackBufferHeap;
         std::shared_ptr<DeviceMemoryHeap> residentBufferHeap;
     };

@@ -160,6 +160,15 @@ namespace MMPEngine::Frontend
 			throw Core::UnsupportedException("unable to create constant buffer for Vulkan backend");
 #endif
 		}
+            
+        if (globalContext->settings.backend == Core::BackendType::Metal)
+        {
+#ifdef MMPENGINE_BACKEND_METAL
+            _impl = std::make_shared<Backend::Metal::UniformBuffer<TUniformBufferData>>(name);
+#else
+            throw Core::UnsupportedException("unable to create constant buffer for Metal backend");
+#endif
+        }
 	}
 
 	template<class TUniformBufferData>
@@ -183,6 +192,15 @@ namespace MMPEngine::Frontend
 			throw Core::UnsupportedException("unable to create constant buffer for Vulkan backend");
 #endif
 		}
+            
+        if (globalContext->settings.backend == Core::BackendType::Metal)
+        {
+#ifdef MMPENGINE_BACKEND_METAL
+            _impl = std::make_shared<Backend::Metal::UniformBuffer<TUniformBufferData>>();
+#else
+            throw Core::UnsupportedException("unable to create constant buffer for Metal backend");
+#endif
+        }
 	}
 
 	template <class TUniformBufferData>

@@ -270,4 +270,5 @@ namespace MMPEngine::Backend::Metal
     {
         return globalContext->residentBufferHeap;
     }
+
 }
