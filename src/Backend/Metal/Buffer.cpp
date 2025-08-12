@@ -74,7 +74,19 @@ namespace MMPEngine::Backend::Metal
         const auto srcBuffer = tc->src;
         const auto dstBuffer = tc->dst;
         
-       //TODO: copy
+        const auto blitEncoder = _specificStreamContext->PopulateCommandsInBuffer()->GetNative()->blitCommandEncoder();
+        
+        blitEncoder->copyFromBuffer(
+            srcBuffer->_nativeBuffer,
+            static_cast<NS::UInteger>(tc->srcByteOffset),
+            dstBuffer->_nativeBuffer,
+            static_cast<NS::UInteger>(tc->dstByteOffset),
+            static_cast<NS::UInteger>(tc->byteLength)
+        );
+        
+        blitEncoder->endEncoding();
+        blitEncoder->release();
+        
     }
 
     UploadBuffer::UploadBuffer(const Settings& settings) : Core::UploadBuffer(settings), Metal::Buffer(MTLSettings {})
