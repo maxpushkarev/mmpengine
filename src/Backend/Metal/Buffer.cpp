@@ -3,7 +3,7 @@
 
 namespace MMPEngine::Backend::Metal
 {
-    Buffer::Buffer(const MtlSettings& mtlSettings) : _mtlSettings(mtlSettings)
+    Buffer::Buffer(const MTLSettings& mtlSettings) : _mtlSettings(mtlSettings)
     {
     }
 
@@ -15,16 +15,50 @@ namespace MMPEngine::Backend::Metal
         }
     }
 
+    Buffer::InitTask::Create::Create(const std::shared_ptr<InitTaskContext>& context) : Task<MMPEngine::Backend::Metal::Buffer::InitTaskContext>(context)
+    {
+    }
+
+    void Buffer::InitTask::Create::OnScheduled(const std::shared_ptr<Core::BaseStream>& stream)
+    {
+        Task::OnScheduled(stream);
+
+        const auto tc = GetTaskContext();
+
+        //TODO: allocate memory for buffer
+        /*const auto memHeap = tc->entity->GetMemoryHeap(_specificGlobalContext);
+        VkMemoryRequirements memRequirements;
+        vkGetBufferMemoryRequirements(tc->entity->_device->GetNativeLogical(), tc->entity->_nativeBuffer, &memRequirements);
+
+        tc->entity->_deviceMemoryHeapHandle = memHeap->Allocate(Core::Heap::Request {
+            static_cast<std::size_t>(memRequirements.size),
+                static_cast<std::size_t>(memRequirements.alignment)
+        });*/
+    }
+
+    Buffer::InitTask::Bind::Bind(const std::shared_ptr<InitTaskContext>& context) : Task<MMPEngine::Backend::Metal::Buffer::InitTaskContext>(context)
+    {
+    }
+
+    void Buffer::InitTask::Bind::Run(const std::shared_ptr<Core::BaseStream>& stream)
+    {
+        Task::Run(stream);
+
+        const auto tc = GetTaskContext();
+        //TODO: create buffers
+    }
+
+
     Buffer::InitTask::InitTask(const std::shared_ptr<InitTaskContext>& context) : Task<MMPEngine::Backend::Metal::Buffer::InitTaskContext>(context)
     {
     }
 
-    void Buffer::InitTask::Run(const std::shared_ptr<Core::BaseStream>& stream)
+    void Buffer::InitTask::OnScheduled(const std::shared_ptr<Core::BaseStream>& stream)
     {
-        Task::Run(stream);
-        
-        const auto buffer = GetTaskContext()->entity;
-        buffer->_globalContext = _specificGlobalContext;
+        Task::OnScheduled(stream);
+        stream->Schedule(std::make_shared<Create>(GetTaskContext()));
+        stream->Schedule(GetTaskContext()->entity->GetMemoryHeap(_specificGlobalContext)->CreateTaskToInitializeBlocks());
+        stream->Schedule(std::make_shared<Bind>(GetTaskContext()));
     }
 
     Buffer::CopyBufferTask::CopyBufferTask(const std::shared_ptr<CopyBufferTaskContext>& context) : Task<
@@ -39,15 +73,15 @@ namespace MMPEngine::Backend::Metal
         const auto tc = GetTaskContext();
         const auto srcBuffer = tc->src;
         const auto dstBuffer = tc->dst;
-
-       
+        
+       //TODO: copy
     }
 
-UploadBuffer::UploadBuffer(const Settings& settings) : Core::UploadBuffer(settings), Metal::Buffer(MtlSettings {})
+    UploadBuffer::UploadBuffer(const Settings& settings) : Core::UploadBuffer(settings), Metal::Buffer(MTLSettings {})
     {
     }
 
-UploadBuffer::WriteTask::WriteTask(const std::shared_ptr<WriteTaskContext>& context) : Task(context)
+    UploadBuffer::WriteTask::WriteTask(const std::shared_ptr<WriteTaskContext>& context) : Task(context)
     {
         const auto buffer = context->uploadBuffer;
         assert(buffer);
@@ -72,9 +106,11 @@ UploadBuffer::WriteTask::WriteTask(const std::shared_ptr<WriteTaskContext>& cont
         Task::Run(stream);
         if (const auto tc = GetTaskContext(); const auto entity = tc->uploadBuffer)
         {
-            
+            //TODO: write
+            /*std::memcpy(static_cast<char*>(entity->_deviceMemoryHeapHandle.GetMemoryBlock()->GetHost()) + entity->_deviceMemoryHeapHandle.GetOffset() + tc->byteOffset, tc->src, tc->byteLength);*/
         }
     }
+
 
     std::shared_ptr<Core::ContextualTask<Core::UploadBuffer::WriteTaskContext>> UploadBuffer::CreateWriteTask(const void* src, std::size_t byteLength, std::size_t byteOffset)
     {
@@ -111,7 +147,12 @@ UploadBuffer::WriteTask::WriteTask(const std::shared_ptr<WriteTaskContext>& cont
         return std::make_shared<InitTask>(ctx);
     }
 
-ReadBackBuffer::ReadBackBuffer(const Settings& settings) : Core::ReadBackBuffer(settings), Metal::Buffer(MtlSettings {})
+    std::shared_ptr<DeviceMemoryHeap> UploadBuffer::GetMemoryHeap(const std::shared_ptr<GlobalContext>& globalContext) const
+    {
+        return globalContext->uploadBufferHeap;
+    }
+
+    ReadBackBuffer::ReadBackBuffer(const Settings& settings) : Core::ReadBackBuffer(settings), Metal::Buffer(MTLSettings{})
     {
     }
 
@@ -141,7 +182,8 @@ ReadBackBuffer::ReadBackBuffer(const Settings& settings) : Core::ReadBackBuffer(
 
         if (const auto tc = GetTaskContext(); const auto entity = tc->readBackBuffer)
         {
-   
+            //TODO: read
+            /*std::memcpy(tc->dst, static_cast<char*>(entity->_deviceMemoryHeapHandle.GetMemoryBlock()->GetHost()) + entity->_deviceMemoryHeapHandle.GetOffset() + tc->byteOffset, tc->byteLength);*/
         }
     }
 
@@ -180,7 +222,13 @@ ReadBackBuffer::ReadBackBuffer(const Settings& settings) : Core::ReadBackBuffer(
         return std::make_shared<InitTask>(ctx);
     }
 
-ResidentBuffer::ResidentBuffer(const Settings& settings) : Core::ResidentBuffer(settings), Metal::Buffer(MtlSettings {})
+    std::shared_ptr<DeviceMemoryHeap> ReadBackBuffer::GetMemoryHeap(const std::shared_ptr<GlobalContext>& globalContext) const
+    {
+        return globalContext->readBackBufferHeap;
+    }
+
+
+    ResidentBuffer::ResidentBuffer(const Settings& settings) : Core::ResidentBuffer(settings), Metal::Buffer(MTLSettings{})
     {
     }
 
@@ -206,5 +254,10 @@ ResidentBuffer::ResidentBuffer(const Settings& settings) : Core::ResidentBuffer(
         ctx->byteSize = GetSettings().byteLength;
         ctx->entity = std::dynamic_pointer_cast<Metal::Buffer>(shared_from_this());
         return std::make_shared<InitTask>(ctx);
+    }
+
+    std::shared_ptr<DeviceMemoryHeap> ResidentBuffer::GetMemoryHeap(const std::shared_ptr<GlobalContext>& globalContext) const
+    {
+        return globalContext->residentBufferHeap;
     }
 }

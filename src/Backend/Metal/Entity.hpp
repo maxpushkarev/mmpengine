@@ -1,5 +1,6 @@
 #pragma once
 #include <Core/Entity.hpp>
+#include <Backend/Metal/Heap.hpp>
 
 namespace MMPEngine::Backend::Metal
 {
@@ -16,5 +17,9 @@ namespace MMPEngine::Backend::Metal
 
     class ResourceEntity : public BaseEntity
     {
+    protected:
+        virtual std::shared_ptr<DeviceMemoryHeap> GetMemoryHeap(const std::shared_ptr<GlobalContext>& globalContext) const = 0;
+    protected:
+        DeviceMemoryHeap::Handle _deviceMemoryHeapHandle;
     };
 }
