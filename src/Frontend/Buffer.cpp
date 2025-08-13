@@ -105,6 +105,15 @@ namespace MMPEngine::Frontend
 #endif
 		}
 
+        if (globalContext->settings.backend == Core::BackendType::Metal)
+        {
+#ifdef MMPENGINE_BACKEND_METAL
+            return std::make_shared<Backend::Metal::UnorderedAccessBuffer>(this->_uaSettings);
+#else
+            throw Core::UnsupportedException("unable to create unordered access buffer for Metal backend");
+#endif
+        }
+        
 		return nullptr;
 	}
 
@@ -128,8 +137,17 @@ namespace MMPEngine::Frontend
 			throw Core::UnsupportedException("unable to create countered unordered access buffer for Vulkan backend");
 #endif
 		}
+        
+        if (globalContext->settings.backend == Core::BackendType::Metal)
+        {
+#ifdef MMPENGINE_BACKEND_METAL
+            return std::make_shared<Backend::Metal::CounteredUnorderedAccessBuffer>(this->_uaSettings);
+#else
+            throw Core::UnsupportedException("unable to create countered unordered access buffer for Metal backend");
+#endif
+        }
 
-		return nullptr;
+        return nullptr;
 	}
 
 	template<>

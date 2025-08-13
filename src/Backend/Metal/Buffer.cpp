@@ -14,6 +14,10 @@ namespace MMPEngine::Backend::Metal
             _nativeBuffer->release();
         }
     }
+    MTL::Buffer* Buffer::GetNative() const
+    {
+        return _nativeBuffer;
+    }
 
     Buffer::InitTask::Allocate::Allocate(const std::shared_ptr<InitTaskContext>& context) : Task<MMPEngine::Backend::Metal::Buffer::InitTaskContext>(context)
     {
@@ -347,6 +351,111 @@ namespace MMPEngine::Backend::Metal
         {
             entity->_upload.reset();
         }
+    }
+
+    UnorderedAccessBuffer::UnorderedAccessBuffer(const Settings& settings) : Core::UnorderedAccessBuffer(settings), Metal::Buffer(MTLSettings{})
+    {
+    }
+
+    std::shared_ptr<Core::BaseTask> UnorderedAccessBuffer::CreateCopyToBufferTask(const std::shared_ptr<Core::Buffer>& dst, std::size_t byteLength, std::size_t srcByteOffset, std::size_t dstByteOffset) const
+    {
+        const auto context = std::make_shared<CopyBufferTaskContext>();
+        context->src = std::dynamic_pointer_cast<Metal::Buffer>(std::const_pointer_cast<Core::Buffer>(GetUnderlyingBuffer()));
+        context->dst = std::dynamic_pointer_cast<Metal::Buffer>(dst->GetUnderlyingBuffer());
+        context->srcByteOffset = srcByteOffset;
+        context->dstByteOffset = dstByteOffset;
+        context->byteLength = byteLength;
+
+        return std::make_shared<CopyBufferTask>(context);
+    }
+
+    std::shared_ptr<Core::BaseTask> UnorderedAccessBuffer::CreateInitializationTask()
+    {
+        const auto ctx = std::make_shared<InitTaskContext>();
+        ctx->byteSize = GetSettings().byteLength;
+        ctx->entity = std::dynamic_pointer_cast<Metal::Buffer>(shared_from_this());
+        return std::make_shared<InitTask>(ctx);
+    }
+
+    std::shared_ptr<DeviceMemoryHeap> UnorderedAccessBuffer::GetMemoryHeap(const std::shared_ptr<GlobalContext>& globalContext) const
+    {
+        return globalContext->residentBufferHeap;
+    }
+
+
+    CounteredUnorderedAccessBuffer::CounteredUnorderedAccessBuffer(const Settings& settings)
+: Core::CounteredUnorderedAccessBuffer(settings), Metal::Buffer(MTLSettings{}),
+        _counterBuffer(std::make_shared<UnorderedAccessBuffer>(Core::BaseUnorderedAccessBuffer::Settings{
+            sizeof(Core::CounteredUnorderedAccessBuffer::CounterValueType), 1, "counter"
+        }))
+    {
+    }
+
+    std::shared_ptr<Core::BaseTask> CounteredUnorderedAccessBuffer::CreateCopyToBufferTask(const std::shared_ptr<Core::Buffer>& dst, std::size_t byteLength, std::size_t srcByteOffset, std::size_t dstByteOffset) const
+    {
+        const auto context = std::make_shared<CopyBufferTaskContext>();
+        context->src = std::dynamic_pointer_cast<Metal::Buffer>(std::const_pointer_cast<Core::Buffer>(GetUnderlyingBuffer()));
+        context->dst = std::dynamic_pointer_cast<Metal::Buffer>(dst->GetUnderlyingBuffer());
+        context->srcByteOffset = srcByteOffset;
+        context->dstByteOffset = dstByteOffset;
+        context->byteLength = byteLength;
+
+        return std::make_shared<CopyBufferTask>(context);
+    }
+
+    std::shared_ptr<Core::BaseTask> CounteredUnorderedAccessBuffer::CreateInitializationTask()
+    {
+        const auto ctx = std::make_shared<InitTaskContext>();
+        ctx->byteSize = GetSettings().byteLength;
+        ctx->entity = std::dynamic_pointer_cast<Metal::Buffer>(shared_from_this());
+        
+        return std::make_shared<Core::BatchTask>(std::initializer_list<std::shared_ptr<Core::BaseTask>>{
+            std::make_shared<InitTask>(ctx),
+            _counterBuffer->CreateInitializationTask(),
+            CreateResetCounterTask()
+        });
+    }
+
+    std::shared_ptr<DeviceMemoryHeap> CounteredUnorderedAccessBuffer::GetMemoryHeap(const std::shared_ptr<GlobalContext>& globalContext) const
+    {
+        return globalContext->residentBufferHeap;
+    }
+
+    std::shared_ptr<Core::BaseTask> CounteredUnorderedAccessBuffer::CreateResetCounterTask()
+    {
+        const auto ctx = std::make_shared<ResetContext>();
+        ctx->entity = _counterBuffer;
+
+        return std::make_shared<ResetCounterTaskImpl>(ctx);
+    }
+
+    std::shared_ptr<Metal::Buffer> CounteredUnorderedAccessBuffer::GetCounterBuffer() const
+    {
+        return _counterBuffer;
+    }
+
+    std::shared_ptr<Core::BaseTask> CounteredUnorderedAccessBuffer::CreateCopyCounterTask(const std::shared_ptr<Core::Buffer>& dst, std::size_t dstByteOffset)
+    {
+        return _counterBuffer->CreateCopyToBufferTask(dst, sizeof(Core::CounteredUnorderedAccessBuffer::CounterValueType), 0, dstByteOffset);
+    }
+
+    CounteredUnorderedAccessBuffer::ResetCounterTaskImpl::ResetCounterTaskImpl(const std::shared_ptr<ResetContext>& ctx)
+        : Task<MMPEngine::Backend::Metal::CounteredUnorderedAccessBuffer::ResetContext>(ctx)
+    {
+    }
+
+    void CounteredUnorderedAccessBuffer::ResetCounterTaskImpl::Run(const std::shared_ptr<Core::BaseStream>& stream)
+    {
+        Task::Run(stream);
+
+        const auto tc = GetTaskContext();
+        
+        const auto blitEncoder = _specificStreamContext->PopulateCommandsInBuffer()->GetNative()->blitCommandEncoder();
+        
+        blitEncoder->fillBuffer(tc->entity->GetNative(), NS::Range(0, static_cast<NS::Integer>(tc->entity->GetSettings().byteLength)), static_cast<std::uint8_t>(0));
+
+        blitEncoder->endEncoding();
+        blitEncoder->release();
     }
 
 }

@@ -19,6 +19,7 @@ namespace MMPEngine::Backend::Metal
         Buffer(Buffer&&) noexcept = delete;
         Buffer& operator=(const Buffer&) = delete;
         Buffer& operator=(Buffer&&) noexcept = delete;
+        MTL::Buffer* GetNative() const;
     protected:
 
         class InitTaskContext final : public Core::EntityTaskContext<Buffer>
@@ -191,6 +192,43 @@ namespace MMPEngine::Backend::Metal
         std::shared_ptr<Core::Buffer> GetUnderlyingBuffer() override;
         std::shared_ptr<Core::BaseTask> CreateCopyToBufferTask(const std::shared_ptr<Core::Buffer>& dst, std::size_t byteLength, std::size_t srcByteOffset, std::size_t dstByteOffset) const override;
         std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;
+    };
+
+    class UnorderedAccessBuffer final : public Core::UnorderedAccessBuffer, public Metal::Buffer
+    {
+    public:
+        UnorderedAccessBuffer(const Settings& settings);
+        std::shared_ptr<Core::BaseTask> CreateCopyToBufferTask(const std::shared_ptr<Core::Buffer>& dst, std::size_t byteLength, std::size_t srcByteOffset, std::size_t dstByteOffset) const override;
+        std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;
+    protected:
+        std::shared_ptr<DeviceMemoryHeap> GetMemoryHeap(const std::shared_ptr<GlobalContext>& globalContext) const override;
+    };
+
+    class CounteredUnorderedAccessBuffer final : public Core::CounteredUnorderedAccessBuffer, public Metal::Buffer
+    {
+    public:
+        CounteredUnorderedAccessBuffer(const Settings& settings);
+        std::shared_ptr<Core::BaseTask> CreateCopyToBufferTask(const std::shared_ptr<Core::Buffer>& dst, std::size_t byteLength, std::size_t srcByteOffset, std::size_t dstByteOffset) const override;
+        std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;
+        std::shared_ptr<Core::BaseTask> CreateCopyCounterTask(const std::shared_ptr<Core::Buffer>& dst, std::size_t dstByteOffset) override;
+        std::shared_ptr<Core::BaseTask> CreateResetCounterTask() override;
+        std::shared_ptr<Metal::Buffer> GetCounterBuffer() const;
+    protected:
+        std::shared_ptr<DeviceMemoryHeap> GetMemoryHeap(const std::shared_ptr<GlobalContext>& globalContext) const override;
+    private:
+        std::shared_ptr<UnorderedAccessBuffer> _counterBuffer;
+
+        class ResetContext final : public Core::EntityTaskContext<UnorderedAccessBuffer>
+        {
+        };
+
+        class ResetCounterTaskImpl final : public Task<ResetContext>
+        {
+        public:
+            ResetCounterTaskImpl(const std::shared_ptr<ResetContext>& ctx);
+        protected:
+            void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
+        };
     };
 
     template<class TUniformBufferData>
