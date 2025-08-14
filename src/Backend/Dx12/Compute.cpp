@@ -80,7 +80,7 @@ namespace MMPEngine::Backend::Dx12
 	void DirectComputeJob::ExecutionTask::Dispatch::Run(const std::shared_ptr<Core::BaseStream>& stream)
 	{
 		Task::Run(stream);
-		const auto& dim = GetTaskContext()->dimensions;
+		const auto& dim = GetTaskContext()->groups;
 		_specificStreamContext->PopulateCommandsInBuffer()->Dispatch(dim.x, dim.y, dim.z);
 	}
 

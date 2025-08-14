@@ -91,7 +91,7 @@ namespace MMPEngine::Backend::Vulkan
 		Task::Run(stream);
 		const auto tc = GetTaskContext();
 		const auto job = tc->job;
-		const auto& dim = tc->dimensions;
+		const auto& dim = tc->groups;
 
 		vkCmdBindPipeline(
 		_specificStreamContext->PopulateCommandsInBuffer()->GetNative(), 
