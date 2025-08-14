@@ -7,7 +7,8 @@ namespace MMPEngine::Core
 	class DirectComputeContext : public TaskContext
 	{
 	public:
-		Core::Vector3Uint dimensions {1,1,1};
+		Core::Vector3Uint groups {1,1,1};
+        Core::Vector3Uint threadsPerGroup {1,1,1};
 	};
 
 	class BaseComputeJob
