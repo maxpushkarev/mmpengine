@@ -283,7 +283,7 @@ namespace MMPEngine::Backend::Vulkan
 			vertStage.pSpecializationInfo = VK_NULL_HANDLE;
 			vertStage.stage = VK_SHADER_STAGE_VERTEX_BIT;
 			vertStage.module = vertexShader;
-			vertStage.pName = Core::Shader::ENTRY_POINT_NAME;
+			vertStage.pName = material->GetVertexShader()->GetInfo().entryPointName.c_str();
 
 			VkPipelineShaderStageCreateInfo pixelStage{};
 			pixelStage.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
@@ -292,7 +292,7 @@ namespace MMPEngine::Backend::Vulkan
 			pixelStage.pSpecializationInfo = VK_NULL_HANDLE;
 			pixelStage.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
 			pixelStage.module = pixelShader;
-			pixelStage.pName = Core::Shader::ENTRY_POINT_NAME;
+			pixelStage.pName = material->GetPixelShader()->GetInfo().entryPointName.c_str();;
 
 			shaderStages.push_back(vertStage);
 			shaderStages.push_back(pixelStage);

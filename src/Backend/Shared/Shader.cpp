@@ -4,13 +4,15 @@
 
 namespace MMPEngine::Backend::Shared
 {
-	ByteCodeFileShader::ByteCodeFileShader(PassControl pass, Info&& settings, std::filesystem::path&& path) : Core::Shader(pass, std::move(settings)), _path(path)
+	ByteCodeFileShader::ByteCodeFileShader(PassControl pass, Info&& settings, std::filesystem::path&& path) : Core::Shader(pass, std::move(settings)), _path(std::move(path))
 	{
 	}
 
 	std::shared_ptr<Core::BaseTask> ByteCodeFileShader::CreateInitializationTask()
 	{
-		return Core::BaseTask::kEmpty;
+		const auto ctx = std::make_shared<InitTaskContext>();
+		ctx->entity = std::dynamic_pointer_cast<ByteCodeFileShader>(shared_from_this());
+		return std::make_shared<InitTask>(ctx);
 	}
 
 	ByteCodeFileShader::InitTask::InitTask(const std::shared_ptr<InitTaskContext>& ctx) : ContextualTask<MMPEngine::Backend::Shared::ByteCodeFileShader::InitTaskContext>(ctx)

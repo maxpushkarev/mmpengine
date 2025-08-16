@@ -55,7 +55,7 @@ namespace MMPEngine::Backend::Vulkan
 			0,
 			VK_SHADER_STAGE_COMPUTE_BIT,
 			job->_shaderModule,
-			Core::Shader::ENTRY_POINT_NAME,
+			job->_material->GetShader()->GetInfo().entryPointName.c_str(),
 			VK_NULL_HANDLE
 		};
 		computePipelineInfo.basePipelineHandle = VK_NULL_HANDLE;

@@ -1,105 +1,51 @@
 #include <Frontend/Shader.hpp>
 #include <nlohmann/json.hpp>
 #include <fstream>
+#include <cassert>
 
 namespace MMPEngine::Frontend
 {
-	template<>
-	std::shared_ptr<Core::ComputeShader> Shader::LoadFromFile(const std::shared_ptr<Core::GlobalContext>& globalContext, std::filesystem::path&& path)
+	namespace 
 	{
-		auto specificShaderPath = GetSpecificPath(globalContext, std::move(path));
-
-		if (globalContext->settings.backend == Core::BackendType::Dx12)
+		Core::Shader::Info::Type GetType(std::string_view str)
 		{
-#ifdef MMPENGINE_BACKEND_DX12
-			return std::make_shared<Backend::Dx12::ComputeShader>(std::move(specificShaderPath));
-#else
-			throw Core::UnsupportedException("unable to load compute shader for DX12 backend");
-#endif
+			if (str == "Compute")
+			{
+				return Core::Shader::Info::Type::Compute;
+			}
+
+			if (str == "Vertex")
+			{
+				return Core::Shader::Info::Type::Vertex;
+			}
+
+			if (str == "Pixel")
+			{
+				return Core::Shader::Info::Type::Pixel;
+			}
+
+			throw Core::UnsupportedException("unknown shader type");
 		}
 
-		if (globalContext->settings.backend == Core::BackendType::Vulkan)
+		nlohmann::json Load(const std::filesystem::path& path)
 		{
+			assert(path.extension().string() == ".json");
+			assert(std::filesystem::exists(path));
 
-#ifdef MMPENGINE_BACKEND_VULKAN
-			return std::make_shared<Backend::Vulkan::ComputeShader>(std::move(specificShaderPath));
-#else
-			throw Core::UnsupportedException("unable to load compute shader for Vulkan backend");
-#endif
+			std::ifstream fileStream(path);
+			const nlohmann::json data = nlohmann::json::parse(fileStream);
+			fileStream.close();
+			return data;
 		}
 
-		return nullptr;
-	}
-
-
-	template<>
-	std::shared_ptr<Core::VertexShader> Shader::LoadFromFile(const std::shared_ptr<Core::GlobalContext>& globalContext, std::filesystem::path&& path)
-	{
-		auto specificShaderPath = GetSpecificPath(globalContext, std::move(path));
-
-		if (globalContext->settings.backend == Core::BackendType::Dx12)
+		void Parse(const std::shared_ptr<Core::GlobalContext>& globalContext, const nlohmann::json& root, std::shared_ptr<Core::ShaderPack>& impl)
 		{
-#ifdef MMPENGINE_BACKEND_DX12
-			return std::make_shared<Backend::Dx12::VertexShader>(std::move(specificShaderPath));
-#else
-			throw Core::UnsupportedException("unable to load vertex shader for DX12 backend");
-#endif
-		}
+			const auto& shaderPackNode = root["shaderPack"];
 
-		if (globalContext->settings.backend == Core::BackendType::Vulkan)
-		{
+			std::string backendStr{};
 
-#ifdef MMPENGINE_BACKEND_VULKAN
-			return std::make_shared<Backend::Vulkan::VertexShader>(std::move(specificShaderPath));
-#else
-			throw Core::UnsupportedException("unable to load vertex shader for Vulkan backend");
-#endif
-		}
-
-		return nullptr;
-	}
-
-	template<>
-	std::shared_ptr<Core::PixelShader> Shader::LoadFromFile(const std::shared_ptr<Core::GlobalContext>& globalContext, std::filesystem::path&& path)
-	{
-		auto specificShaderPath = GetSpecificPath(globalContext, std::move(path));
-
-		if (globalContext->settings.backend == Core::BackendType::Dx12)
-		{
-#ifdef MMPENGINE_BACKEND_DX12
-			return std::make_shared<Backend::Dx12::PixelShader>(std::move(specificShaderPath));
-#else
-			throw Core::UnsupportedException("unable to load pixel shader for DX12 backend");
-#endif
-		}
-
-		if (globalContext->settings.backend == Core::BackendType::Vulkan)
-		{
-
-#ifdef MMPENGINE_BACKEND_VULKAN
-			return std::make_shared<Backend::Vulkan::PixelShader>(std::move(specificShaderPath));
-#else
-			throw Core::UnsupportedException("unable to load pixel shader for Vulkan backend");
-#endif
-		}
-		return nullptr;
-	}
-
-
-	std::filesystem::path Shader::GetSpecificPath(const std::shared_ptr<Core::GlobalContext>& globalContext, std::filesystem::path&& path)
-	{
-		assert(path.extension().string() == ".json");
-		assert(std::filesystem::exists(path));
-
-		std::ifstream fileStream(path);
-		const nlohmann::json data = nlohmann::json::parse(fileStream);
-		fileStream.close();
-
-		const auto& shaderCfg = data["shaderConfig"];
-		std::string backendStr {};
-
-		switch (globalContext->settings.backend)
-		{
+			switch (globalContext->settings.backend)
+			{
 			case Core::BackendType::Dx12:
 				backendStr = "Dx12";
 				break;
@@ -109,10 +55,60 @@ namespace MMPEngine::Frontend
 			case Core::BackendType::Metal:
 				backendStr = "Metal";
 				break;
-		}
+			}
 
-		const auto& specificShaderPathObj = shaderCfg[backendStr]["path"];
-		const std::string str = specificShaderPathObj;
-		return std::filesystem::path {str};
+			const auto& backendNode = shaderPackNode[backendStr];
+
+#if defined (MMPENGINE_BACKEND_DX12) || defined(MMPENGINE_BACKEND_VULKAN)
+			if (backendNode.contains("byteCodeFiles"))
+			{
+				const auto& byteCodeFilesNode = backendNode["byteCodeFiles"];
+				Backend::Shared::ByteCodeFileShaderPack::Settings byteCodeFilePackSettings{};
+
+				for (const auto& byteCodeFileNode : byteCodeFilesNode) {
+					byteCodeFilePackSettings.preloadDataCollection.push_back(Backend::Shared::ByteCodeFileShaderPack::Settings::PreloadData{
+						Core::Shader::Info {
+							std::string { byteCodeFileNode["id"] },
+							GetType(std::string { byteCodeFileNode["type"] }),
+							std::string { byteCodeFileNode["entryPoint"] }
+						},
+						std::filesystem::path { std::string { byteCodeFileNode["path"] } }
+						});
+				}
+
+				impl = std::make_shared<Backend::Shared::ByteCodeFileShaderPack>(std::move(byteCodeFilePackSettings));
+				return;
+			}
+
+#if defined (MMPENGINE_BACKEND_DX12)
+			throw Core::UnsupportedException("unable to create shader pack for DX12 backend");
+#endif
+
+#if defined (MMPENGINE_BACKEND_VULKAN)
+			throw Core::UnsupportedException("unable to create shader pack for Vulkan backend");
+#endif
+
+#endif	
+		}
+	}
+
+	ShaderPack::ShaderPack(const std::shared_ptr<Core::GlobalContext>& globalContext, const std::string& text)
+	{
+		Parse(globalContext, nlohmann::json::parse(text),_impl);
+	}
+
+	ShaderPack::ShaderPack(const std::shared_ptr<Core::GlobalContext>& globalContext, const std::filesystem::path& path)
+	{
+		Parse(globalContext, Load(path), _impl);
+	}
+
+	std::shared_ptr<Core::BaseTask> ShaderPack::CreateInitializationTask()
+	{
+		return _impl->CreateInitializationTask();
+	}
+
+	std::shared_ptr<Core::Shader> ShaderPack::Unpack(std::string_view id) const
+	{
+		return _impl->Unpack(id);
 	}
 }

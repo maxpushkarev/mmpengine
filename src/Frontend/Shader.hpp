@@ -1,38 +1,22 @@
 #pragma once
 #include <Core/Shader.hpp>
 #include <Core/Context.hpp>
+#include <filesystem>
 
-#ifdef MMPENGINE_BACKEND_DX12
-#include <Backend/Dx12/Shader.hpp>
-#endif
-
-#ifdef MMPENGINE_BACKEND_VULKAN
-#include <Backend/Vulkan/Shader.hpp>
+#if defined (MMPENGINE_BACKEND_DX12) || defined(MMPENGINE_BACKEND_VULKAN)
+#include <Backend/Shared/Shader.hpp>
 #endif
 
 namespace MMPEngine::Frontend
 {
-	class Shader final
+	class ShaderPack final : public Core::ShaderPack
 	{
 	public:
-		template<typename TCoreShader>
-		static std::shared_ptr<TCoreShader> LoadFromFile(const std::shared_ptr<Core::GlobalContext>& globalContext, std::filesystem::path&& path);
+		ShaderPack(const std::shared_ptr<Core::GlobalContext>& globalContext, const std::string& text);
+		ShaderPack(const std::shared_ptr<Core::GlobalContext>& globalContext, const std::filesystem::path& path);
+		std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;
+		std::shared_ptr<Core::Shader> Unpack(std::string_view id) const override;
 	private:
-		static std::filesystem::path GetSpecificPath(const std::shared_ptr<Core::GlobalContext>& globalContext, std::filesystem::path&& path);
+		std::shared_ptr<Core::ShaderPack> _impl;
 	};
-
-	template<>
-	std::shared_ptr<Core::ComputeShader> Shader::LoadFromFile(const std::shared_ptr<Core::GlobalContext>& globalContext, std::filesystem::path&& path);
-
-	template<>
-	std::shared_ptr<Core::VertexShader> Shader::LoadFromFile(const std::shared_ptr<Core::GlobalContext>& globalContext, std::filesystem::path&& path);
-
-	template<>
-	std::shared_ptr<Core::PixelShader> Shader::LoadFromFile(const std::shared_ptr<Core::GlobalContext>& globalContext, std::filesystem::path&& path);
-
-	template<typename TCoreShader>
-	std::shared_ptr<TCoreShader> Shader::LoadFromFile(const std::shared_ptr<Core::GlobalContext>& globalContext, std::filesystem::path&& path)
-	{
-		return nullptr;
-	}
 }
