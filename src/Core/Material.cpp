@@ -152,26 +152,29 @@ namespace MMPEngine::Core
 		return _settings;
 	}
 
-	MeshMaterial::MeshMaterial(const Settings& settings, Parameters&& params, const std::shared_ptr<VertexShader>& vs, const std::shared_ptr<PixelShader>& ps)
+	MeshMaterial::MeshMaterial(const Settings& settings, Parameters&& params, const std::shared_ptr<Shader>& vs, const std::shared_ptr<Shader>& ps)
 		: RenderingMaterial(settings, std::move(params)), _vs(vs), _ps(ps)
 	{
+		assert(_vs->GetInfo().type == Core::Shader::Info::Type::Vertex);
+		assert(_ps->GetInfo().type == Core::Shader::Info::Type::Pixel);
 	}
 
-	const std::shared_ptr<PixelShader>& MeshMaterial::GetPixelShader() const
+	const std::shared_ptr<Shader>& MeshMaterial::GetPixelShader() const
 	{
 		return _ps;
 	}
 
-	const std::shared_ptr<VertexShader>& MeshMaterial::GetVertexShader() const
+	const std::shared_ptr<Shader>& MeshMaterial::GetVertexShader() const
 	{
 		return _vs;
 	}
 
-	ComputeMaterial::ComputeMaterial(Parameters&& params, const std::shared_ptr<ComputeShader>& computeShader) : BaseMaterial(std::move(params)), _shader(computeShader)
+	ComputeMaterial::ComputeMaterial(Parameters&& params, const std::shared_ptr<Shader>& computeShader) : BaseMaterial(std::move(params)), _shader(computeShader)
 	{
+		assert(_shader->GetInfo().type == Core::Shader::Info::Type::Compute);
 	}
 
-	const std::shared_ptr<ComputeShader>& ComputeMaterial::GetShader() const
+	const std::shared_ptr<Shader>& ComputeMaterial::GetShader() const
     {
         return _shader;
     }

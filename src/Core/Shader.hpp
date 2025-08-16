@@ -2,55 +2,43 @@
 #include <filesystem>
 #include <vector>
 #include <Core/Task.hpp>
+#include <Core/Passkey.hpp>
 
 namespace MMPEngine::Core
 {
+	class ShaderPack;
+
 	class Shader : public IInitializationTaskSource, public std::enable_shared_from_this<Shader>
 	{
+	public:
+		using PassControl = Core::PassControl<true, Core::ShaderPack>;
+		struct Info final
+		{
+			enum class Type : std::uint8_t
+			{
+				Compute,
+				Vertex,
+				Pixel
+			};
+
+			std::string id;
+			Type type;
+			std::string entryPointName;
+		};
 	protected:
-
-		class InitTaskContext : public TaskContext
-		{
-		public:
-			std::shared_ptr<Shader> shader;
-		};
-
-		class LoadCompiledShaderFile : public ContextualTask<InitTaskContext>
-		{
-		public:
-			LoadCompiledShaderFile(const std::shared_ptr<InitTaskContext>& ctx);
-			void Run(const std::shared_ptr<BaseStream>& stream) override;
-			void OnComplete(const std::shared_ptr<BaseStream>& stream) override;
-		};
-
-		explicit Shader(std::filesystem::path&& path);
+		explicit Shader(PassControl, Info&& settings);
 	public:
 		const void* GetCompiledBinaryData() const;
 		std::size_t GetCompiledBinaryLength() const;
-		std::shared_ptr<BaseTask> CreateInitializationTask() override;
-
-		inline static auto ENTRY_POINT_NAME = "main";
+		const Info& GetInfo() const;
 	protected:
-		std::vector<char> _compiledBinaryData;
-		std::filesystem::path _path;
+		Info _info;
+		std::vector<char> _binaryData;
 	};
 
-	class ComputeShader : public virtual Shader
+	class ShaderPack : public IInitializationTaskSource, public std::enable_shared_from_this<ShaderPack>
 	{
-	protected:
-		explicit ComputeShader(std::filesystem::path&& path);
+	public:
+		virtual std::shared_ptr<Shader> Unpack(std::string_view id) const = 0;
 	};
-
-	class VertexShader : public virtual Shader
-	{
-	protected:
-		explicit VertexShader(std::filesystem::path&& path);
-	};
-
-	class PixelShader : public virtual Shader
-	{
-	protected:
-		explicit PixelShader(std::filesystem::path&& path);
-	};
-
 }
