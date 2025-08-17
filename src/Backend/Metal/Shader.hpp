@@ -11,6 +11,11 @@ namespace MMPEngine::Backend::Metal
     {
     public:
         LibShader(PassControl, const std::shared_ptr<LibShaderPack>& pack, Info&& settings);
+        LibShader(const LibShader&) = delete;
+        LibShader(LibShader&&) = delete;
+        LibShader& operator=(const LibShader&) = delete;
+        LibShader& operator=(LibShader&&) = delete;
+        ~LibShader() override;
         std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;
     private:
         class InitTaskContext final : public Core::EntityTaskContext<LibShader>
@@ -24,6 +29,7 @@ namespace MMPEngine::Backend::Metal
             void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
         };
         std::shared_ptr<LibShaderPack> _pack;
+        MTL::Function* _nativeFunction = nullptr;
     };
 
     class LibShaderPack final : public Core::ShaderPack

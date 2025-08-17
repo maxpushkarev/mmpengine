@@ -6,6 +6,14 @@ namespace MMPEngine::Backend::Metal
     {
     }
 
+    LibShader::~LibShader()
+    {
+        if(_nativeFunction)
+        {
+            _nativeFunction->release();
+        }
+    }
+
     std::shared_ptr<Core::BaseTask> LibShader::CreateInitializationTask()
     {
         const auto ctx = std::make_shared<InitTaskContext>();
@@ -20,6 +28,15 @@ namespace MMPEngine::Backend::Metal
     void LibShader::InitTask::Run(const std::shared_ptr<Core::BaseStream>& stream)
     {
         Task::Run(stream);
+        
+        const auto shader = GetTaskContext()->entity;
+        const auto funcName = NS::String::string(shader->GetInfo().entryPointName.c_str(), NS::ASCIIStringEncoding);
+        
+        shader->_nativeFunction = shader->_pack->GetNativeLibraryPtr()->newFunction(funcName);
+        
+        funcName->release();
+        
+        assert(shader->_nativeFunction != nullptr);
     }
 
     LibShaderPack::LibShaderPack(Settings&& settings,std::vector<char>&& rawData) : _settings(std::move(settings)), _rawData(std::move(rawData))
