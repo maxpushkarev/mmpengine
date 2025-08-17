@@ -1,6 +1,7 @@
 #include <Core/Shader.hpp>
 #include <Core/Entity.hpp>
 #include <Backend/Metal/Task.hpp>
+#include <Metal/Metal.hpp>
 
 namespace MMPEngine::Backend::Metal
 {
@@ -37,7 +38,13 @@ namespace MMPEngine::Backend::Metal
 
             std::vector<LibData> libDataCollection;
         };
-        LibShaderPack(Settings&& settings);
+        LibShaderPack(Settings&& settings, std::vector<char>&& rawData);
+        LibShaderPack(const LibShaderPack&) = delete;
+        LibShaderPack(LibShaderPack&&) = delete;
+        LibShaderPack& operator=(const LibShaderPack&) = delete;
+        LibShaderPack& operator=(LibShaderPack&&) = delete;
+        ~LibShaderPack() override;
+        MTL::Library* GetNativeLibraryPtr() const;
         std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;
         std::shared_ptr<Core::Shader> Unpack(std::string_view id) const override;
     private:
@@ -51,9 +58,13 @@ namespace MMPEngine::Backend::Metal
             InitTask(const std::shared_ptr<InitTaskContext>& ctx);
         protected:
             void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
+            void OnComplete(const std::shared_ptr<Core::BaseStream>& stream) override;
         };
         
         Settings _settings;
+        std::vector<char> _rawData;
+        dispatch_data_t _dispatchData = nullptr;
+        MTL::Library* _nativeLibrary = nullptr;
         std::unordered_map<std::string_view, std::size_t> _id2IndexMap;
     };
 }

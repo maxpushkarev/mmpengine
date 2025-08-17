@@ -5,6 +5,7 @@ namespace MMPEngine::Backend::Metal
     LibShader::LibShader(PassControl pass, const std::shared_ptr<LibShaderPack>& pack, Info&& settings) : Core::Shader(pass, std::move(settings)), _pack(pack)
     {
     }
+
     std::shared_ptr<Core::BaseTask> LibShader::CreateInitializationTask()
     {
         const auto ctx = std::make_shared<InitTaskContext>();
@@ -21,7 +22,7 @@ namespace MMPEngine::Backend::Metal
         Task::Run(stream);
     }
 
-    LibShaderPack::LibShaderPack(Settings&& settings) : _settings(std::move(settings))
+    LibShaderPack::LibShaderPack(Settings&& settings,std::vector<char>&& rawData) : _settings(std::move(settings)), _rawData(std::move(rawData))
     {
         for (std::size_t i = 0; i < _settings.libDataCollection.size(); ++i)
         {
@@ -29,6 +30,24 @@ namespace MMPEngine::Backend::Metal
             assert(_id2IndexMap.find(ld.info.id) == _id2IndexMap.cend());
             _id2IndexMap[ld.info.id] = i;
         }
+    }
+
+    LibShaderPack::~LibShaderPack()
+    {
+        if(_nativeLibrary)
+        {
+            _nativeLibrary->release();
+        }
+        
+        if(_dispatchData)
+        {
+            dispatch_release(_dispatchData);
+        }
+    }
+
+    MTL::Library* LibShaderPack::GetNativeLibraryPtr() const
+    {
+        return _nativeLibrary;
     }
 
     std::shared_ptr<Core::Shader> LibShaderPack::Unpack(std::string_view id) const
@@ -53,5 +72,31 @@ namespace MMPEngine::Backend::Metal
     void LibShaderPack::InitTask::Run(const std::shared_ptr<Core::BaseStream>& stream)
     {
         Task::Run(stream);
+        
+        const auto pack = GetTaskContext()->entity;
+        
+        pack->_dispatchData = dispatch_data_create(pack->_rawData.data(), pack->_rawData.size(), nullptr, DISPATCH_DATA_DESTRUCTOR_DEFAULT);
+        
+        NS::Error* error = nullptr;
+       
+        pack->_nativeLibrary = _specificGlobalContext->device->GetNative()->newLibrary(pack->_dispatchData, &error);
+        
+        assert(error == nullptr);
+    }
+
+    void LibShaderPack::InitTask::OnComplete(const std::shared_ptr<Core::BaseStream>& stream)
+    {
+        Task::OnComplete(stream);
+        
+        const auto pack = GetTaskContext()->entity;
+        
+        std::vector<char> v;
+        std::swap(pack->_rawData, v);
+        
+        if(pack->_dispatchData)
+        {
+            dispatch_release(pack->_dispatchData);
+            pack->_dispatchData = nullptr;
+        }
     }
 }

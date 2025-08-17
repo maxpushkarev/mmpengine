@@ -109,8 +109,28 @@ namespace MMPEngine::Frontend
                         });
                     }
                 }
+                
+                std::vector<char> rawData {};
 
-                impl = std::make_shared<Backend::Metal::LibShaderPack>(std::move(libPackSettings));
+                if(libNode.contains("path"))
+                {
+                    const auto pathNode = libNode["path"];
+                    const auto pathNodeStr = std::string {pathNode};
+                    const auto path = std::filesystem::path(pathNodeStr);
+                    
+                    assert(std::filesystem::exists(path));
+
+                    std::ifstream fileStream{ path, std::ios::binary };
+
+                    rawData = {
+                        (std::istreambuf_iterator<char>(fileStream)),
+                        (std::istreambuf_iterator<char>())
+                    };
+
+                    fileStream.close();
+                }
+                
+                impl = std::make_shared<Backend::Metal::LibShaderPack>(std::move(libPackSettings), std::move(rawData));
                 return;
             }
 
