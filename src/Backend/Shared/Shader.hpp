@@ -30,11 +30,6 @@ namespace MMPEngine::Backend::Shared
 	class ByteCodeFileShaderPack final : public Core::ShaderPack
 	{
 	public:
-		struct PreloadData final
-		{
-			Core::Shader::Info info;
-			std::filesystem::path path;
-		};
 		struct Settings final
 		{
 			struct PreloadData final

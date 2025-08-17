@@ -88,7 +88,34 @@ namespace MMPEngine::Frontend
 			throw Core::UnsupportedException("unable to create shader pack for Vulkan backend");
 #endif
 
-#endif	
+#endif
+            
+#ifdef MMPENGINE_BACKEND_METAL
+            if (backendNode.contains("lib"))
+            {
+                const auto& libNode = backendNode["lib"];
+                Backend::Metal::LibShaderPack::Settings libPackSettings{};
+
+                if(libNode.contains("shaders"))
+                {
+                    const auto& shadersNode = libNode["shaders"];
+                    for (const auto& shaderNode : shadersNode) {
+                        libPackSettings.libDataCollection.push_back(Backend::Metal::LibShaderPack::Settings::LibData {
+                            Core::Shader::Info {
+                                std::string { shaderNode["id"] },
+                                GetType(std::string { shaderNode["type"] }),
+                                std::string { shaderNode["entryPoint"] }
+                            }
+                        });
+                    }
+                }
+
+                impl = std::make_shared<Backend::Metal::LibShaderPack>(std::move(libPackSettings));
+                return;
+            }
+
+            throw Core::UnsupportedException("unable to create shader pack for Metal backend");
+#endif
 		}
 	}
 

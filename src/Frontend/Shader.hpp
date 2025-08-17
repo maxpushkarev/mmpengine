@@ -7,6 +7,10 @@
 #include <Backend/Shared/Shader.hpp>
 #endif
 
+#if defined (MMPENGINE_BACKEND_METAL)
+#include <Backend/Metal/Shader.hpp>
+#endif
+
 namespace MMPEngine::Frontend
 {
 	class ShaderPack final : public Core::ShaderPack

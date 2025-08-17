@@ -1,0 +1,47 @@
+#include <Core/Shader.hpp>
+#include <Core/Entity.hpp>
+#include <Backend/Metal/Task.hpp>
+
+namespace MMPEngine::Backend::Metal
+{
+    class LibShaderPack;
+
+    class LibShader final : public Core::Shader
+    {
+    public:
+        LibShader(PassControl, const std::shared_ptr<LibShaderPack>& pack, Info&& settings);
+        std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;
+    private:
+        class InitTaskContext final : public Core::EntityTaskContext<LibShader>
+        {
+        };
+        class InitTask final : public Task<InitTaskContext>
+        {
+        public:
+            InitTask(const std::shared_ptr<InitTaskContext>& ctx);
+        protected:
+            void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
+        };
+        std::shared_ptr<LibShaderPack> _pack;
+    };
+
+    class LibShaderPack final : public Core::ShaderPack
+    {
+    public:
+        struct Settings final
+        {
+            struct LibData final
+            {
+                Core::Shader::Info info;
+            };
+
+            std::vector<LibData> libDataCollection;
+        };
+        LibShaderPack(Settings&& settings);
+        std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;
+        std::shared_ptr<Core::Shader> Unpack(std::string_view id) const override;
+    private:
+        Settings _settings;
+        std::unordered_map<std::string_view, std::size_t> _id2IndexMap;
+    };
+}
