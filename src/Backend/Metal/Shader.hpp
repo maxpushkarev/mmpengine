@@ -41,6 +41,18 @@ namespace MMPEngine::Backend::Metal
         std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;
         std::shared_ptr<Core::Shader> Unpack(std::string_view id) const override;
     private:
+        
+        class InitTaskContext final : public Core::EntityTaskContext<LibShaderPack>
+        {
+        };
+        class InitTask final : public Task<InitTaskContext>
+        {
+        public:
+            InitTask(const std::shared_ptr<InitTaskContext>& ctx);
+        protected:
+            void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
+        };
+        
         Settings _settings;
         std::unordered_map<std::string_view, std::size_t> _id2IndexMap;
     };
