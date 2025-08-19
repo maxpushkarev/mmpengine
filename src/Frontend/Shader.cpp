@@ -27,12 +27,13 @@ namespace MMPEngine::Frontend
 			throw Core::UnsupportedException("unknown shader type");
 		}
 
-		nlohmann::json Load(const std::filesystem::path& path)
+		nlohmann::json Load(const std::shared_ptr<Core::GlobalContext>& globalContext, const std::filesystem::path& path)
 		{
-			assert(path.extension().string() == ".json");
-			assert(std::filesystem::exists(path));
+            const auto fullPath = globalContext->baseExecutablePath / path;
+			assert(fullPath.extension().string() == ".json");
+			assert(std::filesystem::exists(fullPath));
 
-			std::ifstream fileStream(path);
+			std::ifstream fileStream(fullPath);
 			const nlohmann::json data = nlohmann::json::parse(fileStream);
 			fileStream.close();
 			return data;
@@ -72,7 +73,7 @@ namespace MMPEngine::Frontend
 							GetType(std::string { byteCodeFileNode["type"] }),
 							std::string { byteCodeFileNode["entryPoint"] }
 						},
-						std::filesystem::path { std::string { byteCodeFileNode["path"] } }
+                        globalContext->baseExecutablePath / std::filesystem::path { std::string { byteCodeFileNode["path"] } }
 						});
 				}
 
@@ -116,7 +117,8 @@ namespace MMPEngine::Frontend
                 {
                     const auto pathNode = libNode["path"];
                     const auto pathNodeStr = std::string {pathNode};
-                    const auto path = std::filesystem::path(pathNodeStr);
+                    const auto basePath = globalContext->baseExecutablePath;
+                    const auto path = basePath / std::filesystem::path(pathNodeStr);
                     
                     assert(std::filesystem::exists(path));
 
@@ -146,7 +148,7 @@ namespace MMPEngine::Frontend
 
 	ShaderPack::ShaderPack(const std::shared_ptr<Core::GlobalContext>& globalContext, const std::filesystem::path& path)
 	{
-		Parse(globalContext, Load(path), _impl);
+		Parse(globalContext, Load(globalContext, path), _impl);
 	}
 
 	std::shared_ptr<Core::BaseTask> ShaderPack::CreateInitializationTask()

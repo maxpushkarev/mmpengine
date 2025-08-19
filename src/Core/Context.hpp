@@ -1,5 +1,6 @@
 #pragma once
 #include <memory>
+#include <filesystem>
 #include <Core/Base.hpp>
 #include <Core/Math.hpp>
 #include <Core/Passkey.hpp>
@@ -57,6 +58,7 @@ typedef void* NativeWindow;
 	public:
 		const Settings settings;
 		Vector2Uint windowSize;
+        std::filesystem::path baseExecutablePath;
 		std::uint32_t screenRefreshRate;
 		const PlatformType platform;
 		const std::unique_ptr<Math> math;
