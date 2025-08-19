@@ -1,15 +1,13 @@
 #include <Feature/Path.hpp>
-#include <stdio.h>
-#include <limits.h>
-#include <string.h>
 
 #ifdef MMPENGINE_WIN
-
+#include <windows.h>
 #endif
 
 #ifdef MMPENGINE_MAC
 #include <mach-o/dyld.h>
 #include <libgen.h>
+#include <limits.h>
 #endif
 
 namespace MMPEngine::Feature
@@ -33,7 +31,9 @@ namespace MMPEngine::Feature
 #endif
        
 #ifdef MMPENGINE_WIN
-        return {};
+		char buffer[MAX_PATH];
+		GetCurrentDirectoryA(MAX_PATH, buffer);
+		return std::filesystem::path{ buffer };
 #endif
         return {};
     }
