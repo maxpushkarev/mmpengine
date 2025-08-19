@@ -55,7 +55,10 @@ typedef void* NativeWindow;
 		};
         struct Environment final
         {
-            std::filesystem::path baseExecutablePath;
+        public:
+            Environment();
+            const PlatformType platform;
+            std::filesystem::path baseExecutablePath {};
         };
 	protected:
 		GlobalContext(const Settings&, const Environment& environment, std::unique_ptr<Core::Math>&&);
@@ -63,8 +66,7 @@ typedef void* NativeWindow;
 		const Settings settings;
         const Environment environment;
 		Vector2Uint windowSize;
-		std::uint32_t screenRefreshRate;
-		const PlatformType platform;
+		std::uint32_t screenRefreshRate = 0;
 		const std::unique_ptr<Math> math;
 #ifdef MMPENGINE_WIN
 		NativeWindow nativeWindow = nullptr;
