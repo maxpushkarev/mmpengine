@@ -8,6 +8,10 @@
 #include <Backend/Vulkan/Compute.hpp>
 #endif
 
+#ifdef MMPENGINE_BACKEND_METAL
+#include <Backend/Metal/Compute.hpp>
+#endif
+
 
 namespace MMPEngine::Frontend
 {
@@ -30,6 +34,15 @@ namespace MMPEngine::Frontend
 			throw Core::UnsupportedException("unable to create compute job for Vulkan backend");
 #endif
 		}
+        
+        if (globalContext->settings.backend == Core::BackendType::Metal)
+        {
+#ifdef MMPENGINE_BACKEND_METAL
+            _impl = std::make_shared<Backend::Metal::DirectComputeJob>(material);
+#else
+            throw Core::UnsupportedException("unable to create compute job for Metal backend");
+#endif
+        }
 	}
 
 	std::shared_ptr<Core::ContextualTask<Core::DirectComputeContext>> DirectComputeJob::CreateExecutionTask()
@@ -41,6 +54,4 @@ namespace MMPEngine::Frontend
 	{
 		return _impl->CreateInitializationTask();
 	}
-
-
 }
