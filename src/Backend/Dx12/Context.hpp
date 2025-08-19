@@ -13,7 +13,7 @@ namespace MMPEngine::Backend::Dx12
 	class GlobalContext : public Core::GlobalContext
 	{
 	public:
-		GlobalContext(const Core::GlobalContext::Settings& s, std::unique_ptr<Core::Math>&& m);
+		GlobalContext(const Core::GlobalContext::Settings& s, const Core::GlobalContext::Environment& env, std::unique_ptr<Core::Math>&& m);
 
 		Microsoft::WRL::ComPtr<ID3D12Device> device;
 		Microsoft::WRL::ComPtr<IDXGIFactory> factory;

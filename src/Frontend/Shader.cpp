@@ -73,7 +73,7 @@ namespace MMPEngine::Frontend
 							GetType(std::string { byteCodeFileNode["type"] }),
 							std::string { byteCodeFileNode["entryPoint"] }
 						},
-                        globalContext->baseExecutablePath / std::filesystem::path { std::string { byteCodeFileNode["path"] } }
+                        globalContext->environment.baseExecutablePath / std::filesystem::path { std::string { byteCodeFileNode["path"] } }
 						});
 				}
 

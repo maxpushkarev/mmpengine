@@ -12,7 +12,7 @@ namespace MMPEngine::Backend::Vulkan
 	class GlobalContext : public Core::GlobalContext
 	{
 	public:
-		GlobalContext(const Core::GlobalContext::Settings& s, std::unique_ptr<Core::Math>&& m);
+		GlobalContext(const Core::GlobalContext::Settings& s, const Core::GlobalContext::Environment& env, std::unique_ptr<Core::Math>&& m);
 	public:
 		std::shared_ptr<Wrapper::Instance> instance;
 		std::shared_ptr<Wrapper::Device> device;

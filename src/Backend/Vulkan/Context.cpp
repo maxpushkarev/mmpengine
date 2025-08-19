@@ -2,7 +2,7 @@
 
 namespace MMPEngine::Backend::Vulkan
 {
-	GlobalContext::GlobalContext(const Core::GlobalContext::Settings& s, std::unique_ptr<Core::Math>&& m) : Core::GlobalContext(s, std::move(m)),
+	GlobalContext::GlobalContext(const Core::GlobalContext::Settings& s, const Core::GlobalContext::Environment& env, std::unique_ptr<Core::Math>&& m) : Core::GlobalContext(s, env, std::move(m)),
 		instance(VK_NULL_HANDLE), device(VK_NULL_HANDLE)
 	{
 	}
