@@ -18,8 +18,7 @@ namespace MMPEngine::Backend::Metal
         virtual ~BaseJob();
 
         void PrepareMaterialParameters(const std::shared_ptr<GlobalContext>& globalContext, const Core::BaseMaterial::Parameters& params);
-        
-        std::shared_ptr<Wrapper::Device> _device;
+
 
         class TaskContext final : public Core::TaskContext
         {

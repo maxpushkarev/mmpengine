@@ -1,4 +1,5 @@
 #include <Backend/Metal/Compute.hpp>
+#include <Backend/Metal/Shader.hpp>
 #include <Core/Material.hpp>
 #include <cassert>
 
@@ -10,7 +11,10 @@ namespace MMPEngine::Backend::Metal
 
     DirectComputeJob::~DirectComputeJob()
     {
-        //TODO: destructor
+        if(_computePipelineState)
+        {
+            _computePipelineState->release();
+        }
     }
 
     DirectComputeJob::InitTask::InitTask(const std::shared_ptr<InitContext>& ctx) : Task(ctx)
@@ -27,10 +31,16 @@ namespace MMPEngine::Backend::Metal
         const auto job = GetTaskContext()->job;
         assert(job);
 
-        job->_device = _specificGlobalContext->device;
         job->PrepareMaterialParameters(_specificGlobalContext, job->_material->GetParameters());
 
-        //TODO: prepare init metal specific
+        const auto shader = std::dynamic_pointer_cast<Metal::LibShader>(job->_material->GetShader());
+        
+        NS::Error* err = nullptr;
+        job->_computePipelineState = _specificGlobalContext->device->GetNative()->newComputePipelineState(shader->GetNativeFunction(), &err);
+    
+        
+        assert(err == nullptr);
+        assert(job->_computePipelineState);
     }
 
     DirectComputeJob::ExecutionTask::ExecutionTask(const std::shared_ptr<ExecutionContext>& ctx) : Task(ctx)

@@ -17,6 +17,7 @@ namespace MMPEngine::Backend::Metal
         LibShader& operator=(LibShader&&) = delete;
         ~LibShader() override;
         std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;
+        MTL::Function* GetNativeFunction() const;
     private:
         class InitTaskContext final : public Core::EntityTaskContext<LibShader>
         {

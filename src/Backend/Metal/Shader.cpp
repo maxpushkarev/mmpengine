@@ -14,6 +14,11 @@ namespace MMPEngine::Backend::Metal
         }
     }
 
+    MTL::Function* LibShader::GetNativeFunction() const
+    {
+        return _nativeFunction;
+    }
+
     std::shared_ptr<Core::BaseTask> LibShader::CreateInitializationTask()
     {
         const auto ctx = std::make_shared<InitTaskContext>();
