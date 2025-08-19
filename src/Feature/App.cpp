@@ -2,6 +2,7 @@
 #include <array>
 #include <cassert>
 #include <Backend/Shared/Math.hpp>
+#include <Feature/Path.hpp>
 
 #ifdef MMPENGINE_BACKEND_DX12
 #include <Backend/Dx12/Stream.hpp>
@@ -63,6 +64,9 @@ namespace MMPEngine::Feature
 		const std::shared_ptr<BaseLogger>& logger
 	)
 	{
+        Core::GlobalContext::Environment environment;
+        
+        environment.baseExecutablePath = Path::GetExecutablePath();
 		if (globalContextSettings.backend == Core::BackendType::Dx12)
 		{
 #ifdef MMPENGINE_BACKEND_DX12
@@ -70,7 +74,7 @@ namespace MMPEngine::Feature
 			{
 				math = std::make_unique<Backend::Dx12::Math>();
 			}
-			auto rootApp = std::make_unique<Dx12::RootApp>(std::make_shared<Backend::Dx12::GlobalContext>(globalContextSettings, std::move(math)), logger);
+			auto rootApp = std::make_unique<Dx12::RootApp>(std::make_shared<Backend::Dx12::GlobalContext>(globalContextSettings, environment, std::move(math)), logger);
 			rootApp->Attach(std::move(userApp));
 			return rootApp;
 #else
@@ -85,7 +89,7 @@ namespace MMPEngine::Feature
 			{
 				math = std::make_unique<Backend::Shared::GLMMath>();
 			}
-			auto rootApp = std::make_unique<Vulkan::RootApp>(std::make_shared<Backend::Vulkan::GlobalContext>(globalContextSettings, std::move(math)), logger);
+			auto rootApp = std::make_unique<Vulkan::RootApp>(std::make_shared<Backend::Vulkan::GlobalContext>(globalContextSettings, environment, std::move(math)), logger);
 			rootApp->Attach(std::move(userApp));
 			return rootApp;
 #else
@@ -100,7 +104,7 @@ namespace MMPEngine::Feature
             {
                 math = std::make_unique<Backend::Shared::GLMMath>();
             }
-            auto rootApp = std::make_unique<Metal::RootApp>(std::make_shared<Backend::Metal::GlobalContext>(globalContextSettings, std::move(math)), logger);
+            auto rootApp = std::make_unique<Metal::RootApp>(std::make_shared<Backend::Metal::GlobalContext>(globalContextSettings, environment, std::move(math)), logger);
             rootApp->Attach(std::move(userApp));
             return rootApp;
 #else

@@ -29,7 +29,7 @@ namespace MMPEngine::Frontend
 
 		nlohmann::json Load(const std::shared_ptr<Core::GlobalContext>& globalContext, const std::filesystem::path& path)
 		{
-            const auto fullPath = globalContext->baseExecutablePath / path;
+            const auto fullPath = globalContext->environment.baseExecutablePath / path;
 			assert(fullPath.extension().string() == ".json");
 			assert(std::filesystem::exists(fullPath));
 
@@ -117,7 +117,7 @@ namespace MMPEngine::Frontend
                 {
                     const auto pathNode = libNode["path"];
                     const auto pathNodeStr = std::string {pathNode};
-                    const auto basePath = globalContext->baseExecutablePath;
+                    const auto basePath = globalContext->environment.baseExecutablePath;
                     const auto path = basePath / std::filesystem::path(pathNodeStr);
                     
                     assert(std::filesystem::exists(path));

@@ -1,6 +1,5 @@
 #include <thread>
 #include <Feature/AppContainer.hpp>
-#include <Feature/Path.hpp>
 #include <GLFW/glfw3.h>
 
 #ifdef MMPENGINE_WIN
@@ -68,7 +67,6 @@ namespace MMPEngine::Feature
 	std::int32_t AppContainer::Run()
 	{
 		CreateNativeContainer();
-        _app->GetContext()->baseExecutablePath = Path::GetExecutablePath();
 		_app->Initialize();
 		_state.appInitialized = true;
 		OnWindowChanged();

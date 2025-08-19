@@ -53,12 +53,16 @@ typedef void* NativeWindow;
 			bool isDebug;
 			BackendType backend;
 		};
+        struct Environment final
+        {
+            std::filesystem::path baseExecutablePath;
+        };
 	protected:
-		GlobalContext(const Settings&, std::unique_ptr<Core::Math>&&);
+		GlobalContext(const Settings&, const Environment& environment, std::unique_ptr<Core::Math>&&);
 	public:
 		const Settings settings;
+        const Environment environment;
 		Vector2Uint windowSize;
-        std::filesystem::path baseExecutablePath;
 		std::uint32_t screenRefreshRate;
 		const PlatformType platform;
 		const std::unique_ptr<Math> math;

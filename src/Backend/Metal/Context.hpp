@@ -9,7 +9,7 @@ namespace MMPEngine::Backend::Metal
     class GlobalContext : public Core::GlobalContext
     {
     public:
-        GlobalContext(const Core::GlobalContext::Settings& s, std::unique_ptr<Core::Math>&& m);
+        GlobalContext(const Core::GlobalContext::Settings& s, const Environment& environment, std::unique_ptr<Core::Math>&& m);
         std::shared_ptr<Wrapper::Device> device;
         std::shared_ptr<Wrapper::LogState> logState;
         

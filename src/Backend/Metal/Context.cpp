@@ -3,7 +3,7 @@
 
 namespace MMPEngine::Backend::Metal
 {
-    GlobalContext::GlobalContext(const Core::GlobalContext::Settings& s, std::unique_ptr<Core::Math>&& m) : Core::GlobalContext(s, std::move(m))
+    GlobalContext::GlobalContext(const Core::GlobalContext::Settings& s,const Environment& environment, std::unique_ptr<Core::Math>&& m) : Core::GlobalContext(s, environment, std::move(m))
     {
     }
 
