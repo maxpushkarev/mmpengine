@@ -1,7 +1,10 @@
 #pragma once
 #include <Core/Material.hpp>
 #include <Backend/Metal/Context.hpp>
+#include <Backend/Metal/Buffer.hpp>
 #include <Backend/Metal/Task.hpp>
+#include <vector>
+#include <optional>
 
 namespace MMPEngine::Backend::Metal
 {
@@ -25,6 +28,8 @@ namespace MMPEngine::Backend::Metal
         public:
             std::shared_ptr<BaseJob> job;
         };
+        
+        std::vector<std::pair<std::shared_ptr<const Metal::Buffer>, std::optional<NS::UInteger>>> _bufferDataCollection;
     };
 
     template<typename TCoreMaterial>

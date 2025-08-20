@@ -68,7 +68,37 @@ namespace MMPEngine::Backend::Metal
         const auto& groups = tc->groups;
         const auto& threadsPerGroup = tc->threadsPerGroup;
 
-        //TODO: compute metal execution impl
+        const auto computeEncoder = _specificStreamContext->PopulateCommandsInBuffer()->GetNative()->computeCommandEncoder(MTL::DispatchTypeSerial);
+        
+        computeEncoder->setComputePipelineState(tc->job->_computePipelineState);
+        
+        NS::UInteger idx = 0;
+        for(const auto& bufferData : tc->job->_bufferDataCollection)
+        {
+            if(bufferData.second.has_value()){
+                computeEncoder->setBuffer(bufferData.first->GetNative(), 0, bufferData.second.value(), idx);
+            }
+            else{
+                computeEncoder->setBuffer(bufferData.first->GetNative(), 0, idx);
+            }
+            ++idx;
+        }
+        
+        computeEncoder->dispatchThreadgroups(
+            MTL::Size{
+                static_cast<NS::UInteger>(groups.x),
+                static_cast<NS::UInteger>(groups.y),
+                static_cast<NS::UInteger>(groups.z)
+            },
+            MTL::Size{
+                static_cast<NS::UInteger>(threadsPerGroup.x),
+                static_cast<NS::UInteger>(threadsPerGroup.y),
+                static_cast<NS::UInteger>(threadsPerGroup.z)
+            }
+        );
+
+        computeEncoder->endEncoding();
+        computeEncoder->release();
     }
 
     std::shared_ptr<Core::BaseTask> DirectComputeJob::CreateInitializationTask()
