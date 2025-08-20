@@ -23,6 +23,11 @@ namespace MMPEngine::Core
 		return std::dynamic_pointer_cast<Buffer>(shared_from_this());
 	}
 
+    std::optional<std::size_t> Buffer::GetStride() const
+    {
+        return std::nullopt;
+    }
+
 	const Buffer::Settings& Buffer::GetSettings() const
 	{
 		return GetUnderlyingBuffer()->GetSettingsInternal();
@@ -72,6 +77,11 @@ namespace MMPEngine::Core
 	{
 		return _uaSettings;
 	}
+
+    std::optional<std::size_t> BaseUnorderedAccessBuffer::GetStride() const
+    {
+        return _uaSettings.stride;
+    }
 
 	UnorderedAccessBuffer::UnorderedAccessBuffer(const Settings& settings) : BaseUnorderedAccessBuffer(settings)
 	{

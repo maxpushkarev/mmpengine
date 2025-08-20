@@ -103,6 +103,7 @@ namespace MMPEngine::Frontend
 	public:
 		StructuredUploadBuffer(const std::shared_ptr<Core::GlobalContext>& globalContext, const BaseStructuredBuffer::Settings& settings);
 		std::shared_ptr<Core::ContextualTask<Core::UploadBuffer::WriteTaskContext>> CreateWriteStructTask(const TStruct& item, std::size_t index);
+        std::optional<std::size_t> GetStride() const override;
 	};
 
 
@@ -112,6 +113,7 @@ namespace MMPEngine::Frontend
 	public:
 		StructuredReadBackBuffer(const std::shared_ptr<Core::GlobalContext>& globalContext, const BaseStructuredBuffer::Settings& settings);
 		std::shared_ptr<Core::ContextualTask<Core::ReadBackBuffer::ReadTaskContext>> CreateReadStructTask(TStruct& item, std::size_t index);
+        std::optional<std::size_t> GetStride() const override;
 	};
 
 	template<typename TStruct>
@@ -119,6 +121,7 @@ namespace MMPEngine::Frontend
 	{
 	public:
 		StructuredResidentBuffer(const std::shared_ptr<Core::GlobalContext>& globalContext, const BaseStructuredBuffer::Settings& settings);
+        std::optional<std::size_t> GetStride() const override;
 	};
 
 
@@ -278,6 +281,12 @@ namespace MMPEngine::Frontend
 	{
 	}
 
+    template <typename TStruct>
+    std::optional<std::size_t> StructuredUploadBuffer<TStruct>::GetStride() const
+    {
+        return sizeof(TStruct);
+    }
+
 	template <typename TStruct>
 	std::shared_ptr<Core::ContextualTask<Core::UploadBuffer::WriteTaskContext>> StructuredUploadBuffer<TStruct>::CreateWriteStructTask(const TStruct& item, std::size_t index)
 	{
@@ -290,6 +299,12 @@ namespace MMPEngine::Frontend
 	{
 	}
 
+    template <typename TStruct>
+    std::optional<std::size_t> StructuredReadBackBuffer<TStruct>::GetStride() const
+    {
+        return sizeof(TStruct);
+    }
+
 	template <typename TStruct>
 	std::shared_ptr<Core::ContextualTask<Core::ReadBackBuffer::ReadTaskContext>> StructuredReadBackBuffer<TStruct>::CreateReadStructTask(TStruct& item, std::size_t index)
 	{
@@ -301,4 +316,10 @@ namespace MMPEngine::Frontend
 		: ResidentBuffer(globalContext, Core::Buffer::Settings{sizeof(TStruct)* settings.itemsCount, settings.name})
 	{
 	}
+
+    template <typename TStruct>
+    std::optional<std::size_t> StructuredResidentBuffer<TStruct>::GetStride() const
+    {
+        return sizeof(TStruct);
+    }
 }

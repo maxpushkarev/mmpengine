@@ -1,5 +1,6 @@
 #pragma once
 #include <Core/Entity.hpp>
+#include <optional>
 
 namespace MMPEngine::Core
 {
@@ -21,6 +22,7 @@ namespace MMPEngine::Core
 		std::shared_ptr<Buffer> GetUnderlyingBuffer() const;
 		virtual std::shared_ptr<Buffer> GetUnderlyingBuffer();
 		const Settings& GetSettings() const;
+        virtual std::optional<std::size_t> GetStride() const;
 	protected:
 		const Settings& GetSettingsInternal();
 		Buffer(const Settings& settings);
@@ -74,6 +76,7 @@ namespace MMPEngine::Core
 		};
 		BaseUnorderedAccessBuffer(const Settings& settings);
 		const Settings& GetUnorderedAccessSettings() const;
+        std::optional<std::size_t> GetStride() const override;
 	protected:
 		Settings _uaSettings;
 	};
