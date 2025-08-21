@@ -501,6 +501,19 @@ namespace MMPEngine::Core::Tests
 		ASSERT_TRUE(Quaternion::AreIdentical(res1, res2));
 	}
 
+    TYPED_TEST_P(MathTests, Quaternion_Normalize)
+    {
+        constexpr Core::Quaternion q {0.1f, 0.2f, 0.3f, 0.4f};
+        
+        Core::Quaternion res1 = q;
+        Core::Quaternion res2 = q;
+
+        this->GetDefaultMath()->Normalize(res1);
+        this->GetMathImpl()->Normalize(res2);
+
+        ASSERT_TRUE(Quaternion::AreIdentical(res1, res2));
+    }
+
 	TYPED_TEST_P(MathTests, Quaternion_Inverse)
 	{
 		constexpr Core::Quaternion q {0.1f, 0.2f, 0.3f, 0.4f};
@@ -679,6 +692,7 @@ namespace MMPEngine::Core::Tests
 		Matrix4x4_InverseTranspose,
 		Quaternion_RotateAroundAxis,
 		Quaternion_Dot,
+        Quaternion_Normalize,
 		Quaternion_Multiply,
 		Quaternion_Inverse,
 		Quaternion_FromEuler,

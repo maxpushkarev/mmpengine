@@ -128,58 +128,56 @@ namespace MMPEngine::Backend::Metal
         std::memcpy(&res, &r, sizeof(res));
     }
 
-    /*void Math::RotationAroundAxis(Core::Quaternion& res, const Core::Vector3Float& v, std::float_t rad) const
+    void Math::RotationAroundAxis(Core::Quaternion& res, const Core::Vector3Float& v, std::float_t rad) const
     {
-        const auto nrm = DirectX::XMVector3Normalize(
-            DirectX::XMLoadFloat3(reinterpret_cast<const DirectX::XMFLOAT3*>(&v))
-        );
-        const auto q = DirectX::XMQuaternionRotationNormal(nrm, rad);
-        DirectX::XMStoreFloat4(reinterpret_cast<DirectX::XMFLOAT4*>(&res), q);
+        const auto& simdV = reinterpret_cast<const simd_float3&>(v);
+        const auto nrm = simd_normalize(simdV);
+        const auto q = simd_quaternion(rad, nrm);
+        std::memcpy(&res, &q, sizeof(res));
     }
 
     std::float_t Math::Dot(const Core::Quaternion& q1, const Core::Quaternion& q2) const
     {
-        const auto q1Loaded = DirectX::XMLoadFloat4(reinterpret_cast<const DirectX::XMFLOAT4*>(&q1));
-        const auto q2Loaded = DirectX::XMLoadFloat4(reinterpret_cast<const DirectX::XMFLOAT4*>(&q2));
+        const auto& simdQ1 = reinterpret_cast<const simd_quatf&>(q1);
+        const auto& simdQ2 = reinterpret_cast<const simd_quatf&>(q2);
 
-        std::float_t res = 0.0f;
-        const auto dot = DirectX::XMQuaternionDot(q1Loaded, q2Loaded);
-        DirectX::XMStoreFloat(&res, dot);
-
-        return res;
+        return simd_dot(simdQ1, simdQ2);
     }
 
     void Math::Normalize(Core::Quaternion& q) const
     {
-        const auto unorm = DirectX::XMLoadFloat4(reinterpret_cast<const DirectX::XMFLOAT4*>(&q));
-        const auto norm = DirectX::XMQuaternionNormalize(unorm);
-        DirectX::XMStoreFloat4(reinterpret_cast<DirectX::XMFLOAT4*>(&q), norm);
+        const auto& simdQ = reinterpret_cast<const simd_quatf&>(q);
+        const auto norm = simd_normalize(simdQ);
+        std::memcpy(&q, &norm, sizeof(q));
     }
 
     void Math::Inverse(Core::Quaternion& res, const Core::Quaternion& q) const
     {
-        const auto qLoaded = DirectX::XMLoadFloat4(reinterpret_cast<const DirectX::XMFLOAT4*>(&q));
-        const auto inv = DirectX::XMQuaternionInverse(qLoaded);
-        DirectX::XMStoreFloat4(reinterpret_cast<DirectX::XMFLOAT4*>(&res), inv);
+        const auto& simdQ = reinterpret_cast<const simd_quatf&>(q);
+        const auto inv = simd_inverse(simdQ);
+        std::memcpy(&res, &inv, sizeof(res));
     }
 
     void Math::RotationFromEuler(Core::Quaternion& res, const Core::Vector3Float& eulerAngles) const
     {
-        const auto eulerLoaded = DirectX::XMLoadFloat3(reinterpret_cast<const DirectX::XMFLOAT3*>(&eulerAngles));
-        const auto q = DirectX::XMQuaternionRotationRollPitchYawFromVector(eulerLoaded);
-        DirectX::XMStoreFloat4(reinterpret_cast<DirectX::XMFLOAT4*>(&res), q);
+        const auto pitchQuat = simd_quaternion(eulerAngles.x, simd_float3{1.0f, 0.0f, 0.0f});
+        const auto yawQuat = simd_quaternion(eulerAngles.y, simd_float3{0.0f, 1.0f, 0.0f});
+        const auto rollQuat = simd_quaternion(eulerAngles.z, simd_float3{0.0f, 0.0f, 1.0f});
+
+        const auto r = simd_mul(simd_mul(yawQuat, pitchQuat), rollQuat);
+        std::memcpy(&res, &r, sizeof(res));
     }
 
     void Math::Multiply(Core::Quaternion& res, const Core::Quaternion& q1, const Core::Quaternion& q2) const
     {
-        const auto q1Loaded = DirectX::XMLoadFloat4(reinterpret_cast<const DirectX::XMFLOAT4*>(&q1));
-        const auto q2Loaded = DirectX::XMLoadFloat4(reinterpret_cast<const DirectX::XMFLOAT4*>(&q2));
+        const auto& simdQ1 = reinterpret_cast<const simd_quatf&>(q1);
+        const auto& simdQ2 = reinterpret_cast<const simd_quatf&>(q2);
 
-        DirectX::XMStoreFloat4(reinterpret_cast<DirectX::XMFLOAT4*>(&res), DirectX::XMQuaternionMultiply(q2Loaded, q1Loaded));
+        const auto r = simd_mul(simdQ1, simdQ2);
+        std::memcpy(&res, &r, sizeof(res));
     }
 
-
-    void Math::CalculateLocalToWorldSpaceMatrix(Core::Matrix4x4& res, const std::shared_ptr<const Core::Node>& node) const
+    /*void Math::CalculateLocalToWorldSpaceMatrix(Core::Matrix4x4& res, const std::shared_ptr<const Core::Node>& node) const
     {
         auto m = TRSInternalTransposed(node->localTransform);
         auto currentNode = node->GetParent();
