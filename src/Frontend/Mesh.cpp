@@ -8,6 +8,9 @@
 #include <Backend/Vulkan/Mesh.hpp>
 #endif
 
+#ifdef MMPENGINE_BACKEND_METAL
+#include <Backend/Metal/Mesh.hpp>
+#endif
 
 namespace MMPEngine::Frontend
 {
@@ -27,7 +30,14 @@ namespace MMPEngine::Frontend
 #else
 			throw Core::UnsupportedException("unable to create mesh for Vulkan backend");
 #endif
-		}
+		}else if (globalContext->settings.backend == Core::BackendType::Metal)
+        {
+#ifdef MMPENGINE_BACKEND_METAL
+            _impl = std::make_shared<Backend::Metal::Mesh>(std::move(proto));
+#else
+            throw Core::UnsupportedException("unable to create mesh for Metal backend");
+#endif
+        }
 	}
 
 	std::shared_ptr<Core::BaseTask> Mesh::CreateInitializationTask()
@@ -100,6 +110,15 @@ namespace MMPEngine::Frontend
 			throw Core::UnsupportedException("unable to create mesh renderer for Vulkan backend");
 #endif
 		}
+        
+        if (globalContext->settings.backend == Core::BackendType::Metal)
+        {
+#ifdef MMPENGINE_BACKEND_METAL
+            _impl = std::make_shared<Backend::Metal::Mesh::Renderer>(settings, mesh, node);
+#else
+            throw Core::UnsupportedException("unable to create mesh renderer for Metal backend");
+#endif
+        }
 	}
 
 	std::shared_ptr<Core::UniformBuffer<Mesh::Renderer::Data>> Mesh::Renderer::CreateUniformBuffer()
