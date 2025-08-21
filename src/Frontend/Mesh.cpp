@@ -30,7 +30,7 @@ namespace MMPEngine::Frontend
 #else
 			throw Core::UnsupportedException("unable to create mesh for Vulkan backend");
 #endif
-		}else if (globalContext->settings.backend == Core::BackendType::Metal)
+		} else if (globalContext->settings.backend == Core::BackendType::Metal)
         {
 #ifdef MMPENGINE_BACKEND_METAL
             _impl = std::make_shared<Backend::Metal::Mesh>(std::move(proto));
