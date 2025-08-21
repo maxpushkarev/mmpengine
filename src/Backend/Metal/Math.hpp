@@ -11,9 +11,9 @@ namespace MMPEngine::Backend::Metal
         std::float_t Magnitude(const Core::Vector3Float& v) const override;
         std::float_t SquaredMagnitude(const Core::Vector3Float& v) const override;
         void Normalize(Core::Vector3Float& v) const override;
-        /*void Rotate(Core::Vector3Float& res, const Core::Vector3Float& v, const Core::Quaternion& r) const override;
+        void Rotate(Core::Vector3Float& res, const Core::Vector3Float& v, const Core::Quaternion& r) const override;
 
-        void Scale(Core::Matrix4x4& res, const Core::Vector3Float& scale) const override;
+        /*void Scale(Core::Matrix4x4& res, const Core::Vector3Float& scale) const override;
         void Translation(Core::Matrix4x4& res, const Core::Vector3Float& translation) const override;
         void Rotation(Core::Matrix4x4& res, const Core::Quaternion& rotation) const override;
         void TRS(Core::Matrix4x4& matrix, const Core::Transform& transform) const override;

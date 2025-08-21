@@ -46,17 +46,18 @@ namespace MMPEngine::Backend::Metal
         return simd_length_squared(simdV);
     }
 
-   /* void Math::Rotate(Core::Vector3Float& res, const Core::Vector3Float& v, const Core::Quaternion& r) const
+    void Math::Rotate(Core::Vector3Float& res, const Core::Vector3Float& v, const Core::Quaternion& r) const
     {
-        const auto vLoaded = DirectX::XMLoadFloat3(reinterpret_cast<const DirectX::XMFLOAT3*>(&v));
-        const auto rLoaded = DirectX::XMLoadFloat4(reinterpret_cast<const DirectX::XMFLOAT4*>(&r));
-        const auto rotated = DirectX::XMVector3Rotate(vLoaded, rLoaded);
-        DirectX::XMStoreFloat3(reinterpret_cast<DirectX::XMFLOAT3*>(&res), rotated);
+        const auto simdV = simd_make_float3(v.x, v.y, v.z);
+        const auto simdR = simd_quaternion(r.x, r.y, r.z, r.w);
+        const auto rotated = simd_act(simdR, simdV);
+        
+        res.x = rotated.x;
+        res.y = rotated.y;
+        res.z = rotated.z;
     }
 
-
-
-    void Math::Multiply(Core::Matrix4x4& res, const Core::Matrix4x4& m1, const Core::Matrix4x4& m2) const
+   /* void Math::Multiply(Core::Matrix4x4& res, const Core::Matrix4x4& m1, const Core::Matrix4x4& m2) const
     {
         const auto m1Loaded = DirectX::XMLoadFloat4x4(reinterpret_cast<const DirectX::XMFLOAT4X4*>(&m1));
         const auto m2Loaded = DirectX::XMLoadFloat4x4(reinterpret_cast<const DirectX::XMFLOAT4X4*>(&m2));
