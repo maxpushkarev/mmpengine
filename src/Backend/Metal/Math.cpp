@@ -176,20 +176,5 @@ namespace MMPEngine::Backend::Metal
         const auto r = simd_mul(simdQ1, simdQ2);
         std::memcpy(&res, &r, sizeof(res));
     }
-
-    /*void Math::CalculateLocalToWorldSpaceMatrix(Core::Matrix4x4& res, const std::shared_ptr<const Core::Node>& node) const
-    {
-        auto m = TRSInternalTransposed(node->localTransform);
-        auto currentNode = node->GetParent();
-
-        while (currentNode)
-        {
-            m = DirectX::XMMatrixMultiply(m, TRSInternalTransposed(currentNode->localTransform));
-            currentNode = currentNode->GetParent();
-        }
-
-        DirectX::XMStoreFloat4x4(reinterpret_cast<DirectX::XMFLOAT4X4*>(&res), DirectX::XMMatrixTranspose(m));
-    }
-*/
 }
 

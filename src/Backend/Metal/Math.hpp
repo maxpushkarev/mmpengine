@@ -30,8 +30,5 @@ namespace MMPEngine::Backend::Metal
         void Inverse(Core::Quaternion& res, const Core::Quaternion& q) const override;
         void RotationFromEuler(Core::Quaternion& res, const Core::Vector3Float& eulerAngles) const override;
         void Multiply(Core::Quaternion& res, const Core::Quaternion& q1, const Core::Quaternion& q2) const override;
-
-        /*void CalculateLocalToWorldSpaceMatrix(Core::Matrix4x4& res, const std::shared_ptr<const Core::Node>& node) const override;
-         */
     };
 }
