@@ -59,15 +59,15 @@ namespace MMPEngine::Backend::Metal
     }
 
 
-    /*void Math::Multiply(Core::Matrix4x4& res, const Core::Matrix4x4& m1, const Core::Matrix4x4& m2) const
+    void Math::Multiply(Core::Matrix4x4& res, const Core::Matrix4x4& m1, const Core::Matrix4x4& m2) const
     {
-        const auto simdM1 = simd_transpose(reinterpret_cast<const simd_float4x4&>(m1.m));
-        const auto simdM2 = simd_transpose(reinterpret_cast<const simd_float4x4&>(m1.m));
+        const auto& simdM1 = reinterpret_cast<const simd_float4x4&>(m1.m);
+        const auto& simdM2 = reinterpret_cast<const simd_float4x4&>(m2.m);
         
-        const auto r = simd_transpose(simd_mul(simdM1, simdM2));
+        const auto r = simd_mul(simdM2, simdM1);
         std::memcpy(&res, &r, sizeof(res));
 
-    }*/
+    }
 
     /*void Math::Multiply(Core::Vector4Float& res, const Core::Matrix4x4& m, const Core::Vector4Float& v) const
     {
