@@ -76,16 +76,11 @@ namespace MMPEngine::Backend::Metal
         std::memcpy(&res, &r, sizeof(res));
     }
 
-    /*std::float_t Math::Determinant(const Core::Matrix4x4& m) const
+    std::float_t Math::Determinant(const Core::Matrix4x4& m) const
     {
-        std::float_t res = 0.0f;
-
-        const auto mLoaded = DirectX::XMLoadFloat4x4(reinterpret_cast<const DirectX::XMFLOAT4X4*>(&m));
-        const auto det = DirectX::XMMatrixDeterminant(mLoaded);
-        DirectX::XMStoreFloat(&res, det);
-
-        return res;
-    }*/
+        const auto& simdM = reinterpret_cast<const simd_float4x4&>(m.m);
+        return simd_determinant(simd_transpose(simdM));
+    }
 
     /*
 
