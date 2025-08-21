@@ -66,18 +66,17 @@ namespace MMPEngine::Backend::Metal
         
         const auto r = simd_mul(simdM2, simdM1);
         std::memcpy(&res, &r, sizeof(res));
-
     }
 
-    /*void Math::Multiply(Core::Vector4Float& res, const Core::Matrix4x4& m, const Core::Vector4Float& v) const
+    void Math::Multiply(Core::Vector4Float& res, const Core::Matrix4x4& m, const Core::Vector4Float& v) const
     {
-        const auto vLoaded = DirectX::XMLoadFloat4(reinterpret_cast<const DirectX::XMFLOAT4*>(&v));
-        const auto mLoaded = DirectX::XMLoadFloat4x4(reinterpret_cast<const DirectX::XMFLOAT4X4*>(&m));
-        const auto r = DirectX::XMVector4Transform(vLoaded, DirectX::XMMatrixTranspose(mLoaded));
-        DirectX::XMStoreFloat4(reinterpret_cast<DirectX::XMFLOAT4*>(&res), r);
+        const auto& simdV = reinterpret_cast<const simd_float4&>(v);
+        const auto& simdM = reinterpret_cast<const simd_float4x4&>(m.m);
+        const auto r = simd_mul(simdV, simdM);
+        std::memcpy(&res, &r, sizeof(res));
     }
 
-    std::float_t Math::Determinant(const Core::Matrix4x4& m) const
+    /*std::float_t Math::Determinant(const Core::Matrix4x4& m) const
     {
         std::float_t res = 0.0f;
 
