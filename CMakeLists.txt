@@ -293,6 +293,18 @@ elseif(APPLE)
         		"-framework QuartzCore"
         )
 
+	SET(metal_test_name ${metal_name_tmp}.tests)
+	mmpengine_create_test_proj(${metal_test_name} src/Backend/Metal/Tests)
+	target_link_libraries(${metal_test_name} PRIVATE ${metal_name_tmp})
+
+	target_include_directories(${metal_test_name} PRIVATE ${mmpengine_metal_thirdparty_includes_tmp})
+
+	target_link_libraries(${metal_test_name} PRIVATE 
+        		"-framework Metal"
+        		"-framework Foundation"
+        		"-framework QuartzCore"
+        )
+
 	if(${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
 
     		get_property(macosx_macro_tmp GLOBAL PROPERTY MMPENGINE_MACOSX_MACRO)
