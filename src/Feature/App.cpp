@@ -22,6 +22,7 @@
 #include <Backend/Metal/Wrapper.hpp>
 #include <Backend/Metal/Heap.hpp>
 #include <Backend/Metal/Memory.hpp>
+#include <Backend/Metal/Math.hpp>
 #endif
 
 
@@ -102,7 +103,7 @@ namespace MMPEngine::Feature
 #ifdef MMPENGINE_BACKEND_METAL
             if (!math)
             {
-                math = std::make_unique<Backend::Shared::GLMMath>();
+                math = std::make_unique<Backend::Metal::Math>();
             }
             auto rootApp = std::make_unique<Metal::RootApp>(std::make_shared<Backend::Metal::GlobalContext>(globalContextSettings, environment, std::move(math)), logger);
             rootApp->Attach(std::move(userApp));
