@@ -9,6 +9,10 @@
 #include <Backend/Vulkan/Camera.hpp>
 #endif
 
+#ifdef MMPENGINE_BACKEND_METAL
+#include <Backend/Metal/Camera.hpp>
+#endif
+
 namespace MMPEngine::Frontend
 {
 	class Camera
@@ -67,6 +71,15 @@ namespace MMPEngine::Frontend
 				throw Core::UnsupportedException("unable to create perspective camera for Vulkan backend");
 #endif
 			}
+            
+            if (globalContext->settings.backend == Core::BackendType::Metal)
+            {
+#ifdef MMPENGINE_BACKEND_METAL
+                _impl = std::make_shared<Backend::Metal::PerspectiveCamera>(settings, node, target);
+#else
+                throw Core::UnsupportedException("unable to create perspective camera for Metal backend");
+#endif
+            }
 		}
 
 		if constexpr (std::is_same_v<TCoreCamera, Core::OrthographicCamera>)
@@ -88,6 +101,15 @@ namespace MMPEngine::Frontend
 				throw Core::UnsupportedException("unable to create orthographic camera for Vulkan backend");
 #endif
 			}
+            
+            if (globalContext->settings.backend == Core::BackendType::Metal)
+            {
+#ifdef MMPENGINE_BACKEND_METAL
+                _impl = std::make_shared<Backend::Metal::OrthographicCamera>(settings, node, target);
+#else
+                throw Core::UnsupportedException("unable to create orthographic camera for Metal backend");
+#endif
+            }
 		}
 	}
 
