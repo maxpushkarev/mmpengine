@@ -103,27 +103,32 @@ namespace MMPEngine::Backend::Metal
         std::memcpy(&res, &inv, sizeof(res));
     }
 
-    /*void Math::MultiplyMatrixAndPoint(Core::Vector3Float& res, const Core::Matrix4x4& m, const Core::Vector3Float& p) const
+    void Math::MultiplyMatrixAndPoint(Core::Vector3Float& res, const Core::Matrix4x4& m, const Core::Vector3Float& p) const
     {
-        const auto pLoaded = DirectX::XMLoadFloat3(reinterpret_cast<const DirectX::XMFLOAT3*>(&p));
-        const auto mLoaded = DirectX::XMLoadFloat4x4(reinterpret_cast<const DirectX::XMFLOAT4X4*>(&m));
-        const auto r = DirectX::XMVector3TransformCoord(pLoaded, DirectX::XMMatrixTranspose(mLoaded));
-        DirectX::XMStoreFloat3(reinterpret_cast<DirectX::XMFLOAT3*>(&res), r);
+        const auto& simdP = reinterpret_cast<const simd_float3&>(p);
+        const auto& simdM = reinterpret_cast<const simd_float4x4&>(m.m);
+        const auto simdP4 = simd_make_float4(simdP, 1.0f);
+        
+        auto r = simd_mul(simdP4, simdM);
+        const auto w = 1.0f / r.w;
+        r.x *= w;
+        r.y *= w;
+        r.z *= w;
+        
+        std::memcpy(&res, &r, sizeof(res));
     }
 
     void Math::MultiplyMatrixAndVector(Core::Vector3Float& res, const Core::Matrix4x4& m, const Core::Vector3Float& v) const
     {
-        const auto vLoaded = DirectX::XMLoadFloat3(reinterpret_cast<const DirectX::XMFLOAT3*>(&v));
-
-        const auto t = DirectX::XMMatrixTranspose(DirectX::XMLoadFloat4x4(reinterpret_cast<const DirectX::XMFLOAT4X4*>(&m)));
-        DirectX::XMFLOAT3X3 tmp {};
-        DirectX::XMStoreFloat3x3(&tmp, t);
-
-        const auto r = DirectX::XMVector3Transform(vLoaded, DirectX::XMLoadFloat3x3(&tmp));
-        DirectX::XMStoreFloat3(reinterpret_cast<DirectX::XMFLOAT3*>(&res), r);
+        const auto& simdV = reinterpret_cast<const simd_float3&>(v);
+        const auto& simdM = reinterpret_cast<const simd_float4x4&>(m.m);
+        const auto simdV4 = simd_make_float4(simdV, 0.0f);
+        
+        auto r = simd_mul(simdV4, simdM);
+        std::memcpy(&res, &r, sizeof(res));
     }
 
-    void Math::RotationAroundAxis(Core::Quaternion& res, const Core::Vector3Float& v, std::float_t rad) const
+    /*void Math::RotationAroundAxis(Core::Quaternion& res, const Core::Vector3Float& v, std::float_t rad) const
     {
         const auto nrm = DirectX::XMVector3Normalize(
             DirectX::XMLoadFloat3(reinterpret_cast<const DirectX::XMFLOAT3*>(&v))
