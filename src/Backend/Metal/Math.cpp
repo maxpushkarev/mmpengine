@@ -1,62 +1,52 @@
 #include <Backend/Metal/Math.hpp>
 #include <Core/Node.hpp>
+#include <simd/simd.h>
 #include <cassert>
 
 namespace MMPEngine::Backend::Metal
 {
-    /*std::float_t Math::Dot(const Core::Vector3Float& v1, const Core::Vector3Float& v2) const
+    std::float_t Math::Dot(const Core::Vector3Float& v1, const Core::Vector3Float& v2) const
     {
-        const auto dot = DirectX::XMVector3Dot(
-            DirectX::XMLoadFloat3(reinterpret_cast<const DirectX::XMFLOAT3*>(&v1)),
-            DirectX::XMLoadFloat3(reinterpret_cast<const DirectX::XMFLOAT3*>(&v2))
-        );
-
-        std::float_t res = 0;
-        DirectX::XMStoreFloat(&res, dot);
-
-        return res;
+        const auto simdV1 = simd_make_float3(v1.x, v1.y, v1.z);
+        const auto simdV2 = simd_make_float3(v2.x, v2.y, v2.z);
+       
+        return simd_dot(simdV1, simdV2);
     }
 
     void Math::Cross(Core::Vector3Float& res, const Core::Vector3Float& v1, const Core::Vector3Float& v2) const
     {
-        const auto cross = DirectX::XMVector3Cross(
-            DirectX::XMLoadFloat3(reinterpret_cast<const DirectX::XMFLOAT3*>(&v1)),
-            DirectX::XMLoadFloat3(reinterpret_cast<const DirectX::XMFLOAT3*>(&v2))
-        );
-        DirectX::XMStoreFloat3(reinterpret_cast<DirectX::XMFLOAT3*>(&res), cross);
+        const auto simdV1 = simd_make_float3(v1.x, v1.y, v1.z);
+        const auto simdV2 = simd_make_float3(v2.x, v2.y, v2.z);
+        const auto cross = simd_cross(simdV1, simdV2);
+        
+        res.x = cross.x;
+        res.y = cross.y;
+        res.z = cross.z;
     }
 
     std::float_t Math::Magnitude(const Core::Vector3Float& v) const
     {
-        const auto length = DirectX::XMVector3Length(
-            DirectX::XMLoadFloat3(reinterpret_cast<const DirectX::XMFLOAT3*>(&v))
-        );
-
-        std::float_t res = 0;
-        DirectX::XMStoreFloat(&res, length);
-        return res;
+        const auto simdV = simd_make_float3(v.x, v.y, v.z);
+        return simd_length(simdV);
     }
 
     void Math::Normalize(Core::Vector3Float& v) const
     {
-        const auto nrm = DirectX::XMVector3Normalize(
-            DirectX::XMLoadFloat3(reinterpret_cast<const DirectX::XMFLOAT3*>(&v))
-        );
-        DirectX::XMStoreFloat3(reinterpret_cast<DirectX::XMFLOAT3*>(&v), nrm);
+        const auto simdV = simd_make_float3(v.x, v.y, v.z);
+        const auto simdNrmV = simd_normalize(simdV);
+        
+        v.x = simdNrmV.x;
+        v.y = simdNrmV.y;
+        v.z = simdNrmV.z;
     }
 
     std::float_t Math::SquaredMagnitude(const Core::Vector3Float& v) const
     {
-        const auto sqr = DirectX::XMVector3LengthSq(
-            DirectX::XMLoadFloat3(reinterpret_cast<const DirectX::XMFLOAT3*>(&v))
-        );
-
-        std::float_t res = 0;
-        DirectX::XMStoreFloat(&res, sqr);
-        return res;
+        const auto simdV = simd_make_float3(v.x, v.y, v.z);
+        return simd_length_squared(simdV);
     }
 
-    void Math::Rotate(Core::Vector3Float& res, const Core::Vector3Float& v, const Core::Quaternion& r) const
+   /* void Math::Rotate(Core::Vector3Float& res, const Core::Vector3Float& v, const Core::Quaternion& r) const
     {
         const auto vLoaded = DirectX::XMLoadFloat3(reinterpret_cast<const DirectX::XMFLOAT3*>(&v));
         const auto rLoaded = DirectX::XMLoadFloat4(reinterpret_cast<const DirectX::XMFLOAT4*>(&r));
