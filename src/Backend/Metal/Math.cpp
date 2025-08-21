@@ -7,65 +7,69 @@ namespace MMPEngine::Backend::Metal
 {
     std::float_t Math::Dot(const Core::Vector3Float& v1, const Core::Vector3Float& v2) const
     {
-        const auto simdV1 = simd_make_float3(v1.x, v1.y, v1.z);
-        const auto simdV2 = simd_make_float3(v2.x, v2.y, v2.z);
+        const auto& simdV1 = reinterpret_cast<const simd_float3&>(v1);
+        const auto& simdV2 = reinterpret_cast<const simd_float3&>(v2);
        
         return simd_dot(simdV1, simdV2);
     }
 
     void Math::Cross(Core::Vector3Float& res, const Core::Vector3Float& v1, const Core::Vector3Float& v2) const
     {
-        const auto simdV1 = simd_make_float3(v1.x, v1.y, v1.z);
-        const auto simdV2 = simd_make_float3(v2.x, v2.y, v2.z);
+        const auto& simdV1 = reinterpret_cast<const simd_float3&>(v1);
+        const auto& simdV2 = reinterpret_cast<const simd_float3&>(v2);
         const auto cross = simd_cross(simdV1, simdV2);
         
-        res.x = cross.x;
-        res.y = cross.y;
-        res.z = cross.z;
+        std::memcpy(&res, &cross, sizeof(res));
     }
 
     std::float_t Math::Magnitude(const Core::Vector3Float& v) const
     {
-        const auto simdV = simd_make_float3(v.x, v.y, v.z);
+        const auto& simdV = reinterpret_cast<const simd_float3&>(v);
         return simd_length(simdV);
     }
 
     void Math::Normalize(Core::Vector3Float& v) const
     {
-        const auto simdV = simd_make_float3(v.x, v.y, v.z);
+        const auto& simdV = reinterpret_cast<const simd_float3&>(v);
         const auto simdNrmV = simd_normalize(simdV);
         
-        v.x = simdNrmV.x;
-        v.y = simdNrmV.y;
-        v.z = simdNrmV.z;
+        std::memcpy(&v, &simdNrmV, sizeof(v));
     }
 
     std::float_t Math::SquaredMagnitude(const Core::Vector3Float& v) const
     {
-        const auto simdV = simd_make_float3(v.x, v.y, v.z);
+        const auto& simdV = reinterpret_cast<const simd_float3&>(v);
         return simd_length_squared(simdV);
     }
 
     void Math::Rotate(Core::Vector3Float& res, const Core::Vector3Float& v, const Core::Quaternion& r) const
     {
-        const auto simdV = simd_make_float3(v.x, v.y, v.z);
-        const auto simdR = simd_quaternion(r.x, r.y, r.z, r.w);
+        const auto& simdV = reinterpret_cast<const simd_float3&>(v);
+        const auto& simdR = reinterpret_cast<const simd_quatf&>(r);
         const auto rotated = simd_act(simdR, simdV);
         
-        res.x = rotated.x;
-        res.y = rotated.y;
-        res.z = rotated.z;
+        std::memcpy(&res, &rotated, sizeof(res));
     }
 
-   /* void Math::Multiply(Core::Matrix4x4& res, const Core::Matrix4x4& m1, const Core::Matrix4x4& m2) const
+    void Math::Rotation(Core::Matrix4x4& res, const Core::Quaternion& rotation) const
     {
-        const auto m1Loaded = DirectX::XMLoadFloat4x4(reinterpret_cast<const DirectX::XMFLOAT4X4*>(&m1));
-        const auto m2Loaded = DirectX::XMLoadFloat4x4(reinterpret_cast<const DirectX::XMFLOAT4X4*>(&m2));
-        const auto r = DirectX::XMMatrixMultiply(m1Loaded, m2Loaded);
-        DirectX::XMStoreFloat4x4(reinterpret_cast<DirectX::XMFLOAT4X4*>(&res), r);
+        const auto& simdR = reinterpret_cast<const simd_quatf&>(rotation);
+        const auto mat = simd_transpose(simd_matrix4x4(simdR));
+        std::memcpy(&res, &mat, sizeof(res));
     }
 
-    void Math::Multiply(Core::Vector4Float& res, const Core::Matrix4x4& m, const Core::Vector4Float& v) const
+
+    /*void Math::Multiply(Core::Matrix4x4& res, const Core::Matrix4x4& m1, const Core::Matrix4x4& m2) const
+    {
+        const auto simdM1 = simd_transpose(reinterpret_cast<const simd_float4x4&>(m1.m));
+        const auto simdM2 = simd_transpose(reinterpret_cast<const simd_float4x4&>(m1.m));
+        
+        const auto r = simd_transpose(simd_mul(simdM1, simdM2));
+        std::memcpy(&res, &r, sizeof(res));
+
+    }*/
+
+    /*void Math::Multiply(Core::Vector4Float& res, const Core::Matrix4x4& m, const Core::Vector4Float& v) const
     {
         const auto vLoaded = DirectX::XMLoadFloat4(reinterpret_cast<const DirectX::XMFLOAT4*>(&v));
         const auto mLoaded = DirectX::XMLoadFloat4x4(reinterpret_cast<const DirectX::XMFLOAT4X4*>(&m));
@@ -82,50 +86,9 @@ namespace MMPEngine::Backend::Metal
         DirectX::XMStoreFloat(&res, det);
 
         return res;
-    }
+    }*/
 
-    void Math::Scale(Core::Matrix4x4& res, const Core::Vector3Float& scale) const
-    {
-        const auto scaleLoaded = DirectX::XMLoadFloat3(reinterpret_cast<const DirectX::XMFLOAT3*>(&scale));
-        const auto mat = DirectX::XMMatrixScalingFromVector(scaleLoaded);
-        DirectX::XMStoreFloat4x4(reinterpret_cast<DirectX::XMFLOAT4X4*>(&res), DirectX::XMMatrixTranspose(mat));
-    }
-
-    void Math::Translation(Core::Matrix4x4& res, const Core::Vector3Float& translation) const
-    {
-        const auto translationLoaded = DirectX::XMLoadFloat3(reinterpret_cast<const DirectX::XMFLOAT3*>(&translation));
-        const auto mat = DirectX::XMMatrixTranslationFromVector(translationLoaded);
-        DirectX::XMStoreFloat4x4(reinterpret_cast<DirectX::XMFLOAT4X4*>(&res), DirectX::XMMatrixTranspose(mat));
-    }
-
-    void Math::Rotation(Core::Matrix4x4& res, const Core::Quaternion& rotation) const
-    {
-        const auto rotationLoaded = DirectX::XMLoadFloat4(reinterpret_cast<const DirectX::XMFLOAT4*>(&rotation));
-        const auto mat = DirectX::XMMatrixRotationQuaternion(rotationLoaded);
-        DirectX::XMStoreFloat4x4(reinterpret_cast<DirectX::XMFLOAT4X4*>(&res), DirectX::XMMatrixTranspose(mat));
-    }
-
-
-    void Math::TRS(Core::Matrix4x4& matrix, const Core::Transform& transform) const
-    {
-        DirectX::XMStoreFloat4x4(reinterpret_cast<DirectX::XMFLOAT4X4*>(&matrix), DirectX::XMMatrixTranspose(TRSInternalTransposed(transform)));
-    }
-
-    void Math::DecomposeTRS(Core::Transform& transform, const Core::Matrix4x4& matrix) const
-    {
-        DirectX::XMVECTOR scale;
-        DirectX::XMVECTOR position;
-        DirectX::XMVECTOR rotation;
-
-        const auto mLoaded = DirectX::XMLoadFloat4x4(reinterpret_cast<const DirectX::XMFLOAT4X4*>(&matrix));
-
-        const auto status = DirectX::XMMatrixDecompose(&scale, &rotation, &position, DirectX::XMMatrixTranspose(mLoaded));
-        assert(status);
-        DirectX::XMStoreFloat3(reinterpret_cast<DirectX::XMFLOAT3*>(&transform.scale), scale);
-        DirectX::XMStoreFloat3(reinterpret_cast<DirectX::XMFLOAT3*>(&transform.position), position);
-        DirectX::XMStoreFloat4(reinterpret_cast<DirectX::XMFLOAT4*>(&transform.rotation), DirectX::XMQuaternionNormalize(rotation));
-    }
-
+    /*
 
     DirectX::XMMATRIX XM_CALLCONV Math::TRSInternalTransposed(const Core::Transform& transform)
     {

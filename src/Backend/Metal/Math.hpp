@@ -1,5 +1,5 @@
 #pragma once
-#include <Core/Math.hpp>
+#include <Backend/Shared/Math.hpp>
 
 namespace MMPEngine::Backend::Metal
 {
@@ -13,12 +13,9 @@ namespace MMPEngine::Backend::Metal
         void Normalize(Core::Vector3Float& v) const override;
         void Rotate(Core::Vector3Float& res, const Core::Vector3Float& v, const Core::Quaternion& r) const override;
 
-        /*void Scale(Core::Matrix4x4& res, const Core::Vector3Float& scale) const override;
-        void Translation(Core::Matrix4x4& res, const Core::Vector3Float& translation) const override;
         void Rotation(Core::Matrix4x4& res, const Core::Quaternion& rotation) const override;
-        void TRS(Core::Matrix4x4& matrix, const Core::Transform& transform) const override;
-        void DecomposeTRS(Core::Transform& transform, const Core::Matrix4x4& matrix) const override;
-        void Multiply(Core::Matrix4x4& res, const Core::Matrix4x4& m1, const Core::Matrix4x4& m2) const override;
+        
+        /*void Multiply(Core::Matrix4x4& res, const Core::Matrix4x4& m1, const Core::Matrix4x4& m2) const override;
         void Multiply(Core::Vector4Float& res, const Core::Matrix4x4& m, const Core::Vector4Float& v) const override;
         std::float_t Determinant(const Core::Matrix4x4& m) const override;
         void Inverse(Core::Matrix4x4& res, const Core::Matrix4x4& m) const override;
