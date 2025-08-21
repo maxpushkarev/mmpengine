@@ -82,39 +82,28 @@ namespace MMPEngine::Backend::Metal
         return simd_determinant(simd_transpose(simdM));
     }
 
-    /*
-
-    DirectX::XMMATRIX XM_CALLCONV Math::TRSInternalTransposed(const Core::Transform& transform)
-    {
-        const auto position = DirectX::XMLoadFloat3(reinterpret_cast<const DirectX::XMFLOAT3*>(&transform.position));
-        const auto scale = DirectX::XMLoadFloat3(reinterpret_cast<const DirectX::XMFLOAT3*>(&transform.scale));
-        const auto rotation = DirectX::XMLoadFloat4(reinterpret_cast<const DirectX::XMFLOAT4*>(&transform.rotation));
-        const auto orig = DirectX::XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f);
-        return DirectX::XMMatrixTransformation(orig, orig, scale, orig, rotation, position);
-    }
-
     void Math::Inverse(Core::Matrix4x4& res, const Core::Matrix4x4& m) const
     {
-        const auto mLoaded = DirectX::XMLoadFloat4x4(reinterpret_cast<const DirectX::XMFLOAT4X4*>(&m));
-        const auto inv = DirectX::XMMatrixInverse(nullptr, mLoaded);
-        DirectX::XMStoreFloat4x4(reinterpret_cast<DirectX::XMFLOAT4X4*>(&res), inv);
+        const auto& simdM = reinterpret_cast<const simd_float4x4&>(m.m);
+        const auto inv = simd_inverse(simdM);
+        std::memcpy(&res, &inv, sizeof(res));
     }
 
     void Math::Transpose(Core::Matrix4x4& res, const Core::Matrix4x4& m) const
     {
-        const auto mLoaded = DirectX::XMLoadFloat4x4(reinterpret_cast<const DirectX::XMFLOAT4X4*>(&m));
-        const auto transposed = DirectX::XMMatrixTranspose(mLoaded);
-        DirectX::XMStoreFloat4x4(reinterpret_cast<DirectX::XMFLOAT4X4*>(&res), transposed);
+        const auto& simdM = reinterpret_cast<const simd_float4x4&>(m.m);
+        const auto tr = simd_transpose(simdM);
+        std::memcpy(&res, &tr, sizeof(res));
     }
 
     void Math::InverseTranspose(Core::Matrix4x4& res, const Core::Matrix4x4& m) const
     {
-        const auto mLoaded = DirectX::XMLoadFloat4x4(reinterpret_cast<const DirectX::XMFLOAT4X4*>(&m));
-        const auto inv = DirectX::XMMatrixInverse(nullptr, mLoaded);
-        DirectX::XMStoreFloat4x4(reinterpret_cast<DirectX::XMFLOAT4X4*>(&res), DirectX::XMMatrixTranspose(inv));
+        const auto& simdM = reinterpret_cast<const simd_float4x4&>(m.m);
+        const auto inv = simd_transpose(simd_inverse(simdM));
+        std::memcpy(&res, &inv, sizeof(res));
     }
 
-    void Math::MultiplyMatrixAndPoint(Core::Vector3Float& res, const Core::Matrix4x4& m, const Core::Vector3Float& p) const
+    /*void Math::MultiplyMatrixAndPoint(Core::Vector3Float& res, const Core::Matrix4x4& m, const Core::Vector3Float& p) const
     {
         const auto pLoaded = DirectX::XMLoadFloat3(reinterpret_cast<const DirectX::XMFLOAT3*>(&p));
         const auto mLoaded = DirectX::XMLoadFloat4x4(reinterpret_cast<const DirectX::XMFLOAT4X4*>(&m));
