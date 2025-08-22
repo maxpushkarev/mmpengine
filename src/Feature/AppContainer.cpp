@@ -229,7 +229,7 @@ namespace MMPEngine::Feature
 					const auto dt = static_cast<float_t>(frameDiff.count()) * 0.001f;
 					AddFPSData(dt);
 
-					if (_settings.fps.show && _state.fpsUpdateTimer <= 0.0f)
+					if (_settings.fps.show && _state.fpsUpdateTimer <= 0.0f && _state.deltaTimeFrames.size() == _settings.fps.frameCount)
 					{
 						glfwSetWindowTitle(_window, Core::Text::CombineToString(_settings.windowCaption, " | FPS: ", CalculateSmoothFPS()).c_str());
 						_state.fpsUpdateTimer = _settings.fps.updateFpsSec;
@@ -353,7 +353,7 @@ namespace MMPEngine::Feature
 						const auto dt = static_cast<float_t>(frameDiff.count()) * 0.001f;
 						AddFPSData(dt);
 
-						if (_settings.fps.show && _state.fpsUpdateTimer <= 0.0f)
+						if (_settings.fps.show && _state.fpsUpdateTimer <= 0.0f && _state.deltaTimeFrames.size() == _settings.fps.frameCount)
 						{
 							SetWindowTextA(globalContext->nativeWindow, Core::Text::CombineToString(_settings.windowCaption, " | FPS: ", CalculateSmoothFPS()).c_str());
 							_state.fpsUpdateTimer = _settings.fps.updateFpsSec;
