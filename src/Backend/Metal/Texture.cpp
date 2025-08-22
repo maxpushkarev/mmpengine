@@ -51,8 +51,14 @@ namespace MMPEngine::Backend::Metal
         case Settings::Format::Depth32:
             return MTL::PixelFormatDepth32Float;
         case Settings::Format::Depth24_Stencil8:
-                //D24S8 not supported - invalid pixel format
-            return MTL::PixelFormatDepth32Float_Stencil8;
+                if(_device->GetNative()->depth24Stencil8PixelFormatSupported())
+                {
+                    return MTL::PixelFormatDepth24Unorm_Stencil8;
+                }
+                else
+                {
+                    return MTL::PixelFormatDepth32Float_Stencil8;
+                }
         }
 
         throw Core::UnsupportedException("unknown depth/stencil format");
@@ -96,6 +102,7 @@ namespace MMPEngine::Backend::Metal
         const auto entity = tc->entity;
         const auto memHeap = entity->GetMemoryHeap(_specificGlobalContext);
         
+        entity->_device = _specificGlobalContext->device;
         entity->_nativeTextureDesc = MTL::TextureDescriptor::alloc()->init();
         entity->_nativeTextureDesc->setUsage(MTL::TextureUsageRenderTarget);
         entity->_nativeTextureDesc->setStorageMode(memHeap->GetMtlSettings().storageMode);
@@ -117,7 +124,6 @@ namespace MMPEngine::Backend::Metal
         
         entity->_nativeTextureDesc->setPixelFormat(entity->GetFormat());
         entity->_nativeTextureDesc->setSampleCount(entity->GetSamplesCount());
-
         
        const auto sizeAndAlign = _specificGlobalContext->device->GetNative()->heapTextureSizeAndAlign(entity->_nativeTextureDesc);
         

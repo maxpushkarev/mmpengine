@@ -31,6 +31,8 @@ namespace MMPEngine::Backend::Metal
 
     class BaseTexture : public ResourceEntity
     {
+    protected:
+        std::shared_ptr<Wrapper::Device> _device;
     };
 
     class ResourceTexture : public BaseTexture
