@@ -8,6 +8,10 @@
 #include <Backend/Vulkan/Texture.hpp>
 #endif
 
+#ifdef MMPENGINE_BACKEND_METAL
+#include <Backend/Metal/Texture.hpp>
+#endif
+
 namespace MMPEngine::Frontend
 {
 	DepthStencilTargetTexture::DepthStencilTargetTexture(const std::shared_ptr<Core::GlobalContext>& globalContext, const Settings& settings) : Core::DepthStencilTargetTexture(settings)
@@ -29,6 +33,15 @@ namespace MMPEngine::Frontend
 			throw Core::UnsupportedException("unable to create depth/stencil texture for Vulkan backend");
 #endif
 		}
+        
+        if (globalContext->settings.backend == Core::BackendType::Metal)
+        {
+#ifdef MMPENGINE_BACKEND_METAL
+            _impl = std::make_shared<Backend::Metal::DepthStencilTargetTexture>(this->_settings);
+#else
+            throw Core::UnsupportedException("unable to create depth/stencil texture for Metal backend");
+#endif
+        }
 	}
 
 	std::shared_ptr<Core::BaseTask> DepthStencilTargetTexture::CreateInitializationTask()
