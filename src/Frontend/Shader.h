@@ -36,4 +36,21 @@ struct MeshRendererData
 
 #endif
 
+#if MMPENGINE_MSL
+
+struct CameraData
+{
+    float4x4 viewMat;
+    float4x4 projMat;
+    float4 worldPosition;
+};
+
+struct MeshRendererData
+{
+    float4x4 worldMat;
+    float4x4 worldMatIT;
+};
+
+#endif
+
 #endif
