@@ -13,6 +13,12 @@ namespace MMPEngine::Backend::Metal
         ITargetTexture& operator=(const ITargetTexture&) = delete;
         ITargetTexture& operator=(ITargetTexture&&) noexcept = delete;
         virtual ~ITargetTexture();
+        
+        virtual MTL::PixelFormat GetFormat() const = 0;
+        virtual NS::UInteger GetSamplesCount() const = 0;
+        
+    protected:
+        static NS::UInteger GetSamplesCount(Core::TargetTexture::Settings::Antialiasing aa);
     };
 
     class IDepthStencilTexture : public ITargetTexture
@@ -40,6 +46,7 @@ namespace MMPEngine::Backend::Metal
 
         std::shared_ptr<DeviceMemoryHeap> GetMemoryHeap(const std::shared_ptr<GlobalContext>& globalContext) const override;
         
+        MTL::TextureDescriptor* _nativeTextureDesc = nullptr;
         MTL::Texture* _nativeTexture = nullptr;
     };
 
@@ -64,6 +71,7 @@ namespace MMPEngine::Backend::Metal
             public:
                 Create(const std::shared_ptr<InitTaskContext>& context);
                 void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
+                void OnComplete(const std::shared_ptr<Core::BaseStream>& stream) override;
             };
 
         public:
@@ -74,6 +82,8 @@ namespace MMPEngine::Backend::Metal
     public:
         DepthStencilTargetTexture(const Settings& settings);
         std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;
+        MTL::PixelFormat GetFormat() const override;
+        NS::UInteger GetSamplesCount() const override;
     };
 }
 
