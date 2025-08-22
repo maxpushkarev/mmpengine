@@ -1,4 +1,5 @@
 #include <thread>
+#include <numeric>
 #include <Feature/AppContainer.hpp>
 #include <GLFW/glfw3.h>
 
@@ -61,6 +62,38 @@ namespace MMPEngine::Feature
 	{
 		return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch());
 	}
+
+	void AppContainer::ClearFPSData()
+	{
+		_state.deltaTimeFrames.clear();
+		_state.fpsUpdateTimer = 0.0f;
+	}
+
+	void AppContainer::AddFPSData(std::float_t dt)
+	{
+		if (_settings.fps.show)
+		{
+			_state.deltaTimeFrames.push_back(dt);
+			if (_state.deltaTimeFrames.size() > _settings.fps.frameCount)
+			{
+				_state.deltaTimeFrames.pop_front();
+			}
+			_state.fpsUpdateTimer -= dt;
+		}
+	}
+
+	std::uint32_t AppContainer::CalculateSmoothFPS() const
+	{
+		if (_settings.fps.show && !_state.deltaTimeFrames.empty())
+		{
+			std::float_t avg = std::accumulate(_state.deltaTimeFrames.cbegin(), _state.deltaTimeFrames.cend(), 0.0f);
+			avg /= static_cast<std::float_t>(_state.deltaTimeFrames.size());
+			return static_cast<std::uint32_t>(std::round(1.0f / avg));
+		}
+
+		return 0U;
+	}
+
 
 	AppContainer::~AppContainer() = default;
 
@@ -180,6 +213,8 @@ namespace MMPEngine::Feature
 					{
 						_app->OnResume();
 					}
+
+					ClearFPSData();
 				}
 
 				_state.prevPaused = _state.paused;
@@ -192,10 +227,12 @@ namespace MMPEngine::Feature
 
 					const auto frameDiff = beforeFrameMs - prevMs;
 					const auto dt = static_cast<float_t>(frameDiff.count()) * 0.001f;
+					AddFPSData(dt);
 
-					if (_settings.showFps)
+					if (_settings.fps.show && _state.fpsUpdateTimer <= 0.0f)
 					{
-						glfwSetWindowTitle(_window, Core::Text::CombineToString(_settings.windowCaption, " | FPS: ", static_cast<std::uint32_t>(std::round(1.0f / dt))).c_str());
+						glfwSetWindowTitle(_window, Core::Text::CombineToString(_settings.windowCaption, " | FPS: ", CalculateSmoothFPS()).c_str());
+						_state.fpsUpdateTimer = _settings.fps.updateFpsSec;
 					}
 
 					for (const auto& [glfwKey, coreKey] : _keyMap)
@@ -300,6 +337,8 @@ namespace MMPEngine::Feature
 						{
 							_app->OnResume();
 						}
+
+						ClearFPSData();
 					}
 
 					_state.prevPaused = _state.paused;
@@ -312,10 +351,12 @@ namespace MMPEngine::Feature
 
 						const auto frameDiff = beforeFrameMs - prevMs;
 						const auto dt = static_cast<float_t>(frameDiff.count()) * 0.001f;
+						AddFPSData(dt);
 
-						if (_settings.showFps)
+						if (_settings.fps.show && _state.fpsUpdateTimer <= 0.0f)
 						{
-							SetWindowTextA(globalContext->nativeWindow, Core::Text::CombineToString(_settings.windowCaption, " | FPS: ", static_cast<std::uint32_t>(std::round(1.0f / dt))).c_str());
+							SetWindowTextA(globalContext->nativeWindow, Core::Text::CombineToString(_settings.windowCaption, " | FPS: ", CalculateSmoothFPS()).c_str());
+							_state.fpsUpdateTimer = _settings.fps.updateFpsSec;
 						}
 
 						_app->OnUpdate(dt);

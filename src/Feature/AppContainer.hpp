@@ -3,6 +3,7 @@
 #include <memory>
 #include <optional>
 #include <unordered_map>
+#include <list>
 #include <Feature/App.hpp>
 #include <Feature/Input.hpp>
 
@@ -20,12 +21,19 @@ namespace MMPEngine::Feature
 	public:
 		struct Settings final
 		{
+			struct FPS final
+			{
+				std::uint32_t frameCount = 10;
+				std::float_t updateFpsSec = 0.5f;
+				bool show = true;
+			};
+
 			std::string windowCaption;
 			std::int32_t initialWindowWidth = 1280;
 			std::int32_t initialWindowHeight = 720;
 			std::int32_t targetFps = 60;
 			std::int32_t pausedSleepTimeoutMs = 42;
-			bool showFps = true;
+			FPS fps{};
 		};
 	protected:
 		struct State final
@@ -37,6 +45,8 @@ namespace MMPEngine::Feature
 			bool minimized = false;
 			bool resizeInProgress = false;
 			std::optional<std::chrono::milliseconds> previousFrameMs = std::nullopt;
+			std::list<std::float_t> deltaTimeFrames;
+			std::float_t fpsUpdateTimer = 0.0f;
 		};
 
 		AppContainer(Settings&& settings, std::unique_ptr<Feature::BaseRootApp>&& app);
@@ -46,6 +56,10 @@ namespace MMPEngine::Feature
 		virtual Core::Vector2Uint GetCurrentWindowSize() const = 0;
 		virtual std::int32_t RunInternal() = 0;
 		static std::chrono::milliseconds NowMs();
+
+		void ClearFPSData();
+		void AddFPSData(std::float_t dt);
+		std::uint32_t CalculateSmoothFPS() const;
 
 		void ClearAllInputs() const;
 		void ClearInstantInputEvents() const;
