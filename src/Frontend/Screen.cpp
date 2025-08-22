@@ -8,6 +8,10 @@
 #include <Backend/Vulkan/Screen.hpp>
 #endif
 
+#ifdef MMPENGINE_BACKEND_METAL
+#include <Backend/Metal/Screen.hpp>
+#endif
+
 namespace MMPEngine::Frontend
 {
 	Screen::Screen(const std::shared_ptr<Core::GlobalContext>& globalContext, const Settings& settings) : Core::Screen(settings)
@@ -30,6 +34,15 @@ namespace MMPEngine::Frontend
 			throw Core::UnsupportedException("unable to create screen for Vulkan backend");
 #endif
 		}
+        
+        if (globalContext->settings.backend == Core::BackendType::Metal)
+        {
+#ifdef MMPENGINE_BACKEND_METAL
+            _impl = std::make_shared<Backend::Metal::Screen>(settings);
+#else
+            throw Core::UnsupportedException("unable to create screen for Metal backend");
+#endif
+        }
 	}
 
 	std::shared_ptr<Core::BaseTask> Screen::CreateInitializationTask()
