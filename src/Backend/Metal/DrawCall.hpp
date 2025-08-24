@@ -110,9 +110,7 @@ namespace MMPEngine::Backend::Metal
         std::shared_ptr<Core::BaseTask> CreateTaskForIterationsFinish() override;
     private:
         std::shared_ptr<Camera::DrawCallsJob::InternalTaskContext> BuildInternalContext();
-        MTL::RenderCommandEncoder* _currentRenderCommandEncoder = nullptr;
-        std::unordered_map<std::uint64_t, MTL::RenderCommandEncoder*> _encodersMap;
-        std::vector<std::uint64_t> _encodersReleaseIds;
+        MTL::RenderCommandEncoder* _renderCommandEncoder = nullptr;
     };
 
 
