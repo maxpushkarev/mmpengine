@@ -12,17 +12,17 @@ namespace MMPEngine::Backend::Metal
     private:
         class BackBuffer final : public Core::ColorTargetTexture, public Metal::BaseTexture, public IColorTargetTexture
         {
-        private:
-            class BackBufferContext : public Core::EntityTaskContext<BackBuffer>
-            {
-            };
-
         public:
-            BackBuffer(const Settings& settings);
+            BackBuffer(const Settings& settings, CA::MetalLayer* layer);
             MTL::PixelFormat GetFormat() const override;
             NS::UInteger GetSamplesCount() const override;
+            void Next();
+            CA::MetalDrawable* GetDrawable() const;
         protected:
             std::shared_ptr<DeviceMemoryHeap> GetMemoryHeap(const std::shared_ptr<GlobalContext>& globalContext) const override;
+        private:
+            CA::MetalLayer* _layer = nullptr;
+            CA::MetalDrawable* _drawable = nullptr;
         };
         
         class ScreenTaskContext final : public Core::EntityTaskContext<Screen>
@@ -37,6 +37,14 @@ namespace MMPEngine::Backend::Metal
             void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
         };
 
+        class StartFrameTask final : public Task<ScreenTaskContext>
+        {
+        public:
+            StartFrameTask(const std::shared_ptr<ScreenTaskContext>& ctx);
+        protected:
+            void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
+        };
+        
         class PresentTask final : public Task<ScreenTaskContext>
         {
         public:

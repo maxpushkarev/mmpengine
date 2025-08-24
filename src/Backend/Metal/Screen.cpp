@@ -32,7 +32,10 @@ namespace MMPEngine::Backend::Metal
 
     std::shared_ptr<Core::BaseTask> Screen::CreateStartFrameTaskInternal()
     {
-        return Core::BaseTask::kEmpty;
+        const auto ctx = std::make_shared<ScreenTaskContext>();
+        ctx->entity = std::dynamic_pointer_cast<Screen>(shared_from_this());
+
+        return std::make_shared<StartFrameTask>(ctx);
     }
 
     std::shared_ptr<Core::BaseTask> Screen::CreatePresentationTaskInternal()
@@ -40,10 +43,7 @@ namespace MMPEngine::Backend::Metal
         const auto ctx = std::make_shared<ScreenTaskContext>();
         ctx->entity = std::dynamic_pointer_cast<Screen>(shared_from_this());
 
-        return std::make_shared<Core::BatchTask>(std::initializer_list<std::shared_ptr<Core::BaseTask>> {
-                Core::StreamFlushTask::kInstance,
-                std::make_shared<PresentTask>(ctx)
-            });
+        return std::make_shared<PresentTask>(ctx);
     }
 
     std::shared_ptr<Core::ColorTargetTexture> Screen::GetBackBuffer() const
@@ -51,10 +51,20 @@ namespace MMPEngine::Backend::Metal
         return _backBuffer;
     }
 
-    Screen::BackBuffer::BackBuffer(const Settings& settings)
-        : Core::ColorTargetTexture(settings)
+    Screen::BackBuffer::BackBuffer(const Settings& settings, CA::MetalLayer* layer)
+        : Core::ColorTargetTexture(settings), _layer(layer)
     {
        
+    }
+
+    void Screen::BackBuffer::Next()
+    {
+        _drawable = _layer->nextDrawable();
+    }
+
+    CA::MetalDrawable* Screen::BackBuffer::GetDrawable() const
+    {
+        return _drawable;
     }
 
     std::shared_ptr<DeviceMemoryHeap> Screen::BackBuffer::GetMemoryHeap(const std::shared_ptr<GlobalContext>& globalContext) const
@@ -88,12 +98,6 @@ namespace MMPEngine::Backend::Metal
         screen->_metalLayer = CA::MetalLayer::layer();
         screen->_metalLayer->retain();
         
-        screen->_backBuffer = std::make_shared<BackBuffer>(Core::ColorTargetTexture::Settings{
-            Core::ColorTargetTexture::Settings::Format::R8G8B8A8_Float_01,
-                screen->_settings.clearColor,
-            { Core::TargetTexture::Settings::Antialiasing::MSAA_0, _specificGlobalContext->windowSize, "Screen::BackBuffer" }
-            });
-        
         const auto format = screen->_settings.gammaCorrection ? MTL::PixelFormatBGRA8Unorm_sRGB : MTL::PixelFormatBGRA8Unorm;
         
         screen->_metalLayer->setDevice(_specificGlobalContext->device->GetNative());
@@ -107,7 +111,25 @@ namespace MMPEngine::Backend::Metal
 
         Window::JoinMetalLayerToWindow(_specificGlobalContext->nativeWindow, screen->_metalLayer);
         
+        screen->_backBuffer = std::make_shared<BackBuffer>(Core::ColorTargetTexture::Settings{
+            Core::ColorTargetTexture::Settings::Format::R8G8B8A8_Float_01,
+                screen->_settings.clearColor,
+            { Core::TargetTexture::Settings::Antialiasing::MSAA_0, _specificGlobalContext->windowSize, "Screen::BackBuffer" }
+            }, screen->_metalLayer);
+        
         pool->release();
+    }
+
+    Screen::StartFrameTask::StartFrameTask(const std::shared_ptr<ScreenTaskContext>& ctx) : Task(ctx)
+    {
+    }
+
+    void Screen::StartFrameTask::Run(const std::shared_ptr<Core::BaseStream>& stream)
+    {
+        Task::Run(stream);
+        
+        const auto screen = GetTaskContext()->entity;
+        screen->_backBuffer->Next();
     }
 
     Screen::PresentTask::PresentTask(const std::shared_ptr<ScreenTaskContext>& ctx) : Task(ctx)
@@ -119,7 +141,11 @@ namespace MMPEngine::Backend::Metal
         Task::Run(stream);
         
         const auto screen = GetTaskContext()->entity;
+        const auto drawable = screen->_backBuffer->GetDrawable();
+        if(drawable)
+        {
+            _specificStreamContext->PopulateCommandsInBuffer()->GetNative()->presentDrawable(drawable);
+        }
     }
-
 }
 
