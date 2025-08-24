@@ -14,6 +14,10 @@ namespace MMPEngine::Backend::Metal
 
     Screen::~Screen()
     {
+        if(_screenPool)
+        {
+            _screenPool->release();
+        }
     }
 
 
@@ -78,11 +82,15 @@ namespace MMPEngine::Backend::Metal
 
         const auto screen = GetTaskContext()->entity;
         
+        screen->_screenPool = NS::AutoreleasePool::alloc()->init();
+        screen->_metalLayer = CA::MetalLayer::layer();
+        
         screen->_backBuffer = std::make_shared<BackBuffer>(Core::ColorTargetTexture::Settings{
             Core::ColorTargetTexture::Settings::Format::R8G8B8A8_Float_01,
                 screen->_settings.clearColor,
             { Core::TargetTexture::Settings::Antialiasing::MSAA_0, _specificGlobalContext->windowSize, "Screen::BackBuffer" }
             });
+        
     }
 
     Screen::PresentTask::PresentTask(const std::shared_ptr<ScreenTaskContext>& ctx) : Task(ctx)

@@ -1,4 +1,6 @@
 #pragma once
+#include <QuartzCore/QuartzCore.hpp>
+#include <Metal/Metal.hpp>
 #include <Core/Screen.hpp>
 #include <Backend/Metal/Entity.hpp>
 #include <Backend/Metal/Texture.hpp>
@@ -57,5 +59,7 @@ namespace MMPEngine::Backend::Metal
         std::shared_ptr<Core::BaseTask> CreatePresentationTaskInternal() override;
     private:
         std::shared_ptr<BackBuffer> _backBuffer;
+        CA::MetalLayer* _metalLayer = nullptr;
+        NS::AutoreleasePool* _screenPool = nullptr;
     };
 }
