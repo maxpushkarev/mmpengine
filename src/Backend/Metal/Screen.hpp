@@ -60,6 +60,5 @@ namespace MMPEngine::Backend::Metal
     private:
         std::shared_ptr<BackBuffer> _backBuffer;
         CA::MetalLayer* _metalLayer = nullptr;
-        NS::AutoreleasePool* _screenPool = nullptr;
     };
 }
