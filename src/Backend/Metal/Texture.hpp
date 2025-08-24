@@ -50,7 +50,7 @@ namespace MMPEngine::Backend::Metal
         std::shared_ptr<DeviceMemoryHeap> GetMemoryHeap(const std::shared_ptr<GlobalContext>& globalContext) const override;
         
         MTL::TextureDescriptor* _nativeTextureDesc = nullptr;
-        MTL::Texture* _nativeTexture = nullptr;
+        NS::SharedPtr<MTL::Texture> _nativeTexture = nullptr;
     };
 
     class DepthStencilTargetTexture final : public Core::DepthStencilTargetTexture, public ResourceTexture, public IDepthStencilTexture

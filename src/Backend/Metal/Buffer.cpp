@@ -7,16 +7,9 @@ namespace MMPEngine::Backend::Metal
     {
     }
 
-    Buffer::~Buffer()
-    {
-        if(_nativeBuffer)
-        {
-            _nativeBuffer->release();
-        }
-    }
     MTL::Buffer* Buffer::GetNative() const
     {
-        return _nativeBuffer;
+        return _nativeBuffer.get();
     }
 
     Buffer::InitTask::Allocate::Allocate(const std::shared_ptr<InitTaskContext>& context) : Task<MMPEngine::Backend::Metal::Buffer::InitTaskContext>(context)
@@ -49,7 +42,7 @@ namespace MMPEngine::Backend::Metal
         const auto tc = GetTaskContext();
         const auto memHeap = tc->entity->GetMemoryHeap(_specificGlobalContext);
         
-        tc->entity->_nativeBuffer = tc->entity->_deviceMemoryHeapHandle.GetMemoryBlock()->GetNative()->newBuffer(static_cast<NS::UInteger>(tc->entity->_deviceMemoryHeapHandle.GetSize()), memHeap->GetMtlSettings().resourceOption, static_cast<NS::UInteger>(tc->entity->_deviceMemoryHeapHandle.GetOffset()));
+        tc->entity->_nativeBuffer = NS::TransferPtr(tc->entity->_deviceMemoryHeapHandle.GetMemoryBlock()->GetNative()->newBuffer(static_cast<NS::UInteger>(tc->entity->_deviceMemoryHeapHandle.GetSize()), memHeap->GetMtlSettings().resourceOption, static_cast<NS::UInteger>(tc->entity->_deviceMemoryHeapHandle.GetOffset())));
     }
 
 
@@ -81,16 +74,14 @@ namespace MMPEngine::Backend::Metal
         const auto blitEncoder = _specificStreamContext->PopulateCommandsInBuffer()->GetNative()->blitCommandEncoder();
         
         blitEncoder->copyFromBuffer(
-            srcBuffer->_nativeBuffer,
+            srcBuffer->_nativeBuffer.get(),
             static_cast<NS::UInteger>(tc->srcByteOffset),
-            dstBuffer->_nativeBuffer,
+            dstBuffer->_nativeBuffer.get(),
             static_cast<NS::UInteger>(tc->dstByteOffset),
             static_cast<NS::UInteger>(tc->byteLength)
         );
         
         blitEncoder->endEncoding();
-        blitEncoder->release();
-        
     }
 
     UploadBuffer::UploadBuffer(const Settings& settings) : Core::UploadBuffer(settings), Metal::Buffer(MTLSettings {})
@@ -455,7 +446,6 @@ namespace MMPEngine::Backend::Metal
         blitEncoder->fillBuffer(tc->entity->GetNative(), NS::Range(0, static_cast<NS::Integer>(tc->entity->GetSettings().byteLength)), static_cast<std::uint8_t>(0));
 
         blitEncoder->endEncoding();
-        blitEncoder->release();
     }
 
 }

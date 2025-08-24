@@ -24,17 +24,12 @@ namespace MMPEngine::Backend::Metal
         };
 
         DeviceMemoryBlock(const Settings&);
-        DeviceMemoryBlock(const DeviceMemoryBlock&) = delete;
-        DeviceMemoryBlock(DeviceMemoryBlock&&) noexcept = delete;
-        DeviceMemoryBlock& operator=(const DeviceMemoryBlock&) = delete;
-        DeviceMemoryBlock& operator=(DeviceMemoryBlock&&) noexcept = delete;
-        ~DeviceMemoryBlock() override;
         std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;
         MTL::Heap* GetNative() const;
     private:
         Settings _settings;
         std::shared_ptr<Wrapper::Device> _device;
-        MTL::Heap* _nativeHeap = nullptr;
+        NS::SharedPtr<MTL::Heap> _nativeHeap = nullptr;
         
         class InitTaskContext final : public Core::EntityTaskContext<DeviceMemoryBlock>
         {

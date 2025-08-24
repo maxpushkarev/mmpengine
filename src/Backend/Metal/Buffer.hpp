@@ -14,11 +14,6 @@ namespace MMPEngine::Backend::Metal
         };
     public:
         Buffer(const MTLSettings& mtlSettings);
-        ~Buffer() override;
-        Buffer(const Buffer&) = delete;
-        Buffer(Buffer&&) noexcept = delete;
-        Buffer& operator=(const Buffer&) = delete;
-        Buffer& operator=(Buffer&&) noexcept = delete;
         MTL::Buffer* GetNative() const;
     protected:
 
@@ -70,7 +65,7 @@ namespace MMPEngine::Backend::Metal
         };
 
     protected:
-        MTL::Buffer* _nativeBuffer = nullptr;
+        NS::SharedPtr<MTL::Buffer> _nativeBuffer = nullptr;
         MTLSettings _mtlSettings;
     };
 

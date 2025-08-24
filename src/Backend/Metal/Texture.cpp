@@ -24,11 +24,6 @@ namespace MMPEngine::Backend::Metal
         {
             _nativeTextureDesc->release();
         }
-        
-        if(_nativeTexture)
-        {
-            _nativeTexture->release();
-        }
     }
 
     std::shared_ptr<DeviceMemoryHeap> ResourceTexture::GetMemoryHeap(const std::shared_ptr<GlobalContext>& globalContext) const
@@ -72,7 +67,7 @@ namespace MMPEngine::Backend::Metal
 
     MTL::Texture* DepthStencilTargetTexture::GetNativeTexture() const
     {
-        return _nativeTexture;
+        return _nativeTexture.get();
     }
 
     std::shared_ptr<Core::BaseTask> DepthStencilTargetTexture::CreateInitializationTask()
@@ -161,6 +156,6 @@ namespace MMPEngine::Backend::Metal
         Task::Run(stream);
 
         const auto tc = GetTaskContext();
-        tc->entity->_nativeTexture = tc->entity->_deviceMemoryHeapHandle.GetMemoryBlock()->GetNative()->newTexture(tc->entity->_nativeTextureDesc, static_cast<NS::UInteger>(tc->entity->_deviceMemoryHeapHandle.GetOffset()));
+        tc->entity->_nativeTexture = NS::TransferPtr( tc->entity->_deviceMemoryHeapHandle.GetMemoryBlock()->GetNative()->newTexture(tc->entity->_nativeTextureDesc, static_cast<NS::UInteger>(tc->entity->_deviceMemoryHeapHandle.GetOffset())));
     }
 }

@@ -7,17 +7,9 @@ namespace MMPEngine::Backend::Metal
     {
     }
 
-    DeviceMemoryBlock::~DeviceMemoryBlock()
-    {
-        if(_nativeHeap)
-        {
-            _nativeHeap->release();
-        }
-    }
-
     MTL::Heap* DeviceMemoryBlock::GetNative() const
     {
-        return _nativeHeap;
+        return _nativeHeap.get();
     }
 
     DeviceMemoryBlock::InitTask::InitTask(const std::shared_ptr<InitTaskContext>& ctx) : Task<MMPEngine::Backend::Metal::DeviceMemoryBlock::InitTaskContext>(ctx)
@@ -41,7 +33,7 @@ namespace MMPEngine::Backend::Metal
         desc->setSparsePageSize(entity->_settings.mtl.sparsePageSize);
         desc->setHazardTrackingMode(MTL::HazardTrackingModeTracked);
         
-        entity->_nativeHeap = entity->_device->GetNative()->newHeap(desc);
+        entity->_nativeHeap = NS::TransferPtr(entity->_device->GetNative()->newHeap(desc));
         desc->release();
     }
 

@@ -64,7 +64,7 @@ namespace MMPEngine::Core
 
 		void Restart();
 		void Schedule(const std::shared_ptr<BaseTask>& task);
-		void Submit();
+        void Submit();
 		void Wait();
 		void SubmitAndWait();
 

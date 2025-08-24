@@ -11,11 +11,6 @@ namespace MMPEngine::Backend::Metal
     {
     public:
         LibShader(PassControl, const std::shared_ptr<LibShaderPack>& pack, Info&& settings);
-        LibShader(const LibShader&) = delete;
-        LibShader(LibShader&&) = delete;
-        LibShader& operator=(const LibShader&) = delete;
-        LibShader& operator=(LibShader&&) = delete;
-        ~LibShader() override;
         std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;
         MTL::Function* GetNativeFunction() const;
     private:
@@ -30,7 +25,7 @@ namespace MMPEngine::Backend::Metal
             void Run(const std::shared_ptr<Core::BaseStream>& stream) override;
         };
         std::shared_ptr<LibShaderPack> _pack;
-        MTL::Function* _nativeFunction = nullptr;
+        NS::SharedPtr<MTL::Function> _nativeFunction = nullptr;
     };
 
     class LibShaderPack final : public Core::ShaderPack
@@ -71,7 +66,7 @@ namespace MMPEngine::Backend::Metal
         Settings _settings;
         std::vector<char> _rawData;
         dispatch_data_t _dispatchData = nullptr;
-        MTL::Library* _nativeLibrary = nullptr;
+        NS::SharedPtr<MTL::Library> _nativeLibrary = nullptr;
         std::unordered_map<std::string_view, std::size_t> _id2IndexMap;
     };
 }

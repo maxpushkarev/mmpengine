@@ -145,8 +145,15 @@ namespace MMPEngine::Feature
 
 		void AppContainer::OnWindowSizeChanged(GLFWwindow* window, int width, int height)
 		{
+#ifdef MMPENGINE_BACKEND_METAL
+            auto pool = NS::AutoreleasePool::alloc()->init();
+#endif
+            
 			const auto appContainerPtr = static_cast<AppContainer*>(glfwGetWindowUserPointer(window));
 			appContainerPtr->OnWindowChanged();
+#ifdef MMPENGINE_BACKEND_METAL
+            pool->release();
+#endif
 		}
 
 		void AppContainer::CreateNativeContainer()
@@ -203,6 +210,10 @@ namespace MMPEngine::Feature
 			{
 				glfwPollEvents();
 
+#ifdef MMPENGINE_BACKEND_METAL
+                auto pool = NS::AutoreleasePool::alloc()->init();
+#endif
+                
 				if (_state.prevPaused.value_or(_state.paused) != _state.paused)
 				{
 					if (_state.paused)
@@ -278,6 +289,10 @@ namespace MMPEngine::Feature
 					ClearAllInputs();
 					std::this_thread::sleep_for(std::chrono::milliseconds{_settings.pausedSleepTimeoutMs});
 				}
+                
+#ifdef MMPENGINE_BACKEND_METAL
+                pool->release();
+#endif
 			}
 
 			_app->OnPause();

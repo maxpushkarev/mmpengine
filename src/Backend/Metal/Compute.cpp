@@ -9,14 +9,6 @@ namespace MMPEngine::Backend::Metal
     {
     }
 
-    DirectComputeJob::~DirectComputeJob()
-    {
-        if(_computePipelineState)
-        {
-            _computePipelineState->release();
-        }
-    }
-
     DirectComputeJob::InitTask::InitTask(const std::shared_ptr<InitContext>& ctx) : Task(ctx)
     {
     }
@@ -36,7 +28,7 @@ namespace MMPEngine::Backend::Metal
         const auto shader = std::dynamic_pointer_cast<Metal::LibShader>(job->_material->GetShader());
         
         NS::Error* err = nullptr;
-        job->_computePipelineState = _specificGlobalContext->device->GetNative()->newComputePipelineState(shader->GetNativeFunction(), &err);
+        job->_computePipelineState = NS::TransferPtr( _specificGlobalContext->device->GetNative()->newComputePipelineState(shader->GetNativeFunction(), &err));
     
         
         assert(err == nullptr);
@@ -70,7 +62,7 @@ namespace MMPEngine::Backend::Metal
 
         const auto computeEncoder = _specificStreamContext->PopulateCommandsInBuffer()->GetNative()->computeCommandEncoder(MTL::DispatchTypeSerial);
         
-        computeEncoder->setComputePipelineState(tc->job->_computePipelineState);
+        computeEncoder->setComputePipelineState(tc->job->_computePipelineState.get());
         
         NS::UInteger idx = 0;
         for(const auto& bufferData : tc->job->_bufferDataCollection)
@@ -98,7 +90,6 @@ namespace MMPEngine::Backend::Metal
         );
 
         computeEncoder->endEncoding();
-        computeEncoder->release();
     }
 
     std::shared_ptr<Core::BaseTask> DirectComputeJob::CreateInitializationTask()

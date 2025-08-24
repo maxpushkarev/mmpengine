@@ -8,8 +8,13 @@ namespace MMPEngine::Backend::Metal
     {
     }
 
-    Camera::DrawCallsJob::~DrawCallsJob() = default;
-
+    Camera::DrawCallsJob::~DrawCallsJob()
+    {
+        for(const auto& pair : _encodersMap)
+        {
+            pair.second->release();
+        }
+    }
 
     std::shared_ptr<Camera::DrawCallsJob::InternalTaskContext> Camera::DrawCallsJob::BuildInternalContext()
     {
@@ -78,6 +83,40 @@ namespace MMPEngine::Backend::Metal
         Task::Run(stream);
 
         const auto tc = GetTaskContext();
+        
+        /*const auto renderPassDescriptor = MTL::RenderPassDescriptor::alloc()->init();
+        auto l = tc->colorRenderTargets[0]->GetNativeTexture();
+        
+        auto colorAttachment = renderPassDescriptor->colorAttachments()->object(0);
+            colorAttachment->setTexture(tc->colorRenderTargets[0]->GetNativeTexture());
+            colorAttachment->setLoadAction(MTL::LoadActionClear);
+            colorAttachment->setStoreAction(MTL::StoreActionStore);
+            colorAttachment->setClearColor(MTL::ClearColor(0.1, 0.2, 0.3, 1.0)); // R,G,B,A
+        
+        const auto currentSyncCounter = stream->GetSyncCounterValue();
+        const auto lastCompletedSyncCounter = stream->GetLastCompletedSyncCounterValue();
+        
+        tc->job->_encodersReleaseIds.clear();
+        
+        for(const auto& pair : tc->job->_encodersMap)
+        {
+            if(pair.first <= lastCompletedSyncCounter)
+            {
+                tc->job->_encodersReleaseIds.push_back(pair.first);
+            }
+        }
+        
+        for(const auto id : tc->job->_encodersReleaseIds)
+        {
+            assert(tc->job->_encodersMap[id]->retainCount() == 1);
+            tc->job->_encodersMap[id]->release();
+            tc->job->_encodersMap.erase(id);
+        }
+        
+        tc->job->_currentRenderCommandEncoder = _specificStreamContext->PopulateCommandsInBuffer()->GetNative()->renderCommandEncoder(renderPassDescriptor);
+        tc->job->_encodersMap[currentSyncCounter] = tc->job->_currentRenderCommandEncoder;
+        
+        renderPassDescriptor->release();*/
     }
 
     Camera::DrawCallsJob::EndPass::EndPass(const std::shared_ptr<InternalTaskContext>& ctx) : Task<MMPEngine::Backend::Metal::Camera::DrawCallsJob::InternalTaskContext>(ctx)
@@ -88,6 +127,8 @@ namespace MMPEngine::Backend::Metal
     {
         Task::Run(stream);
         const auto tc = GetTaskContext();
+        
+        //tc->job->_currentRenderCommandEncoder->endEncoding();
     }
 
     Camera::DrawCallsJob::IterationImpl::IterationImpl(const std::shared_ptr<DrawCallsJob>& job, const Item& item) : _item(item)

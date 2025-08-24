@@ -6,17 +6,9 @@ namespace MMPEngine::Backend::Metal
     {
     }
 
-    LibShader::~LibShader()
-    {
-        if(_nativeFunction)
-        {
-            _nativeFunction->release();
-        }
-    }
-
     MTL::Function* LibShader::GetNativeFunction() const
     {
-        return _nativeFunction;
+        return _nativeFunction.get();
     }
 
     std::shared_ptr<Core::BaseTask> LibShader::CreateInitializationTask()
@@ -37,11 +29,9 @@ namespace MMPEngine::Backend::Metal
         const auto shader = GetTaskContext()->entity;
         const auto funcName = NS::String::string(shader->GetInfo().entryPointName.c_str(), NS::ASCIIStringEncoding);
         
-        shader->_nativeFunction = shader->_pack->GetNativeLibraryPtr()->newFunction(funcName);
+        shader->_nativeFunction = NS::TransferPtr(shader->_pack->GetNativeLibraryPtr()->newFunction(funcName));
         
-        funcName->release();
-        
-        assert(shader->_nativeFunction != nullptr);
+        assert(shader->_nativeFunction.get() != nullptr);
     }
 
     LibShaderPack::LibShaderPack(Settings&& settings,std::vector<char>&& rawData) : _settings(std::move(settings)), _rawData(std::move(rawData))
@@ -56,11 +46,6 @@ namespace MMPEngine::Backend::Metal
 
     LibShaderPack::~LibShaderPack()
     {
-        if(_nativeLibrary)
-        {
-            _nativeLibrary->release();
-        }
-        
         if(_dispatchData)
         {
             dispatch_release(_dispatchData);
@@ -69,7 +54,7 @@ namespace MMPEngine::Backend::Metal
 
     MTL::Library* LibShaderPack::GetNativeLibraryPtr() const
     {
-        return _nativeLibrary;
+        return _nativeLibrary.get();
     }
 
     std::shared_ptr<Core::Shader> LibShaderPack::Unpack(std::string_view id) const
@@ -101,8 +86,8 @@ namespace MMPEngine::Backend::Metal
         
         NS::Error* error = nullptr;
        
-        pack->_nativeLibrary = _specificGlobalContext->device->GetNative()->newLibrary(pack->_dispatchData, &error);
-        
+        pack->_nativeLibrary = NS::TransferPtr(_specificGlobalContext->device->GetNative()->newLibrary(pack->_dispatchData, &error));
+       
         assert(error == nullptr);
     }
 

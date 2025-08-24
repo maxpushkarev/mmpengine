@@ -14,6 +14,11 @@ namespace MMPEngine::Backend::Metal
         {
         public:
             BackBuffer(const Settings& settings, CA::MetalLayer* layer);
+            BackBuffer(const BackBuffer&) = delete;
+            BackBuffer(BackBuffer&&) noexcept = delete;
+            BackBuffer& operator=(const BackBuffer&) = delete;
+            BackBuffer& operator=(BackBuffer&&) noexcept = delete;
+            ~BackBuffer() override;
             MTL::PixelFormat GetFormat() const override;
             NS::UInteger GetSamplesCount() const override;
             MTL::Texture* GetNativeTexture() const override;
@@ -56,11 +61,6 @@ namespace MMPEngine::Backend::Metal
         
     public:
         Screen(const Settings& settings);
-        Screen(const Screen&) = delete;
-        Screen(Screen&&) noexcept = delete;
-        Screen& operator=(const Screen&) = delete;
-        Screen& operator=(Screen&&) noexcept = delete;
-        ~Screen() override;
         std::shared_ptr<Core::ColorTargetTexture> GetBackBuffer() const override;
     protected:
         std::shared_ptr<Core::BaseTask> CreateInitializationTaskInternal() override;
@@ -68,6 +68,6 @@ namespace MMPEngine::Backend::Metal
         std::shared_ptr<Core::BaseTask> CreatePresentationTaskInternal() override;
     private:
         std::shared_ptr<BackBuffer> _backBuffer;
-        CA::MetalLayer* _metalLayer = nullptr;
+        NS::SharedPtr<CA::MetalLayer> _metalLayer = nullptr;
     };
 }

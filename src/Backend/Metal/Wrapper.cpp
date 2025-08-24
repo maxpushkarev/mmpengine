@@ -9,20 +9,12 @@ namespace MMPEngine::Backend::Metal
     {
         Device::Device()
         {
-            _device = MTL::CreateSystemDefaultDevice();
-        }
-    
-        Device::~Device()
-        {
-            if(_device)
-            {
-                _device->release();
-            }
+            _device = NS::TransferPtr(MTL::CreateSystemDefaultDevice());
         }
     
         MTL::Device* Device::GetNative() const
         {
-            return _device;
+            return _device.get();
         }
     
         LogState::LogState(const std::shared_ptr<Device>& device, std::uint32_t bufferSize, MTL::LogLevel logLevel) : _device(device)
@@ -32,7 +24,7 @@ namespace MMPEngine::Backend::Metal
             logStateDesc->setLevel(logLevel);
             
             NS::Error* err = nullptr;
-            _logState = _device->GetNative()->newLogState(logStateDesc, &err);
+            _logState = NS::TransferPtr(_device->GetNative()->newLogState(logStateDesc, &err));
             assert(err == nullptr);
             
             logStateDesc->release();
@@ -40,15 +32,7 @@ namespace MMPEngine::Backend::Metal
         
         MTL::LogState* LogState::GetNative() const
         {
-            return _logState;
-        }
-    
-        LogState::~LogState()
-        {
-            if(_logState)
-            {
-                _logState->release();
-            }
+            return _logState.get();
         }
     
         Queue::Queue(const std::shared_ptr<GlobalContext>& globalContext, std::uint32_t maxCmdBuffersCount) : _globalContext(globalContext)
@@ -57,22 +41,14 @@ namespace MMPEngine::Backend::Metal
             commandQueueDesc->setLogState(_globalContext->logState->GetNative());
             commandQueueDesc->setMaxCommandBufferCount(static_cast<NS::UInteger>(maxCmdBuffersCount));
             
-            _queue = _globalContext->device->GetNative()->newCommandQueue(commandQueueDesc);
+            _queue = NS::TransferPtr(_globalContext->device->GetNative()->newCommandQueue(commandQueueDesc));
             
             commandQueueDesc->release();
         }
     
-        Queue::~Queue()
-        {
-            if(_queue)
-            {
-                _queue->release();
-            }
-        }
-    
         MTL::CommandQueue* Queue::GetNative() const
         {
-            return  _queue;
+            return  _queue.get();
         }
     
         CommandBuffer::CommandBuffer(const std::shared_ptr<GlobalContext>& globalContext, const std::shared_ptr<Queue>& queue) : _queue(queue), _globalContext(globalContext)
@@ -87,10 +63,8 @@ namespace MMPEngine::Backend::Metal
         {
             if(_commandBuffer)
             {
-                while (_commandBuffer->retainCount() > 1) {
-                    _commandBuffer->release();
-                }
                 _commandBuffer->release();
+                _commandBuffer = nullptr;
             }
             
             if(_commandBufferDescriptor)
@@ -108,16 +82,11 @@ namespace MMPEngine::Backend::Metal
         {
             if(_commandBuffer)
             {
-                while (_commandBuffer->retainCount() > 1) {
-                    _commandBuffer->release();
-                }
                 _commandBuffer->release();
-                
                 _commandBuffer = nullptr;
             }
             
             _commandBuffer = _queue->GetNative()->commandBuffer(_commandBufferDescriptor);
-            _commandBuffer->retain();
             
             assert(_commandBuffer != nullptr);
         }
