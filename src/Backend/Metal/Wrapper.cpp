@@ -87,6 +87,9 @@ namespace MMPEngine::Backend::Metal
         {
             if(_commandBuffer)
             {
+                while (_commandBuffer->retainCount() > 1) {
+                    _commandBuffer->release();
+                }
                 _commandBuffer->release();
             }
             
@@ -105,11 +108,17 @@ namespace MMPEngine::Backend::Metal
         {
             if(_commandBuffer)
             {
+                while (_commandBuffer->retainCount() > 1) {
+                    _commandBuffer->release();
+                }
                 _commandBuffer->release();
+                
                 _commandBuffer = nullptr;
             }
             
             _commandBuffer = _queue->GetNative()->commandBuffer(_commandBufferDescriptor);
+            _commandBuffer->retain();
+            
             assert(_commandBuffer != nullptr);
         }
     
