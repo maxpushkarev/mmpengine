@@ -84,7 +84,11 @@ namespace MMPEngine::Backend::Metal
 
     MTL::PixelFormat Screen::BackBuffer::GetFormat() const
     {
-        //TODO
+        if(_layer)
+        {
+            return _layer->pixelFormat();
+        }
+        
         return MTL::PixelFormatInvalid;
     }
 
