@@ -59,7 +59,17 @@ namespace MMPEngine::Backend::Metal
 
     void Screen::BackBuffer::Next()
     {
+        auto pool = NS::AutoreleasePool::alloc()->init();
+        
+        if(_drawable)
+        {
+            _drawable->release();
+        }
+        
         _drawable = _layer->nextDrawable();
+        _drawable->retain();
+        
+        pool->release();
     }
 
     CA::MetalDrawable* Screen::BackBuffer::GetDrawable() const
