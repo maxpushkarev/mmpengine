@@ -91,6 +91,15 @@ namespace MMPEngine::Backend::Metal
             { Core::TargetTexture::Settings::Antialiasing::MSAA_0, _specificGlobalContext->windowSize, "Screen::BackBuffer" }
             });
         
+        const auto format = screen->_settings.gammaCorrection ? MTL::PixelFormatBGRA8Unorm_sRGB : MTL::PixelFormatBGRA8Unorm;
+        
+        screen->_metalLayer->setDevice(_specificGlobalContext->device->GetNative());
+        screen->_metalLayer->setPixelFormat(format);
+        screen->_metalLayer->setFramebufferOnly(true);
+        screen->_metalLayer->setDrawableSize({
+            static_cast<CGFloat>(_specificGlobalContext->windowSize.x),
+            static_cast<CGFloat>(_specificGlobalContext->windowSize.y)
+        });
     }
 
     Screen::PresentTask::PresentTask(const std::shared_ptr<ScreenTaskContext>& ctx) : Task(ctx)
