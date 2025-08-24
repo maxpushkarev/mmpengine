@@ -47,23 +47,11 @@ namespace MMPEngine::Backend::Metal
        
     }
     
-    Screen::BackBuffer::~BackBuffer()
-    {
-        if(_drawable)
-        {
-            //_drawable->release();
-        }
-    }
+    Screen::BackBuffer::~BackBuffer() = default;
 
     void Screen::BackBuffer::Next()
     {
-        if(_drawable)
-        {
-           // _drawable->release();
-        }
-        
         _drawable = _layer->nextDrawable();
-        //_drawable->retain();
     }
 
     CA::MetalDrawable* Screen::BackBuffer::GetDrawable() const

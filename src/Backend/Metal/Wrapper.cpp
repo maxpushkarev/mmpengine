@@ -87,6 +87,7 @@ namespace MMPEngine::Backend::Metal
             }
             
             _commandBuffer = _queue->GetNative()->commandBuffer(_commandBufferDescriptor);
+            _commandBuffer->retain();
             
             assert(_commandBuffer != nullptr);
         }
