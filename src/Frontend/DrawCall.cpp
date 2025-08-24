@@ -8,6 +8,11 @@
 #include <Backend/Vulkan/DrawCall.hpp>
 #endif
 
+#ifdef MMPENGINE_BACKEND_METAL
+#include <Backend/Metal/DrawCall.hpp>
+#endif
+
+
 namespace MMPEngine::Frontend
 {
 	Camera::DrawCallsJob::DrawCallsJob(const std::shared_ptr<Core::GlobalContext>& globalContext, const std::shared_ptr<Core::Camera>& camera, std::vector<Item>&& items)
@@ -27,7 +32,14 @@ namespace MMPEngine::Frontend
 #else
 			throw Core::UnsupportedException("unable to create camera drawcalls job for Vulkan backend");
 #endif
-		}
+		} else if (globalContext->settings.backend == Core::BackendType::Metal)
+        {
+#ifdef MMPENGINE_BACKEND_METAL
+            _impl = std::make_shared<Backend::Metal::Camera::DrawCallsJob>(camera, std::move(_items));
+#else
+            throw Core::UnsupportedException("unable to create camera drawcalls job for Metal backend");
+#endif
+        }
 	}
 
 	std::shared_ptr<Core::BaseTask> Camera::DrawCallsJob::CreateInitializationTaskInternal()
