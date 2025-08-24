@@ -3,6 +3,7 @@
 #include <Core/Texture.hpp>
 #include <Backend/Metal/Entity.hpp>
 #include <Backend/Metal/Texture.hpp>
+#include <Backend/Metal/Window.h>
 
 
 namespace MMPEngine::Backend::Metal
@@ -102,6 +103,9 @@ namespace MMPEngine::Backend::Metal
             static_cast<CGFloat>(_specificGlobalContext->windowSize.x),
             static_cast<CGFloat>(_specificGlobalContext->windowSize.y)
         });
+        
+
+        Window::JoinMetalLayerToWindow(_specificGlobalContext->nativeWindow, screen->_metalLayer);
         
         pool->release();
     }

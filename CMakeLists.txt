@@ -77,9 +77,10 @@ set_property(GLOBAL PROPERTY MMPENGINE_MACOSX_MACRO "MMPENGINE_MAC")
 function(mmpengine_add_source_files_to_proj projName folder)
 
 	file (GLOB sourceFiles ${PROJECT_SOURCE_DIR}/${folder}/*.cpp)
+	file (GLOB mmFiles ${PROJECT_SOURCE_DIR}/${folder}/*.mm)
 	file (GLOB hFiles ${PROJECT_SOURCE_DIR}/${folder}/*.h)
 	file (GLOB hppFiles ${PROJECT_SOURCE_DIR}/${folder}/*.hpp)
-	list (APPEND allFiles ${sourceFiles} ${hFiles} ${hppFiles})
+	list (APPEND allFiles ${sourceFiles} ${hFiles} ${hppFiles} ${mmFiles})
 	
 	foreach( f ${allFiles})
 		target_sources(${projName} PRIVATE ${f})
@@ -172,6 +173,7 @@ function(mmpengine_add_dependencies_and_macro projName)
         		"-framework Metal"
         		"-framework Foundation"
         		"-framework QuartzCore"
+			"-framework AppKit"
         	)
 	ENDIF()
 
@@ -279,18 +281,21 @@ elseif(APPLE)
         		"-framework Metal"
         		"-framework Foundation"
         		"-framework QuartzCore"
+			"-framework AppKit"
         )
 
 	target_link_libraries(${feature_name_tmp} PRIVATE 
         		"-framework Metal"
         		"-framework Foundation"
         		"-framework QuartzCore"
+			"-framework AppKit"
         )
 
 	target_link_libraries(${frontend_name_tmp} PRIVATE 
         		"-framework Metal"
         		"-framework Foundation"
         		"-framework QuartzCore"
+			"-framework AppKit"
         )
 
 	SET(metal_test_name ${metal_name_tmp}.tests)
@@ -303,6 +308,7 @@ elseif(APPLE)
         		"-framework Metal"
         		"-framework Foundation"
         		"-framework QuartzCore"
+			"-framework AppKit"
         )
 
 	if(${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
