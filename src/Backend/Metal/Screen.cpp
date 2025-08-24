@@ -83,6 +83,16 @@ namespace MMPEngine::Backend::Metal
         return 1U;
     }
 
+    MTL::Texture* Screen::BackBuffer::GetNativeTexture() const
+    {
+        if(_drawable)
+        {
+            return _drawable->texture();
+        }
+        
+        return nullptr;
+    }
+
     Screen::InitTask::InitTask(const std::shared_ptr<ScreenTaskContext>& ctx) : Task(ctx)
     {
     }

@@ -16,6 +16,7 @@ namespace MMPEngine::Backend::Metal
             BackBuffer(const Settings& settings, CA::MetalLayer* layer);
             MTL::PixelFormat GetFormat() const override;
             NS::UInteger GetSamplesCount() const override;
+            MTL::Texture* GetNativeTexture() const override;
             void Next();
             CA::MetalDrawable* GetDrawable() const;
         protected:

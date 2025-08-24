@@ -16,6 +16,7 @@ namespace MMPEngine::Backend::Metal
         
         virtual MTL::PixelFormat GetFormat() const = 0;
         virtual NS::UInteger GetSamplesCount() const = 0;
+        virtual MTL::Texture* GetNativeTexture() const = 0;
         
     protected:
         static NS::UInteger GetSamplesCount(Core::TargetTexture::Settings::Antialiasing aa);
@@ -86,6 +87,7 @@ namespace MMPEngine::Backend::Metal
         std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;
         MTL::PixelFormat GetFormat() const override;
         NS::UInteger GetSamplesCount() const override;
+        MTL::Texture* GetNativeTexture() const override;
     };
 }
 

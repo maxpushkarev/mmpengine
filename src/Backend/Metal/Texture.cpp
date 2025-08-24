@@ -70,6 +70,11 @@ namespace MMPEngine::Backend::Metal
         return ITargetTexture::GetSamplesCount(_settings.base.antialiasing);
     }
 
+    MTL::Texture* DepthStencilTargetTexture::GetNativeTexture() const
+    {
+        return _nativeTexture;
+    }
+
     std::shared_ptr<Core::BaseTask> DepthStencilTargetTexture::CreateInitializationTask()
     {
         const auto ctx = std::make_shared<InitTaskContext>();
