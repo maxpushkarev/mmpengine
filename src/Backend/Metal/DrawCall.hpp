@@ -92,6 +92,8 @@ namespace MMPEngine::Backend::Metal
             ~IterationJob() override;
             std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;
             std::shared_ptr<Core::BaseTask> CreateExecutionTask() override;
+        private:
+            NS::SharedPtr<MTL::RenderPipelineState> _pipelineState;
         };
 
 
@@ -121,10 +123,7 @@ namespace MMPEngine::Backend::Metal
     }
 
     template <typename TCoreMaterial>
-    Camera::DrawCallsJob::IterationJob<TCoreMaterial>::~IterationJob<TCoreMaterial>()
-    {
-
-    }
+    Camera::DrawCallsJob::IterationJob<TCoreMaterial>::~IterationJob<TCoreMaterial>() = default;
 
     template<typename TCoreMaterial>
     std::shared_ptr<Core::BaseTask> Camera::DrawCallsJob::IterationJob<TCoreMaterial>::CreateInitializationTask()
