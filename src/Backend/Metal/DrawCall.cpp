@@ -79,13 +79,75 @@ namespace MMPEngine::Backend::Metal
         const auto tc = GetTaskContext();
         
         const auto renderPassDescriptor = MTL::RenderPassDescriptor::alloc()->init();
-        auto l = tc->colorRenderTargets[0]->GetNativeTexture();
+        renderPassDescriptor->setRenderTargetArrayLength(static_cast<NS::UInteger>(tc->colorRenderTargets.size()));
         
-        auto colorAttachment = renderPassDescriptor->colorAttachments()->object(0);
-            colorAttachment->setTexture(tc->colorRenderTargets[0]->GetNativeTexture());
-            colorAttachment->setLoadAction(MTL::LoadActionClear);
-            colorAttachment->setStoreAction(MTL::StoreActionStore);
-            colorAttachment->setClearColor(MTL::ClearColor(0.1, 0.2, 0.3, 1.0));
+        auto first = tc->colorRenderTargets[0];
+        renderPassDescriptor->setRenderTargetWidth(static_cast<NS::UInteger>(first->GetNativeTexture()->width()));
+        renderPassDescriptor->setRenderTargetHeight(static_cast<NS::UInteger>(first->GetNativeTexture()->height()));
+        
+        for (std::size_t i = 0; i < tc->colorRenderTargets.size(); ++i)
+        {
+            const auto& crt = tc->colorRenderTargets[i];
+            
+            auto mtlColorAttachment = renderPassDescriptor->colorAttachments()->object(0);
+            mtlColorAttachment->setTexture(crt->GetNativeTexture());
+            
+            mtlColorAttachment->setStoreAction(MTL::StoreActionStore);
+            mtlColorAttachment->setLoadAction(MTL::LoadActionLoad);
+            
+            if (tc->job->_camera->GetTarget().color[i].clear && tc->job->_camera->GetTarget().color[i].tex->GetSettings().clearColor.has_value())
+            {
+                mtlColorAttachment->setLoadAction(MTL::LoadActionClear);
+                
+                const auto& clearColor = tc->job->_camera->GetTarget().color[i].tex->GetSettings().clearColor.value();
+                mtlColorAttachment->setClearColor(MTL::ClearColor {clearColor.x, clearColor.y, clearColor.z, clearColor.w});
+            }
+            
+            if(tc->depthStencil)
+            {
+                auto rpDepthAttachmentDesc = MTL::RenderPassDepthAttachmentDescriptor::alloc()->init();
+                
+                rpDepthAttachmentDesc->setTexture(tc->depthStencil->GetNativeTexture());
+                
+                rpDepthAttachmentDesc->setStoreAction(MTL::StoreActionStore);
+                rpDepthAttachmentDesc->setLoadAction(MTL::LoadActionLoad);
+                
+                if(tc->job->_camera->GetTarget().depthStencil.clear &&
+                   tc->job->_camera->GetTarget().depthStencil.tex->GetSettings().clearValue.has_value())
+                {
+                    const auto& clearValue = tc->job->_camera->GetTarget().depthStencil.tex->GetSettings().clearValue.value();
+                    
+                    rpDepthAttachmentDesc->setLoadAction(MTL::LoadActionClear);
+                    rpDepthAttachmentDesc->setClearDepth(static_cast<double>(std::get<0>(clearValue)));
+                }
+                
+                renderPassDescriptor->setDepthAttachment(rpDepthAttachmentDesc);
+                rpDepthAttachmentDesc->release();
+                
+                
+                if(tc->job->_camera->GetTarget().depthStencil.tex->StencilIncluded())
+                {
+                    auto rpStencilAttachmentDesc = MTL::RenderPassStencilAttachmentDescriptor::alloc()->init();
+                    
+                    rpStencilAttachmentDesc->setTexture(tc->depthStencil->GetNativeTexture());
+                    
+                    rpStencilAttachmentDesc->setStoreAction(MTL::StoreActionStore);
+                    rpStencilAttachmentDesc->setLoadAction(MTL::LoadActionLoad);
+                    
+                    if(tc->job->_camera->GetTarget().depthStencil.clear &&
+                       tc->job->_camera->GetTarget().depthStencil.tex->GetSettings().clearValue.has_value())
+                    {
+                        const auto& clearValue = tc->job->_camera->GetTarget().depthStencil.tex->GetSettings().clearValue.value();
+                        
+                        rpStencilAttachmentDesc->setLoadAction(MTL::LoadActionClear);
+                        rpStencilAttachmentDesc->setClearStencil(static_cast<std::uint32_t>(std::get<1>(clearValue)));
+                    }
+                    
+                    renderPassDescriptor->setStencilAttachment(rpStencilAttachmentDesc);
+                    rpStencilAttachmentDesc->release();
+                }
+            }
+        }
         
         tc->job->_renderCommandEncoder = _specificStreamContext->PopulateCommandsInBuffer()->GetNative()->renderCommandEncoder(renderPassDescriptor);
         
