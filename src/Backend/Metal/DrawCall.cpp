@@ -79,11 +79,6 @@ namespace MMPEngine::Backend::Metal
         const auto tc = GetTaskContext();
         
         const auto renderPassDescriptor = MTL::RenderPassDescriptor::alloc()->init();
-        renderPassDescriptor->setRenderTargetArrayLength(static_cast<NS::UInteger>(tc->colorRenderTargets.size()));
-        
-        auto first = tc->colorRenderTargets[0];
-        renderPassDescriptor->setRenderTargetWidth(static_cast<NS::UInteger>(first->GetNativeTexture()->width()));
-        renderPassDescriptor->setRenderTargetHeight(static_cast<NS::UInteger>(first->GetNativeTexture()->height()));
         
         for (std::size_t i = 0; i < tc->colorRenderTargets.size(); ++i)
         {
