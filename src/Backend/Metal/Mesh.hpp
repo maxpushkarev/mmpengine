@@ -37,7 +37,8 @@ namespace MMPEngine::Backend::Metal
         };
 
         MTL::VertexDescriptor* GetNativeVertexDescriptor() const;
-
+        MTL::IndexType GetNativeIndexType() const;
+        
     protected:
         std::shared_ptr<Core::BaseTask> CreateInternalInitializationTask() override;
         std::shared_ptr<Core::VertexBuffer> CreateVertexBuffer(const Core::VertexBufferPrototype* vbPrototype) override;

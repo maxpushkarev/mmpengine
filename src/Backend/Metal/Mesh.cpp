@@ -39,6 +39,19 @@ namespace MMPEngine::Backend::Metal
         return _vertexBuffers;
     }
 
+    MTL::IndexType Mesh::GetNativeIndexType() const
+    {
+        switch (_indexBufferInfo.format) {
+            case Core::IndexBufferPrototype::Format::Uint16:
+                return MTL::IndexTypeUInt16;
+            case Core::IndexBufferPrototype::Format::Uint32:
+                return MTL::IndexTypeUInt32;
+            default:
+                throw Core::UnsupportedException("unsupported Metal index buffer format");
+        }
+        
+    }
+    
     MTL::VertexDescriptor* Mesh::GetNativeVertexDescriptor() const
     {
         return _mtlVertexDescriptor.get();
@@ -59,7 +72,7 @@ namespace MMPEngine::Backend::Metal
         case Core::VertexBufferPrototype::Format::Uint4:
             return MTL::VertexFormatUInt4;
         default:
-            throw Core::UnsupportedException("unsupported dx12 vertex buffer format");
+            throw Core::UnsupportedException("unsupported Metal vertex buffer format");
         }
     }
 
