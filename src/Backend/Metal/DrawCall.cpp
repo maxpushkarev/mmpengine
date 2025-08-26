@@ -169,7 +169,7 @@ namespace MMPEngine::Backend::Metal
         tc->job->_renderCommandEncoder->endEncoding();
     }
 
-    Camera::DrawCallsJob::IterationImpl::IterationImpl(const std::shared_ptr<DrawCallsJob>& job, const Item& item) : _item(item), _drawCallsJob(job)
+    Camera::DrawCallsJob::IterationImpl::IterationImpl(const std::shared_ptr<DrawCallsJob>& job, const Item& item) : _item(item), _camera(job->_camera), _encoderAccessor(&(job->_renderCommandEncoder))
     {
     }
 }

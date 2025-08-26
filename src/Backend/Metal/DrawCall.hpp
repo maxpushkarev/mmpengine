@@ -20,7 +20,8 @@ namespace MMPEngine::Backend::Metal
         protected:
             IterationImpl(const std::shared_ptr<DrawCallsJob>& job, const Item& item);
             Item _item;
-            std::shared_ptr<DrawCallsJob> _drawCallsJob;
+            std::shared_ptr<Core::Camera> _camera;
+            MTL::RenderCommandEncoder** _encoderAccessor = nullptr;
         };
 
 
@@ -269,7 +270,7 @@ namespace MMPEngine::Backend::Metal
             
             
             NS::UInteger colorAttachmentIndex = 0U;
-            for (const auto& crt : iteration->_drawCallsJob->_camera->GetTarget().color)
+            for (const auto& crt : iteration->_camera->GetTarget().color)
             {
                 const auto& blendSettings = matSettings.blend.targets.at(static_cast<std::size_t>(colorAttachmentIndex));
                 const auto mtlColorTarget = std::dynamic_pointer_cast<IColorTargetTexture>(crt.tex->GetUnderlyingTexture());
@@ -318,7 +319,7 @@ namespace MMPEngine::Backend::Metal
                 ++colorAttachmentIndex;
             }
             
-            if(const auto ds = iteration->_drawCallsJob->_camera->GetTarget().depthStencil.tex)
+            if(const auto ds = iteration->_camera->GetTarget().depthStencil.tex)
             {
                 const auto mtlDs = std::dynamic_pointer_cast<IDepthStencilTexture>(ds->GetUnderlyingTexture());
                 
@@ -404,7 +405,7 @@ namespace MMPEngine::Backend::Metal
         
         if constexpr (std::is_base_of_v<Core::MeshMaterial, TCoreMaterial>)
         {
-            MTL::RenderCommandEncoder* encoder = iteration->_drawCallsJob->_renderCommandEncoder;
+            MTL::RenderCommandEncoder* encoder = *(iteration->_encoderAccessor);
             
             encoder->setTriangleFillMode(matSettings.fillMode == Core::RenderingMaterial::Settings::FillMode::Solid ? MTL::TriangleFillModeFill : MTL::TriangleFillModeLines);
             encoder->setCullMode(matSettings.cullMode == Core::RenderingMaterial::Settings::CullMode::Back
