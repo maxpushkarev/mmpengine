@@ -20,6 +20,7 @@ namespace MMPEngine::Backend::Metal
         Stream& operator=(const Stream&) = delete;
         Stream& operator=(Stream&&) noexcept = delete;
         ~Stream() override;
+        void Submit() override;
     protected:
         bool ExecutionMonitorCompleted() override;
         void ResetAll() override;

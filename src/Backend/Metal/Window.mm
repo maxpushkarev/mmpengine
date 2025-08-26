@@ -6,12 +6,19 @@ namespace MMPEngine::Backend::Metal
 {
     void Window::JoinMetalLayerToWindow(void* nativeWindow, CA::MetalLayer* metalLayer)
     {
-
         NSWindow* nsWindow = static_cast<NSWindow*>(nativeWindow);
         NSView* contentView = [nsWindow contentView];
 
         CAMetalLayer* ml = (CAMetalLayer*)metalLayer;
         [contentView setWantsLayer:YES];
         [contentView setLayer:ml];
+    }
+
+    void Window::UnjoinMetalLayerFromWindow(void* nativeWindow)
+    {
+        NSWindow* nsWindow = static_cast<NSWindow*>(nativeWindow);
+        NSView* contentView = [nsWindow contentView];
+        [contentView setWantsLayer:NO];
+        [contentView setLayer:NULL];
     }
 }

@@ -12,6 +12,14 @@ namespace MMPEngine::Backend::Metal
     {
     }
 
+    Screen::~Screen()
+    {
+        if(_nsWindowPtr)
+        {
+            Window::UnjoinMetalLayerFromWindow(_nsWindowPtr);
+        }
+    }
+
     std::shared_ptr<Core::BaseTask> Screen::CreateInitializationTaskInternal()
     {
         const auto ctx = std::make_shared<ScreenTaskContext>();
@@ -111,8 +119,8 @@ namespace MMPEngine::Backend::Metal
             static_cast<CGFloat>(_specificGlobalContext->windowSize.y)
         });
         
-
-        Window::JoinMetalLayerToWindow(_specificGlobalContext->nativeWindow, screen->_metalLayer.get());
+        screen->_nsWindowPtr = _specificGlobalContext->nativeWindow;
+        Window::JoinMetalLayerToWindow(screen->_nsWindowPtr, screen->_metalLayer.get());
         
         screen->_backBuffer = std::make_shared<BackBuffer>(Core::ColorTargetTexture::Settings{
             Core::ColorTargetTexture::Settings::Format::R8G8B8A8_Float_01,

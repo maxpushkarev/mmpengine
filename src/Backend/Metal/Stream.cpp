@@ -10,6 +10,13 @@ namespace MMPEngine::Backend::Metal
 
     Stream::~Stream() = default;
 
+    void Stream::Submit()
+    {
+        auto pool = NS::AutoreleasePool::alloc()->init();
+        Super::Submit();
+        pool->release();
+    }
+
     bool Stream::ExecutionMonitorCompleted()
     {
         const auto nativeCb = _specificStreamContext->commandBuffer->GetNative();

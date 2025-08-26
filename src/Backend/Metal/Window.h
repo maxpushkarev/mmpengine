@@ -7,5 +7,6 @@ namespace MMPEngine::Backend::Metal
     {
     public:
         static void JoinMetalLayerToWindow(void* nativeWindow, CA::MetalLayer* metalLayer);
+        static void UnjoinMetalLayerFromWindow(void* nativeWindow);
     };
 }
