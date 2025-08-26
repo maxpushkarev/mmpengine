@@ -408,7 +408,6 @@ namespace MMPEngine::Backend::Metal
 
         const auto tc = this->GetTaskContext();
         const auto iteration = tc->job;
-        const auto pc = Core::PassKey {iteration.get()};
         const auto material = std::dynamic_pointer_cast<TCoreMaterial>(iteration->_item.material);
         const auto& matSettings = material->GetSettings();
         
