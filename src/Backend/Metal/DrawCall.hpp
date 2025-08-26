@@ -157,7 +157,6 @@ namespace MMPEngine::Backend::Metal
         const auto pc = Core::PassKey {iteration.get()};
         const auto material = std::dynamic_pointer_cast<TCoreMaterial>(iteration->_item.material);
         const auto& matSettings = material->GetSettings();
-        NS::Error* err = nullptr;
         
         iteration->PrepareMaterialParameters(this->_specificGlobalContext, iteration->_item.material->GetParameters());
         
@@ -343,13 +342,13 @@ namespace MMPEngine::Backend::Metal
                 rtPipelineDesc->setInputPrimitiveTopology(MTL::PrimitiveTopologyClassUnspecified);
                 break;
             }
-
+            
             rtPipelineDesc->setRasterizationEnabled(true);
             
             //TODO::
             /*rtPipelineDesc->setVertexDescriptor()
             
-            
+            NS::Error* err = nullptr;
             iteration->_pipelineState = NS::TransferPtr(this->_specificGlobalContext->device->GetNative()->newRenderPipelineState(rtPipelineDesc, &err));
             
             assert(err == nullptr);*/
@@ -407,7 +406,24 @@ namespace MMPEngine::Backend::Metal
         Task<TaskContext>::Run(stream);
 
         const auto tc = this->GetTaskContext();
-
+        const auto iteration = tc->job;
+        const auto pc = Core::PassKey {iteration.get()};
+        const auto material = std::dynamic_pointer_cast<TCoreMaterial>(iteration->_item.material);
+        const auto& matSettings = material->GetSettings();
+        
+        MTL::RenderCommandEncoder* encoder = iteration->_drawCallsJob->_renderCommandEncoder;
+        
+        encoder->setTriangleFillMode(matSettings.fillMode == Core::RenderingMaterial::Settings::FillMode::Solid ? MTL::TriangleFillModeFill : MTL::TriangleFillModeLines);
+        encoder->setCullMode(matSettings.cullMode == Core::RenderingMaterial::Settings::CullMode::Back
+                             ? MTL::CullModeBack :
+                             (matSettings.cullMode == Core::RenderingMaterial::Settings::CullMode::Front ? MTL::CullModeFront : MTL::CullModeNone));
+        
+        encoder->setDepthBias(0.0f, 0.0f, 0.0f);
+        encoder->setDepthClipMode(MTL::DepthClipModeClip);
+        
+        //encoder->setRenderPipelineState(iteration->_pipelineState.get());
+        encoder->setDepthStencilState(iteration->_depthStencilState.get());
+        
         if constexpr (std::is_base_of_v<Core::MeshMaterial, TCoreMaterial>)
         {
 

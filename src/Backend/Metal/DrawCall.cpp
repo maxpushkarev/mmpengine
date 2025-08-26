@@ -145,7 +145,7 @@ namespace MMPEngine::Backend::Metal
         }
         
         tc->job->_renderCommandEncoder = _specificStreamContext->PopulateCommandsInBuffer()->GetNative()->renderCommandEncoder(renderPassDescriptor);
-        
+        tc->job->_renderCommandEncoder->setFrontFacingWinding(MTL::WindingClockwise);
         renderPassDescriptor->release();
     }
 
