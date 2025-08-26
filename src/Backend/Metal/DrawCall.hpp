@@ -314,6 +314,18 @@ namespace MMPEngine::Backend::Metal
                 ++colorAttachmentIndex;
             }
             
+            if(const auto ds = iteration->_drawCallsJob->_camera->GetTarget().depthStencil.tex)
+            {
+                const auto mtlDs = std::dynamic_pointer_cast<IDepthStencilTexture>(ds->GetUnderlyingTexture());
+                
+                rtPipelineDesc->setDepthAttachmentPixelFormat(mtlDs->GetFormat());
+                
+                if(ds->StencilIncluded())
+                {
+                    rtPipelineDesc->setStencilAttachmentPixelFormat(mtlDs->GetFormat());
+                }
+            }
+            
             rtPipelineDesc->release();
         }
     }
