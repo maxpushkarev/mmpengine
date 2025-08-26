@@ -96,6 +96,7 @@ namespace MMPEngine::Backend::Metal
             std::shared_ptr<Core::BaseTask> CreateExecutionTask() override;
         private:
             NS::SharedPtr<MTL::RenderPipelineState> _pipelineState;
+            NS::SharedPtr<MTL::DepthStencilState> _depthStencilState;
         };
 
 
@@ -156,6 +157,7 @@ namespace MMPEngine::Backend::Metal
         const auto pc = Core::PassKey {iteration.get()};
         const auto material = std::dynamic_pointer_cast<TCoreMaterial>(iteration->_item.material);
         const auto& matSettings = material->GetSettings();
+        NS::Error* err = nullptr;
         
         iteration->PrepareMaterialParameters(this->_specificGlobalContext, iteration->_item.material->GetParameters());
         
@@ -338,12 +340,49 @@ namespace MMPEngine::Backend::Metal
             /*rtPipelineDesc->setVertexDescriptor()
             
             
-            NS::Error* err = nullptr;
-            
             iteration->_pipelineState = NS::TransferPtr(this->_specificGlobalContext->device->GetNative()->newRenderPipelineState(rtPipelineDesc, &err));
             
             assert(err == nullptr);*/
             rtPipelineDesc->release();
+            
+            auto dsDesc = MTL::DepthStencilDescriptor::alloc()->init();
+            auto frontStencilDesc = MTL::StencilDescriptor::alloc()->init();
+            auto backStencilDesc = MTL::StencilDescriptor::alloc()->init();
+            
+            dsDesc->setDepthCompareFunction(MTL::CompareFunctionAlways);
+            if(matSettings.depth.test == Core::RenderingMaterial::Settings::Depth::Test::On)
+            {
+                dsDesc->setDepthCompareFunction(getCmpFunc(matSettings.depth.comparision));
+            }
+            dsDesc->setDepthWriteEnabled(matSettings.depth.write == Core::RenderingMaterial::Settings::Depth::Write::On);
+            
+            if (matSettings.stencil.has_value())
+            {
+                const auto& stencil = matSettings.stencil.value();
+                
+                frontStencilDesc->setReadMask(0xff);
+                frontStencilDesc->setWriteMask(0xff);
+                frontStencilDesc->setDepthFailureOperation(getStencilOpFunc(stencil.front.depthFail));
+                frontStencilDesc->setStencilCompareFunction(getCmpFunc(stencil.front.comparision));
+                frontStencilDesc->setStencilFailureOperation(getStencilOpFunc(stencil.front.stencilFail));
+                frontStencilDesc->setDepthStencilPassOperation(getStencilOpFunc(stencil.front.stencilPass));
+                
+                backStencilDesc->setReadMask(0xff);
+                backStencilDesc->setWriteMask(0xff);
+                backStencilDesc->setDepthFailureOperation(getStencilOpFunc(stencil.back.depthFail));
+                backStencilDesc->setStencilCompareFunction(getCmpFunc(stencil.back.comparision));
+                backStencilDesc->setStencilFailureOperation(getStencilOpFunc(stencil.back.stencilFail));
+                backStencilDesc->setDepthStencilPassOperation(getStencilOpFunc(stencil.back.stencilPass));
+                
+                dsDesc->setFrontFaceStencil(frontStencilDesc);
+                dsDesc->setBackFaceStencil(backStencilDesc);
+            }
+            
+            iteration->_depthStencilState = NS::TransferPtr(this->_specificGlobalContext->device->GetNative()->newDepthStencilState(dsDesc));
+            
+            frontStencilDesc->release();
+            backStencilDesc->release();
+            dsDesc->release();
         }
     }
 
