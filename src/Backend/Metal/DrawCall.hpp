@@ -422,6 +422,10 @@ namespace MMPEngine::Backend::Metal
         
         encoder->setRenderPipelineState(iteration->_pipelineState.get());
         encoder->setDepthStencilState(iteration->_depthStencilState.get());
+        if(iteration->_stencilRefValue.has_value())
+        {
+            encoder->setStencilReferenceValue(iteration->_stencilRefValue.value());
+        }
         
         if constexpr (std::is_base_of_v<Core::MeshMaterial, TCoreMaterial>)
         {

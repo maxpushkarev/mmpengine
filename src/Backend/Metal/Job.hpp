@@ -30,6 +30,7 @@ namespace MMPEngine::Backend::Metal
         };
         
         std::vector<std::pair<std::shared_ptr<const Metal::Buffer>, std::optional<NS::UInteger>>> _bufferDataCollection;
+        std::optional<std::uint32_t> _stencilRefValue;
     };
 
     template<typename TCoreMaterial>

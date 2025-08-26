@@ -34,6 +34,11 @@ namespace MMPEngine::Backend::Metal
                     _bufferDataCollection.emplace_back(counterBuffer, static_cast<NS::UInteger>(sizeof(Core::CounteredUnorderedAccessBuffer::CounterValueType)));
                 }
             }
+            
+            if(std::holds_alternative<Core::BaseMaterial::Parameters::StencilRef>(entry.settings))
+            {
+                _stencilRefValue = static_cast<std::uint32_t>(std::dynamic_pointer_cast<const Core::StencilRef>(entry.entity)->value);
+            }
         }
     }
 }
