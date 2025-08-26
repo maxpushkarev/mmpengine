@@ -37,14 +37,6 @@ namespace MMPEngine::Backend::Metal
         std::memcpy(&data.viewMatrix, &viewMat, sizeof(data.viewMatrix));
     }
 
-    void Camera::FlipProjection(Core::Matrix4x4& proj)
-    {
-        proj.m[1][0] *= -1.0f;
-        proj.m[1][1] *= -1.0f;
-        proj.m[1][2] *= -1.0f;
-        proj.m[1][3] *= -1.0f;
-    }
-
     void Camera::InitTask::OnScheduled(const std::shared_ptr<Core::BaseStream>& stream)
     {
         Task::OnScheduled(stream);
@@ -100,7 +92,6 @@ namespace MMPEngine::Backend::Metal
         ));
 
         std::memcpy(&data.projMatrix, &proj, sizeof(data.projMatrix));
-        FlipProjection(data.projMatrix);
     }
 
     std::shared_ptr<Core::UniformBuffer<Core::Camera::Data>>& PerspectiveCamera::GetUniformBufferRef()
@@ -141,7 +132,6 @@ namespace MMPEngine::Backend::Metal
         ));
 
         std::memcpy(&data.projMatrix, &proj, sizeof(data.projMatrix));
-        FlipProjection(data.projMatrix);
     }
 
     std::shared_ptr<Core::UniformBuffer<Core::Camera::Data>>& OrthographicCamera::GetUniformBufferRef()

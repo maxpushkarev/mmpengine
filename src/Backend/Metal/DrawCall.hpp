@@ -450,7 +450,16 @@ namespace MMPEngine::Backend::Metal
 
             for (const auto& ss : subsets)
             {
-            
+                encoder->drawIndexedPrimitives(
+                    tc->mesh->GetNativePrimitiveType(),
+                    ss.indexCount,
+                    tc->mesh->GetNativeIndexType(),
+                    tc->mesh->GetNativeIndexBuffer()->GetNative(),
+                    ss.indexStart,
+                    static_cast<NS::UInteger>(tc->meshRenderer->GetSettings().dynamicData.instancesCount),
+                    ss.baseVertex,
+                    0
+                );
             }
         }
     }

@@ -38,6 +38,7 @@ namespace MMPEngine::Backend::Metal
 
         MTL::VertexDescriptor* GetNativeVertexDescriptor() const;
         MTL::IndexType GetNativeIndexType() const;
+        MTL::PrimitiveType GetNativePrimitiveType() const;
         std::shared_ptr<Metal::Buffer> GetNativeIndexBuffer() const;
         const std::vector<std::shared_ptr<Metal::Buffer>>& GetNativeVertexBuffers() const;
         

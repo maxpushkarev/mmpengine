@@ -52,6 +52,18 @@ namespace MMPEngine::Backend::Metal
         
     }
     
+    MTL::PrimitiveType Mesh::GetNativePrimitiveType() const
+    {
+        const auto topology = GetTopology();
+        switch (const auto topology = GetTopology())
+        {
+        case Core::GeometryPrototype::Topology::Triangles:
+            return MTL::PrimitiveTypeTriangle;
+        default:
+            throw Core::UnsupportedException("unsupported Metal primitive type");;
+        }
+    }
+
     MTL::VertexDescriptor* Mesh::GetNativeVertexDescriptor() const
     {
         return _mtlVertexDescriptor.get();

@@ -34,7 +34,6 @@ namespace MMPEngine::Backend::Metal
         virtual std::shared_ptr<Core::ContextualTask<Core::UniformBuffer<Core::Camera::Data>::WriteTaskContext>>& GetUniformBufferUpdateTaskRef() = 0;
 
         static void FillNonProjectionData(const std::shared_ptr<Core::GlobalContext>& globalContext, const std::shared_ptr<Core::Node>& node, Core::Camera::Data& data);
-        static void FlipProjection(Core::Matrix4x4& proj);
     };
 
     class PerspectiveCamera final : public Core::PerspectiveCamera, public Camera
