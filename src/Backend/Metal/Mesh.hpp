@@ -36,6 +36,7 @@ namespace MMPEngine::Backend::Metal
             std::shared_ptr<Core::UniformBuffer<Data>> CreateUniformBuffer() override;
         };
 
+        MTL::VertexDescriptor* GetNativeVertexDescriptor() const;
 
     protected:
         std::shared_ptr<Core::BaseTask> CreateInternalInitializationTask() override;
@@ -43,9 +44,11 @@ namespace MMPEngine::Backend::Metal
         std::shared_ptr<Core::IndexBuffer> CreateIndexBuffer(const Core::IndexBufferPrototype* ibPrototype) override;
     private:
 
+        static MTL::VertexFormat GetVertexFormat(Core::VertexBufferPrototype::Format format);
+            
         std::shared_ptr<Metal::Buffer> _indexBuffer;
         std::vector<std::shared_ptr<Metal::Buffer>> _vertexBuffers;
-
+        NS::SharedPtr<MTL::VertexDescriptor> _mtlVertexDescriptor;
     };
 }
 

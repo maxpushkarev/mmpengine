@@ -346,13 +346,12 @@ namespace MMPEngine::Backend::Metal
             rtPipelineDesc->setShaderValidation(this->_specificGlobalContext->settings.isDebug ? MTL::ShaderValidationEnabled : MTL::ShaderValidationDisabled);
             rtPipelineDesc->setRasterizationEnabled(true);
             
-            //TODO::
-            /*rtPipelineDesc->setVertexDescriptor()
+            rtPipelineDesc->setVertexDescriptor(ctx->mesh->GetNativeVertexDescriptor());
             
             NS::Error* err = nullptr;
             iteration->_pipelineState = NS::TransferPtr(this->_specificGlobalContext->device->GetNative()->newRenderPipelineState(rtPipelineDesc, &err));
             
-            assert(err == nullptr);*/
+            assert(err == nullptr);
             rtPipelineDesc->release();
             
             auto dsDesc = MTL::DepthStencilDescriptor::alloc()->init();
@@ -421,7 +420,7 @@ namespace MMPEngine::Backend::Metal
         encoder->setDepthBias(0.0f, 0.0f, 0.0f);
         encoder->setDepthClipMode(MTL::DepthClipModeClip);
         
-        //encoder->setRenderPipelineState(iteration->_pipelineState.get());
+        encoder->setRenderPipelineState(iteration->_pipelineState.get());
         encoder->setDepthStencilState(iteration->_depthStencilState.get());
         
         if constexpr (std::is_base_of_v<Core::MeshMaterial, TCoreMaterial>)

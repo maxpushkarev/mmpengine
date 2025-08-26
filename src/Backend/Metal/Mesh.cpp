@@ -39,6 +39,30 @@ namespace MMPEngine::Backend::Metal
         return _vertexBuffers;
     }
 
+    MTL::VertexDescriptor* Mesh::GetNativeVertexDescriptor() const
+    {
+        return _mtlVertexDescriptor.get();
+    }
+
+    MTL::VertexFormat Mesh::GetVertexFormat(Core::VertexBufferPrototype::Format format)
+    {
+        switch (format)
+        {
+        case Core::VertexBufferPrototype::Format::Float1:
+            return MTL::VertexFormatFloat;
+        case Core::VertexBufferPrototype::Format::Float2:
+            return MTL::VertexFormatFloat2;
+        case Core::VertexBufferPrototype::Format::Float3:
+            return MTL::VertexFormatFloat3;
+        case Core::VertexBufferPrototype::Format::Float4:
+            return MTL::VertexFormatFloat4;
+        case Core::VertexBufferPrototype::Format::Uint4:
+            return MTL::VertexFormatUInt4;
+        default:
+            throw Core::UnsupportedException("unsupported dx12 vertex buffer format");
+        }
+    }
+
     Mesh::Renderer::Renderer(const Settings& settings, const std::shared_ptr<Core::Mesh>& mesh, const std::shared_ptr<Core::Node>& node) : Core::Mesh::Renderer(settings, mesh, node)
     {
     }
@@ -60,13 +84,29 @@ namespace MMPEngine::Backend::Metal
 
         const auto mesh = GetTaskContext()->mesh;
         assert(mesh);
-
+        
+        mesh->_mtlVertexDescriptor = NS::TransferPtr(MTL::VertexDescriptor::alloc()->init());
+        
         for (const auto& vbInfos : mesh->_vertexBufferInfos)
         {
             for (std::size_t semanticIndex = 0; semanticIndex < vbInfos.second.size(); ++semanticIndex)
             {
                 const auto& vbInfo = vbInfos.second.at(semanticIndex);
                 const auto vb = std::dynamic_pointer_cast<Buffer>(vbInfo.ptr->GetUnderlyingBuffer());
+                
+                const auto bufferIndex = static_cast<NS::UInteger>(mesh->_vertexBuffers.size());
+                
+                auto attribute = mesh->_mtlVertexDescriptor ->attributes()->object(bufferIndex);
+                auto layout = mesh->_mtlVertexDescriptor->layouts()->object(bufferIndex);
+                
+                attribute->setFormat(GetVertexFormat(vbInfo.format));
+                attribute->setOffset(0U);
+                attribute->setBufferIndex(bufferIndex);
+                
+                layout->setStepRate(1);
+                layout->setStepFunction(MTL::VertexStepFunctionPerVertex);
+                layout->setStride(static_cast<NS::UInteger>(vbInfo.stride));
+                
                 assert(vb);
                 mesh->_vertexBuffers.push_back(vb);
             }
