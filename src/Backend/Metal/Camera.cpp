@@ -83,7 +83,7 @@ namespace MMPEngine::Backend::Metal
         const auto nearPlane = _baseSettings.nearPlane;
         const auto farPlane = _baseSettings.farPlane;
 
-        const auto proj = glm::transpose(glm::perspectiveFovLH_NO(
+        const auto proj = glm::transpose(glm::perspectiveFovLH_ZO(
             _perspectiveSettings.fov,
             static_cast<std::float_t>(size.x),
             static_cast<std::float_t>(size.y),
@@ -124,7 +124,7 @@ namespace MMPEngine::Backend::Metal
     {
         FillNonProjectionData(globalContext, _node, data);
 
-        const auto proj = glm::transpose(glm::orthoLH_NO(
+        const auto proj = glm::transpose(glm::orthoLH_ZO(
             -_orthographicSettings.size.x * 0.5f, _orthographicSettings.size.x * 0.5f,
             -_orthographicSettings.size.y * 0.5f, _orthographicSettings.size.y * 0.5f,
             _baseSettings.nearPlane,
