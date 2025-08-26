@@ -145,8 +145,16 @@ namespace MMPEngine::Backend::Metal
         }
         
         tc->job->_renderCommandEncoder = _specificStreamContext->PopulateCommandsInBuffer()->GetNative()->renderCommandEncoder(renderPassDescriptor);
-        tc->job->_renderCommandEncoder->setFrontFacingWinding(MTL::WindingClockwise);
         renderPassDescriptor->release();
+        
+        tc->job->_renderCommandEncoder->setFrontFacingWinding(MTL::WindingClockwise);
+        
+        const auto size = tc->job->_camera->GetTarget().color.front().tex->GetSettings().base.size;
+        MTL::Viewport vp{0.0, 0.0, static_cast<double>(size.x), static_cast<double>(size.y), 0.0, 1.0};
+        tc->job->_renderCommandEncoder->setViewport(vp);
+        
+        MTL::ScissorRect scissorRect = { 0U, 0U, static_cast<NS::UInteger>(size.x), static_cast<NS::UInteger>(size.y) };
+        tc->job->_renderCommandEncoder->setScissorRect(scissorRect);
     }
 
     Camera::DrawCallsJob::EndPass::EndPass(const std::shared_ptr<InternalTaskContext>& ctx) : Task<MMPEngine::Backend::Metal::Camera::DrawCallsJob::InternalTaskContext>(ctx)

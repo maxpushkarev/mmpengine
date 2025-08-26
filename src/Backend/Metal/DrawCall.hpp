@@ -414,13 +414,6 @@ namespace MMPEngine::Backend::Metal
         {
             MTL::RenderCommandEncoder* encoder = iteration->_drawCallsJob->_renderCommandEncoder;
             
-            const auto size = iteration->_drawCallsJob->_camera->GetTarget().color.front().tex->GetSettings().base.size;
-            MTL::Viewport vp{0.0, 0.0, static_cast<double>(size.x), static_cast<double>(size.y), 0.0, 1.0};
-            encoder->setViewport(vp);
-            
-            MTL::ScissorRect scissorRect = { 0U, 0U, static_cast<NS::UInteger>(size.x), static_cast<NS::UInteger>(size.y) };
-            encoder->setScissorRect(scissorRect);
-            
             encoder->setTriangleFillMode(matSettings.fillMode == Core::RenderingMaterial::Settings::FillMode::Solid ? MTL::TriangleFillModeFill : MTL::TriangleFillModeLines);
             encoder->setCullMode(matSettings.cullMode == Core::RenderingMaterial::Settings::CullMode::Back
                                  ? MTL::CullModeBack :
