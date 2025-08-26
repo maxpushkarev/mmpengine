@@ -84,7 +84,7 @@ namespace MMPEngine::Backend::Metal
         {
             const auto& crt = tc->colorRenderTargets[i];
             
-            auto mtlColorAttachment = renderPassDescriptor->colorAttachments()->object(0);
+            auto mtlColorAttachment = renderPassDescriptor->colorAttachments()->object(static_cast<NS::UInteger>(i));
             mtlColorAttachment->setTexture(crt->GetNativeTexture());
             
             mtlColorAttachment->setStoreAction(MTL::StoreActionStore);
@@ -161,7 +161,7 @@ namespace MMPEngine::Backend::Metal
         tc->job->_renderCommandEncoder->endEncoding();
     }
 
-    Camera::DrawCallsJob::IterationImpl::IterationImpl(const std::shared_ptr<DrawCallsJob>& job, const Item& item) : _item(item)
+    Camera::DrawCallsJob::IterationImpl::IterationImpl(const std::shared_ptr<DrawCallsJob>& job, const Item& item) : _item(item), _drawCallsJob(job)
     {
     }
 }

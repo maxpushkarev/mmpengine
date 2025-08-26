@@ -2,6 +2,7 @@
 #include <cassert>
 #include <Core/DrawCall.hpp>
 #include <Backend/Metal/Mesh.hpp>
+#include <Backend/Metal/Shader.hpp>
 #include <Backend/Metal/Job.hpp>
 #include <Backend/Metal/Camera.hpp>
 #include <Backend/Metal/Task.hpp>
@@ -19,6 +20,7 @@ namespace MMPEngine::Backend::Metal
         protected:
             IterationImpl(const std::shared_ptr<DrawCallsJob>& job, const Item& item);
             Item _item;
+            std::shared_ptr<DrawCallsJob> _drawCallsJob;
         };
 
 
@@ -153,27 +155,166 @@ namespace MMPEngine::Backend::Metal
         const auto iteration = ctx->job;
         const auto pc = Core::PassKey {iteration.get()};
         const auto material = std::dynamic_pointer_cast<TCoreMaterial>(iteration->_item.material);
-
-        if constexpr (std::is_base_of_v<Core::MeshMaterial, TCoreMaterial>)
-        {
-            const auto& ibInfo = ctx->mesh->GetIndexBufferInfo();
-            const auto& allBufferInfos = ctx->mesh->GetAllVertexBufferInfos();
-
-            for (const auto& s2vbs : allBufferInfos)
-            {
-                for (const auto& vbInfo : s2vbs.second)
-                {
-                    
-                }
-            }
-        }
-
+        const auto& matSettings = material->GetSettings();
+        
         iteration->PrepareMaterialParameters(this->_specificGlobalContext, iteration->_item.material->GetParameters());
-
+        
+        const auto getCmpFunc = [](Core::RenderingMaterial::Settings::Comparision comparision) -> auto
+        {
+            switch (comparision)
+            {
+            case Core::RenderingMaterial::Settings::Comparision::Always:
+                return MTL::CompareFunctionAlways;
+            case Core::RenderingMaterial::Settings::Comparision::Equal:
+                return MTL::CompareFunctionEqual;
+            case Core::RenderingMaterial::Settings::Comparision::Greater:
+                return MTL::CompareFunctionGreater;
+            case Core::RenderingMaterial::Settings::Comparision::GreaterEqual:
+                return MTL::CompareFunctionGreaterEqual;
+            case Core::RenderingMaterial::Settings::Comparision::Less:
+                return MTL::CompareFunctionLess;
+            case Core::RenderingMaterial::Settings::Comparision::LessEqual:
+                return MTL::CompareFunctionLessEqual;
+            case Core::RenderingMaterial::Settings::Comparision::Never:
+                return MTL::CompareFunctionNever;
+            case Core::RenderingMaterial::Settings::Comparision::NotEqual:
+                return MTL::CompareFunctionNotEqual;
+            default:
+                return MTL::CompareFunctionAlways;
+            }
+        };
+        
+        const auto getStencilOpFunc = [](Core::RenderingMaterial::Settings::Stencil::Op func) -> auto
+        {
+            switch (func)
+            {
+            case Core::RenderingMaterial::Settings::Stencil::Op::Keep:
+                return MTL::StencilOperationKeep;
+            case Core::RenderingMaterial::Settings::Stencil::Op::DecrementAndSaturate:
+                return MTL::StencilOperationDecrementClamp;
+            case Core::RenderingMaterial::Settings::Stencil::Op::DecrementAndWrap:
+                return MTL::StencilOperationDecrementWrap;
+            case Core::RenderingMaterial::Settings::Stencil::Op::IncrementAndSaturate:
+                return MTL::StencilOperationIncrementClamp;
+            case Core::RenderingMaterial::Settings::Stencil::Op::IncrementAndWrap:
+                return MTL::StencilOperationIncrementWrap;
+            case Core::RenderingMaterial::Settings::Stencil::Op::Invert:
+                return MTL::StencilOperationInvert;
+            case Core::RenderingMaterial::Settings::Stencil::Op::Replace:
+                return MTL::StencilOperationReplace;
+            case Core::RenderingMaterial::Settings::Stencil::Op::Zero:
+                return MTL::StencilOperationZero;
+            default:
+                return MTL::StencilOperationKeep;
+            }
+        };
+        
+        const auto getBlendOp = [](Core::RenderingMaterial::Settings::Blend::Op op) -> auto
+        {
+            switch (op)
+            {
+            case Core::RenderingMaterial::Settings::Blend::Op::Add:
+                return MTL::BlendOperationAdd;
+            case Core::RenderingMaterial::Settings::Blend::Op::Max:
+                return MTL::BlendOperationMax;
+            case Core::RenderingMaterial::Settings::Blend::Op::Min:
+                return MTL::BlendOperationMin;
+            case Core::RenderingMaterial::Settings::Blend::Op::RevSub:
+                return MTL::BlendOperationReverseSubtract;
+            case Core::RenderingMaterial::Settings::Blend::Op::Sub:
+                return MTL::BlendOperationSubtract;
+            default:
+                return MTL::BlendOperationAdd;
+            }
+        };
+        
+        const auto getBlendFactor = [](Core::RenderingMaterial::Settings::Blend::Factor factor) -> auto
+        {
+            switch (factor)
+            {
+            case Core::RenderingMaterial::Settings::Blend::Factor::Zero:
+                return MTL::BlendFactorZero;
+            case Core::RenderingMaterial::Settings::Blend::Factor::DstAlpha:
+                return MTL::BlendFactorDestinationAlpha;
+            case Core::RenderingMaterial::Settings::Blend::Factor::DstColor:
+                return MTL::BlendFactorDestinationColor;
+            case Core::RenderingMaterial::Settings::Blend::Factor::One:
+                return MTL::BlendFactorOne;
+            case Core::RenderingMaterial::Settings::Blend::Factor::OneMinusSrcAlpha:
+                return MTL::BlendFactorOneMinusSourceAlpha;
+            case Core::RenderingMaterial::Settings::Blend::Factor::OneMinusDstAlpha:
+                return MTL::BlendFactorOneMinusDestinationAlpha;
+            case Core::RenderingMaterial::Settings::Blend::Factor::OneMinusDstColor:
+                return MTL::BlendFactorOneMinusDestinationColor;
+            case Core::RenderingMaterial::Settings::Blend::Factor::OneMinusSrcColor:
+                return MTL::BlendFactorOneMinusSourceColor;
+            case Core::RenderingMaterial::Settings::Blend::Factor::SrcAlpha:
+                return MTL::BlendFactorSourceAlpha;
+            case Core::RenderingMaterial::Settings::Blend::Factor::SrcColor:
+                return MTL::BlendFactorSourceColor;
+            default:
+                return MTL::BlendFactorOne;
+            }
+        };
+        
 
         if constexpr (std::is_base_of_v<Core::MeshMaterial, TCoreMaterial>)
         {
-    
+            auto rtPipelineDesc = MTL::RenderPipelineDescriptor::alloc()->init();
+            
+            rtPipelineDesc->setVertexFunction(std::dynamic_pointer_cast<Metal::LibShader> (material->GetVertexShader())->GetNativeFunction());
+            
+            rtPipelineDesc->setFragmentFunction(std::dynamic_pointer_cast<Metal::LibShader> (material->GetPixelShader())->GetNativeFunction());
+            
+            
+            NS::UInteger colorAttachmentIndex = 0U;
+            for (const auto& crt : iteration->_drawCallsJob->_camera->GetTarget().color)
+            {
+                const auto& blendSettings = matSettings.blend.targets.at(static_cast<std::size_t>(colorAttachmentIndex));
+                const auto mtlColorTarget = std::dynamic_pointer_cast<IColorTargetTexture>(crt.tex->GetUnderlyingTexture());
+                
+                auto mtlColorAttachment = rtPipelineDesc->colorAttachments()->object(colorAttachmentIndex);
+                
+                mtlColorAttachment->setPixelFormat(mtlColorTarget->GetFormat());
+               
+                MTL::ColorWriteMask colorWriteMask = 0;
+                
+                if (static_cast<std::uint8_t>(blendSettings.colorMask) & static_cast<std::uint8_t>(Core::RenderingMaterial::Settings::Blend::ColorMask::Red))
+                {
+                    colorWriteMask |= MTL::ColorWriteMaskRed;
+                }
+
+                if (static_cast<std::uint8_t>(blendSettings.colorMask) & static_cast<std::uint8_t>(Core::RenderingMaterial::Settings::Blend::ColorMask::Green))
+                {
+                    colorWriteMask |= MTL::ColorWriteMaskGreen;
+                }
+
+                if (static_cast<std::uint8_t>(blendSettings.colorMask) & static_cast<std::uint8_t>(Core::RenderingMaterial::Settings::Blend::ColorMask::Blue))
+                {
+                    colorWriteMask |= MTL::ColorWriteMaskBlue;
+                }
+
+                if (static_cast<std::uint8_t>(blendSettings.colorMask) & static_cast<std::uint8_t>(Core::RenderingMaterial::Settings::Blend::ColorMask::Alpha))
+                {
+                    colorWriteMask |= MTL::ColorWriteMaskAlpha;
+                }
+
+                mtlColorAttachment->setWriteMask(colorWriteMask);
+                
+                mtlColorAttachment->setBlendingEnabled(blendSettings.op != Core::RenderingMaterial::Settings::Blend::Op::None);
+                
+                mtlColorAttachment->setRgbBlendOperation(getBlendOp(blendSettings.op));
+                mtlColorAttachment->setSourceRGBBlendFactor(getBlendFactor(blendSettings.src));
+                mtlColorAttachment->setDestinationRGBBlendFactor(getBlendFactor(blendSettings.dst));
+
+                mtlColorAttachment->setAlphaBlendOperation(mtlColorAttachment->rgbBlendOperation());
+                mtlColorAttachment->setSourceAlphaBlendFactor(mtlColorAttachment->sourceRGBBlendFactor());
+                mtlColorAttachment->setDestinationAlphaBlendFactor(mtlColorAttachment->destinationRGBBlendFactor());
+                
+                ++colorAttachmentIndex;
+            }
+            
+            rtPipelineDesc->release();
         }
     }
 
