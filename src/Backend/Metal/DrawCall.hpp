@@ -311,6 +311,9 @@ namespace MMPEngine::Backend::Metal
                 mtlColorAttachment->setSourceAlphaBlendFactor(mtlColorAttachment->sourceRGBBlendFactor());
                 mtlColorAttachment->setDestinationAlphaBlendFactor(mtlColorAttachment->destinationRGBBlendFactor());
                 
+                rtPipelineDesc->setSampleCount(mtlColorTarget->GetSamplesCount());
+                rtPipelineDesc->setRasterSampleCount(rtPipelineDesc->sampleCount());
+                
                 ++colorAttachmentIndex;
             }
             
@@ -325,7 +328,21 @@ namespace MMPEngine::Backend::Metal
                     rtPipelineDesc->setStencilAttachmentPixelFormat(mtlDs->GetFormat());
                 }
             }
+        
+            rtPipelineDesc->setAlphaToOneEnabled(false);
+            rtPipelineDesc->setAlphaToCoverageEnabled(matSettings.alphaToCoverage == Core::RenderingMaterial::Settings::AlphaToCoverage::On);
             
+            rtPipelineDesc->setRasterizationEnabled(true);
+            
+            //TODO::
+            /*rtPipelineDesc->setVertexDescriptor()
+            
+            
+            NS::Error* err = nullptr;
+            
+            iteration->_pipelineState = NS::TransferPtr(this->_specificGlobalContext->device->GetNative()->newRenderPipelineState(rtPipelineDesc, &err));
+            
+            assert(err == nullptr);*/
             rtPipelineDesc->release();
         }
     }
