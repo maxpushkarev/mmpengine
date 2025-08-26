@@ -57,6 +57,16 @@ namespace MMPEngine::Backend::Metal
         return _mtlVertexDescriptor.get();
     }
 
+    std::shared_ptr<Metal::Buffer> Mesh::GetNativeIndexBuffer() const
+    {
+        return _indexBuffer;
+    }
+
+    const std::vector<std::shared_ptr<Metal::Buffer>>& Mesh::GetNativeVertexBuffers() const
+    {
+        return _vertexBuffers;
+    }
+
     MTL::VertexFormat Mesh::GetVertexFormat(Core::VertexBufferPrototype::Format format)
     {
         switch (format)

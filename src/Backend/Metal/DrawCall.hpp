@@ -410,26 +410,32 @@ namespace MMPEngine::Backend::Metal
         const auto material = std::dynamic_pointer_cast<TCoreMaterial>(iteration->_item.material);
         const auto& matSettings = material->GetSettings();
         
-        MTL::RenderCommandEncoder* encoder = iteration->_drawCallsJob->_renderCommandEncoder;
-        
-        encoder->setTriangleFillMode(matSettings.fillMode == Core::RenderingMaterial::Settings::FillMode::Solid ? MTL::TriangleFillModeFill : MTL::TriangleFillModeLines);
-        encoder->setCullMode(matSettings.cullMode == Core::RenderingMaterial::Settings::CullMode::Back
-                             ? MTL::CullModeBack :
-                             (matSettings.cullMode == Core::RenderingMaterial::Settings::CullMode::Front ? MTL::CullModeFront : MTL::CullModeNone));
-        
-        encoder->setDepthBias(0.0f, 0.0f, 0.0f);
-        encoder->setDepthClipMode(MTL::DepthClipModeClip);
-        
-        encoder->setRenderPipelineState(iteration->_pipelineState.get());
-        encoder->setDepthStencilState(iteration->_depthStencilState.get());
-        if(iteration->_stencilRefValue.has_value())
-        {
-            encoder->setStencilReferenceValue(iteration->_stencilRefValue.value());
-        }
-        
         if constexpr (std::is_base_of_v<Core::MeshMaterial, TCoreMaterial>)
         {
-
+            MTL::RenderCommandEncoder* encoder = iteration->_drawCallsJob->_renderCommandEncoder;
+            
+            encoder->setTriangleFillMode(matSettings.fillMode == Core::RenderingMaterial::Settings::FillMode::Solid ? MTL::TriangleFillModeFill : MTL::TriangleFillModeLines);
+            encoder->setCullMode(matSettings.cullMode == Core::RenderingMaterial::Settings::CullMode::Back
+                                 ? MTL::CullModeBack :
+                                 (matSettings.cullMode == Core::RenderingMaterial::Settings::CullMode::Front ? MTL::CullModeFront : MTL::CullModeNone));
+            
+            encoder->setDepthBias(0.0f, 0.0f, 0.0f);
+            encoder->setDepthClipMode(MTL::DepthClipModeClip);
+            
+            encoder->setRenderPipelineState(iteration->_pipelineState.get());
+            encoder->setDepthStencilState(iteration->_depthStencilState.get());
+            if(iteration->_stencilRefValue.has_value())
+            {
+                encoder->setStencilReferenceValue(iteration->_stencilRefValue.value());
+            }
+            
+            const auto& vbs = tc->mesh->GetNativeVertexBuffers();
+            
+            for(std::size_t i = 0; i < vbs.size(); ++i)
+            {
+                encoder->setVertexBuffer(vbs[i]->GetNative(), 0U, static_cast<NS::UInteger>(i));
+            }
+            
             const auto& subsets = tc->mesh->GetSubsets();
 
             for (const auto& ss : subsets)
