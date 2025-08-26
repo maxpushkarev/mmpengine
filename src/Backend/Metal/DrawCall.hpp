@@ -436,6 +436,16 @@ namespace MMPEngine::Backend::Metal
                 encoder->setVertexBuffer(vbs[i]->GetNative(), 0U, static_cast<NS::UInteger>(i));
             }
             
+            for(std::size_t i = 0; i < tc->job->_bufferDataCollection.size(); ++i)
+            {
+                const auto idx = static_cast<NS::UInteger>(i);
+                const auto& bufferData = tc->job->_bufferDataCollection[i];
+                
+                encoder->setVertexBuffer(bufferData.first->GetNative(), 0U, static_cast<NS::UInteger>(i) + static_cast<NS::UInteger>(vbs.size()));
+                
+                encoder->setFragmentBuffer(bufferData.first->GetNative(), 0U, static_cast<NS::UInteger>(i));
+            }
+            
             const auto& subsets = tc->mesh->GetSubsets();
 
             for (const auto& ss : subsets)
