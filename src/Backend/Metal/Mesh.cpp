@@ -54,13 +54,23 @@ namespace MMPEngine::Backend::Metal
     
     MTL::PrimitiveType Mesh::GetNativePrimitiveType() const
     {
-        const auto topology = GetTopology();
         switch (const auto topology = GetTopology())
         {
         case Core::GeometryPrototype::Topology::Triangles:
             return MTL::PrimitiveTypeTriangle;
         default:
             throw Core::UnsupportedException("unsupported Metal primitive type");;
+        }
+    }
+
+    MTL::PrimitiveTopologyClass Mesh::GetNativePrimitiveTopologyClass() const
+    {
+        switch (const auto topology = GetTopology())
+        {
+        case Core::GeometryPrototype::Topology::Triangles:
+            return MTL::PrimitiveTopologyClassTriangle;
+        default:
+            return MTL::PrimitiveTopologyClassUnspecified;
         }
     }
 
