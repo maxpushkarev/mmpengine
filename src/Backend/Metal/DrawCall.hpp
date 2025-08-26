@@ -343,6 +343,7 @@ namespace MMPEngine::Backend::Metal
                 break;
             }
             
+            rtPipelineDesc->setShaderValidation(this->_specificGlobalContext->settings.isDebug ? MTL::ShaderValidationEnabled : MTL::ShaderValidationDisabled);
             rtPipelineDesc->setRasterizationEnabled(true);
             
             //TODO::
