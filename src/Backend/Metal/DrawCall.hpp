@@ -334,6 +334,16 @@ namespace MMPEngine::Backend::Metal
             rtPipelineDesc->setAlphaToOneEnabled(false);
             rtPipelineDesc->setAlphaToCoverageEnabled(matSettings.alphaToCoverage == Core::RenderingMaterial::Settings::AlphaToCoverage::On);
             
+            switch (const auto topology = ctx->mesh->GetTopology())
+            {
+            case Core::GeometryPrototype::Topology::Triangles:
+                rtPipelineDesc->setInputPrimitiveTopology(MTL::PrimitiveTopologyClassTriangle);
+                break;
+            default:
+                rtPipelineDesc->setInputPrimitiveTopology(MTL::PrimitiveTopologyClassUnspecified);
+                break;
+            }
+
             rtPipelineDesc->setRasterizationEnabled(true);
             
             //TODO::
