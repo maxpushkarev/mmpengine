@@ -124,8 +124,8 @@ namespace MMPEngine::Core
 		public:
 			Renderer(const Settings& settings, const std::shared_ptr<Mesh>& mesh, const std::shared_ptr<Node>& node);
 			std::shared_ptr<BaseTask> CreateInitializationTask() override;
-			std::shared_ptr<const Mesh> GetMesh() const;
-			std::shared_ptr<const Node> GetNode() const;
+			std::shared_ptr<Mesh> GetMesh() const;
+			std::shared_ptr<Node> GetNode() const;
             bool IsActive() const override;
 			const Settings& GetSettings() const;
             Settings::Dynamic& GetDynamicSettings();

@@ -155,12 +155,12 @@ namespace MMPEngine::Core
 		}
 	}
 
-	std::shared_ptr<const Mesh> Mesh::Renderer::GetMesh() const
+	std::shared_ptr<Mesh> Mesh::Renderer::GetMesh() const
 	{
 		return _mesh;
 	}
 
-	std::shared_ptr<const Node> Mesh::Renderer::GetNode() const
+	std::shared_ptr<Node> Mesh::Renderer::GetNode() const
 	{
 		return _node;
 	}

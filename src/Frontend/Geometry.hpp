@@ -11,7 +11,8 @@ namespace MMPEngine::Frontend
 	public:
 		enum class PrimitiveType : std::uint8_t
 		{
-			Box
+			Box,
+			Quad
 		};
 		static Core::GeometryPrototype Generate(const aiMesh* aiMesh);
 
@@ -24,4 +25,7 @@ namespace MMPEngine::Frontend
 {
 	template<>
 	Core::GeometryPrototype Geometry::Generate<Geometry::PrimitiveType::Box>();
+
+	template<>
+	Core::GeometryPrototype Geometry::Generate<Geometry::PrimitiveType::Quad>();
 }
