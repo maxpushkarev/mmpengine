@@ -56,8 +56,7 @@ namespace MMPEngine::Backend::Dx12
 			public:
 				TaskContext(const std::shared_ptr<IterationJob>& job);
 				std::shared_ptr<IterationJob> job;
-				std::shared_ptr<Core::Mesh::Renderer> meshRenderer;
-				std::shared_ptr<const Dx12::Mesh> mesh;
+				std::shared_ptr<Dx12::Mesh::Renderer> renderer;
 			};
 
 			class InitTask final : public Task<TaskContext>
@@ -166,7 +165,7 @@ namespace MMPEngine::Backend::Dx12
 				ps->GetCompiledBinaryLength()
 			};
 
-			switch (const auto topology = ctx->mesh->GetTopology())
+			switch (const auto topology = ctx->renderer->GetMesh()->GetTopology())
 			{
 			case Core::GeometryPrototype::Topology::Triangles:
 				psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
@@ -175,7 +174,7 @@ namespace MMPEngine::Backend::Dx12
 				break;
 			}
 
-			const auto& vertexLayout = ctx->mesh->GetVertexInputLayout();
+			const auto& vertexLayout = ctx->renderer->GetVertexInputLayout();
 			psoDesc.InputLayout = { vertexLayout.data(), static_cast<std::uint32_t>(vertexLayout.size()) };
 		}
 
@@ -409,10 +408,10 @@ namespace MMPEngine::Backend::Dx12
 
 		if constexpr (std::is_base_of_v<Core::MeshMaterial, TCoreMaterial>)
 		{
-			const auto& ibInfo = ctx->mesh->GetIndexBufferInfo();
+			const auto& ibInfo = ctx->renderer->GetMesh()->GetIndexBufferInfo();
 			_switchStateTasks.push_back(std::dynamic_pointer_cast<Dx12::BaseEntity>(ibInfo.ptr->GetUnderlyingBuffer())->CreateSwitchStateTask(D3D12_RESOURCE_STATE_GENERIC_READ));
 
-			const auto& allBufferInfos = ctx->mesh->GetAllVertexBufferInfos();
+			const auto& allBufferInfos = ctx->renderer->GetMesh()->GetAllVertexBufferInfos();
 
 			for(const auto& s2vbs : allBufferInfos)
 			{
@@ -455,16 +454,16 @@ namespace MMPEngine::Backend::Dx12
 		if constexpr (std::is_base_of_v<Core::MeshMaterial, TCoreMaterial>)
 		{
 			const auto ctx = this->GetTaskContext();
-			const auto& ibv = ctx->mesh->GetIndexBufferView();
+			const auto& ibv = ctx->renderer->GetIndexBufferView();
 
 			this->_specificStreamContext->PopulateCommandsInBuffer()->IASetIndexBuffer(&ibv);
 
-			const auto& vbvs = ctx->mesh->GetVertexBufferViews();
+			const auto& vbvs = ctx->renderer->GetVertexBufferViews();
 			this->_specificStreamContext->PopulateCommandsInBuffer()->IASetVertexBuffers(
 				0,
 				static_cast<std::uint32_t>(vbvs.size()), vbvs.data());
 
-			const auto topology = ctx->mesh->GetTopology();
+			const auto topology = ctx->renderer->GetMesh()->GetTopology();
 			D3D12_PRIMITIVE_TOPOLOGY d3d12Topology = D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 
 			switch (topology)
@@ -477,13 +476,13 @@ namespace MMPEngine::Backend::Dx12
 
 			this->_specificStreamContext->PopulateCommandsInBuffer()->IASetPrimitiveTopology(d3d12Topology);
 
-			const auto& subsets = ctx->mesh->GetSubsets();
+			const auto& subsets = ctx->renderer->GetMesh()->GetSubsets();
 
 			for (const auto& ss : subsets)
 			{
 				this->_specificStreamContext->PopulateCommandsInBuffer()->DrawIndexedInstanced(
 					ss.indexCount,
-					static_cast<std::uint32_t>(ctx->meshRenderer->GetSettings().dynamicData.instancesCount),
+					static_cast<std::uint32_t>(ctx->renderer->GetSettings().dynamicData.instancesCount),
 					ss.indexStart,
 					ss.baseVertex,
 					0
@@ -497,8 +496,9 @@ namespace MMPEngine::Backend::Dx12
 	{
 		if constexpr (std::is_base_of_v<Core::MeshMaterial, TCoreMaterial>)
 		{
-			meshRenderer = std::dynamic_pointer_cast<Core::Mesh::Renderer>(job->_item.renderer);
-			mesh = std::dynamic_pointer_cast<const Dx12::Mesh>(meshRenderer->GetMesh()->GetUnderlyingMesh());
+			renderer = std::dynamic_pointer_cast<Dx12::Mesh::Renderer>(
+				std::dynamic_pointer_cast<Core::Mesh::Renderer>(job->_item.renderer)->GetUnderlyingRenderer()
+			);
 		}
 	}
 }

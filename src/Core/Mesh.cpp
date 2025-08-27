@@ -96,9 +96,9 @@ namespace MMPEngine::Core
 		return shared_from_this();
 	}
 
-	const Mesh::VertexBufferInfo& Mesh::GetVertexBufferInfo(VertexBufferPrototype::Semantics semantics, std::size_t semanticIndex) const
+	const Mesh::VertexBufferInfo& Mesh::GetVertexBufferInfo(const VertexBufferPrototype::Attribute& attribute) const
 	{
-		return _vertexBufferInfos.at(semantics).at(semanticIndex);
+		return _vertexBufferInfos.at(attribute.type).at(attribute.index);
 	}
 
 	const std::map<VertexBufferPrototype::Semantics, std::vector<Mesh::VertexBufferInfo>>& Mesh::GetAllVertexBufferInfos() const
@@ -134,7 +134,8 @@ namespace MMPEngine::Core
 					}
 				},
 				FunctionalTask::Handler {}
-			)
+			),
+			ctx->renderer->CreateInternalInitializationTask()
 		});
 	}
 
@@ -178,6 +179,11 @@ namespace MMPEngine::Core
 	std::shared_ptr<BaseEntity> Mesh::Renderer::GetUniformDataEntity() const
 	{
 		return _uniformBuffer;
+	}
+
+	std::shared_ptr<Mesh::Renderer> Mesh::Renderer::GetUnderlyingRenderer()
+	{
+		return std::dynamic_pointer_cast<Renderer>(shared_from_this());
 	}
 
     bool Mesh::Renderer::IsActive() const

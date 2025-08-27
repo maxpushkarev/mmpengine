@@ -24,37 +24,42 @@ namespace MMPEngine::Backend::Vulkan
 
 	std::shared_ptr<Core::BaseTask> Mesh::CreateInternalInitializationTask()
 	{
+		return Core::BaseTask::kEmpty;
+	}
+
+	std::shared_ptr<Core::BaseTask> Mesh::Renderer::CreateInternalInitializationTask()
+	{
 		const auto tc = std::make_shared<InitTaskContext>();
-		tc->mesh = std::dynamic_pointer_cast<Mesh>(shared_from_this());
+		tc->renderer = std::dynamic_pointer_cast<Renderer>(shared_from_this());
 		return std::make_shared<InitTask>(tc);
 	}
 
-	const std::vector<VkVertexInputBindingDescription>& Mesh::GetVertexBindingDescriptions() const
+	const std::vector<VkVertexInputBindingDescription>& Mesh::Renderer::GetVertexBindingDescriptions() const
 	{
 		return _bindingDescriptions;
 	}
 
-	VkIndexType Mesh::GetIndexType() const
+	VkIndexType Mesh::Renderer::GetIndexType() const
 	{
 		return _indexType;	
 	}
 
-	std::shared_ptr<Vulkan::Buffer> Mesh::GetIndexBuffer() const
+	std::shared_ptr<Vulkan::Buffer> Mesh::Renderer::GetIndexBuffer() const
 	{
 		return _indexBuffer;
 	}
 
-	const std::vector<VkBuffer>& Mesh::GetVertexBuffers() const
+	const std::vector<VkBuffer>& Mesh::Renderer::GetVertexBuffers() const
 	{
 		return _vertexBuffers;
 	}
 
-	const std::vector<VkVertexInputAttributeDescription>& Mesh::GetVertexAttributeDescriptions() const
+	const std::vector<VkVertexInputAttributeDescription>& Mesh::Renderer::GetVertexAttributeDescriptions() const
 	{
 		return _attributeDescriptions;
 	}
 
-	const std::vector<VkDeviceSize>& Mesh::GetVertexBuffersOffsets() const
+	const std::vector<VkDeviceSize>& Mesh::Renderer::GetVertexBuffersOffsets() const
 	{
 		return _vertexBufferOffsets;
 	}
@@ -70,26 +75,26 @@ namespace MMPEngine::Backend::Vulkan
 
 
 
-	Mesh::InitTask::InitTask(const std::shared_ptr<InitTaskContext>& ctx) : Task(ctx)
+	Mesh::Renderer::InitTask::InitTask(const std::shared_ptr<InitTaskContext>& ctx) : Task(ctx)
 	{
 	}
 
-	void Mesh::InitTask::Run(const std::shared_ptr<Core::BaseStream>& stream)
+	void Mesh::Renderer::InitTask::Run(const std::shared_ptr<Core::BaseStream>& stream)
 	{
 		Task::Run(stream);
 
-		const auto mesh = GetTaskContext()->mesh;
-		assert(mesh);
+		const auto renderer = GetTaskContext()->renderer;
+		assert(renderer);
 
 		std::uint32_t bindingIndex = 0;
-		for (const auto& vbInfos : mesh->_vertexBufferInfos)
+		for (const auto& vbInfos : renderer->GetMesh()->GetAllVertexBufferInfos())
 		{
 			for (std::size_t semanticIndex = 0; semanticIndex < vbInfos.second.size(); ++semanticIndex)
 			{
 				const auto& vbInfo = vbInfos.second.at(semanticIndex);
 				const auto vb = std::dynamic_pointer_cast<Buffer>(vbInfo.ptr->GetUnderlyingBuffer());
 				assert(vb);
-				mesh->_vertexBuffers.push_back(vb->GetDescriptorBufferInfo().buffer);
+				renderer->_vertexBuffers.push_back(vb->GetDescriptorBufferInfo().buffer);
 
 				VkVertexInputBindingDescription binding{};
 				binding.binding = bindingIndex++;
@@ -103,23 +108,23 @@ namespace MMPEngine::Backend::Vulkan
 				attr.offset = 0;
 				attr.format = GetVertexBufferFormat(vbInfo.format);
 
-				mesh->_bindingDescriptions.push_back(binding);
-				mesh->_attributeDescriptions.push_back(attr);
+				renderer->_bindingDescriptions.push_back(binding);
+				renderer->_attributeDescriptions.push_back(attr);
 			}
 		}
 
-		mesh->_vertexBufferOffsets.resize(mesh->_vertexBuffers.size(), 0);
+		renderer->_vertexBufferOffsets.resize(renderer->_vertexBuffers.size(), 0);
 
-		const auto& ibInfo = mesh->_indexBufferInfo;
+		const auto& ibInfo = renderer->GetMesh()->GetIndexBufferInfo();
 		const auto ib = std::dynamic_pointer_cast<Buffer>(ibInfo.ptr->GetUnderlyingBuffer());
 		assert(ib);
 
-		mesh->_indexType = (ibInfo.format == Core::IndexBufferPrototype::Format::Uint16) ? VK_INDEX_TYPE_UINT16 : VK_INDEX_TYPE_UINT32;
-		mesh->_indexBuffer = ib;
+		renderer->_indexType = (ibInfo.format == Core::IndexBufferPrototype::Format::Uint16) ? VK_INDEX_TYPE_UINT16 : VK_INDEX_TYPE_UINT32;
+		renderer->_indexBuffer = ib;
 	}
 
 
-	VkFormat Mesh::GetVertexBufferFormat(Core::VertexBufferPrototype::Format format)
+	VkFormat Mesh::Renderer::GetVertexBufferFormat(Core::VertexBufferPrototype::Format format)
 	{
 		switch (format)
 		{

@@ -79,6 +79,12 @@ namespace MMPEngine::Core
 			BaseGeometryBufferPrototype::Settings base {};
 		};
 
+		struct Attribute
+		{
+			Semantics type;
+			std::size_t index;
+		};
+
 		VertexBufferPrototype(const VBSettings& vb);
 		virtual Format GetFormat() const = 0;
 		const VBSettings& GetVBSettings() const;

@@ -112,8 +112,7 @@ namespace MMPEngine::Backend::Vulkan
 			public:
 				TaskContext(const std::shared_ptr<IterationJob>& job);
 				std::shared_ptr<IterationJob> job;
-				std::shared_ptr<Core::Mesh::Renderer> meshRenderer;
-				std::shared_ptr<const Vulkan::Mesh> mesh;
+				std::shared_ptr<const Vulkan::Mesh::Renderer> renderer;
 			};
 
 			class InitTask final : public Task<TaskContext>
@@ -217,13 +216,13 @@ namespace MMPEngine::Backend::Vulkan
 
 		if constexpr (std::is_base_of_v<Core::MeshMaterial, TCoreMaterial>)
 		{
-			const auto& ibInfo = ctx->mesh->GetIndexBufferInfo();
+			const auto& ibInfo = ctx->renderer->GetMesh()->GetIndexBufferInfo();
 			drawCallsJob->GetMemoryBarrierTasks(pc).push_back(std::dynamic_pointer_cast<Vulkan::Buffer>(ibInfo.ptr->GetUnderlyingBuffer())->CreateMemoryBarrierTask(
 				VK_ACCESS_MEMORY_WRITE_BIT | VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_TRANSFER_WRITE_BIT | VK_ACCESS_TRANSFER_READ_BIT,
 				VK_ACCESS_INDEX_READ_BIT
 			));
 
-			const auto& allBufferInfos = ctx->mesh->GetAllVertexBufferInfos();
+			const auto& allBufferInfos = ctx->renderer->GetMesh()->GetAllVertexBufferInfos();
 
 			for (const auto& s2vbs : allBufferInfos)
 			{
@@ -300,7 +299,7 @@ namespace MMPEngine::Backend::Vulkan
 			inputAssembly.pNext = nullptr;
 			inputAssembly.primitiveRestartEnable = VK_FALSE;
 
-			switch (const auto topology = ctx->mesh->GetTopology())
+			switch (const auto topology = ctx->renderer->GetMesh()->GetTopology())
 			{
 			case Core::GeometryPrototype::Topology::Triangles:
 				inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
@@ -315,10 +314,10 @@ namespace MMPEngine::Backend::Vulkan
 			vertexInput.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 			vertexInput.pNext = nullptr;
 			vertexInput.flags = 0;
-			vertexInput.vertexBindingDescriptionCount = static_cast<std::uint32_t>(ctx->mesh->GetVertexBindingDescriptions().size());
-			vertexInput.pVertexBindingDescriptions = ctx->mesh->GetVertexBindingDescriptions().data();
-			vertexInput.vertexAttributeDescriptionCount = static_cast<std::uint32_t>(ctx->mesh->GetVertexAttributeDescriptions().size());
-			vertexInput.pVertexAttributeDescriptions = ctx->mesh->GetVertexAttributeDescriptions().data();
+			vertexInput.vertexBindingDescriptionCount = static_cast<std::uint32_t>(ctx->renderer->GetVertexBindingDescriptions().size());
+			vertexInput.pVertexBindingDescriptions = ctx->renderer->GetVertexBindingDescriptions().data();
+			vertexInput.vertexAttributeDescriptionCount = static_cast<std::uint32_t>(ctx->renderer->GetVertexAttributeDescriptions().size());
+			vertexInput.pVertexAttributeDescriptions = ctx->renderer->GetVertexAttributeDescriptions().data();
 
 			const auto& settings = material->GetSettings();
 
@@ -620,16 +619,16 @@ namespace MMPEngine::Backend::Vulkan
 			vkCmdBindVertexBuffers(
 				this->_specificStreamContext->PopulateCommandsInBuffer()->GetNative(),
 				0, 
-				static_cast<std::uint32_t>(tc->mesh->GetVertexBuffers().size()), 
-				tc->mesh->GetVertexBuffers().data(),
-				tc->mesh->GetVertexBuffersOffsets().data()
+				static_cast<std::uint32_t>(tc->renderer->GetVertexBuffers().size()), 
+				tc->renderer->GetVertexBuffers().data(),
+				tc->renderer->GetVertexBuffersOffsets().data()
 			);
 
 			vkCmdBindIndexBuffer(
 				this->_specificStreamContext->PopulateCommandsInBuffer()->GetNative(), 
-				tc->mesh->GetIndexBuffer()->GetDescriptorBufferInfo().buffer, 
+				tc->renderer->GetIndexBuffer()->GetDescriptorBufferInfo().buffer,
 				0, 
-				tc->mesh->GetIndexType()
+				tc->renderer->GetIndexType()
 			);
 
 			vkCmdBindDescriptorSets(
@@ -643,14 +642,14 @@ namespace MMPEngine::Backend::Vulkan
 				nullptr
 			);
 
-			const auto& subsets = tc->mesh->GetSubsets();
+			const auto& subsets = tc->renderer->GetMesh()->GetSubsets();
 
 			for (const auto& ss : subsets)
 			{
 				vkCmdDrawIndexed(
 					this->_specificStreamContext->PopulateCommandsInBuffer()->GetNative(), 
 					ss.indexCount,
-					static_cast<std::uint32_t>(tc->meshRenderer->GetSettings().dynamicData.instancesCount),
+					static_cast<std::uint32_t>(tc->renderer->GetSettings().dynamicData.instancesCount),
 					ss.indexStart, 
 					ss.baseVertex, 
 					0
@@ -664,8 +663,9 @@ namespace MMPEngine::Backend::Vulkan
 	{
 		if constexpr (std::is_base_of_v<Core::MeshMaterial, TCoreMaterial>)
 		{
-			meshRenderer = std::dynamic_pointer_cast<Core::Mesh::Renderer>(job->_item.renderer);
-			mesh = std::dynamic_pointer_cast<const Vulkan::Mesh>(meshRenderer->GetMesh()->GetUnderlyingMesh());
+			renderer = std::dynamic_pointer_cast<Vulkan::Mesh::Renderer>(
+				std::dynamic_pointer_cast<Core::Mesh::Renderer>(job->_item.renderer)->GetUnderlyingRenderer()
+			);
 		}
 	}
 }

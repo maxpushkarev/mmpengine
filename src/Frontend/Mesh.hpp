@@ -11,7 +11,7 @@ namespace MMPEngine::Frontend
 		std::shared_ptr<const Core::Mesh> GetUnderlyingMesh() const override;
 
 		const std::map<Core::VertexBufferPrototype::Semantics, std::vector<VertexBufferInfo>>& GetAllVertexBufferInfos() const override;
-		const VertexBufferInfo& GetVertexBufferInfo(Core::VertexBufferPrototype::Semantics semantics, std::size_t semanticIndex) const override;
+		const VertexBufferInfo& GetVertexBufferInfo(const Core::VertexBufferPrototype::Attribute& semantics) const override;
 		const IndexBufferInfo& GetIndexBufferInfo() const override;
 		const std::vector<Core::GeometryPrototype::Subset>& GetSubsets() const override;
 		Core::GeometryPrototype::Topology GetTopology() const override;
@@ -23,8 +23,10 @@ namespace MMPEngine::Frontend
 			std::shared_ptr<Core::BaseTask> CreateInitializationTask() override;
 			std::shared_ptr<Core::BaseEntity> GetUniformDataEntity() const override;
 			std::shared_ptr<Core::ContextualTask<UpdateDataTaskContext>> CreateTaskToUpdateAndWriteUniformData() override;
+			std::shared_ptr<Core::Mesh::Renderer> GetUnderlyingRenderer() override;
 		protected:
 			std::shared_ptr<Core::UniformBuffer<Data>> CreateUniformBuffer() override;
+			std::shared_ptr<Core::BaseTask> CreateInternalInitializationTask() override;
 		private:
 			std::shared_ptr<Core::Mesh::Renderer> _impl;
 		};

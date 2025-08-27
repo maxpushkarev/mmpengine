@@ -1,6 +1,7 @@
 #pragma once
 #include <map>
 #include <optional>
+#include <variant>
 #include <Core/Base.hpp>
 #include <Core/Geometry.hpp>
 #include <Core/Context.hpp>
@@ -59,7 +60,7 @@ namespace MMPEngine::Core
 
 	public:
 		virtual std::shared_ptr<const Mesh> GetUnderlyingMesh() const;
-		virtual const VertexBufferInfo& GetVertexBufferInfo(VertexBufferPrototype::Semantics semantics, std::size_t semanticIndex) const;
+		virtual const VertexBufferInfo& GetVertexBufferInfo(const VertexBufferPrototype::Attribute& attribute) const;
 		virtual const std::map<VertexBufferPrototype::Semantics, std::vector<VertexBufferInfo>>& GetAllVertexBufferInfos() const;
 		virtual const IndexBufferInfo& GetIndexBufferInfo() const;
 		virtual const std::vector<GeometryPrototype::Subset>& GetSubsets() const;
@@ -130,9 +131,11 @@ namespace MMPEngine::Core
 			const Settings& GetSettings() const;
             Settings::Dynamic& GetDynamicSettings();
 			virtual std::shared_ptr<BaseEntity> GetUniformDataEntity() const;
+			virtual std::shared_ptr<Renderer> GetUnderlyingRenderer();
 			virtual std::shared_ptr<ContextualTask<UpdateDataTaskContext>> CreateTaskToUpdateAndWriteUniformData();
 		protected:
 			virtual std::shared_ptr<UniformBuffer<Data>> CreateUniformBuffer() = 0;
+			virtual std::shared_ptr<BaseTask> CreateInternalInitializationTask() = 0;
 			Settings _settings;
 		private:
 			std::shared_ptr<Mesh> _mesh;

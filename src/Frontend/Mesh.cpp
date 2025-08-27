@@ -65,9 +65,9 @@ namespace MMPEngine::Frontend
 		return _impl->GetSubsets();
 	}
 
-	const Mesh::VertexBufferInfo& Mesh::GetVertexBufferInfo(Core::VertexBufferPrototype::Semantics semantics, std::size_t semanticIndex) const
+	const Mesh::VertexBufferInfo& Mesh::GetVertexBufferInfo(const Core::VertexBufferPrototype::Attribute& attribute) const
 	{
-		return _impl->GetVertexBufferInfo(semantics, semanticIndex);
+		return _impl->GetVertexBufferInfo(attribute);
 	}
 
 	const std::map<Core::VertexBufferPrototype::Semantics, std::vector<Mesh::VertexBufferInfo>>& Mesh::GetAllVertexBufferInfos() const
@@ -121,14 +121,24 @@ namespace MMPEngine::Frontend
         }
 	}
 
+	std::shared_ptr<Core::BaseTask> Mesh::Renderer::CreateInitializationTask()
+	{
+		return _impl->CreateInitializationTask();
+	}
+
+	std::shared_ptr<Core::Mesh::Renderer> Mesh::Renderer::GetUnderlyingRenderer()
+	{
+		return _impl;
+	}
+
 	std::shared_ptr<Core::UniformBuffer<Mesh::Renderer::Data>> Mesh::Renderer::CreateUniformBuffer()
 	{
 		throw std::logic_error("impossible exception");
 	}
 
-	std::shared_ptr<Core::BaseTask> Mesh::Renderer::CreateInitializationTask()
+	std::shared_ptr<Core::BaseTask> Mesh::Renderer::CreateInternalInitializationTask()
 	{
-		return _impl->CreateInitializationTask();
+		throw std::logic_error("impossible exception");
 	}
 
 	std::shared_ptr<Core::BaseEntity> Mesh::Renderer::GetUniformDataEntity() const

@@ -4,8 +4,13 @@
 
 namespace MMPEngine::Backend::Dx12
 {
-	Mesh::Mesh(Core::GeometryPrototype&& proto) : Core::Mesh(std::move(proto)), _indexBufferView {}
+	Mesh::Mesh(Core::GeometryPrototype&& proto) : Core::Mesh(std::move(proto))
 	{
+	}
+
+	std::shared_ptr<Core::BaseTask> Mesh::CreateInternalInitializationTask()
+	{
+		return Core::BaseTask::kEmpty;
 	}
 
 	std::shared_ptr<Core::VertexBuffer> Mesh::CreateVertexBuffer(const Core::VertexBufferPrototype* vbPrototype)
@@ -22,7 +27,7 @@ namespace MMPEngine::Backend::Dx12
 		});
 	}
 
-	const char* Mesh::GetSemanticsName(Core::VertexBufferPrototype::Semantics semantics)
+	const char* Mesh::Renderer::GetSemanticsName(Core::VertexBufferPrototype::Semantics semantics)
 	{
 		switch (semantics)
 		{
@@ -47,7 +52,7 @@ namespace MMPEngine::Backend::Dx12
 		}
 	}
 
-	DXGI_FORMAT Mesh::GetVertexBufferFormat(Core::VertexBufferPrototype::Format format)
+	DXGI_FORMAT Mesh::Renderer::GetVertexBufferFormat(Core::VertexBufferPrototype::Format format)
 	{
 		switch (format)
 		{
@@ -66,56 +71,53 @@ namespace MMPEngine::Backend::Dx12
 		}
 	}
 
-	std::shared_ptr<Core::BaseTask> Mesh::CreateInternalInitializationTask()
+	std::shared_ptr<Core::BaseTask> Mesh::Renderer::CreateInternalInitializationTask()
 	{
 		const auto ctx = std::make_shared<InitTaskContext>();
-		ctx->mesh = std::dynamic_pointer_cast<Mesh>(shared_from_this());
+		ctx->renderer = std::dynamic_pointer_cast<Renderer>(shared_from_this());
 		return std::make_shared<InitTask>(ctx);
 	}
 
-	const std::vector<D3D12_VERTEX_BUFFER_VIEW>& Mesh::GetVertexBufferViews() const
+	const std::vector<D3D12_VERTEX_BUFFER_VIEW>& Mesh::Renderer::GetVertexBufferViews() const
 	{
 		return _vertexBufferViews;
 	}
 
-	const D3D12_INDEX_BUFFER_VIEW& Mesh::GetIndexBufferView() const
+	const D3D12_INDEX_BUFFER_VIEW& Mesh::Renderer::GetIndexBufferView() const
 	{
 		return _indexBufferView;
 	}
 
-	const std::vector<D3D12_INPUT_ELEMENT_DESC>& Mesh::GetVertexInputLayout() const
+	const std::vector<D3D12_INPUT_ELEMENT_DESC>& Mesh::Renderer::GetVertexInputLayout() const
 	{
 		return _vertexInputLayout;
 	}
 
-	Mesh::InitTask::InitTask(const std::shared_ptr<InitTaskContext>& ctx) : Task(ctx)
+	Mesh::Renderer::InitTask::InitTask(const std::shared_ptr<InitTaskContext>& ctx) : Task(ctx)
 	{
 	}
 
-	void Mesh::InitTask::Run(const std::shared_ptr<Core::BaseStream>& stream)
+	void Mesh::Renderer::InitTask::Run(const std::shared_ptr<Core::BaseStream>& stream)
 	{
 		Task::Run(stream);
 
-		const auto mesh = GetTaskContext()->mesh;
-		assert(mesh);
+		const auto renderer = GetTaskContext()->renderer;
+		assert(renderer);
 
-		const auto& ibInfo = mesh->_indexBufferInfo;
+		const auto& ibInfo = renderer->GetMesh()->GetIndexBufferInfo();
 		const auto ib = std::dynamic_pointer_cast<ResourceEntity>(ibInfo.ptr->GetUnderlyingBuffer());
 		assert(ib);
 
-		mesh->_indexBufferView.Format = (ibInfo.format == Core::IndexBufferPrototype::Format::Uint16) ? DXGI_FORMAT_R16_UINT : DXGI_FORMAT_R32_UINT;
-		mesh->_indexBufferView.SizeInBytes = static_cast<std::uint32_t>(ibInfo.stride * ibInfo.elementsCount);
-		mesh->_indexBufferView.BufferLocation = ib->GetNativeGPUAddressWithRequiredOffset();
+		renderer->_indexBufferView.Format = (ibInfo.format == Core::IndexBufferPrototype::Format::Uint16) ? DXGI_FORMAT_R16_UINT : DXGI_FORMAT_R32_UINT;
+		renderer->_indexBufferView.SizeInBytes = static_cast<std::uint32_t>(ibInfo.stride * ibInfo.elementsCount);
+		renderer->_indexBufferView.BufferLocation = ib->GetNativeGPUAddressWithRequiredOffset();
 
-		mesh->_vertexBufferViews.clear();
-		mesh->_vertexInputLayout.clear();
-
-		mesh->_vertexInputLayout.reserve(mesh->_vertexBufferInfos.size());
-		mesh->_vertexBufferViews.reserve(mesh->_vertexBufferInfos.size());
+		renderer->_vertexBufferViews.clear();
+		renderer->_vertexInputLayout.clear();
 
 		std::uint32_t currentBufferSlotIndex = 0;
 
-		for(const auto& vbInfos : mesh->_vertexBufferInfos)
+		for(const auto& vbInfos : renderer->GetMesh()->GetAllVertexBufferInfos())
 		{
 			const auto semantics = vbInfos.first;
 
@@ -131,8 +133,8 @@ namespace MMPEngine::Backend::Dx12
 				view.StrideInBytes = static_cast<std::uint32_t>(vbInfo.stride);
 				view.BufferLocation = vb->GetNativeGPUAddressWithRequiredOffset();
 				
-				mesh->_vertexBufferViews.push_back(view);
-				mesh->_vertexInputLayout.push_back({ GetSemanticsName(semantics), static_cast<std::uint32_t>(semanticIndex), GetVertexBufferFormat(vbInfo.format), currentBufferSlotIndex, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 });
+				renderer->_vertexBufferViews.push_back(view);
+				renderer->_vertexInputLayout.push_back({ GetSemanticsName(semantics), static_cast<std::uint32_t>(semanticIndex), GetVertexBufferFormat(vbInfo.format), currentBufferSlotIndex, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 });
 
 				++currentBufferSlotIndex;
 			}
@@ -148,5 +150,4 @@ namespace MMPEngine::Backend::Dx12
 	{
 		return std::make_shared<UniformBuffer<Core::Mesh::Renderer::Data>>();
 	}
-
 }
