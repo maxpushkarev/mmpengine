@@ -12,7 +12,7 @@ namespace MMPEngine::Core
 	{
 		const auto thisJob = std::dynamic_pointer_cast<DrawCallsJob>(shared_from_this());
 
-		return std::make_shared<BatchTask>(std::initializer_list<std::shared_ptr<BaseTask>>{
+		return std::make_shared<StaticBatchTask>(std::initializer_list<std::shared_ptr<BaseTask>>{
 			CreateInitializationTaskInternal(),
 			std::make_shared<FunctionalTask>(
 				[thisJob](const auto& stream)

@@ -76,7 +76,7 @@ namespace MMPEngine::Backend::Vulkan
 		const auto ctx = std::make_shared<ScreenTaskContext>();
 		ctx->entity = std::dynamic_pointer_cast<Screen>(shared_from_this());
 
-		return std::make_shared<Core::BatchTask>(std::initializer_list<std::shared_ptr<Core::BaseTask>> {
+		return std::make_shared<Core::StaticBatchTask>(std::initializer_list<std::shared_ptr<Core::BaseTask>> {
 				ctx->entity->_backBuffer->CreateMemoryBarrierTask(
 					VK_ACCESS_MEMORY_WRITE_BIT | VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_TRANSFER_WRITE_BIT | VK_ACCESS_TRANSFER_READ_BIT,
 					0,

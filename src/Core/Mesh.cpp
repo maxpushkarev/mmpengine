@@ -47,7 +47,7 @@ namespace MMPEngine::Core
 		const auto ctx = std::make_shared<InitTaskContext>();
 		ctx->mesh = shared_from_this();
 
-		return std::make_shared<BatchTask>(std::initializer_list<std::shared_ptr<BaseTask>>{
+		return std::make_shared<StaticBatchTask>(std::initializer_list<std::shared_ptr<BaseTask>>{
 			std::make_shared<CreateBuffers>(ctx),
 			std::make_shared<FunctionalTask>(
 					[ctx](const auto& stream)
@@ -120,7 +120,7 @@ namespace MMPEngine::Core
 	{
 		const auto ctx = std::make_shared<RendererTaskContext>();
 		ctx->renderer = shared_from_this();
-		return std::make_shared<Core::BatchTask>(std::initializer_list<std::shared_ptr<Core::BaseTask>>{
+		return std::make_shared<Core::StaticBatchTask>(std::initializer_list<std::shared_ptr<Core::BaseTask>>{
 			std::make_shared<InitTask>(ctx),
 			std::make_shared<FunctionalTask>(
 				FunctionalTask::Handler {},

@@ -583,7 +583,7 @@ namespace MMPEngine::Backend::Vulkan
 		ctx->byteSize = GetSettings().byteLength;
 		ctx->entity = std::dynamic_pointer_cast<Vulkan::Buffer>(shared_from_this());
 		
-		return std::make_shared<Core::BatchTask>(std::initializer_list<std::shared_ptr<Core::BaseTask>>{
+		return std::make_shared<Core::StaticBatchTask>(std::initializer_list<std::shared_ptr<Core::BaseTask>>{
 			std::make_shared<InitTask>(ctx),
 			_counterBuffer->CreateInitializationTask(),	
 			CreateResetCounterTask()
@@ -600,7 +600,7 @@ namespace MMPEngine::Backend::Vulkan
 		const auto ctx = std::make_shared<ResetContext>();
 		ctx->entity = _counterBuffer;
 
-		return std::make_shared<Core::BatchTask>(std::initializer_list<std::shared_ptr<Core::BaseTask>>{
+		return std::make_shared<Core::StaticBatchTask>(std::initializer_list<std::shared_ptr<Core::BaseTask>>{
 			_counterBuffer->CreateMemoryBarrierTask(
 				VK_ACCESS_MEMORY_WRITE_BIT | VK_ACCESS_TRANSFER_WRITE_BIT | VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_TRANSFER_READ_BIT,
 				VK_ACCESS_MEMORY_WRITE_BIT | VK_ACCESS_TRANSFER_WRITE_BIT
@@ -611,7 +611,7 @@ namespace MMPEngine::Backend::Vulkan
 
 	std::shared_ptr<Core::BaseTask> CounteredUnorderedAccessBuffer::CreateMemoryBarrierTask(VkAccessFlags srcAccess, VkAccessFlags dstAccess, VkPipelineStageFlags srcStage, VkPipelineStageFlags dstStage)
 	{
-		return std::make_shared<Core::BatchTask>(std::initializer_list<std::shared_ptr<Core::BaseTask>>{
+		return std::make_shared<Core::StaticBatchTask>(std::initializer_list<std::shared_ptr<Core::BaseTask>>{
 			Vulkan::Buffer::CreateMemoryBarrierTask(srcAccess, dstAccess, srcStage, dstStage),
 				_counterBuffer->CreateMemoryBarrierTask(srcAccess, dstAccess, srcStage, dstStage)
 		});

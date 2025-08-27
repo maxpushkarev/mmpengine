@@ -380,7 +380,7 @@ namespace MMPEngine::Backend::Dx12
 		initContext->settings = GetUnorderedAccessSettings();
 		initContext->withCounter = true;
 
-		return std::make_shared<Core::BatchTask>(std::initializer_list<std::shared_ptr<Core::BaseTask>>{
+		return std::make_shared<Core::StaticBatchTask>(std::initializer_list<std::shared_ptr<Core::BaseTask>>{
 			std::make_shared<InitUaTask>(initContext),
 			CreateResetCounterTask()
 		});

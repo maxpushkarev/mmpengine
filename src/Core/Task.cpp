@@ -38,7 +38,7 @@ namespace MMPEngine::Core
 
 	std::shared_ptr<StreamFlushTask> StreamFlushTask::kInstance = std::make_shared<StreamFlushTask>();
 
-	void BatchTask::OnScheduled(const std::shared_ptr<BaseStream>& stream)
+	void StaticBatchTask::OnScheduled(const std::shared_ptr<BaseStream>& stream)
 	{
 		BaseTask::OnScheduled(stream);
 
@@ -48,13 +48,29 @@ namespace MMPEngine::Core
 		}
 	}
 
-	BatchTask::BatchTask(std::initializer_list<std::shared_ptr<BaseTask>> tasks) : _tasks(tasks)
+	StaticBatchTask::StaticBatchTask(std::initializer_list<std::shared_ptr<BaseTask>> tasks) : _tasks(tasks)
 	{
 	}
 
-	BatchTask::BatchTask(std::vector<std::shared_ptr<BaseTask>>&& tasks) : _tasks(std::move(tasks))
+	StaticBatchTask::StaticBatchTask(std::vector<std::shared_ptr<BaseTask>>&& tasks) : _tasks(std::move(tasks))
 	{
 	}
+
+	DynamicBatchTask::DynamicBatchTask(const std::shared_ptr<DynamicBatchTaskContext>& ctx) : ContextualTask<MMPEngine::Core::DynamicBatchTaskContext>(ctx)
+	{
+	}
+
+	void DynamicBatchTask::OnScheduled(const std::shared_ptr<BaseStream>& stream)
+	{
+		ContextualTask::OnScheduled(stream);
+
+		const auto ctx = GetTaskContext();
+		for (const auto& t : ctx->tasks)
+		{
+			stream->Schedule(t);
+		}
+	}
+
 
 	FunctionalTask::FunctionalTask(Handler&& onScheduleFn, Handler&& runFn, Handler&& onCompleteFn)
 		: _onScheduleFn(std::move(onScheduleFn)), _runFn(std::move(runFn)), _onOnCompleteFn(std::move(onCompleteFn))

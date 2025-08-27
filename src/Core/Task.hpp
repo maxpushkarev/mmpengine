@@ -28,11 +28,11 @@ namespace MMPEngine::Core
 		static std::shared_ptr<BaseTask> kEmpty;
 	};
 
-	class BatchTask final : public BaseTask
+	class StaticBatchTask final : public BaseTask
 	{
 	public:
-		BatchTask(std::initializer_list<std::shared_ptr<BaseTask>> tasks);
-		BatchTask(std::vector<std::shared_ptr<BaseTask>>&& tasks);
+		StaticBatchTask(std::initializer_list<std::shared_ptr<BaseTask>> tasks);
+		StaticBatchTask(std::vector<std::shared_ptr<BaseTask>>&& tasks);
 	protected:
 		void OnScheduled(const std::shared_ptr<BaseStream>& stream) override;
 	private:
@@ -75,6 +75,20 @@ namespace MMPEngine::Core
 	{
 	protected:
 		ContextualTask(const std::shared_ptr<TTaskContext>& taskContext);
+	};
+
+	class DynamicBatchTaskContext : public TaskContext
+	{
+	public:
+		std::vector<std::shared_ptr<BaseTask>> tasks;
+	};
+
+	class DynamicBatchTask final : public ContextualTask<DynamicBatchTaskContext>
+	{
+	public:
+		DynamicBatchTask(const std::shared_ptr<DynamicBatchTaskContext>& ctx);
+	protected:
+		void OnScheduled(const std::shared_ptr<BaseStream>& stream) override;
 	};
 
 	template<typename TTaskContext>
