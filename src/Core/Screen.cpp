@@ -31,6 +31,10 @@ namespace MMPEngine::Core
 		}
 	}
 
+	std::shared_ptr<Screen> Screen::GetUnderlyingScreen()
+	{
+		return std::dynamic_pointer_cast<Screen>(shared_from_this());
+	}
 
 	std::shared_ptr<BaseTask> Screen::CreateInitializationTask()
 	{
@@ -63,7 +67,7 @@ namespace MMPEngine::Core
 					},
 					[](const auto&) {}
 				),
-			CreatePresentationTaskInternal(),
+				ctx->screen->GetUnderlyingScreen()->CreatePresentationTaskInternal(),
 				std::make_shared<FunctionalTask>(
 					[](const auto&)
 					{
@@ -94,8 +98,33 @@ namespace MMPEngine::Core
 				},
 				[](const auto&) {}
 			),
-			CreateStartFrameTaskInternal()
+			ctx->screen->GetUnderlyingScreen()->CreateStartFrameTaskInternal()
 		});
+	}
+
+	std::shared_ptr<ContextualTask<Screen::FrameTaskContext>> Screen::CreateFrameTask()
+	{
+		const auto frameTaskContext = std::make_shared<FrameTaskContextImpl>();
+		frameTaskContext->screen = std::dynamic_pointer_cast<Screen>(shared_from_this());
+		return std::make_shared<FrameTask>(frameTaskContext);
+	}
+
+	Screen::FrameTask::FrameTask(const std::shared_ptr<FrameTaskContextImpl>& ctx) : ContextualTask<MMPEngine::Core::Screen::FrameTaskContext>(ctx)
+	{
+		_startFrame = ctx->screen->CreateStartFrameTask();
+		_endFrame = ctx->screen->CreatePresentationTask();
+	}
+
+	void Screen::FrameTask::OnScheduled(const std::shared_ptr<BaseStream>& stream)
+	{
+		ContextualTask::OnScheduled(stream);
+
+		stream->Schedule(_startFrame);
+		if (const auto internalFrameTask = GetTaskContext()->internalTask)
+		{
+			stream->Schedule(internalFrameTask);
+		}
+		stream->Schedule(_endFrame);
 	}
 
 }

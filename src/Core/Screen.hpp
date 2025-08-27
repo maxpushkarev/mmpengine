@@ -30,14 +30,23 @@ namespace MMPEngine::Core
 			std::optional<Vector4Float> clearColor = std::nullopt;
 		};
 
-		std::shared_ptr<BaseTask> CreateInitializationTask() override;
-		virtual std::shared_ptr<BaseTask> CreatePresentationTask();
-		virtual std::shared_ptr<BaseTask> CreateStartFrameTask();
+		class FrameTaskContext : public Core::TaskContext
+		{
+		public:
+			std::shared_ptr<BaseTask> internalTask;
+		};
 
+		std::shared_ptr<BaseTask> CreateInitializationTask() override;
+		std::shared_ptr<ContextualTask<FrameTaskContext>> CreateFrameTask();
 
 		virtual std::shared_ptr<ColorTargetTexture> GetBackBuffer() const = 0;
 		const Settings& GetSettings() const;
 	protected:
+
+		virtual std::shared_ptr<Core::Screen> GetUnderlyingScreen();
+
+		std::shared_ptr<BaseTask> CreatePresentationTask();
+		std::shared_ptr<BaseTask> CreateStartFrameTask();
 
 		virtual std::shared_ptr<BaseTask> CreateInitializationTaskInternal() = 0;
 		virtual std::shared_ptr<BaseTask> CreatePresentationTaskInternal() = 0;
@@ -46,6 +55,24 @@ namespace MMPEngine::Core
 		Screen(const Settings& settings);
 		Settings _settings;
 	private:
+
+		class FrameTaskContextImpl final : public FrameTaskContext
+		{
+		public:
+			std::shared_ptr<Screen> screen;
+		};
+
+		class FrameTask final : public ContextualTask<FrameTaskContext>
+		{
+		public:
+			FrameTask(const std::shared_ptr<FrameTaskContextImpl>& ctx);
+		protected:
+			void OnScheduled(const std::shared_ptr<BaseStream>& stream) override;
+		private:
+			std::shared_ptr<BaseTask> _startFrame;
+			std::shared_ptr<BaseTask> _endFrame;
+		};
+
 		Core::BaseStream* _streamPtr;
 		bool _readyForPresentation = false;
 	};

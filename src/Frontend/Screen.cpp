@@ -50,14 +50,9 @@ namespace MMPEngine::Frontend
 		return _impl->CreateInitializationTask();
 	}
 
-	std::shared_ptr<Core::BaseTask> Screen::CreateStartFrameTask()
+	std::shared_ptr<Core::Screen> Screen::GetUnderlyingScreen()
 	{
-		return _impl->CreateStartFrameTask();
-	}
-
-	std::shared_ptr<Core::BaseTask> Screen::CreatePresentationTask()
-	{
-		return _impl->CreatePresentationTask();
+		return _impl;
 	}
 
 	std::shared_ptr<Core::ColorTargetTexture> Screen::GetBackBuffer() const
