@@ -128,6 +128,7 @@ namespace MMPEngine::Core
 			std::shared_ptr<const Node> GetNode() const;
             bool IsActive() const override;
 			const Settings& GetSettings() const;
+            Settings::Dynamic& GetDynamicSettings();
 			virtual std::shared_ptr<BaseEntity> GetUniformDataEntity() const;
 			virtual std::shared_ptr<ContextualTask<UpdateDataTaskContext>> CreateTaskToUpdateAndWriteUniformData();
 		protected:

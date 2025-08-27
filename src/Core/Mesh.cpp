@@ -170,6 +170,11 @@ namespace MMPEngine::Core
 		return _settings;
 	}
 
+    Mesh::Renderer::Settings::Dynamic& Mesh::Renderer::GetDynamicSettings()
+    {
+        return _settings.dynamicData;
+    }
+
 	std::shared_ptr<BaseEntity> Mesh::Renderer::GetUniformDataEntity() const
 	{
 		return _uniformBuffer;
