@@ -400,7 +400,7 @@ namespace MMPEngine::Backend::Metal
         ctx->byteSize = GetSettings().byteLength;
         ctx->entity = std::dynamic_pointer_cast<Metal::Buffer>(shared_from_this());
         
-        return std::make_shared<Core::BatchTask>(std::initializer_list<std::shared_ptr<Core::BaseTask>>{
+        return std::make_shared<Core::StaticBatchTask>(std::initializer_list<std::shared_ptr<Core::BaseTask>>{
             std::make_shared<InitTask>(ctx),
             _counterBuffer->CreateInitializationTask(),
             CreateResetCounterTask()
