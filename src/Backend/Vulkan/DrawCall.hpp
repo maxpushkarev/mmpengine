@@ -18,8 +18,7 @@ namespace MMPEngine::Backend::Vulkan
 		class IterationImpl
 		{
 		protected:
-			IterationImpl(const std::shared_ptr<DrawCallsJob>& job, const std::shared_ptr<Core::Camera>& camera, const Item& item);
-			std::shared_ptr<Core::Camera> _camera;
+			IterationImpl(const std::shared_ptr<DrawCallsJob>& job, const Item& item);
 			Item _item;
 			DrawCallsJob* _drawCallsJob;
 			std::vector<VkShaderModule> _shaderModules;
@@ -34,14 +33,12 @@ namespace MMPEngine::Backend::Vulkan
 			Pass& operator=(const Pass&) = delete;
 			Pass& operator=(Pass&&) noexcept = delete;
 			~Pass();
-
 			VkRenderPass GetRenderPass() const;
 			const std::vector<VkAttachmentDescription>& GetAttachmentDescriptions() const;
 
 		private:
 			VkRenderPass _renderPass = VK_NULL_HANDLE;
 			std::shared_ptr<Wrapper::Device> _device;
-
 			std::vector<VkAttachmentDescription> _attachmentDescriptions;
 		};
 
@@ -136,7 +133,7 @@ namespace MMPEngine::Backend::Vulkan
 			};
 
 		public:
-			IterationJob(const std::shared_ptr<DrawCallsJob>& job, const std::shared_ptr<Core::Camera>& camera, const Item& item);
+			IterationJob(const std::shared_ptr<DrawCallsJob>& job, const Item& item);
 			IterationJob(const IterationJob&) = delete;
 			IterationJob(IterationJob&&) noexcept = delete;
 			IterationJob& operator=(const IterationJob&) = delete;
@@ -171,8 +168,8 @@ namespace MMPEngine::Backend::Vulkan
 
 
 	template<typename TCoreMaterial>
-	Camera::DrawCallsJob::IterationJob<TCoreMaterial>::IterationJob(const std::shared_ptr<DrawCallsJob>& job, const std::shared_ptr<Core::Camera>& camera, const Item& item)
-		: IterationImpl(job, camera, item)
+	Camera::DrawCallsJob::IterationJob<TCoreMaterial>::IterationJob(const std::shared_ptr<DrawCallsJob>& job, const Item& item)
+		: IterationImpl(job, item)
 	{
 	}
 
@@ -446,7 +443,7 @@ namespace MMPEngine::Backend::Vulkan
 			multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
 			multisampling.pNext = nullptr;
 			multisampling.flags = 0;
-			multisampling.rasterizationSamples = std::dynamic_pointer_cast<IColorTargetTexture>(iteration->_camera->GetTarget().color.front().tex->GetUnderlyingTexture())->GetSamplesCount();
+			multisampling.rasterizationSamples = std::dynamic_pointer_cast<IColorTargetTexture>(iteration->_drawCallsJob->_camera->GetTarget().color.front().tex->GetUnderlyingTexture())->GetSamplesCount();
 			multisampling.sampleShadingEnable = VK_FALSE;
 			multisampling.minSampleShading = 1.0f;
 			multisampling.pSampleMask = nullptr;
@@ -552,7 +549,7 @@ namespace MMPEngine::Backend::Vulkan
 			colorBlending.logicOpEnable = VK_FALSE;
 			colorBlending.logicOp = VK_LOGIC_OP_COPY;
 
-			colorBlending.attachmentCount = static_cast<std::uint32_t>(iteration->_camera->GetTarget().color.size());
+			colorBlending.attachmentCount = static_cast<std::uint32_t>(iteration->_drawCallsJob->_camera->GetTarget().color.size());
 			colorBlending.pAttachments = blendAttachments.data();
 
 			colorBlending.blendConstants[0] = 0.0f;
@@ -561,7 +558,7 @@ namespace MMPEngine::Backend::Vulkan
 			colorBlending.blendConstants[3] = 0.0f;
 
 
-			const auto size = iteration->_camera->GetTarget().color.front().tex->GetSettings().base.size;
+			const auto size = iteration->_drawCallsJob->_camera->GetTarget().color.front().tex->GetSettings().base.size;
 			VkViewport viewport = { 0.0f, 0.0f, static_cast<std::float_t>(size.x), static_cast<std::float_t>(size.y), 0.0f, 1.0f };
 			VkRect2D scissor = { {0, 0}, { size.x, size.y } };
 
@@ -596,9 +593,7 @@ namespace MMPEngine::Backend::Vulkan
 			pipelineInfo.pTessellationState = VK_NULL_HANDLE;
 			pipelineInfo.layout = iteration->_pipelineLayout;
 			pipelineInfo.renderPass = drawCallsJob->GetPass(pc)->GetRenderPass();
-
-			const auto iterationIt = std::find(drawCallsJob->GetIterations(pc).cbegin(), drawCallsJob->GetIterations(pc).cend(), iteration);
-			pipelineInfo.subpass = static_cast<std::uint32_t>(std::distance(drawCallsJob->GetIterations(pc).cbegin(), iterationIt) + 1);
+			pipelineInfo.subpass = 0;
 
 			const auto pipelineRes = vkCreateGraphicsPipelines(iteration->_device->GetNativeLogical(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &iteration->_pipeline);
 			assert(pipelineRes == VK_SUCCESS);
@@ -618,7 +613,6 @@ namespace MMPEngine::Backend::Vulkan
 
 		const auto tc = this->GetTaskContext();
 
-		vkCmdNextSubpass(this->_specificStreamContext->PopulateCommandsInBuffer()->GetNative(), VK_SUBPASS_CONTENTS_INLINE);
 		vkCmdBindPipeline(this->_specificStreamContext->PopulateCommandsInBuffer()->GetNative(), VK_PIPELINE_BIND_POINT_GRAPHICS, tc->job->_pipeline);
 
 		if constexpr (std::is_base_of_v<Core::MeshMaterial, TCoreMaterial>)

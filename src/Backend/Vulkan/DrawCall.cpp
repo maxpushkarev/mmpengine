@@ -118,7 +118,7 @@ namespace MMPEngine::Backend::Vulkan
 			dsRef.attachment = static_cast<std::uint32_t>(_attachmentDescriptions.size() - 1);
 		}
 
-		auto buildVkSubPassSubscription = [ctx, this, &colorRefs, &dsRef]() -> auto
+		auto buildVkSubPassDescription = [ctx, this, &colorRefs, &dsRef]() -> auto
 		{
 			VkSubpassDescription subPass{};
 
@@ -144,12 +144,7 @@ namespace MMPEngine::Backend::Vulkan
 		};
 
 		std::vector<VkSubpassDescription> subPassDescriptions {};
-		subPassDescriptions.push_back(buildVkSubPassSubscription());
-
-		for (std::size_t i = 0; i < ctx->job->_iterations.size(); ++i)
-		{
-			subPassDescriptions.push_back(buildVkSubPassSubscription());
-		}
+		subPassDescriptions.push_back(buildVkSubPassDescription());
 
 		rpInfo.subpassCount = static_cast<std::uint32_t>(subPassDescriptions.size());
 		rpInfo.pSubpasses = subPassDescriptions.data();
@@ -314,7 +309,7 @@ namespace MMPEngine::Backend::Vulkan
 	{
 		if (std::dynamic_pointer_cast<Core::MeshMaterial>(item.material))
 		{
-			return std::make_shared<IterationJob<Core::MeshMaterial>>(std::const_pointer_cast<DrawCallsJob>(std::dynamic_pointer_cast<const DrawCallsJob>(shared_from_this())), _camera, item);
+			return std::make_shared<IterationJob<Core::MeshMaterial>>(std::const_pointer_cast<DrawCallsJob>(std::dynamic_pointer_cast<const DrawCallsJob>(shared_from_this())), item);
 		}
 
 		return nullptr;
@@ -455,7 +450,7 @@ namespace MMPEngine::Backend::Vulkan
 		}
 	}
 
-	Camera::DrawCallsJob::IterationImpl::IterationImpl(const std::shared_ptr<DrawCallsJob>& job, const std::shared_ptr<Core::Camera>& camera, const Item& item) : _camera(camera), _item(item), _drawCallsJob(job.get())
+	Camera::DrawCallsJob::IterationImpl::IterationImpl(const std::shared_ptr<DrawCallsJob>& job, const Item& item) : _item(item), _drawCallsJob(job.get())
 	{
 	}
 }
