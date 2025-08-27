@@ -93,15 +93,15 @@ namespace MMPEngine::Core
 				std::optional<Data> precomputed = std::nullopt;
 			};
 		private:
-			class InitTaskContext final : public TaskContext
+			class RendererTaskContext final : public TaskContext
 			{
 			public:
 				std::shared_ptr<Renderer> renderer;
 			};
-			class InitTask final : public ContextualTask<InitTaskContext>
+			class InitTask final : public ContextualTask<RendererTaskContext>
 			{
 			public:
-				InitTask(const std::shared_ptr<InitTaskContext>& ctx);
+				InitTask(const std::shared_ptr<RendererTaskContext>& ctx);
 				void OnScheduled(const std::shared_ptr<BaseStream>& stream) override;
 			};
 
@@ -126,6 +126,7 @@ namespace MMPEngine::Core
 			std::shared_ptr<BaseTask> CreateInitializationTask() override;
 			std::shared_ptr<const Mesh> GetMesh() const;
 			std::shared_ptr<const Node> GetNode() const;
+            bool IsActive() const override;
 			const Settings& GetSettings() const;
 			virtual std::shared_ptr<BaseEntity> GetUniformDataEntity() const;
 			virtual std::shared_ptr<ContextualTask<UpdateDataTaskContext>> CreateTaskToUpdateAndWriteUniformData();

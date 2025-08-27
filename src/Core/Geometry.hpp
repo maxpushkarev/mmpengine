@@ -211,6 +211,9 @@ namespace MMPEngine::Core
 		IGeometryRenderer(IGeometryRenderer&&) noexcept = delete;
 		IGeometryRenderer& operator=(const IGeometryRenderer&) = delete;
 		IGeometryRenderer& operator=(IGeometryRenderer&&) noexcept = delete;
+        
+        virtual bool IsActive() const = 0;
+        
 	protected:
 		IGeometryRenderer();
 		virtual ~IGeometryRenderer();

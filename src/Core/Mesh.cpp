@@ -118,7 +118,7 @@ namespace MMPEngine::Core
 
 	std::shared_ptr<BaseTask> Mesh::Renderer::CreateInitializationTask()
 	{
-		const auto ctx = std::make_shared<InitTaskContext>();
+		const auto ctx = std::make_shared<RendererTaskContext>();
 		ctx->renderer = shared_from_this();
 		return std::make_shared<Core::BatchTask>(std::initializer_list<std::shared_ptr<Core::BaseTask>>{
 			std::make_shared<InitTask>(ctx),
@@ -138,7 +138,7 @@ namespace MMPEngine::Core
 		});
 	}
 
-	Mesh::Renderer::InitTask::InitTask(const std::shared_ptr<InitTaskContext>& ctx) : ContextualTask<MMPEngine::Core::Mesh::Renderer::InitTaskContext>(ctx)
+	Mesh::Renderer::InitTask::InitTask(const std::shared_ptr<RendererTaskContext>& ctx) : ContextualTask<MMPEngine::Core::Mesh::Renderer::RendererTaskContext>(ctx)
 	{
 	}
 
@@ -174,6 +174,11 @@ namespace MMPEngine::Core
 	{
 		return _uniformBuffer;
 	}
+
+    bool Mesh::Renderer::IsActive() const
+    {
+        return _settings.dynamicData.instancesCount > 0;
+    }
 
 	void Mesh::Renderer::FillData(const std::shared_ptr<GlobalContext>& globalContext, Data& data) const
 	{

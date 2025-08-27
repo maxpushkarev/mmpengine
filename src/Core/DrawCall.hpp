@@ -20,6 +20,25 @@ namespace MMPEngine::Core
 		DrawCallsJob(const std::shared_ptr<Camera>& camera, std::vector<Item>&& items);
 		std::shared_ptr<BaseTask> CreateInitializationTask() override;
 		std::shared_ptr<BaseTask> CreateExecutionTask() override;
+    private:
+        class ExecutionTaskContext : public TaskContext
+        {
+        public:
+            std::shared_ptr<DrawCallsJob> job;
+        };
+        
+        class ExecutionTask final : public ContextualTask<ExecutionTaskContext>
+        {
+        public:
+            ExecutionTask(const std::shared_ptr<ExecutionTaskContext>& ctx);
+        protected:
+            void OnScheduled(const std::shared_ptr<BaseStream>& stream) override;
+        private:
+            std::shared_ptr<BaseTask> _iterationsStart;
+            std::shared_ptr<BaseTask> _iterationsFinish;
+            std::vector<std::shared_ptr<BaseTask>> _iterationExecutionTasks;
+        };
+        
 	protected:
 		virtual std::shared_ptr<BaseTask> CreateInitializationTaskInternal();
 		virtual std::shared_ptr<BaseTask> CreateTaskForIterationsStart() = 0;

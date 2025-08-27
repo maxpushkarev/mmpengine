@@ -29,8 +29,6 @@ namespace MMPEngine::Core
 						thisJob->_iterations.push_back(thisJob->BuildIteration(item));
 						stream->Schedule(thisJob->_iterations.back()->CreateInitializationTask());
 					}
-
-					thisJob->_items.clear();
 				},
 				FunctionalTask::Handler{},
 				FunctionalTask::Handler{}
@@ -40,19 +38,41 @@ namespace MMPEngine::Core
 
 	std::shared_ptr<BaseTask> Camera::DrawCallsJob::CreateExecutionTask()
 	{
-		std::vector<std::shared_ptr<BaseTask>> iterationExecutionTasks {};
-		iterationExecutionTasks.reserve(_iterations.size());
-		std::transform(_iterations.cbegin(), _iterations.cend(), std::back_inserter(iterationExecutionTasks), [](const auto& i)
-		{
-			return i->CreateExecutionTask();
-		});
-
-		return std::make_shared<BatchTask>(std::initializer_list<std::shared_ptr<BaseTask>>{
-			CreateTaskForIterationsStart(),
-			std::make_shared<BatchTask>(std::move(iterationExecutionTasks)),
-			CreateTaskForIterationsFinish()
-		});
+        const auto ctx = std::make_shared<ExecutionTaskContext>();
+        ctx->job = std::dynamic_pointer_cast<DrawCallsJob>(shared_from_this());
+        return std::make_shared<ExecutionTask>(ctx);
 	}
+
+    Camera::DrawCallsJob::ExecutionTask::ExecutionTask(const std::shared_ptr<ExecutionTaskContext>& ctx) : ContextualTask<ExecutionTaskContext>(ctx)
+    {
+        _iterationsStart = ctx->job->CreateTaskForIterationsStart();
+        _iterationsFinish = ctx->job->CreateTaskForIterationsFinish();
+        
+        _iterationExecutionTasks.reserve(ctx->job->_iterations.size());
+        std::transform(ctx->job->_iterations.cbegin(), ctx->job->_iterations.cend(), std::back_inserter(_iterationExecutionTasks), [](const auto& i)
+        {
+            return i->CreateExecutionTask();
+        });
+    }
+    
+    void Camera::DrawCallsJob::ExecutionTask::OnScheduled(const std::shared_ptr<BaseStream>& stream)
+    {
+        ContextualTask::OnScheduled(stream);
+        
+        stream->Schedule(_iterationsStart);
+        
+        const auto job = GetTaskContext()->job;
+        
+        for(std::size_t i = 0; i < job->_items.size(); ++i)
+        {
+            if(job->_items.at(i).renderer->IsActive())
+            {
+                stream->Schedule(_iterationExecutionTasks.at(i));
+            }
+        }
+        
+        stream->Schedule(_iterationsFinish);
+    }
 
 	std::shared_ptr<BaseTask> Camera::DrawCallsJob::CreateTaskForIterationsFinish()
 	{
