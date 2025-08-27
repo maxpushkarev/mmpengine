@@ -66,8 +66,7 @@ namespace MMPEngine::Backend::Metal
             public:
                 TaskContext(const std::shared_ptr<IterationJob>& job);
                 std::shared_ptr<IterationJob> job;
-                std::shared_ptr<Core::Mesh::Renderer> meshRenderer;
-                std::shared_ptr<const Metal::Mesh> mesh;
+                std::shared_ptr<Metal::Mesh::Renderer> renderer;
             };
 
             class InitTask final : public Task<TaskContext>
@@ -334,12 +333,12 @@ namespace MMPEngine::Backend::Metal
             rtPipelineDesc->setAlphaToOneEnabled(false);
             rtPipelineDesc->setAlphaToCoverageEnabled(matSettings.alphaToCoverage == Core::RenderingMaterial::Settings::AlphaToCoverage::On);
             
-            rtPipelineDesc->setInputPrimitiveTopology(ctx->mesh->GetNativePrimitiveTopologyClass());
+            rtPipelineDesc->setInputPrimitiveTopology(ctx->renderer->GetNativePrimitiveTopologyClass());
             
             rtPipelineDesc->setShaderValidation(this->_specificGlobalContext->settings.isDebug ? MTL::ShaderValidationEnabled : MTL::ShaderValidationDisabled);
             rtPipelineDesc->setRasterizationEnabled(true);
             
-            rtPipelineDesc->setVertexDescriptor(ctx->mesh->GetNativeVertexDescriptor());
+            rtPipelineDesc->setVertexDescriptor(ctx->renderer->GetNativeVertexDescriptor());
             
             NS::Error* err = nullptr;
             iteration->_pipelineState = NS::TransferPtr(this->_specificGlobalContext->device->GetNative()->newRenderPipelineState(rtPipelineDesc, &err));
@@ -422,7 +421,7 @@ namespace MMPEngine::Backend::Metal
                 encoder->setStencilReferenceValue(iteration->_stencilRefValue.value());
             }
             
-            const auto& vbs = tc->mesh->GetNativeVertexBuffers();
+            const auto& vbs = tc->renderer->GetNativeVertexBuffers();
             
             for(std::size_t i = 0; i < vbs.size(); ++i)
             {
@@ -439,17 +438,17 @@ namespace MMPEngine::Backend::Metal
                 encoder->setFragmentBuffer(bufferData.first->GetNative(), 0U, static_cast<NS::UInteger>(i));
             }
             
-            const auto& subsets = tc->mesh->GetSubsets();
+            const auto& subsets = tc->renderer->GetMesh()->GetSubsets();
 
             for (const auto& ss : subsets)
             {
                 encoder->drawIndexedPrimitives(
-                    tc->mesh->GetNativePrimitiveType(),
+                    tc->renderer->GetNativePrimitiveType(),
                     ss.indexCount,
-                    tc->mesh->GetNativeIndexType(),
-                    tc->mesh->GetNativeIndexBuffer()->GetNative(),
+                    tc->renderer->GetNativeIndexType(),
+                    tc->renderer->GetNativeIndexBuffer()->GetNative(),
                     ss.indexStart,
-                    static_cast<NS::UInteger>(tc->meshRenderer->GetSettings().dynamicData.instancesCount),
+                    static_cast<NS::UInteger>(tc->renderer->GetSettings().dynamicData.instancesCount),
                     ss.baseVertex,
                     0
                 );
@@ -462,8 +461,9 @@ namespace MMPEngine::Backend::Metal
     {
         if constexpr (std::is_base_of_v<Core::MeshMaterial, TCoreMaterial>)
         {
-            meshRenderer = std::dynamic_pointer_cast<Core::Mesh::Renderer>(job->_item.renderer);
-            mesh = std::dynamic_pointer_cast<const Metal::Mesh>(meshRenderer->GetMesh()->GetUnderlyingMesh());
+            renderer = std::dynamic_pointer_cast<Metal::Mesh::Renderer>(
+                std::dynamic_pointer_cast<Core::Mesh::Renderer>(job->_item.renderer)->GetUnderlyingRenderer()
+            );
         }
     }
 }

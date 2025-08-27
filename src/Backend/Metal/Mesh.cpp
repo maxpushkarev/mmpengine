@@ -8,6 +8,11 @@ namespace MMPEngine::Backend::Metal
     {
     }
 
+    std::shared_ptr<Core::BaseTask> Mesh::CreateInternalInitializationTask()
+    {
+        return Core::BaseTask::kEmpty;
+    }
+
     std::shared_ptr<Core::VertexBuffer> Mesh::CreateVertexBuffer(const Core::VertexBufferPrototype* vbPrototype)
     {
         return std::make_shared<VertexBuffer>(Core::InputAssemblerBuffer::Settings{
@@ -22,26 +27,26 @@ namespace MMPEngine::Backend::Metal
             });
     }
 
-    std::shared_ptr<Core::BaseTask> Mesh::CreateInternalInitializationTask()
+    std::shared_ptr<Core::BaseTask> Mesh::Renderer::CreateInternalInitializationTask()
     {
         const auto tc = std::make_shared<InitTaskContext>();
-        tc->mesh = std::dynamic_pointer_cast<Mesh>(shared_from_this());
+        tc->entity = std::dynamic_pointer_cast<Renderer>(shared_from_this());
         return std::make_shared<InitTask>(tc);
     }
 
-    std::shared_ptr<Metal::Buffer> Mesh::GetIndexBuffer() const
+    std::shared_ptr<Metal::Buffer> Mesh::Renderer::GetIndexBuffer() const
     {
         return _indexBuffer;
     }
 
-    const std::vector<std::shared_ptr<Metal::Buffer>>& Mesh::GetVertexBuffers() const
+    const std::vector<std::shared_ptr<Metal::Buffer>>& Mesh::Renderer::GetVertexBuffers() const
     {
         return _vertexBuffers;
     }
 
-    MTL::IndexType Mesh::GetNativeIndexType() const
+    MTL::IndexType Mesh::Renderer::GetNativeIndexType() const
     {
-        switch (_indexBufferInfo.format) {
+        switch (GetMesh()->GetIndexBufferInfo().format) {
             case Core::IndexBufferPrototype::Format::Uint16:
                 return MTL::IndexTypeUInt16;
             case Core::IndexBufferPrototype::Format::Uint32:
@@ -52,9 +57,9 @@ namespace MMPEngine::Backend::Metal
         
     }
     
-    MTL::PrimitiveType Mesh::GetNativePrimitiveType() const
+    MTL::PrimitiveType Mesh::Renderer::GetNativePrimitiveType() const
     {
-        switch (const auto topology = GetTopology())
+        switch (const auto topology = GetMesh()->GetTopology())
         {
         case Core::GeometryPrototype::Topology::Triangles:
             return MTL::PrimitiveTypeTriangle;
@@ -63,9 +68,9 @@ namespace MMPEngine::Backend::Metal
         }
     }
 
-    MTL::PrimitiveTopologyClass Mesh::GetNativePrimitiveTopologyClass() const
+    MTL::PrimitiveTopologyClass Mesh::Renderer::GetNativePrimitiveTopologyClass() const
     {
-        switch (const auto topology = GetTopology())
+        switch (const auto topology = GetMesh()->GetTopology())
         {
         case Core::GeometryPrototype::Topology::Triangles:
             return MTL::PrimitiveTopologyClassTriangle;
@@ -74,22 +79,22 @@ namespace MMPEngine::Backend::Metal
         }
     }
 
-    MTL::VertexDescriptor* Mesh::GetNativeVertexDescriptor() const
+    MTL::VertexDescriptor* Mesh::Renderer::GetNativeVertexDescriptor() const
     {
         return _mtlVertexDescriptor.get();
     }
 
-    std::shared_ptr<Metal::Buffer> Mesh::GetNativeIndexBuffer() const
+    std::shared_ptr<Metal::Buffer> Mesh::Renderer::GetNativeIndexBuffer() const
     {
         return _indexBuffer;
     }
 
-    const std::vector<std::shared_ptr<Metal::Buffer>>& Mesh::GetNativeVertexBuffers() const
+    const std::vector<std::shared_ptr<Metal::Buffer>>& Mesh::Renderer::GetNativeVertexBuffers() const
     {
         return _vertexBuffers;
     }
 
-    MTL::VertexFormat Mesh::GetVertexFormat(Core::VertexBufferPrototype::Format format)
+    MTL::VertexFormat Mesh::Renderer::GetVertexFormat(Core::VertexBufferPrototype::Format format)
     {
         switch (format)
         {
@@ -119,30 +124,30 @@ namespace MMPEngine::Backend::Metal
 
 
 
-    Mesh::InitTask::InitTask(const std::shared_ptr<InitTaskContext>& ctx) : Task(ctx)
+    Mesh::Renderer::InitTask::InitTask(const std::shared_ptr<InitTaskContext>& ctx) : Task(ctx)
     {
     }
 
-    void Mesh::InitTask::Run(const std::shared_ptr<Core::BaseStream>& stream)
+    void Mesh::Renderer::InitTask::Run(const std::shared_ptr<Core::BaseStream>& stream)
     {
         Task::Run(stream);
 
-        const auto mesh = GetTaskContext()->mesh;
-        assert(mesh);
+        const auto renderer = GetTaskContext()->entity;
+        assert(renderer);
         
-        mesh->_mtlVertexDescriptor = NS::TransferPtr(MTL::VertexDescriptor::alloc()->init());
+        renderer->_mtlVertexDescriptor = NS::TransferPtr(MTL::VertexDescriptor::alloc()->init());
         
-        for (const auto& vbInfos : mesh->_vertexBufferInfos)
+        for (const auto& vbInfos : renderer->GetMesh()->GetAllVertexBufferInfos())
         {
             for (std::size_t semanticIndex = 0; semanticIndex < vbInfos.second.size(); ++semanticIndex)
             {
                 const auto& vbInfo = vbInfos.second.at(semanticIndex);
                 const auto vb = std::dynamic_pointer_cast<Buffer>(vbInfo.ptr->GetUnderlyingBuffer());
                 
-                const auto bufferIndex = static_cast<NS::UInteger>(mesh->_vertexBuffers.size());
+                const auto bufferIndex = static_cast<NS::UInteger>(renderer->_vertexBuffers.size());
                 
-                auto attribute = mesh->_mtlVertexDescriptor ->attributes()->object(bufferIndex);
-                auto layout = mesh->_mtlVertexDescriptor->layouts()->object(bufferIndex);
+                auto attribute = renderer->_mtlVertexDescriptor ->attributes()->object(bufferIndex);
+                auto layout = renderer->_mtlVertexDescriptor->layouts()->object(bufferIndex);
                 
                 attribute->setFormat(GetVertexFormat(vbInfo.format));
                 attribute->setOffset(0U);
@@ -153,14 +158,14 @@ namespace MMPEngine::Backend::Metal
                 layout->setStride(static_cast<NS::UInteger>(vbInfo.stride));
                 
                 assert(vb);
-                mesh->_vertexBuffers.push_back(vb);
+                renderer->_vertexBuffers.push_back(vb);
             }
         }
 
-        const auto& ibInfo = mesh->_indexBufferInfo;
+        const auto& ibInfo = renderer->GetMesh()->GetIndexBufferInfo();
         const auto ib = std::dynamic_pointer_cast<Buffer>(ibInfo.ptr->GetUnderlyingBuffer());
         assert(ib);
 
-        mesh->_indexBuffer = ib;
+        renderer->_indexBuffer = ib;
     }
 }
