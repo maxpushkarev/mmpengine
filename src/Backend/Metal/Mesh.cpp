@@ -137,30 +137,25 @@ namespace MMPEngine::Backend::Metal
         
         renderer->_mtlVertexDescriptor = NS::TransferPtr(MTL::VertexDescriptor::alloc()->init());
         
-        for (const auto& vbInfos : renderer->GetMesh()->GetAllVertexBufferInfos())
-        {
-            for (std::size_t semanticIndex = 0; semanticIndex < vbInfos.second.size(); ++semanticIndex)
-            {
-                const auto& vbInfo = vbInfos.second.at(semanticIndex);
-                const auto vb = std::dynamic_pointer_cast<Buffer>(vbInfo.ptr->GetUnderlyingBuffer());
-                
-                const auto bufferIndex = static_cast<NS::UInteger>(renderer->_vertexBuffers.size());
-                
-                auto attribute = renderer->_mtlVertexDescriptor ->attributes()->object(bufferIndex);
-                auto layout = renderer->_mtlVertexDescriptor->layouts()->object(bufferIndex);
-                
-                attribute->setFormat(GetVertexFormat(vbInfo.format));
-                attribute->setOffset(0U);
-                attribute->setBufferIndex(bufferIndex);
-                
-                layout->setStepRate(1);
-                layout->setStepFunction(MTL::VertexStepFunctionPerVertex);
-                layout->setStride(static_cast<NS::UInteger>(vbInfo.stride));
-                
-                assert(vb);
-                renderer->_vertexBuffers.push_back(vb);
-            }
-        }
+        renderer->ForEachAvailableVertexAttributes([&renderer](const auto& vbInfo, const auto&){
+            const auto vb = std::dynamic_pointer_cast<Buffer>(vbInfo.ptr->GetUnderlyingBuffer());
+            
+            const auto bufferIndex = static_cast<NS::UInteger>(renderer->_vertexBuffers.size());
+            
+            auto attribute = renderer->_mtlVertexDescriptor ->attributes()->object(bufferIndex);
+            auto layout = renderer->_mtlVertexDescriptor->layouts()->object(bufferIndex);
+            
+            attribute->setFormat(GetVertexFormat(vbInfo.format));
+            attribute->setOffset(0U);
+            attribute->setBufferIndex(bufferIndex);
+            
+            layout->setStepRate(1);
+            layout->setStepFunction(MTL::VertexStepFunctionPerVertex);
+            layout->setStride(static_cast<NS::UInteger>(vbInfo.stride));
+            
+            assert(vb);
+            renderer->_vertexBuffers.push_back(vb);
+        });
 
         const auto& ibInfo = renderer->GetMesh()->GetIndexBufferInfo();
         const auto ib = std::dynamic_pointer_cast<Buffer>(ibInfo.ptr->GetUnderlyingBuffer());
