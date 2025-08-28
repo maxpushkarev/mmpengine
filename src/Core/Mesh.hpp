@@ -1,7 +1,7 @@
 #pragma once
 #include <map>
 #include <optional>
-#include <variant>
+#include <type_traits>
 #include <Core/Base.hpp>
 #include <Core/Geometry.hpp>
 #include <Core/Context.hpp>
@@ -60,7 +60,7 @@ namespace MMPEngine::Core
 
 	public:
 		virtual std::shared_ptr<const Mesh> GetUnderlyingMesh() const;
-		virtual const VertexBufferInfo& GetVertexBufferInfo(const VertexBufferPrototype::Attribute& attribute) const;
+		virtual const VertexBufferInfo& GetVertexBufferInfo(const GeometryPrototype::VertexAttribute& attribute) const;
 		virtual const std::map<VertexBufferPrototype::Semantics, std::vector<VertexBufferInfo>>& GetAllVertexBufferInfos() const;
 		virtual const IndexBufferInfo& GetIndexBufferInfo() const;
 		virtual const std::vector<GeometryPrototype::Subset>& GetSubsets() const;
@@ -79,6 +79,7 @@ namespace MMPEngine::Core
 				struct Static final
 				{
 					bool manageUniformData = true;
+					std::optional<std::vector<GeometryPrototype::VertexAttribute>> requiredMeshAttributes = std::nullopt;
 				};
 				struct Dynamic final
 				{
@@ -136,6 +137,10 @@ namespace MMPEngine::Core
 		protected:
 			virtual std::shared_ptr<UniformBuffer<Data>> CreateUniformBuffer() = 0;
 			virtual std::shared_ptr<BaseTask> CreateInternalInitializationTask() = 0;
+
+			template<typename TAttributeCallback, typename = std::enable_if_t<std::is_invocable_v<TAttributeCallback, const VertexBufferInfo&, const GeometryPrototype::VertexAttribute&>>>
+			void ForEachAvailableVertexAttributes(const TAttributeCallback&) const;
+
 			Settings _settings;
 		private:
 			std::shared_ptr<Mesh> _mesh;
@@ -144,4 +149,31 @@ namespace MMPEngine::Core
 			std::shared_ptr<ContextualTask<UniformBuffer<Data>::WriteTaskContext>> _uniformBufferWriteTask;
 		};
 	};
+
+	template<typename TAttributeCallback, typename>
+	void Mesh::Renderer::ForEachAvailableVertexAttributes(const TAttributeCallback& callback) const
+	{
+		for (const auto& vbInfos : this->GetMesh()->GetAllVertexBufferInfos())
+		{
+			const auto semantics = vbInfos.first;
+			std::size_t resultSemanticIndex = 0;
+
+			for (std::size_t i = 0; i  < vbInfos.second.size(); ++i)
+			{
+				const auto sourceAttr = GeometryPrototype::VertexAttribute{ semantics, i };
+
+				if (this->_settings.staticData.requiredMeshAttributes.has_value())
+				{
+					const auto& requiredAttr = this->_settings.staticData.requiredMeshAttributes.value();
+					if (std::find(requiredAttr.cbegin(), requiredAttr.cend(), sourceAttr) == requiredAttr.cend())
+					{
+						continue;
+					}
+				}
+
+				std::invoke(callback, vbInfos.second.at(i), GeometryPrototype::VertexAttribute{ semantics, resultSemanticIndex });
+				++resultSemanticIndex;
+			}
+		}
+	}
 }

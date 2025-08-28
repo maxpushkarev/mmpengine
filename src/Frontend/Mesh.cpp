@@ -65,7 +65,7 @@ namespace MMPEngine::Frontend
 		return _impl->GetSubsets();
 	}
 
-	const Mesh::VertexBufferInfo& Mesh::GetVertexBufferInfo(const Core::VertexBufferPrototype::Attribute& attribute) const
+	const Mesh::VertexBufferInfo& Mesh::GetVertexBufferInfo(const Core::GeometryPrototype::VertexAttribute& attribute) const
 	{
 		return _impl->GetVertexBufferInfo(attribute);
 	}

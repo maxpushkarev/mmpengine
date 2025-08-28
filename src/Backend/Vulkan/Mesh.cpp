@@ -44,7 +44,7 @@ namespace MMPEngine::Backend::Vulkan
 		return _indexType;	
 	}
 
-	std::shared_ptr<Vulkan::Buffer> Mesh::Renderer::GetIndexBuffer() const
+	std::shared_ptr<Vulkan::Buffer> Mesh::Renderer::GetIndexBufferPointer() const
 	{
 		return _indexBuffer;
 	}
@@ -52,6 +52,11 @@ namespace MMPEngine::Backend::Vulkan
 	const std::vector<VkBuffer>& Mesh::Renderer::GetVertexBuffers() const
 	{
 		return _vertexBuffers;
+	}
+
+	const std::vector<std::shared_ptr<Vulkan::Buffer>>& Mesh::Renderer::GetVertexBufferPointers() const
+	{
+		return _vertexBufferPointers;
 	}
 
 	const std::vector<VkVertexInputAttributeDescription>& Mesh::Renderer::GetVertexAttributeDescriptions() const
@@ -86,32 +91,31 @@ namespace MMPEngine::Backend::Vulkan
 		const auto renderer = GetTaskContext()->renderer;
 		assert(renderer);
 
+
 		std::uint32_t bindingIndex = 0;
-		for (const auto& vbInfos : renderer->GetMesh()->GetAllVertexBufferInfos())
+
+		renderer->ForEachAvailableVertexAttributes([&bindingIndex, &renderer](const auto& vbInfo, const auto&)
 		{
-			for (std::size_t semanticIndex = 0; semanticIndex < vbInfos.second.size(); ++semanticIndex)
-			{
-				const auto& vbInfo = vbInfos.second.at(semanticIndex);
 				const auto vb = std::dynamic_pointer_cast<Buffer>(vbInfo.ptr->GetUnderlyingBuffer());
 				assert(vb);
 				renderer->_vertexBuffers.push_back(vb->GetDescriptorBufferInfo().buffer);
+				renderer->_vertexBufferPointers.push_back(vb);
 
 				VkVertexInputBindingDescription binding{};
 				binding.binding = bindingIndex++;
 				binding.stride = static_cast<std::uint32_t>(vbInfo.stride);
 				binding.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 
-				VkVertexInputAttributeDescription attr {};
+				VkVertexInputAttributeDescription attrDesc{};
 
-				attr.location = binding.binding;
-				attr.binding = binding.binding;
-				attr.offset = 0;
-				attr.format = GetVertexBufferFormat(vbInfo.format);
+				attrDesc.location = binding.binding;
+				attrDesc.binding = binding.binding;
+				attrDesc.offset = 0;
+				attrDesc.format = GetVertexBufferFormat(vbInfo.format);
 
 				renderer->_bindingDescriptions.push_back(binding);
-				renderer->_attributeDescriptions.push_back(attr);
-			}
-		}
+				renderer->_attributeDescriptions.push_back(attrDesc);
+		});
 
 		renderer->_vertexBufferOffsets.resize(renderer->_vertexBuffers.size(), 0);
 

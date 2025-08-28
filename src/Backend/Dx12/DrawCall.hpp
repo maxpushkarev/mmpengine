@@ -408,17 +408,14 @@ namespace MMPEngine::Backend::Dx12
 
 		if constexpr (std::is_base_of_v<Core::MeshMaterial, TCoreMaterial>)
 		{
-			const auto& ibInfo = ctx->renderer->GetMesh()->GetIndexBufferInfo();
-			_switchStateTasks.push_back(std::dynamic_pointer_cast<Dx12::BaseEntity>(ibInfo.ptr->GetUnderlyingBuffer())->CreateSwitchStateTask(D3D12_RESOURCE_STATE_GENERIC_READ));
+			const auto& ib = ctx->renderer->GetIndexBufferPointer();
+			_switchStateTasks.push_back(ib->CreateSwitchStateTask(D3D12_RESOURCE_STATE_GENERIC_READ));
 
-			const auto& allBufferInfos = ctx->renderer->GetMesh()->GetAllVertexBufferInfos();
+			const auto& allVertexBuffers = ctx->renderer->GetVertexBufferPointers();
 
-			for(const auto& s2vbs : allBufferInfos)
+			for(const auto& vb : allVertexBuffers)
 			{
-				for(const auto& vbInfo : s2vbs.second)
-				{
-					_switchStateTasks.push_back(std::dynamic_pointer_cast<Dx12::BaseEntity>(vbInfo.ptr->GetUnderlyingBuffer())->CreateSwitchStateTask(D3D12_RESOURCE_STATE_GENERIC_READ));
-				}
+				_switchStateTasks.push_back(vb->CreateSwitchStateTask(D3D12_RESOURCE_STATE_GENERIC_READ));
 			}
 
 			_impl = std::make_shared<Impl>(ctx);

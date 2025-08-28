@@ -20,8 +20,9 @@ namespace MMPEngine::Backend::Vulkan
 			const std::vector<VkVertexInputBindingDescription>& GetVertexBindingDescriptions() const;
 			const std::vector<VkVertexInputAttributeDescription>& GetVertexAttributeDescriptions() const;
 			VkIndexType GetIndexType() const;
-			std::shared_ptr<Vulkan::Buffer> GetIndexBuffer() const;
+			std::shared_ptr<Vulkan::Buffer> GetIndexBufferPointer() const;
 			const std::vector<VkBuffer>& GetVertexBuffers() const;
+			const std::vector<std::shared_ptr<Vulkan::Buffer>>& GetVertexBufferPointers() const;
 			const std::vector<VkDeviceSize>& GetVertexBuffersOffsets() const;
 
 		protected:
@@ -50,6 +51,7 @@ namespace MMPEngine::Backend::Vulkan
 			VkIndexType _indexType = VK_INDEX_TYPE_UINT16;
 			std::shared_ptr<Vulkan::Buffer> _indexBuffer;
 			std::vector<VkBuffer> _vertexBuffers;
+			std::vector<std::shared_ptr<Vulkan::Buffer>> _vertexBufferPointers;
 			std::vector<VkDeviceSize> _vertexBufferOffsets;
 		};
 

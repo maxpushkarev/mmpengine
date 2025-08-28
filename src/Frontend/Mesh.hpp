@@ -11,7 +11,7 @@ namespace MMPEngine::Frontend
 		std::shared_ptr<const Core::Mesh> GetUnderlyingMesh() const override;
 
 		const std::map<Core::VertexBufferPrototype::Semantics, std::vector<VertexBufferInfo>>& GetAllVertexBufferInfos() const override;
-		const VertexBufferInfo& GetVertexBufferInfo(const Core::VertexBufferPrototype::Attribute& semantics) const override;
+		const VertexBufferInfo& GetVertexBufferInfo(const Core::GeometryPrototype::VertexAttribute& attribute) const override;
 		const IndexBufferInfo& GetIndexBufferInfo() const override;
 		const std::vector<Core::GeometryPrototype::Subset>& GetSubsets() const override;
 		Core::GeometryPrototype::Topology GetTopology() const override;

@@ -79,12 +79,6 @@ namespace MMPEngine::Core
 			BaseGeometryBufferPrototype::Settings base {};
 		};
 
-		struct Attribute
-		{
-			Semantics type;
-			std::size_t index;
-		};
-
 		VertexBufferPrototype(const VBSettings& vb);
 		virtual Format GetFormat() const = 0;
 		const VBSettings& GetVBSettings() const;
@@ -190,6 +184,15 @@ namespace MMPEngine::Core
 			std::uint32_t indexCount = 0;
 			std::uint32_t indexStart = 0;
 			std::uint32_t baseVertex = 0;
+		};
+
+		struct VertexAttribute
+		{
+			VertexBufferPrototype::Semantics type;
+			std::size_t index;
+
+			bool operator==(const VertexAttribute& rhs) const;
+			bool operator!=(const VertexAttribute& rhs) const;
 		};
 
 		enum class Topology : std::uint8_t

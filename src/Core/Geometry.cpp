@@ -219,6 +219,16 @@ namespace MMPEngine::Core
 		return GeometryBufferPrototype::GetStride();
 	}
 
+	bool GeometryPrototype::VertexAttribute::operator==(const VertexAttribute& rhs) const
+	{
+		return (type == rhs.type && index == rhs.index);
+	}
+
+	bool GeometryPrototype::VertexAttribute::operator!=(const VertexAttribute& rhs) const
+	{
+		return !(operator==(rhs));
+	}
+
 	GeometryPrototype::GeometryPrototype() = default;
 	GeometryPrototype::~GeometryPrototype() = default;
 	GeometryPrototype::GeometryPrototype(GeometryPrototype&&) noexcept = default;

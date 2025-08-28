@@ -96,7 +96,7 @@ namespace MMPEngine::Core
 		return shared_from_this();
 	}
 
-	const Mesh::VertexBufferInfo& Mesh::GetVertexBufferInfo(const VertexBufferPrototype::Attribute& attribute) const
+	const Mesh::VertexBufferInfo& Mesh::GetVertexBufferInfo(const GeometryPrototype::VertexAttribute& attribute) const
 	{
 		return _vertexBufferInfos.at(attribute.type).at(attribute.index);
 	}

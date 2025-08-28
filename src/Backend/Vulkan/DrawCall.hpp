@@ -216,23 +216,20 @@ namespace MMPEngine::Backend::Vulkan
 
 		if constexpr (std::is_base_of_v<Core::MeshMaterial, TCoreMaterial>)
 		{
-			const auto& ibInfo = ctx->renderer->GetMesh()->GetIndexBufferInfo();
-			drawCallsJob->GetMemoryBarrierTasks(pc).push_back(std::dynamic_pointer_cast<Vulkan::Buffer>(ibInfo.ptr->GetUnderlyingBuffer())->CreateMemoryBarrierTask(
+			const auto& ibInfo = ctx->renderer->GetIndexBufferPointer();
+			drawCallsJob->GetMemoryBarrierTasks(pc).push_back(ibInfo->CreateMemoryBarrierTask(
 				VK_ACCESS_MEMORY_WRITE_BIT | VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_TRANSFER_WRITE_BIT | VK_ACCESS_TRANSFER_READ_BIT,
 				VK_ACCESS_INDEX_READ_BIT
 			));
 
-			const auto& allBufferInfos = ctx->renderer->GetMesh()->GetAllVertexBufferInfos();
+			const auto& allVertexBuffers = ctx->renderer->GetVertexBufferPointers();
 
-			for (const auto& s2vbs : allBufferInfos)
+			for (const auto& vb : allVertexBuffers)
 			{
-				for (const auto& vbInfo : s2vbs.second)
-				{
-					drawCallsJob->GetMemoryBarrierTasks(pc).push_back(std::dynamic_pointer_cast<Vulkan::Buffer>(vbInfo.ptr->GetUnderlyingBuffer())->CreateMemoryBarrierTask(
-						VK_ACCESS_MEMORY_WRITE_BIT | VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_TRANSFER_WRITE_BIT | VK_ACCESS_TRANSFER_READ_BIT,
-						VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT
-					));
-				}
+				drawCallsJob->GetMemoryBarrierTasks(pc).push_back(vb->CreateMemoryBarrierTask(
+					VK_ACCESS_MEMORY_WRITE_BIT | VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_TRANSFER_WRITE_BIT | VK_ACCESS_TRANSFER_READ_BIT,
+					VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT
+				));
 			}
 		}
 
@@ -626,7 +623,7 @@ namespace MMPEngine::Backend::Vulkan
 
 			vkCmdBindIndexBuffer(
 				this->_specificStreamContext->PopulateCommandsInBuffer()->GetNative(), 
-				tc->renderer->GetIndexBuffer()->GetDescriptorBufferInfo().buffer,
+				tc->renderer->GetIndexBufferPointer()->GetDescriptorBufferInfo().buffer,
 				0, 
 				tc->renderer->GetIndexType()
 			);

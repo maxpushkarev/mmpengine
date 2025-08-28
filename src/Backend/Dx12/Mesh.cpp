@@ -88,6 +88,16 @@ namespace MMPEngine::Backend::Dx12
 		return _indexBufferView;
 	}
 
+	const std::vector<std::shared_ptr<Dx12::BaseEntity>>& Mesh::Renderer::GetVertexBufferPointers() const
+	{
+		return _vertexBuffers;
+	}
+
+	std::shared_ptr<Dx12::BaseEntity> Mesh::Renderer::GetIndexBufferPointer() const
+	{
+		return _indexBuffer;
+	}
+
 	const std::vector<D3D12_INPUT_ELEMENT_DESC>& Mesh::Renderer::GetVertexInputLayout() const
 	{
 		return _vertexInputLayout;
@@ -108,37 +118,34 @@ namespace MMPEngine::Backend::Dx12
 		const auto ib = std::dynamic_pointer_cast<ResourceEntity>(ibInfo.ptr->GetUnderlyingBuffer());
 		assert(ib);
 
+		renderer->_indexBuffer = ib;
 		renderer->_indexBufferView.Format = (ibInfo.format == Core::IndexBufferPrototype::Format::Uint16) ? DXGI_FORMAT_R16_UINT : DXGI_FORMAT_R32_UINT;
 		renderer->_indexBufferView.SizeInBytes = static_cast<std::uint32_t>(ibInfo.stride * ibInfo.elementsCount);
 		renderer->_indexBufferView.BufferLocation = ib->GetNativeGPUAddressWithRequiredOffset();
 
 		renderer->_vertexBufferViews.clear();
 		renderer->_vertexInputLayout.clear();
+		renderer->_vertexBuffers.clear();
 
 		std::uint32_t currentBufferSlotIndex = 0;
 
-		for(const auto& vbInfos : renderer->GetMesh()->GetAllVertexBufferInfos())
+		renderer->ForEachAvailableVertexAttributes([&currentBufferSlotIndex, &renderer](const auto& vbInfo, const auto& attr)
 		{
-			const auto semantics = vbInfos.first;
-
-			for(std::size_t semanticIndex = 0; semanticIndex < vbInfos.second.size(); ++semanticIndex)
-			{
-				const auto& vbInfo = vbInfos.second.at(semanticIndex);
 				const auto vb = std::dynamic_pointer_cast<ResourceEntity>(vbInfo.ptr->GetUnderlyingBuffer());
 				assert(vb);
 
-				D3D12_VERTEX_BUFFER_VIEW view {};
+				D3D12_VERTEX_BUFFER_VIEW view{};
 
 				view.SizeInBytes = static_cast<std::uint32_t>(vbInfo.stride * vbInfo.elementsCount);
 				view.StrideInBytes = static_cast<std::uint32_t>(vbInfo.stride);
 				view.BufferLocation = vb->GetNativeGPUAddressWithRequiredOffset();
-				
+
 				renderer->_vertexBufferViews.push_back(view);
-				renderer->_vertexInputLayout.push_back({ GetSemanticsName(semantics), static_cast<std::uint32_t>(semanticIndex), GetVertexBufferFormat(vbInfo.format), currentBufferSlotIndex, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 });
+				renderer->_vertexInputLayout.push_back({ GetSemanticsName(attr.type), static_cast<std::uint32_t>(attr.index), GetVertexBufferFormat(vbInfo.format), currentBufferSlotIndex, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 });
+				renderer->_vertexBuffers.push_back(vb);
 
 				++currentBufferSlotIndex;
-			}
-		}
+		});
 	}
 
 

@@ -2,6 +2,7 @@
 #include <d3d12.h>
 #include <Core/Mesh.hpp>
 #include <Backend/Dx12/Task.hpp>
+#include <Backend/Dx12/Entity.hpp>
 #include <Core/Node.hpp>
 
 namespace MMPEngine::Backend::Dx12
@@ -19,6 +20,9 @@ namespace MMPEngine::Backend::Dx12
 			const std::vector<D3D12_INPUT_ELEMENT_DESC>& GetVertexInputLayout() const;
 			const std::vector<D3D12_VERTEX_BUFFER_VIEW>& GetVertexBufferViews() const;
 			const D3D12_INDEX_BUFFER_VIEW& GetIndexBufferView() const;
+
+			std::shared_ptr<Dx12::BaseEntity> GetIndexBufferPointer() const;
+			const std::vector<std::shared_ptr<Dx12::BaseEntity>>& GetVertexBufferPointers() const;
 
 		protected:
 			std::shared_ptr<Core::UniformBuffer<Data>> CreateUniformBuffer() override;
@@ -44,6 +48,9 @@ namespace MMPEngine::Backend::Dx12
 			std::vector<D3D12_INPUT_ELEMENT_DESC> _vertexInputLayout;
 			std::vector<D3D12_VERTEX_BUFFER_VIEW> _vertexBufferViews;
 			D3D12_INDEX_BUFFER_VIEW _indexBufferView {};
+
+			std::shared_ptr<Dx12::BaseEntity> _indexBuffer;
+			std::vector<std::shared_ptr<Dx12::BaseEntity>> _vertexBuffers;
 		};
 
 

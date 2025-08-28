@@ -86,7 +86,7 @@ namespace MMPEngine::Frontend
 		};
 
 		proto.vertexBuffers.push_back(std::move(positionBuffer));
-		//proto.vertexBuffers.push_back(std::move(uvBuffer));
+		proto.vertexBuffers.push_back(std::move(uvBuffer));
 
 		proto.indexBuffer = std::move(indexBuffer);
 		proto.subsets = { { static_cast<std::uint32_t>(proto.indexBuffer->GetElementsCount()),0,0 } };
