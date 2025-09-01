@@ -260,7 +260,7 @@ namespace MMPEngine::Feature
 			CreateDXGIFactory(IID_PPV_ARGS(&_rootContext->factory));
 
 
-			constexpr std::array<D3D_FEATURE_LEVEL, 3> featureLevels = { D3D_FEATURE_LEVEL_12_2, D3D_FEATURE_LEVEL_12_1, D3D_FEATURE_LEVEL_12_0 };
+			constexpr std::array<D3D_FEATURE_LEVEL, 5> featureLevels = { D3D_FEATURE_LEVEL_12_2, D3D_FEATURE_LEVEL_12_1, D3D_FEATURE_LEVEL_12_0, D3D_FEATURE_LEVEL_11_1, D3D_FEATURE_LEVEL_11_0 };
 
 			for (const auto featureLevel : featureLevels)
 			{
