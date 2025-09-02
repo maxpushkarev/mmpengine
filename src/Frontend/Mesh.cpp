@@ -151,4 +151,8 @@ namespace MMPEngine::Frontend
 		return _impl->CreateTaskToUpdateAndWriteUniformData();
 	}
 
+	Mesh::Renderer::Settings::Dynamic& Mesh::Renderer::GetDynamicSettings()
+	{
+		return _impl->GetDynamicSettings();
+	}
 }

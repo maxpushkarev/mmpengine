@@ -188,7 +188,7 @@ namespace MMPEngine::Core
 
     bool Mesh::Renderer::IsActive() const
     {
-        return _settings.dynamicData.instancesCount > 0;
+        return const_cast<Mesh::Renderer*>(this)->GetDynamicSettings().instancesCount > 0;
     }
 
 	void Mesh::Renderer::FillData(const std::shared_ptr<GlobalContext>& globalContext, Data& data) const

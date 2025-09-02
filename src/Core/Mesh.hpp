@@ -129,8 +129,8 @@ namespace MMPEngine::Core
 			std::shared_ptr<Mesh> GetMesh() const;
 			std::shared_ptr<Node> GetNode() const;
             bool IsActive() const override;
-			const Settings& GetSettings() const;
-            Settings::Dynamic& GetDynamicSettings();
+			virtual const Settings& GetSettings() const;
+			virtual Settings::Dynamic& GetDynamicSettings();
 			virtual std::shared_ptr<BaseEntity> GetUniformDataEntity() const;
 			virtual std::shared_ptr<Renderer> GetUnderlyingRenderer();
 			virtual std::shared_ptr<ContextualTask<UpdateDataTaskContext>> CreateTaskToUpdateAndWriteUniformData();

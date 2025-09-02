@@ -24,6 +24,7 @@ namespace MMPEngine::Frontend
 			std::shared_ptr<Core::BaseEntity> GetUniformDataEntity() const override;
 			std::shared_ptr<Core::ContextualTask<UpdateDataTaskContext>> CreateTaskToUpdateAndWriteUniformData() override;
 			std::shared_ptr<Core::Mesh::Renderer> GetUnderlyingRenderer() override;
+			Settings::Dynamic& GetDynamicSettings() override;
 		protected:
 			std::shared_ptr<Core::UniformBuffer<Data>> CreateUniformBuffer() override;
 			std::shared_ptr<Core::BaseTask> CreateInternalInitializationTask() override;
