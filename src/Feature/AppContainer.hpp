@@ -33,6 +33,7 @@ namespace MMPEngine::Feature
 			std::int32_t initialWindowHeight = 720;
 			std::int32_t targetFps = 60;
 			std::int32_t pausedSleepTimeoutMs = 42;
+			bool showBackendType = true;
 			FPS fps{};
 		};
 	protected:

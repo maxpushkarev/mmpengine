@@ -1,5 +1,6 @@
 #pragma once
 #include <sstream>
+#include <Core/Base.hpp>
 
 namespace MMPEngine::Core
 {
@@ -10,6 +11,9 @@ namespace MMPEngine::Core
 	public:
 		template<class... TArgs>
 		static std::string CombineToString(TArgs&&... args);
+
+		static std::string ToString(BackendType backend);
+
 	private:
 		template<class TArg, class... TArgs>
 		static std::string CombineToStringInternal(std::stringstream& ss, TArg&& arg, TArgs&&... args);

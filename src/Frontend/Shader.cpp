@@ -1,4 +1,5 @@
 #include <Frontend/Shader.hpp>
+#include <Core/Text.hpp>
 #include <nlohmann/json.hpp>
 #include <fstream>
 #include <cassert>
@@ -43,21 +44,7 @@ namespace MMPEngine::Frontend
 		{
 			const auto& shaderPackNode = root["shaderPack"];
 
-			std::string backendStr{};
-
-			switch (globalContext->settings.backend)
-			{
-			case Core::BackendType::Dx12:
-				backendStr = "Dx12";
-				break;
-			case Core::BackendType::Vulkan:
-				backendStr = "Vulkan";
-				break;
-			case Core::BackendType::Metal:
-				backendStr = "Metal";
-				break;
-			}
-
+			const auto backendStr = Core::Text::ToString(globalContext->settings.backend);
 			const auto& backendNode = shaderPackNode[backendStr];
 
 #if defined (MMPENGINE_BACKEND_DX12) || defined(MMPENGINE_BACKEND_VULKAN)

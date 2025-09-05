@@ -1,6 +1,7 @@
 #include <thread>
 #include <numeric>
 #include <Feature/AppContainer.hpp>
+#include <Core/Text.hpp>
 #include <GLFW/glfw3.h>
 
 #ifdef MMPENGINE_WIN
@@ -42,6 +43,10 @@ namespace MMPEngine::Feature
 
 	AppContainer::AppContainer(Settings&& settings, std::unique_ptr<Feature::BaseRootApp>&& app) : _settings(std::move(settings)), _app(std::move(app))
 	{
+		if (_settings.showBackendType)
+		{
+			_settings.windowCaption += " | Backend: " + Core::Text::ToString(_app->GetContext()->settings.backend);
+		}
 	}
 
 	void AppContainer::OnWindowChanged()
