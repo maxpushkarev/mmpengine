@@ -1,6 +1,7 @@
 #include <Backend/Dx12/Screen.hpp>
 #include <Core/Texture.hpp>
 #include <Backend/Dx12/Entity.hpp>
+#include <Backend/Dx12/Heap.hpp>
 
 namespace MMPEngine::Backend::Dx12
 {

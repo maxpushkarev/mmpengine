@@ -1,6 +1,7 @@
 #pragma once
 #include <Core/Task.hpp>
 #include <Backend/Dx12/Context.hpp>
+#include <Backend/Dx12/Pool.hpp>
 
 namespace MMPEngine::Backend::Dx12
 {

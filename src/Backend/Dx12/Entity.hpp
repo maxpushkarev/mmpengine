@@ -2,6 +2,7 @@
 #include <d3d12.h>
 #include <Core/Entity.hpp>
 #include <Backend/Dx12/Task.hpp>
+#include <Backend/Dx12/Pool.hpp>
 #include <wrl/client.h>
 
 namespace MMPEngine::Backend::Dx12

@@ -8,6 +8,8 @@
 #include <Backend/Dx12/Stream.hpp>
 #include <Backend/Dx12/Math.hpp>
 #include <Backend/Dx12/Wrapper.hpp>
+#include <Backend/Dx12/Heap.hpp>
+#include <Backend/Dx12/Pool.hpp>
 #endif
 
 #ifdef MMPENGINE_BACKEND_VULKAN

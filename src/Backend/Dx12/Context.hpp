@@ -2,14 +2,18 @@
 #include <d3d12.h>
 #include <dxgi.h>
 #include <Core/Context.hpp>
-#include <Backend/Dx12/Pool.hpp>
-#include <Backend/Dx12/Heap.hpp>
 #include <Backend/Dx12/Wrapper.hpp>
 #include <Backend/Shared/Context.hpp>
 #include <wrl/client.h>
 
 namespace MMPEngine::Backend::Dx12
 {
+	class DeviceMemoryHeap;
+	class ConstantBufferHeap;
+	class RTVDescriptorPool;
+	class DSVDescriptorPool;
+	class CBVSRVUAVDescriptorPool;
+
 	class GlobalContext : public Core::GlobalContext
 	{
 	public:

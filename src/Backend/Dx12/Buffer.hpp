@@ -1,6 +1,8 @@
 #pragma once
 #include <Core/Buffer.hpp>
 #include <Backend/Dx12/Entity.hpp>
+#include <Backend/Dx12/Heap.hpp>
+#include <Backend/Dx12/Pool.hpp>
 #include <Core/Context.hpp>
 
 namespace MMPEngine::Backend::Dx12
