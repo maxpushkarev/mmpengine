@@ -212,6 +212,7 @@ namespace MMPEngine::Feature
 				static_cast<std::uint64_t>(floor((1000.0 / static_cast<double_t>(_settings.targetFps))))
 			);
 
+
 			while (!glfwWindowShouldClose(_window))
 			{
 				glfwPollEvents();
@@ -289,6 +290,11 @@ namespace MMPEngine::Feature
 							std::this_thread::yield();
 						}
 					}
+
+					if (_app->IsReadyToFinish())
+					{
+						glfwSetWindowShouldClose(_window, 1);
+					}
 				}
 				else
 				{
@@ -299,6 +305,7 @@ namespace MMPEngine::Feature
 #ifdef MMPENGINE_BACKEND_METAL
                 pool->release();
 #endif
+
 			}
 
 			_app->OnPause();
@@ -398,6 +405,11 @@ namespace MMPEngine::Feature
 							{
 								std::this_thread::yield();
 							}
+						}
+
+						if (_app->IsReadyToFinish())
+						{
+							SendMessage(globalContext->nativeWindow, WM_CLOSE, 0, 0);
 						}
 					}
 					else
