@@ -29,7 +29,8 @@ namespace MMPEngine::Feature
 		PageUp,
 		PageDown,
 		Enter,
-		Space
+		Space,
+		Esc
 	};
 
 

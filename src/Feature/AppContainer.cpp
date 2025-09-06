@@ -134,7 +134,8 @@ namespace MMPEngine::Feature
 			{ GLFW_KEY_PAGE_DOWN, Feature::KeyButton::PageDown },
 
 			{ GLFW_KEY_ENTER, Feature::KeyButton::Enter },
-			{ GLFW_KEY_SPACE, Feature::KeyButton::Space }
+			{ GLFW_KEY_SPACE, Feature::KeyButton::Space },
+			{ GLFW_KEY_ESCAPE, Feature::KeyButton::Esc}
 		};
 
 		AppContainer::AppContainer(PlatformAppContainer::Settings&& settings, std::unique_ptr<Feature::BaseRootApp>&& app) :
@@ -487,11 +488,12 @@ namespace MMPEngine::Feature
 			{ 0x52, Feature::KeyButton::R },
 			{ 0x46, Feature::KeyButton::F },
 
-			{ 0x21, Feature::KeyButton::PageUp },
-			{ 0x22, Feature::KeyButton::PageDown },
+			{ VK_PRIOR, Feature::KeyButton::PageUp },
+			{ VK_NEXT, Feature::KeyButton::PageDown },
 
-			{ 0x0D, Feature::KeyButton::Enter },
-			{ 0x20, Feature::KeyButton::Space }
+			{ VK_RETURN, Feature::KeyButton::Enter },
+			{ VK_SPACE, Feature::KeyButton::Space },
+			{ VK_ESCAPE, Feature::KeyButton::Esc }
 		};
 
 		LRESULT AppContainer::MainWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
