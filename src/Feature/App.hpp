@@ -39,6 +39,7 @@ namespace MMPEngine::Feature
 		virtual void OnResume();
 		virtual void OnUpdate(std::float_t dt);
 		virtual void OnRender();
+		virtual bool IsReadyToFinish() const;
 		virtual std::shared_ptr<Core::GlobalContext> GetContext() const = 0;
 		virtual std::shared_ptr<Feature::Input> GetInput() const = 0;
 		virtual std::shared_ptr<Core::BaseStream> GetDefaultStream() const = 0;
@@ -70,6 +71,7 @@ namespace MMPEngine::Feature
 		void OnResume() override;
 		void OnUpdate(std::float_t dt) override;
 		void OnRender() override;
+		bool IsReadyToFinish() const override;
 		std::unique_ptr<UserApp> _userApp;
 	public:
 		void Attach(std::unique_ptr<UserApp>&& userApp);

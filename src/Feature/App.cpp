@@ -60,6 +60,11 @@ namespace MMPEngine::Feature
 	{
 	}
 
+	bool App::IsReadyToFinish() const
+	{
+		return false;
+	}
+
 	std::unique_ptr<BaseRootApp> App::BuildRootApp(
 		const Core::GlobalContext::Settings& globalContextSettings,
 		std::unique_ptr<UserApp>&& userApp,
@@ -183,6 +188,16 @@ namespace MMPEngine::Feature
 		{
 			_userApp->OnRender();
 		}
+	}
+
+	bool BaseRootApp::IsReadyToFinish() const
+	{
+		if (_userApp)
+		{
+			return _userApp->IsReadyToFinish();
+		}
+
+		return App::IsReadyToFinish();
 	}
 
 	std::shared_ptr<Feature::Input> BaseRootApp::GetInput() const
