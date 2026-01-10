@@ -96,26 +96,15 @@ namespace MMPEngine::Core
 
 	void BaseMaterial::Parameters::Build()
 	{
-		std::unordered_set<std::string> knownTags {};
-
 		std::uint32_t stencilRefCount = 0;
 
 		for (std::size_t i = 0; i < _entries.size(); ++i)
 		{
 			const auto& entry = _entries[i];
 			const auto& name = entry.name;
-			const auto& tag = entry.tag;
-
+			
 			assert(!name.empty());
-			assert(!tag.empty());
 			assert(_viewMap.find(name) == _viewMap.cend());
-
-			if (i > 0)
-			{
-				assert((_entries[i - 1].tag == tag) || (knownTags.find(tag) == knownTags.cend()));
-			}
-
-			knownTags.insert(tag);
 
 			EntryView entryView{};
 			entryView.entryPtr = &entry;
