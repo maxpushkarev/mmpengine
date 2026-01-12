@@ -16,7 +16,7 @@ namespace MMPEngine::Core
 		std::uint8_t value = std::numeric_limits<std::uint8_t>::lowest();
 	};
 
-	class BaseMaterial : public std::enable_shared_from_this<BaseMaterial>
+	class BaseMaterial : public IInitializationTaskSource, public std::enable_shared_from_this<BaseMaterial>
 	{
 	public:
 
@@ -249,21 +249,23 @@ namespace MMPEngine::Core
 		const Settings& GetSettings() const;
 	};
 
-	class MeshMaterial final : public RenderingMaterial
+	class MeshMaterial : public RenderingMaterial
 	{
 	public:
 		MeshMaterial(const Settings& settings, Parameters&& params, const std::shared_ptr<Shader>& vs, const std::shared_ptr<Shader>& ps);
-		std::shared_ptr<Shader> _vs;
-		std::shared_ptr<Shader> _ps;
 		const std::shared_ptr<Shader>& GetVertexShader() const;
 		const std::shared_ptr<Shader>& GetPixelShader() const;
+    private:
+        std::shared_ptr<Shader> _vs;
+        std::shared_ptr<Shader> _ps;
 	};
 
-	class ComputeMaterial final : public BaseMaterial
+	class ComputeMaterial : public BaseMaterial
 	{
 	public:
 		ComputeMaterial(Parameters&& params, const std::shared_ptr<Shader>& computeShader);
-		std::shared_ptr<Shader> _shader;
 		const std::shared_ptr<Shader>& GetShader() const;
+    private:
+        std::shared_ptr<Shader> _shader;
 	};
 }

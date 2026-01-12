@@ -1,3 +1,4 @@
+#pragma once
 #include <Core/Shader.hpp>
 #include <Core/Entity.hpp>
 #include <Backend/Metal/Task.hpp>
