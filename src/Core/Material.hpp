@@ -1,6 +1,7 @@
 #pragma once
 #include <optional>
 #include <variant>
+#include <filesystem>
 #include <array>
 #include <Core/Base.hpp>
 #include <Core/Entity.hpp>
@@ -70,7 +71,7 @@ namespace MMPEngine::Core
 				std::uint32_t index;
 			};
 
-			explicit Parameters(std::vector<Entry>&& entries);
+			explicit Parameters(std::vector<Entry>&& entries, std::variant<std::string, std::filesystem::path>&& bindings);
 			Parameters();
 			~Parameters();
 
@@ -89,6 +90,7 @@ namespace MMPEngine::Core
 			void Build();
 
 			std::vector<Entry> _entries;
+            std::variant<std::string, std::filesystem::path> _bindings;
 			std::unordered_map<std::string_view, EntryView> _viewMap;
 		};
 
