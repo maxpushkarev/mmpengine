@@ -29,12 +29,12 @@ namespace MMPEngine::Core
 	BaseMaterial::Parameters::~Parameters() = default;
 
 
-	BaseMaterial::Parameters::Parameters(std::vector<Entry>&& entries) : _entries(std::move(entries))
+	BaseMaterial::Parameters::Parameters(std::vector<Entry>&& entries, Bindings&& bindings) : _entries(std::move(entries)), _bindings(std::move(bindings))
 	{
 		Build();
 	}
 
-	BaseMaterial::Parameters::Parameters(const Parameters& other) : _entries(other._entries)
+	BaseMaterial::Parameters::Parameters(const Parameters& other) : _entries(other._entries), _bindings(other._bindings)
 	{
 		Build();	
 	}
@@ -44,6 +44,7 @@ namespace MMPEngine::Core
 		if(this != &other)
 		{
 			_entries = std::move(other._entries);
+            _bindings = std::move(other._bindings);
 			other._viewMap.clear();
 
 			Build();
@@ -55,7 +56,7 @@ namespace MMPEngine::Core
 		if (this != &other)
 		{
 			_entries = std::move(other._entries);
-
+            _bindings = std::move(other._bindings);
 			other._viewMap.clear();
 			_viewMap.clear();
 
@@ -70,6 +71,7 @@ namespace MMPEngine::Core
 		if (this != &other)
 		{
 			_entries = other._entries;
+            _bindings = other._bindings;
 			_viewMap.clear();
 
 			Build();

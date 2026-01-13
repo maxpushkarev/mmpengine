@@ -71,7 +71,12 @@ namespace MMPEngine::Core
 				std::uint32_t index;
 			};
 
-			explicit Parameters(std::vector<Entry>&& entries);
+            struct Bindings final
+            {
+                std::variant<std::string, std::filesystem::path> source;
+            };
+            
+			explicit Parameters(std::vector<Entry>&& entries, Bindings&& bindings);
 			Parameters();
 			~Parameters();
 
@@ -90,6 +95,7 @@ namespace MMPEngine::Core
 			void Build();
 
 			std::vector<Entry> _entries;
+            Bindings _bindings;
 			std::unordered_map<std::string_view, EntryView> _viewMap;
 		};
 
