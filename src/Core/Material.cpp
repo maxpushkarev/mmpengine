@@ -29,7 +29,7 @@ namespace MMPEngine::Core
 	BaseMaterial::Parameters::~Parameters() = default;
 
 
-	BaseMaterial::Parameters::Parameters(std::vector<Entry>&& entries, std::variant<std::string, std::filesystem::path>&& bindings) : _entries(std::move(entries)), _bindings(std::move(bindings))
+	BaseMaterial::Parameters::Parameters(std::vector<Entry>&& entries) : _entries(std::move(entries))
 	{
 		Build();
 	}
